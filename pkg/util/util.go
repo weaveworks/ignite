@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func executeCommand(command string, args ...string) (string, error) {
+func ExecuteCommand(command string, args ...string) (string, error) {
 	cmd := exec.Command(command, args...)
 	out, err := cmd.CombinedOutput()
 	cmdArgs := strings.Join(cmd.Args, " ")

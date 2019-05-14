@@ -57,13 +57,8 @@ func (vmm *VMM) copyFilesFromHost() error {
 }
 */
 
-//func NewImage(vmID string) {
-//	image := path.Join(constants.VM_DIR, vmID, constants.VM_FS_IMAGE)
-//
-//}
-
-// Creates a new 8-byte VM ID and return it as a string
-func NewVMID() (string, error) {
+// Creates a new 8-byte Image ID and return it as a string
+func NewImageID() (string, error) {
 	var vmID string
 	var idBytes []byte
 
@@ -77,7 +72,7 @@ func NewVMID() (string, error) {
 		vmID = fmt.Sprintf("%x", idBytes)
 
 		// If the generated ID is unique, return it
-		if exists, _ := util.PathExists(path.Join(constants.VM_DIR, vmID)); !exists {
+		if exists, _ := util.PathExists(path.Join(constants.IMAGE_DIR, vmID)); !exists {
 			return vmID, nil
 		}
 	}
