@@ -15,7 +15,8 @@ $ ignite ps
 
 ### Maintainers
 
-Lucas Käldström, @luxas
+- Lucas Käldström, @luxas
+- Dennis Marttinen, @twelho
 
 ### License
 

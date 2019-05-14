@@ -3,7 +3,7 @@ package cmd
 import (
 	"io"
 
-	"github.com/luxas/ignite/pkg/errors"
+	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +14,7 @@ func NewCmdStop(out io.Writer) *cobra.Command {
 		Short: "Stop a Firecracker VM",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := RunStop(out, cmd)
-			errors.Check(err)
+			errutils.Check(err)
 		},
 	}
 	//cmd.Flags().StringP("output", "o", "", "Output format; available options are 'yaml', 'json' and 'short'")

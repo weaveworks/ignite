@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/luxas/ignite/pkg/errors"
+	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/luxas/ignite/pkg/version"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
@@ -24,7 +24,7 @@ func NewCmdVersion(out io.Writer) *cobra.Command {
 		Short: "Print the version of ignite",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := RunVersion(out, cmd)
-			errors.Check(err)
+			errutils.Check(err)
 		},
 	}
 	cmd.Flags().StringP("output", "o", "", "Output format; available options are 'yaml', 'json' and 'short'")
