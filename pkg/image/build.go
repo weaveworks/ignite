@@ -1,14 +1,20 @@
 package build
-/*
-import (
-	"os"
-	"path/filepath"
-	"strings"
 
-	"github.com/pkg/errors"
+import (
+	"crypto/rand"
 )
 
+//import (
+//	"os"
+//	"path/filepath"
+//	"strings"
+//
+//	"github.com/pkg/errors"
+//)
 
+type VMID []byte
+
+/*
 func (vmm *VMM) copyFilesFromHost() error {
 	if len(vmm.copyFiles) == 0 {
 		return nil
@@ -45,3 +51,14 @@ func (vmm *VMM) copyFilesFromHost() error {
 	return executeCommand("umount", mntdir)
 }
 */
+
+// Creates a new 8-byte VM ID
+func NewVMID() ([]byte, error) {
+	ID := make([]byte, 8)
+	if _, err := rand.Read(ID); err != nil {
+		return []byte{}, err
+	}
+	// TODO: Verify that new ID doesn't exist before
+
+	return ID, nil
+}
