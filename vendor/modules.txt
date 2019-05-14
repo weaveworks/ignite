@@ -1,11 +1,36 @@
+# github.com/dsnet/compress v0.0.1
+github.com/dsnet/compress/bzip2
+github.com/dsnet/compress/bzip2/internal/sais
+github.com/dsnet/compress/internal
+github.com/dsnet/compress/internal/errors
+github.com/dsnet/compress/internal/prefix
+github.com/dsnet/compress
+# github.com/golang/snappy v0.0.1
+github.com/golang/snappy
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
 # github.com/lithammer/dedent v1.1.0
 github.com/lithammer/dedent
+# github.com/mholt/archiver v3.1.1+incompatible
+github.com/mholt/archiver
+# github.com/nwaples/rardecode v1.0.0
+github.com/nwaples/rardecode
+# github.com/pierrec/lz4 v2.0.5+incompatible
+github.com/pierrec/lz4
+github.com/pierrec/lz4/internal/xxh32
+# github.com/pkg/errors v0.8.1
+github.com/pkg/errors
 # github.com/spf13/cobra v0.0.3
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
+# github.com/ulikunitz/xz v0.5.6
+github.com/ulikunitz/xz
+github.com/ulikunitz/xz/internal/xlog
+github.com/ulikunitz/xz/lzma
+github.com/ulikunitz/xz/internal/hash
+# github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
+github.com/xi2/xz
 # gopkg.in/yaml.v2 v2.2.1
 gopkg.in/yaml.v2
 # sigs.k8s.io/yaml v1.1.0
