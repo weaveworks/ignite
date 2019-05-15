@@ -2,6 +2,7 @@ package build
 
 import (
 	"archive/tar"
+	"encoding/json"
 	"io/ioutil"
 	"path/filepath"
 
@@ -17,14 +18,20 @@ import (
 )
 
 type Image struct {
-	id   string
-	path string
+	id       string
+	path     string
+	metadata *Metadata
 }
 
-func NewImage(id string) *Image {
+type Metadata struct {
+	Name string `json:"imageName"`
+}
+
+func NewImage(id string, metadata *Metadata) *Image {
 	return &Image{
-		id:   id,
-		path: path.Join(constants.IMAGE_DIR, id, constants.IMAGE_FS),
+		id:       id,
+		path:     path.Join(constants.IMAGE_DIR, id, constants.IMAGE_FS),
+		metadata: metadata,
 	}
 }
 
@@ -135,6 +142,26 @@ func (i Image) AddFiles2(sourcePath string) error {
 	defer util.ExecuteCommand("sudo", "umount", tempDir)
 
 	if err := archiver.Unarchive(sourcePath, tempDir); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (i Image) WriteMetadata() error {
+	f, err := os.Create(path.Join(constants.IMAGE_DIR, i.id, constants.IMAGE_METADATA))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	y, err := json.MarshalIndent(&i.metadata, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	// TODO: Add newline to end of file
+	if _, err := f.Write(y); err != nil {
 		return err
 	}
 

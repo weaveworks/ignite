@@ -12,4 +12,7 @@ const (
 
 	// Filename for the disk image containing the filesystem
 	IMAGE_FS = "image.ext4"
+
+	// Filename for image metadata
+	IMAGE_METADATA = "metadata.json"
 )
