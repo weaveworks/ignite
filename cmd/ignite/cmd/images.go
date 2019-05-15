@@ -26,13 +26,13 @@ func NewCmdImages(out io.Writer) *cobra.Command {
 
 // RunImages runs when the Images command is invoked and lists the images
 func RunImages(out io.Writer, cmd *cobra.Command) error {
-	images, err := ioutil.ReadDir(constants.IMAGE_DIR)
+	ids, err := ioutil.ReadDir(constants.IMAGE_DIR)
 	if err != nil {
 		return err
 	}
 
-	for _, image := range images {
-		fmt.Println(image.Name())
+	for _, id := range ids {
+		fmt.Println(id.Name())
 	}
 
 	return nil
