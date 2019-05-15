@@ -19,7 +19,7 @@ import (
 
 type Image struct {
 	id       string
-	path     string
+	Path     string
 	metadata *Metadata
 }
 
@@ -30,13 +30,13 @@ type Metadata struct {
 func NewImage(id string, metadata *Metadata) *Image {
 	return &Image{
 		id:       id,
-		path:     path.Join(constants.IMAGE_DIR, id, constants.IMAGE_FS),
+		Path:     path.Join(constants.IMAGE_DIR, id, constants.IMAGE_FS),
 		metadata: metadata,
 	}
 }
 
 func (i Image) AllocateAndFormat() error {
-	imageFile, err := os.Create(i.path)
+	imageFile, err := os.Create(i.Path)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create image file for %s", i.id)
 	}
@@ -54,7 +54,7 @@ func (i Image) AllocateAndFormat() error {
 	//_ = imageFile.Close()
 
 	// Use mkfs.ext4 to create the new image with an inode size of 128 (gexto doesn't support the default of 256)
-	if _, err := util.ExecuteCommand("mkfs.ext4", "-I", "128", "-E", "lazy_itable_init=0,lazy_journal_init=0", i.path); err != nil {
+	if _, err := util.ExecuteCommand("mkfs.ext4", "-I", "128", "-E", "lazy_itable_init=0,lazy_journal_init=0", i.Path); err != nil {
 		return errors.Wrapf(err, "failed to format image %s", i.id)
 	}
 
@@ -65,7 +65,7 @@ func (i Image) AllocateAndFormat() error {
 // TODO: Fix the "corrupt direntry" error from gexto
 func (i Image) AddFiles(sourcePath string) error {
 	// TODO: This
-	filesystem, err := gexto.NewFileSystem(i.path)
+	filesystem, err := gexto.NewFileSystem(i.Path)
 	if err != nil {
 		return err
 	}
@@ -136,7 +136,7 @@ func (i Image) AddFiles2(sourcePath string) error {
 	}
 	defer os.RemoveAll(tempDir)
 
-	if _, err := util.ExecuteCommand("sudo", "mount", "-o", "loop", i.path, tempDir); err != nil {
+	if _, err := util.ExecuteCommand("sudo", "mount", "-o", "loop", i.Path, tempDir); err != nil {
 		return errors.Wrapf(err, "failed to mount image %s", i.id)
 	}
 	defer util.ExecuteCommand("sudo", "umount", tempDir)

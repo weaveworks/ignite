@@ -129,6 +129,10 @@ func RunBuild(out io.Writer, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	//if err := container.ExportToDocker(image); err != nil {
+	//	return err
+	//}
+
 	// Print the ID of the newly generated image
 	fmt.Println(buildOptions.imageID)
 
