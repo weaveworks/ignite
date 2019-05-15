@@ -33,11 +33,18 @@ func (i Image) AllocateAndFormat() error {
 	if err != nil {
 		return errors.Wrapf(err, "failed to create image file for %s", i.id)
 	}
+	defer imageFile.Close()
 
 	// TODO: Dynamic size, for now hardcoded 4 GiB
 	if err := imageFile.Truncate(4294967296); err != nil {
 		return errors.Wrapf(err, "failed to allocate space for image %s", i.id)
 	}
+
+	//blank := make([]byte, 1024*1024)
+	//for i := 0; i < 4096; i++ {
+	//	_, _ = imageFile.Write(blank)
+	//}
+	//_ = imageFile.Close()
 
 	// Use mkfs.ext4 to create the new image with an inode size of 128 (gexto doesn't support the default of 256)
 	if _, err := util.ExecuteCommand("mkfs.ext4", "-I", "128", "-E", "lazy_itable_init=0,lazy_journal_init=0", i.path); err != nil {
@@ -122,10 +129,10 @@ func (i Image) AddFiles2(sourcePath string) error {
 	}
 	defer os.RemoveAll(tempDir)
 
-	if _, err := util.ExecuteCommand("mount", "-o", "loop", i.path, tempDir); err != nil {
+	if _, err := util.ExecuteCommand("sudo", "mount", "-o", "loop", i.path, tempDir); err != nil {
 		return errors.Wrapf(err, "failed to mount image %s", i.id)
 	}
-	defer util.ExecuteCommand("umount", tempDir)
+	defer util.ExecuteCommand("sudo", "umount", tempDir)
 
 	if err := archiver.Unarchive(sourcePath, tempDir); err != nil {
 		return err
