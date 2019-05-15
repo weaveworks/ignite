@@ -57,11 +57,12 @@ func RunBuild(out io.Writer, cmd *cobra.Command, args []string) error {
 	}
 
 	// Decompress given file to later be extracted into the disk image
-	// TODO: Archiver has somehow forgotten how to extract a .tar.gz
-	// (format specified by source filename is not a recognized compression algorithm)
-	// Figure something out, maybe we need a custom extractor?
-	fmt.Println(path.Join(buildOptions.imageDir, constants.IMAGE_TAR))
-	if err := archiver.DecompressFile(buildOptions.tarPath, path.Join(buildOptions.imageDir, constants.IMAGE_TAR)); err != nil {
+	// TODO: Either extract directly into image or intermediate tarfile from different formats
+	decompressor := archiver.FileCompressor{
+		Decompressor: archiver.NewGz(),
+	}
+
+	if err := decompressor.DecompressFile(buildOptions.tarPath, path.Join(buildOptions.imageDir, constants.IMAGE_TAR)); err != nil {
 		return err
 	}
 
@@ -71,6 +72,13 @@ func RunBuild(out io.Writer, cmd *cobra.Command, args []string) error {
 	if err := image.AllocateAndFormat(); err != nil {
 		return err
 	}
+
+	if err := image.AddFiles2(path.Join(buildOptions.imageDir, constants.IMAGE_TAR)); err != nil {
+		return err
+	}
+
+	// Print the ID of the newly generated image
+	fmt.Println(buildOptions.imageID)
 
 	return nil
 }
