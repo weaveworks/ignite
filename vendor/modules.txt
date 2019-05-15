@@ -11,8 +11,12 @@ github.com/golang/snappy
 github.com/inconshreveable/mousetrap
 # github.com/lithammer/dedent v1.1.0
 github.com/lithammer/dedent
+# github.com/lunixbochs/struc v0.0.0-20190326164542-a9e4041416c2
+github.com/lunixbochs/struc
 # github.com/mholt/archiver v3.1.1+incompatible
 github.com/mholt/archiver
+# github.com/nerd2/gexto v0.0.0-20180530205145-da6bfa566d33
+github.com/nerd2/gexto
 # github.com/nwaples/rardecode v1.0.0
 github.com/nwaples/rardecode
 # github.com/pierrec/lz4 v2.0.5+incompatible
