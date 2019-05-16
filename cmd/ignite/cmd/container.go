@@ -7,6 +7,7 @@ import (
 	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/errutils"
+	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
 	"io"
 	"os"
@@ -44,9 +45,11 @@ func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	//util.ExecuteCommand("/firecracker")
+	md.State = Running
 
 	runVM(md)
+
+	md.State = Stopped
 
 	return nil
 }
@@ -164,4 +167,18 @@ func installSignalHandlers(ctx context.Context, m *firecracker.Machine) {
 			}
 		}
 	}()
+}
+
+func createTAPAdapter(tapName string) error {
+	_, err := util.ExecuteCommand("ip", "tuntap", "add", "mode", "tap", tapName)
+	if err != nil {
+		return err
+	}
+	_, err = util.ExecuteCommand("ip", "link", "set", tapName, "up")
+	return err
+}
+
+func connectTAPToBridge(tapName, bridgeName string) error {
+	_, err := util.ExecuteCommand("brctl", "addif", bridgeName, tapName)
+	return err
 }
