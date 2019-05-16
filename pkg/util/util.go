@@ -1,9 +1,13 @@
 package util
 
 import (
+	"crypto/rand"
+	"fmt"
 	"github.com/pkg/errors"
+	"io"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 )
 
@@ -44,6 +48,63 @@ func DirExists(dirname string) bool {
 	return info.IsDir()
 }
 
+func CopyFile(src string, dst string) error {
+	sourceFileStat, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", src)
+	}
+
+	source, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer source.Close()
+
+	destination, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destination.Close()
+
+	_, err = io.Copy(destination, source)
+	return err
+}
+
 func IsEmptyString(input string) bool {
 	return len(strings.TrimSpace(input)) == 0
+}
+
+// Creates a new 8-byte ID and return it as a string
+func NewID(baseDir string) (string, error) {
+	var id string
+	var idPath string
+	var idBytes []byte
+
+	for {
+		idBytes = make([]byte, 8)
+		if _, err := rand.Read(idBytes); err != nil {
+			return "", errors.Wrap(err, "failed to generate ID")
+		}
+
+		// Convert the byte array to a string literally
+		id = fmt.Sprintf("%x", idBytes)
+
+		// If the generated ID is unique break the generator loop
+		idPath = path.Join(baseDir, id)
+		if exists, _ := PathExists(idPath); !exists {
+			break
+		}
+	}
+
+	// Create the directory for the ID
+	if err := os.MkdirAll(idPath, os.ModePerm); err != nil {
+		return "", errors.Wrapf(err, "failed to create directory for ID: %s", id)
+	}
+
+	// Return the generated ID
+	return id, nil
 }

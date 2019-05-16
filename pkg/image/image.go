@@ -17,34 +17,22 @@ import (
 	"path"
 )
 
-type Image struct {
-	id       string
-	Path     string
-	metadata *Metadata
+type ImageMetadata struct {
+	ID   string `json:"ID"`
+	Name string `json:"Name"`
 }
 
-type Metadata struct {
-	Name string `json:"imageName"`
-}
-
-func NewImage(id string, metadata *Metadata) *Image {
-	return &Image{
-		id:       id,
-		Path:     path.Join(constants.IMAGE_DIR, id, constants.IMAGE_FS),
-		metadata: metadata,
-	}
-}
-
-func (i Image) AllocateAndFormat() error {
-	imageFile, err := os.Create(i.Path)
+func (i ImageMetadata) AllocateAndFormat() error {
+	p := path.Join(constants.IMAGE_DIR, i.ID, constants.IMAGE_FS)
+	imageFile, err := os.Create(p)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create image file for %s", i.id)
+		return errors.Wrapf(err, "failed to create image file for %s", i.ID)
 	}
 	defer imageFile.Close()
 
 	// TODO: Dynamic size, for now hardcoded 4 GiB
 	if err := imageFile.Truncate(4294967296); err != nil {
-		return errors.Wrapf(err, "failed to allocate space for image %s", i.id)
+		return errors.Wrapf(err, "failed to allocate space for image %s", i.ID)
 	}
 
 	//blank := make([]byte, 1024*1024)
@@ -54,8 +42,8 @@ func (i Image) AllocateAndFormat() error {
 	//_ = imageFile.Close()
 
 	// Use mkfs.ext4 to create the new image with an inode size of 128 (gexto doesn't support the default of 256)
-	if _, err := util.ExecuteCommand("mkfs.ext4", "-I", "128", "-E", "lazy_itable_init=0,lazy_journal_init=0", i.Path); err != nil {
-		return errors.Wrapf(err, "failed to format image %s", i.id)
+	if _, err := util.ExecuteCommand("mkfs.ext4", "-I", "128", "-E", "lazy_itable_init=0,lazy_journal_init=0", p); err != nil {
+		return errors.Wrapf(err, "failed to format image %s", i.ID)
 	}
 
 	return nil
@@ -63,9 +51,10 @@ func (i Image) AllocateAndFormat() error {
 
 // Adds all the files from the given rootfs tar to the image
 // TODO: Fix the "corrupt direntry" error from gexto
-func (i Image) AddFiles(sourcePath string) error {
+func (i ImageMetadata) AddFiles(sourcePath string) error {
 	// TODO: This
-	filesystem, err := gexto.NewFileSystem(i.Path)
+	p := path.Join(constants.IMAGE_DIR, i.ID, constants.IMAGE_FS)
+	filesystem, err := gexto.NewFileSystem(p)
 	if err != nil {
 		return err
 	}
@@ -129,15 +118,16 @@ func (i Image) AddFiles(sourcePath string) error {
 }
 
 // mount-based file adder (temporary, requires root)
-func (i Image) AddFiles2(sourcePath string) error {
+func (i ImageMetadata) AddFiles2(sourcePath string) error {
+	p := path.Join(constants.IMAGE_DIR, i.ID, constants.IMAGE_FS)
 	tempDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		return err
 	}
 	defer os.RemoveAll(tempDir)
 
-	if _, err := util.ExecuteCommand("sudo", "mount", "-o", "loop", i.Path, tempDir); err != nil {
-		return errors.Wrapf(err, "failed to mount image %s", i.id)
+	if _, err := util.ExecuteCommand("sudo", "mount", "-o", "loop", p, tempDir); err != nil {
+		return errors.Wrapf(err, "failed to mount image %s", p)
 	}
 	defer util.ExecuteCommand("sudo", "umount", tempDir)
 
@@ -148,20 +138,19 @@ func (i Image) AddFiles2(sourcePath string) error {
 	return nil
 }
 
-func (i Image) WriteMetadata() error {
-	f, err := os.Create(path.Join(constants.IMAGE_DIR, i.id, constants.IMAGE_METADATA))
+func (i ImageMetadata) WriteMetadata() error {
+	f, err := os.Create(path.Join(constants.IMAGE_DIR, i.ID, constants.METADATA))
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	y, err := json.MarshalIndent(&i.metadata, "", "    ")
+	y, err := json.MarshalIndent(&i, "", "    ")
 	if err != nil {
 		return err
 	}
 
-	// TODO: Add newline to end of file
-	if _, err := f.Write(y); err != nil {
+	if _, err := f.Write(append(y, '\n')); err != nil {
 		return err
 	}
 
