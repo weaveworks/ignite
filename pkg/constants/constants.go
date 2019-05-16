@@ -18,4 +18,10 @@ const (
 
 	// Directory for hosting VM instances
 	VM_DIR = DATA_DIR + "/vm"
+
+	// Directory containing VM kernels
+	KERNEL_DIR = DATA_DIR + "/kernel"
+
+	// Kernel filename
+	KERNEL_FILE = "vmlinux"
 )

@@ -1,2 +1,4 @@
 .idea
 bin
+*.bin
+*.ext4
