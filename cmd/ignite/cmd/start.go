@@ -6,7 +6,9 @@ import (
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/pkg/errors"
 	"io"
+	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
@@ -48,8 +50,24 @@ func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
 		return errors.New("given VM is already running")
 	}
 
+	igniteBinary, _ := filepath.Abs(os.Args[0])
+
+	dockerArgs := []string{
+		"run",
+		"-itd",
+		"--volume",
+		igniteBinary + ":/ignite/ignite",
+		"--volume",
+		constants.DATA_DIR + ":" + constants.DATA_DIR,
+		"--privileged",
+		"--volume",
+		"/dev/kvm:/dev/kvm",
+		"ignite",
+		vmID,
+	}
+
 	// Start the vm in docker
-	if _, err := util.ExecuteCommand("docker", "run", "-itd", "--rm", "ignite", "container", vmID); err != nil {
+	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
 		return errors.Wrapf(err, "failed to start container for VM: %s", vmID)
 	}
 
