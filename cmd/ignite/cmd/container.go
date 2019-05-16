@@ -59,6 +59,7 @@ func runVM(md *vmMetadata) {
 	cfg := firecracker.Config{
 		SocketPath:      socketPath,
 		KernelImagePath: path.Join(constants.KERNEL_DIR, md.KernelID, constants.KERNEL_FILE),
+		KernelArgs:      "console=ttyS0 reboot=k panic=1 pci=off",
 		Drives: []models.Drive{{
 			DriveID:      firecracker.String("1"),
 			PathOnHost:   &drivePath,
