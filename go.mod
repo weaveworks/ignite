@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/dsnet/compress v0.0.1 // indirect
+	github.com/firecracker-microvm/firecracker-go-sdk v0.15.1
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/lithammer/dedent v1.1.0
@@ -17,6 +18,5 @@ require (
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/stretchr/testify v1.3.0 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
-	gopkg.in/yaml.v2 v2.2.1 // indirect
 	sigs.k8s.io/yaml v1.1.0
 )

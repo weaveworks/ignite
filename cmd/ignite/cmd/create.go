@@ -51,12 +51,12 @@ func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
 	kernelID := args[1]
 
 	// Check if given image exists TODO: Selection by name
-	if !util.FileExists(path.Join(constants.IMAGE_DIR, imageID)) {
+	if !util.DirExists(path.Join(constants.IMAGE_DIR, imageID)) {
 		return fmt.Errorf("not an image: %s", imageID)
 	}
 
 	// Check if given kernel exists TODO: Selection by name
-	if !util.FileExists(path.Join(constants.KERNEL_DIR, kernelID)) {
+	if !util.DirExists(path.Join(constants.KERNEL_DIR, kernelID)) {
 		return fmt.Errorf("not a kernel: %s", kernelID)
 	}
 
@@ -90,7 +90,7 @@ func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func (md vmMetadata) save() error {
+func (md *vmMetadata) save() error {
 	f, err := os.Create(path.Join(constants.VM_DIR, md.ID, constants.METADATA))
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func (md vmMetadata) save() error {
 	return nil
 }
 
-func (md vmMetadata) load() error {
+func (md *vmMetadata) load() error {
 	if md.ID == "" {
 		return errors.New("cannot load, VM metadata ID not set")
 	}
@@ -120,7 +120,7 @@ func (md vmMetadata) load() error {
 		return fmt.Errorf("not a vm: %s", md.ID)
 	}
 
-	mdFile := path.Join(vmDir, md.ID)
+	mdFile := path.Join(vmDir, constants.METADATA)
 
 	if !util.FileExists(mdFile) {
 		return fmt.Errorf("metadata file missing for VM: %s", md.ID)
@@ -134,14 +134,19 @@ func (md vmMetadata) load() error {
 	if err := json.Unmarshal(d, &md); err != nil {
 		return err
 	}
+
 	return nil
 }
 
-func (md vmMetadata) copyImage() error {
+func (md *vmMetadata) copyImage() error {
 	if err := util.CopyFile(path.Join(constants.IMAGE_DIR, md.ImageID, constants.IMAGE_FS),
 		path.Join(constants.VM_DIR, md.ID, constants.IMAGE_FS)); err != nil {
 		return errors.Wrapf(err, "failed to copy image %s to VM %s", md.ImageID, md.ID)
 	}
 
 	return nil
+}
+
+func (md *vmMetadata) setState(s state) {
+	md.State = s
 }

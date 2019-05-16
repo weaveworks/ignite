@@ -1,3 +1,9 @@
+# github.com/PuerkitoBio/purell v1.1.0
+github.com/PuerkitoBio/purell
+# github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
+github.com/PuerkitoBio/urlesc
+# github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf
+github.com/asaskevich/govalidator
 # github.com/dsnet/compress v0.0.1
 github.com/dsnet/compress/bzip2
 github.com/dsnet/compress/bzip2/internal/sais
@@ -5,16 +11,60 @@ github.com/dsnet/compress/internal
 github.com/dsnet/compress/internal/errors
 github.com/dsnet/compress/internal/prefix
 github.com/dsnet/compress
+# github.com/firecracker-microvm/firecracker-go-sdk v0.15.1
+github.com/firecracker-microvm/firecracker-go-sdk
+github.com/firecracker-microvm/firecracker-go-sdk/client
+github.com/firecracker-microvm/firecracker-go-sdk/client/models
+github.com/firecracker-microvm/firecracker-go-sdk/client/operations
+# github.com/globalsign/mgo v0.0.0-20180905125535-1ca0a4f7cbcb
+github.com/globalsign/mgo/bson
+github.com/globalsign/mgo/internal/json
+# github.com/go-openapi/analysis v0.17.0
+github.com/go-openapi/analysis
+github.com/go-openapi/analysis/internal
+# github.com/go-openapi/errors v0.17.1
+github.com/go-openapi/errors
+# github.com/go-openapi/jsonpointer v0.17.0
+github.com/go-openapi/jsonpointer
+# github.com/go-openapi/jsonreference v0.17.0
+github.com/go-openapi/jsonreference
+# github.com/go-openapi/loads v0.17.0
+github.com/go-openapi/loads
+# github.com/go-openapi/runtime v0.17.1
+github.com/go-openapi/runtime
+github.com/go-openapi/runtime/client
+github.com/go-openapi/runtime/logger
+github.com/go-openapi/runtime/middleware
+github.com/go-openapi/runtime/middleware/denco
+github.com/go-openapi/runtime/middleware/header
+github.com/go-openapi/runtime/middleware/untyped
+github.com/go-openapi/runtime/security
+# github.com/go-openapi/spec v0.17.0
+github.com/go-openapi/spec
+# github.com/go-openapi/strfmt v0.17.1
+github.com/go-openapi/strfmt
+# github.com/go-openapi/swag v0.17.1
+github.com/go-openapi/swag
+# github.com/go-openapi/validate v0.17.1
+github.com/go-openapi/validate
 # github.com/golang/snappy v0.0.1
 github.com/golang/snappy
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
+# github.com/konsorten/go-windows-terminal-sequences v0.0.0-20180402223658-b729f2633dfe
+github.com/konsorten/go-windows-terminal-sequences
 # github.com/lithammer/dedent v1.1.0
 github.com/lithammer/dedent
 # github.com/lunixbochs/struc v0.0.0-20190326164542-a9e4041416c2
 github.com/lunixbochs/struc
+# github.com/mailru/easyjson v0.0.0-20180823135443-60711f1a8329
+github.com/mailru/easyjson/jlexer
+github.com/mailru/easyjson/jwriter
+github.com/mailru/easyjson/buffer
 # github.com/mholt/archiver v3.1.1+incompatible
 github.com/mholt/archiver
+# github.com/mitchellh/mapstructure v1.1.2
+github.com/mitchellh/mapstructure
 # github.com/nerd2/gexto v0.0.0-20180530205145-da6bfa566d33
 github.com/nerd2/gexto
 # github.com/nwaples/rardecode v1.0.0
@@ -24,6 +74,8 @@ github.com/pierrec/lz4
 github.com/pierrec/lz4/internal/xxh32
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
+# github.com/sirupsen/logrus v1.1.1
+github.com/sirupsen/logrus
 # github.com/spf13/cobra v0.0.3
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.3
@@ -35,6 +87,20 @@ github.com/ulikunitz/xz/lzma
 github.com/ulikunitz/xz/internal/hash
 # github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
 github.com/xi2/xz
+# golang.org/x/crypto v0.0.0-20180904163835-0709b304e793
+golang.org/x/crypto/ssh/terminal
+# golang.org/x/net v0.0.0-20181023162649-9b4f9f5ad519
+golang.org/x/net/context
+golang.org/x/net/idna
+# golang.org/x/sys v0.0.0-20180905080454-ebe1bf3edb33
+golang.org/x/sys/unix
+golang.org/x/sys/windows
+# golang.org/x/text v0.3.0
+golang.org/x/text/unicode/norm
+golang.org/x/text/width
+golang.org/x/text/secure/bidirule
+golang.org/x/text/unicode/bidi
+golang.org/x/text/transform
 # gopkg.in/yaml.v2 v2.2.1
 gopkg.in/yaml.v2
 # sigs.k8s.io/yaml v1.1.0
