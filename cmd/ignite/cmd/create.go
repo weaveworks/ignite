@@ -22,18 +22,19 @@ const (
 )
 
 type vmMetadata struct {
-	ID      string `json:"ID"`
-	Name    string `json:"Name"`
-	ImageID string `json:"ImageID"`
-	State   state  `json:"State"`
+	ID       string `json:"ID"`
+	Name     string `json:"Name"`
+	ImageID  string `json:"ImageID"`
+	KernelID string `json:"KernelID"`
+	State    state  `json:"State"`
 }
 
 // NewCmdCreate creates a new VM from an image
 func NewCmdCreate(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create [image] [name]",
+		Use:   "create [image] [kernel] [name]",
 		Short: "Create a new containerized VM without starting it",
-		Args:  cobra.MinimumNArgs(2),
+		Args:  cobra.MinimumNArgs(3),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := RunCreate(out, cmd, args)
 			errutils.Check(err)
@@ -47,10 +48,16 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 // RunCreate runs when the Create command is invoked
 func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
 	imageID := args[0]
+	kernelID := args[1]
 
 	// Check if given image exists TODO: Selection by name
-	if dir, err := os.Stat(path.Join(constants.IMAGE_DIR, imageID)); os.IsNotExist(err) || !dir.IsDir() {
+	if !util.FileExists(path.Join(constants.IMAGE_DIR, imageID)) {
 		return fmt.Errorf("not an image: %s", imageID)
+	}
+
+	// Check if given kernel exists TODO: Selection by name
+	if !util.FileExists(path.Join(constants.KERNEL_DIR, kernelID)) {
+		return fmt.Errorf("not a kernel: %s", kernelID)
 	}
 
 	// Create a new ID for the VM
@@ -60,10 +67,11 @@ func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
 	}
 
 	md := &vmMetadata{
-		ID:      vmID,
-		Name:    args[1],
-		ImageID: imageID,
-		State:   Stopped,
+		ID:       vmID,
+		Name:     args[2],
+		ImageID:  imageID,
+		KernelID: kernelID,
+		State:    Stopped,
 	}
 
 	// Save the metadata
