@@ -117,7 +117,7 @@ func RunBuild(out io.Writer, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := image.AddFiles2(path.Join(buildOptions.imageDir, constants.IMAGE_TAR)); err != nil {
+	if err := image.AddFiles3(path.Join(buildOptions.imageDir, constants.IMAGE_TAR)); err != nil {
 		return err
 	}
 

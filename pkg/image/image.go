@@ -138,6 +138,26 @@ func (i ImageMetadata) AddFiles2(sourcePath string) error {
 	return nil
 }
 
+func (i ImageMetadata) AddFiles3(sourcePath string) error {
+	p := path.Join(constants.IMAGE_DIR, i.ID, constants.IMAGE_FS)
+	tempDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(tempDir)
+
+	if _, err := util.ExecuteCommand("mount", "-o", "loop", p, tempDir); err != nil {
+		return errors.Wrapf(err, "failed to mount image %s", p)
+	}
+	defer util.ExecuteCommand("umount", tempDir)
+
+	if _, err := util.ExecuteCommand("tar", "-xf", sourcePath, "-C", tempDir); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (i ImageMetadata) WriteMetadata() error {
 	f, err := os.Create(path.Join(constants.IMAGE_DIR, i.ID, constants.METADATA))
 	if err != nil {
