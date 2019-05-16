@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"io"
+	"io/ioutil"
 	"os"
 	"path"
 )
@@ -30,7 +31,7 @@ type vmMetadata struct {
 // NewCmdCreate creates a new VM from an image
 func NewCmdCreate(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create [image] [Name]",
+		Use:   "create [image] [name]",
 		Short: "Create a new containerized VM without starting it",
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -47,7 +48,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
 	imageID := args[0]
 
-	// Check if given image exists TODO: Selection by Name
+	// Check if given image exists TODO: Selection by name
 	if dir, err := os.Stat(path.Join(constants.IMAGE_DIR, imageID)); os.IsNotExist(err) || !dir.IsDir() {
 		return fmt.Errorf("not an image: %s", imageID)
 	}
@@ -97,6 +98,34 @@ func (md vmMetadata) save() error {
 		return err
 	}
 
+	return nil
+}
+
+func (md vmMetadata) load() error {
+	if md.ID == "" {
+		return errors.New("cannot load, VM metadata ID not set")
+	}
+
+	vmDir := path.Join(constants.VM_DIR, md.ID)
+
+	if dir, err := os.Stat(vmDir); os.IsNotExist(err) || !dir.IsDir() {
+		return fmt.Errorf("not a vm: %s", md.ID)
+	}
+
+	mdFile := path.Join(vmDir, md.ID)
+
+	if !util.FileExists(mdFile) {
+		return fmt.Errorf("metadata file missing for VM: %s", md.ID)
+	}
+
+	d, err := ioutil.ReadFile(mdFile)
+	if err != nil {
+		return err
+	}
+
+	if err := json.Unmarshal(d, &md); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -24,7 +24,17 @@ func NewCmdContainer(out io.Writer) *cobra.Command {
 // RunBuild runs when the Container command is invoked
 func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 	// The VM to run in container mode
-	//id := args[0]
+	id := args[0]
+
+	md := &vmMetadata{
+		ID: id,
+	}
+
+	if err := md.load(); err != nil {
+		return err
+	}
+
+	//util.ExecuteCommand("/firecracker")
 
 	return nil
 }

@@ -11,12 +11,12 @@ import (
 )
 
 // NewCmdImages lists the images for your Firecracker VM.
-func NewCmdImages(out io.Writer) *cobra.Command {
+func NewCmdKernels(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "images",
-		Short: "List available images",
+		Use:   "kernels",
+		Short: "List available kernels",
 		Run: func(cmd *cobra.Command, args []string) {
-			err := RunImages(out, cmd)
+			err := RunKernels(out, cmd)
 			errutils.Check(err)
 		},
 	}
@@ -25,8 +25,8 @@ func NewCmdImages(out io.Writer) *cobra.Command {
 }
 
 // RunImages runs when the Images command is invoked and lists the images
-func RunImages(out io.Writer, cmd *cobra.Command) error {
-	ids, err := ioutil.ReadDir(constants.IMAGE_DIR)
+func RunKernels(out io.Writer, cmd *cobra.Command) error {
+	ids, err := ioutil.ReadDir(constants.KERNEL_DIR)
 	if err != nil {
 		return err
 	}
