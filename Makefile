@@ -5,7 +5,7 @@ build:
 	docker build -t ignite .
 
 binary:
-	docker run -it -v $(shell pwd):/build -w /build golang:1.12 sh -c "\
+	docker run -it --rm -v $(shell pwd):/build -w /build golang:1.12 sh -c "\
 		make ignite && \
 		chown ${UID_GID} bin/ignite"
 
