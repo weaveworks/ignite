@@ -32,7 +32,7 @@ func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
 	vmID := args[0]
 
 	// Check if given vm exists TODO: Selection by name
-	if !util.FileExists(path.Join(constants.VM_DIR, vmID)) {
+	if !util.DirExists(path.Join(constants.VM_DIR, vmID)) {
 		return fmt.Errorf("not a vm: %s", vmID)
 	}
 
