@@ -10,6 +10,7 @@ import (
 func NewCmdContainer(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Hidden: true,
+		Args:   cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			err := RunContainer(out, cmd, args)
 			errutils.Check(err)
@@ -22,6 +23,8 @@ func NewCmdContainer(out io.Writer) *cobra.Command {
 
 // RunBuild runs when the Container command is invoked
 func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
+	// The VM to run in container mode
+	//id := args[0]
 
 	return nil
 }

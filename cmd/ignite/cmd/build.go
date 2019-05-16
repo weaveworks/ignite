@@ -7,7 +7,6 @@ import (
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/pkg/errors"
 	"io"
-	"os"
 	"path"
 	"strings"
 
@@ -46,11 +45,6 @@ func RunBuild(out io.Writer, cmd *cobra.Command, args []string) error {
 	buildOptions, err := newBuildOptions(cmd, args)
 	if err != nil {
 		return err
-	}
-
-	// Create the unique directory for the VM
-	if err := os.MkdirAll(buildOptions.imageDir, os.ModePerm); err != nil {
-		return errors.Wrap(err, "failed to create VM directory")
 	}
 
 	// TODO: Better docker/tarfile detection
@@ -113,9 +107,11 @@ func RunBuild(out io.Writer, cmd *cobra.Command, args []string) error {
 	}
 
 	// Create new file to host the filesystem and format it
-	image := build.NewImage(buildOptions.imageID, &build.Metadata{
+	// Create new image metadata
+	image := build.ImageMetadata{
+		ID:   buildOptions.imageID,
 		Name: buildOptions.imageName,
-	})
+	}
 
 	if err := image.AllocateAndFormat(); err != nil {
 		return err
@@ -141,7 +137,7 @@ func RunBuild(out io.Writer, cmd *cobra.Command, args []string) error {
 
 // newBuildOptions constructs a set of options for new VMs
 func newBuildOptions(cmd *cobra.Command, args []string) (*buildOptions, error) {
-	newID, err := build.NewImageID()
+	newID, err := util.NewID(constants.IMAGE_DIR)
 	if err != nil {
 		return nil, err
 	}

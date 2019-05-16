@@ -1,14 +1,5 @@
 package build
 
-import (
-	"crypto/rand"
-	"fmt"
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/util"
-	"github.com/pkg/errors"
-	"path"
-)
-
 //import (
 //	"os"
 //	"path/filepath"
@@ -16,8 +7,6 @@ import (
 //
 //	"github.com/pkg/errors"
 //)
-
-type VMID []byte
 
 /*
 func (vmm *VMM) copyFilesFromHost() error {
@@ -56,24 +45,3 @@ func (vmm *VMM) copyFilesFromHost() error {
 	return executeCommand("umount", mntdir)
 }
 */
-
-// Creates a new 8-byte Image ID and return it as a string
-func NewImageID() (string, error) {
-	var vmID string
-	var idBytes []byte
-
-	for {
-		idBytes = make([]byte, 8)
-		if _, err := rand.Read(idBytes); err != nil {
-			return "", errors.Wrap(err, "failed to generate VM ID")
-		}
-
-		// Convert the byte array to a string literally
-		vmID = fmt.Sprintf("%x", idBytes)
-
-		// If the generated ID is unique, return it
-		if exists, _ := util.PathExists(path.Join(constants.IMAGE_DIR, vmID)); !exists {
-			return vmID, nil
-		}
-	}
-}
