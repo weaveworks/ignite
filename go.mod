@@ -7,6 +7,7 @@ require (
 	github.com/firecracker-microvm/firecracker-go-sdk v0.15.1
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/krolaw/dhcp4 v0.0.0-20180925202202-7cead472c414
 	github.com/lithammer/dedent v1.1.0
 	github.com/lunixbochs/struc v0.0.0-20190326164542-a9e4041416c2 // indirect
 	github.com/mholt/archiver v3.1.1+incompatible
