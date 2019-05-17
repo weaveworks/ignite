@@ -2,6 +2,7 @@ package container
 
 import (
 	"fmt"
+	"github.com/luxas/ignite/pkg/constants"
 	"net"
 	"time"
 
@@ -18,23 +19,25 @@ import (
 //	subnetMaskFlag = flag.String("subnet-mask", "255.255.0.0", "The subnet for network")
 //)
 
-//func RunDHCP(gatewayIP, clientIP, subnetMask net.IP, clientMAC net.HardwareAddr, leaseDuration time.Duration, iface string) error {
-func RunDHCP(gatewayIP, clientIP, subnetMask net.IP, leaseDuration time.Duration, iface string) error {
-	/*sourceIP := net.ParseIP(*sourceIPFlag)
-	if sourceIP == nil {
-		return fmt.Errorf("--source-ip is invalid")
-	}*/
+type DHCPInterface struct {
+	VMIPNet   *net.IPNet
+	GatewayIP *net.IP
+	VMTAP     string
+	Bridge    string
+}
+
+func RunDHCP(dhcpIface *DHCPInterface) error {
+	leaseDuration, _ := time.ParseDuration(constants.DHCP_INFINITE_LEASE) // Infinite lease time
 
 	handler := &DHCPHandler{
-		//sourceIP:      sourceIP.To4(),
-		gatewayIP: gatewayIP.To4(),
-		clientIP:  clientIP.To4(),
-		//clientMAC:     clientMAC,
+		gatewayIP:     dhcpIface.GatewayIP.To4(),
+		clientIP:      dhcpIface.VMIPNet.IP.To4(),
 		dnsServer:     net.IP{1, 1, 1, 1},
-		subnetMask:    subnetMask.To4(),
+		subnetMask:    maskToIP(dhcpIface.VMIPNet.Mask),
 		leaseDuration: leaseDuration,
 	}
-	packetconn, err := conn.NewUDP4BoundListener(iface, ":67")
+
+	packetconn, err := conn.NewUDP4BoundListener(dhcpIface.Bridge, ":67")
 	if err != nil {
 		return err
 	}
@@ -42,10 +45,8 @@ func RunDHCP(gatewayIP, clientIP, subnetMask net.IP, leaseDuration time.Duration
 }
 
 type DHCPHandler struct {
-	sourceIP  net.IP
-	gatewayIP net.IP
-	clientIP  net.IP
-	//clientMAC     net.HardwareAddr
+	gatewayIP     net.IP
+	clientIP      net.IP
 	dnsServer     net.IP
 	subnetMask    net.IP
 	leaseDuration time.Duration
@@ -68,10 +69,12 @@ func (h *DHCPHandler) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options
 		}
 		optSlice := opts.SelectOrderOrAll(options[dhcp.OptionParameterRequestList])
 		requestingMAC := p.CHAddr().String()
-		//if requestingMAC == h.clientMAC.String() {
 		fmt.Printf("Response: %s, Source %s, Client: %s, Options: %v, MAC: %s\n", respMsg.String(), h.gatewayIP.String(), h.clientIP.String(), optSlice, requestingMAC)
 		return dhcp.ReplyPacket(p, respMsg, h.gatewayIP, h.clientIP, h.leaseDuration, optSlice)
-		//}
 	}
 	return nil
+}
+
+func maskToIP(m net.IPMask) net.IP {
+	return net.ParseIP(m.String()).To4()
 }

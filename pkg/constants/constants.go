@@ -27,4 +27,10 @@ const (
 
 	// DHCP infinite lease time
 	DHCP_INFINITE_LEASE = "4294967295s"
+
+	// TAP adapter prefix in the parent container
+	TAP_PREFIX = "vm_"
+
+	// Bridge device prefix in the parent container
+	BRIDGE_PREFIX = "br_"
 )

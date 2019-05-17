@@ -17,7 +17,6 @@ import (
 	"os/signal"
 	"path"
 	"syscall"
-	"time"
 )
 
 /*
@@ -34,6 +33,11 @@ ip link set vm0 up
 ip link set eth0 master br0
 ip link set vm0 master br0
 */
+
+// Array of container interfaces to ignore (not forward to VM)
+var ignoreInterfaces = map[string]bool{
+	"lo": true,
+}
 
 // NewContainerCmd runs the dhcp server and sets up routing inside Docker
 func NewCmdContainer(out io.Writer) *cobra.Command {
@@ -65,35 +69,105 @@ func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := setupNetwork(); err != nil {
-		return err
+	//if err := setupNetwork(); err != nil {
+	//	return err
+	//}
+
+	var dhcpIfaces []container.DHCPInterface
+
+	// New networking setup
+	if err := newNetworkSetup(&dhcpIfaces); err != nil {
+		return fmt.Errorf("network setup failed: %v", err)
 	}
 
-	// func RunDHCP(gatewayIP, clientIP, subnetMask net.IP, leaseDuration time.Duration, iface string) error {
-	leaseDuration, err := time.ParseDuration(constants.DHCP_INFINITE_LEASE) // Infinite lease time
-	if err != nil {
-		return errors.New("Failed to parse DHCP lease duration")
+	for _, dhcpIface := range dhcpIfaces {
+		go func() {
+			fmt.Printf("Starting DHCP server for interface %s\n", dhcpIface.Bridge)
+			if err := container.RunDHCP(&dhcpIface); err != nil {
+				fmt.Fprintf(os.Stderr, "%s DHCP server error: %v\n", dhcpIface.Bridge, err)
+			}
+		}()
 	}
-
-	go func() {
-		fmt.Println("DHCP Server start!")
-		if err := container.RunDHCP(net.IP{172, 17, 0, 1}, net.IP{172, 17, 0, 2}, net.IP{255, 255, 0, 0}, leaseDuration, "br0"); err != nil {
-			fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		}
-	}()
 
 	// VM state handling
 	md.setState(Running)
 	defer md.setState(Stopped)
 
 	// Run the VM
-	runVM(md)
+	runVM(md, &dhcpIfaces)
 
 	return nil
 }
 
+func newNetworkSetup(dhcpIfaces *[]container.DHCPInterface) error {
+
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return fmt.Errorf("cannot get local network interfaces: %v", err)
+	}
+
+	for _, iface := range ifaces {
+		// Skip the interface if it's ignored
+		if !ignoreInterfaces[iface.Name] {
+			ipNet, err := takeAddress(&iface)
+			if err != nil {
+				return fmt.Errorf("parsing interface failed: %v", err)
+			}
+
+			dhcpIface, err := bridge(&iface)
+			if err != nil {
+				return fmt.Errorf("bridging interface %s failed: %v0", iface.Name, err)
+			}
+
+			// Gateway for now is just x.x.x.1 TODO: Better detection
+			dhcpIface.GatewayIP = &net.IP{ipNet.IP[0], ipNet.IP[1], ipNet.IP[2], 1}
+			dhcpIface.VMIPNet = ipNet
+
+			*dhcpIfaces = append(*dhcpIfaces, dhcpIface)
+		}
+	}
+
+	return nil
+}
+
+// bridge creates the TAP device and performs the bridging, returning the MAC address of the VM's adapter
+func bridge(iface *net.Interface) (container.DHCPInterface, error) {
+	tapName := constants.TAP_PREFIX + iface.Name
+	bridgeName := constants.BRIDGE_PREFIX + iface.Name
+
+	var d container.DHCPInterface
+
+	if err := createTAPAdapter(tapName); err != nil {
+		return d, err
+	}
+
+	if err := createBridge(bridgeName); err != nil {
+		return d, err
+	}
+
+	if err := connectAdapterToBridge(tapName, bridgeName); err != nil {
+		return d, err
+	}
+
+	if err := connectAdapterToBridge(iface.Name, bridgeName); err != nil {
+		return d, err
+	}
+
+	d = container.DHCPInterface{
+		VMTAP:  tapName,
+		Bridge: bridgeName,
+	}
+
+	return d, nil
+}
+
 func setupNetwork() error {
-	_, err := takeAddress("eth0")
+	iface, err := net.InterfaceByName("eth0")
+	if err != nil {
+		return err
+	}
+
+	_, err = takeAddress(iface)
 	if err != nil {
 		return err
 	}
@@ -117,15 +191,11 @@ func setupNetwork() error {
 	return nil
 }
 
-func takeAddress(ifaceName string) (*net.IPNet, error) {
-	iface, err := net.InterfaceByName(ifaceName)
-	if err != nil {
-		return nil, fmt.Errorf("nonexistent interface %s", ifaceName)
-	}
-
+// takeAddress removes the first address of an interface and returns it
+func takeAddress(iface *net.Interface) (*net.IPNet, error) {
 	addrs, err := iface.Addrs()
 	if err != nil {
-		return nil, fmt.Errorf("interface %s has no address", ifaceName)
+		return nil, fmt.Errorf("interface %s has no address", iface.Name)
 	}
 
 	for _, addr := range addrs {
@@ -150,8 +220,8 @@ func takeAddress(ifaceName string) (*net.IPNet, error) {
 			continue
 		}
 
-		if _, err := util.ExecuteCommand("ip", "addr", "del", ip.String(), "dev", ifaceName); err != nil {
-			return nil, errors.Wrapf(err, "failed to remove address from interface %s", ifaceName)
+		if _, err := util.ExecuteCommand("ip", "addr", "del", ip.String(), "dev", iface.Name); err != nil {
+			return nil, errors.Wrapf(err, "failed to remove address from interface %s", iface.Name)
 		}
 
 		fmt.Printf("Found an deleted address: %s (%s)\n", ip.String(), fmt.Sprintf("%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3]))
@@ -162,7 +232,7 @@ func takeAddress(ifaceName string) (*net.IPNet, error) {
 		}, nil
 	}
 
-	return nil, fmt.Errorf("interface %s has no valid addresses", ifaceName)
+	return nil, fmt.Errorf("interface %s has no valid addresses", iface.Name)
 }
 
 func createTAPAdapter(tapName string) error {
@@ -188,10 +258,16 @@ func connectAdapterToBridge(adapterName, bridgeName string) error {
 	return err
 }
 
-func runVM(md *vmMetadata) {
+func runVM(md *vmMetadata, dhcpIfaces *[]container.DHCPInterface) {
 	drivePath := path.Join(constants.VM_DIR, md.ID, constants.IMAGE_FS)
 
-	fmt.Printf("%+v\n", md)
+	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(*dhcpIfaces))
+	for _, dhcpIface := range *dhcpIfaces {
+		networkInterfaces = append(networkInterfaces, firecracker.NetworkInterface{
+			HostDevName: dhcpIface.VMTAP, // TODO: Single DHCP server with MAC matching and pre-generated MACs
+		})
+	}
+
 	const socketPath = "/tmp/firecracker.sock"
 	cfg := firecracker.Config{
 		SocketPath:      socketPath,
@@ -204,12 +280,7 @@ func runVM(md *vmMetadata) {
 			IsReadOnly:   firecracker.Bool(false),
 			Partuuid:     "",
 		}},
-		NetworkInterfaces: []firecracker.NetworkInterface{
-			{
-				//MacAddress:     "6E-EF-7C-27-D1-72",
-				HostDevName: "vm0",
-			},
-		},
+		NetworkInterfaces: networkInterfaces,
 		MachineCfg: models.MachineConfiguration{
 			VcpuCount: 1,
 		},
