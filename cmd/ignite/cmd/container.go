@@ -70,7 +70,11 @@ func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 	}
 
 	// func RunDHCP(gatewayIP, clientIP, subnetMask net.IP, leaseDuration time.Duration, iface string) error {
-	leaseDuration, _ := time.ParseDuration("1d")
+	leaseDuration, err := time.ParseDuration(constants.DHCP_INFINITE_LEASE) // Infinite lease time
+	if err != nil {
+		return errors.New("Failed to parse DHCP lease duration")
+	}
+
 	go func() {
 		fmt.Println("DHCP Server start!")
 		if err := container.RunDHCP(net.IP{172, 17, 0, 1}, net.IP{172, 17, 0, 2}, net.IP{255, 255, 0, 0}, leaseDuration, "br0"); err != nil {
