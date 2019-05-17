@@ -22,7 +22,7 @@ type ImageMetadata struct {
 	Name string `json:"Name"`
 }
 
-func (i ImageMetadata) AllocateAndFormat() error {
+func (i *ImageMetadata) AllocateAndFormat() error {
 	p := path.Join(constants.IMAGE_DIR, i.ID, constants.IMAGE_FS)
 	imageFile, err := os.Create(p)
 	if err != nil {
@@ -51,7 +51,7 @@ func (i ImageMetadata) AllocateAndFormat() error {
 
 // Adds all the files from the given rootfs tar to the image
 // TODO: Fix the "corrupt direntry" error from gexto
-func (i ImageMetadata) AddFiles(sourcePath string) error {
+func (i *ImageMetadata) AddFiles(sourcePath string) error {
 	// TODO: This
 	p := path.Join(constants.IMAGE_DIR, i.ID, constants.IMAGE_FS)
 	filesystem, err := gexto.NewFileSystem(p)
@@ -118,7 +118,7 @@ func (i ImageMetadata) AddFiles(sourcePath string) error {
 }
 
 // mount-based file adder (temporary, requires root)
-func (i ImageMetadata) AddFiles2(sourcePath string) error {
+func (i *ImageMetadata) AddFiles2(sourcePath string) error {
 	p := path.Join(constants.IMAGE_DIR, i.ID, constants.IMAGE_FS)
 	tempDir, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -138,7 +138,7 @@ func (i ImageMetadata) AddFiles2(sourcePath string) error {
 	return nil
 }
 
-func (i ImageMetadata) AddFiles3(sourcePath string) error {
+func (i *ImageMetadata) AddFiles3(sourcePath string) error {
 	p := path.Join(constants.IMAGE_DIR, i.ID, constants.IMAGE_FS)
 	tempDir, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -158,7 +158,7 @@ func (i ImageMetadata) AddFiles3(sourcePath string) error {
 	return nil
 }
 
-func (i ImageMetadata) WriteMetadata() error {
+func (i *ImageMetadata) WriteMetadata() error {
 	f, err := os.Create(path.Join(constants.IMAGE_DIR, i.ID, constants.METADATA))
 	if err != nil {
 		return err

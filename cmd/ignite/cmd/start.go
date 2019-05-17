@@ -55,13 +55,10 @@ func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
 	dockerArgs := []string{
 		"run",
 		"-itd",
-		"--volume",
-		igniteBinary + ":/ignite/ignite",
-		"--volume",
-		constants.DATA_DIR + ":" + constants.DATA_DIR,
+		fmt.Sprintf("-v=%s:/ignite/ignite", igniteBinary),
+		fmt.Sprintf("-v=%s:%s", constants.DATA_DIR, constants.DATA_DIR),
 		"--privileged",
-		"--volume",
-		"/dev/kvm:/dev/kvm",
+		"--device=/dev/kvm",
 		"ignite",
 		vmID,
 	}

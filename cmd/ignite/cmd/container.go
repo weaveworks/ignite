@@ -6,15 +6,33 @@ import (
 	"github.com/firecracker-microvm/firecracker-go-sdk"
 	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/container"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/luxas/ignite/pkg/util"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"io"
+	"net"
 	"os"
 	"os/signal"
 	"path"
 	"syscall"
 )
+
+/*
+ip r list src 172.17.0.3
+
+ip addr del "$IP" dev eth0
+
+ip link add name br0 type bridge
+ip tuntap add dev vm0 mode tap
+
+ip link set br0 up
+ip link set vm0 up
+
+ip link set eth0 master br0
+ip link set vm0 master br0
+*/
 
 // NewContainerCmd runs the dhcp server and sets up routing inside Docker
 func NewCmdContainer(out io.Writer) *cobra.Command {
@@ -41,17 +59,121 @@ func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 		ID: id,
 	}
 
+	// Load the metadata for the VM
 	if err := md.load(); err != nil {
 		return err
 	}
 
-	md.State = Running
+	if err := setupNetwork(); err != nil {
+		return err
+	}
 
+	go container.ExampleHandler()
+
+	// VM state handling
+	md.setState(Running)
+	defer md.setState(Stopped)
+
+	// Run the VM
 	runVM(md)
 
-	md.State = Stopped
+	return nil
+}
+
+func setupNetwork() error {
+	_, err := takeAddress("eth0")
+	if err != nil {
+		return err
+	}
+
+	if err := createTAPAdapter("vm0"); err != nil {
+		return err
+	}
+
+	if err := createBridge("br0"); err != nil {
+		return err
+	}
+
+	if err := connectAdapterToBridge("vm0", "br0"); err != nil {
+		return err
+	}
+
+	if err := connectAdapterToBridge("eth0", "br0"); err != nil {
+		return err
+	}
 
 	return nil
+}
+
+func takeAddress(ifaceName string) (*net.IPNet, error) {
+	iface, err := net.InterfaceByName(ifaceName)
+	if err != nil {
+		return nil, fmt.Errorf("nonexistent interface %s", ifaceName)
+	}
+
+	addrs, err := iface.Addrs()
+	if err != nil {
+		return nil, fmt.Errorf("interface %s has no address", ifaceName)
+	}
+
+	for _, addr := range addrs {
+		var ip net.IP
+		var mask net.IPMask
+
+		switch v := addr.(type) {
+		case *net.IPNet:
+			ip = v.IP
+			mask = v.Mask
+		case *net.IPAddr:
+			ip = v.IP
+			mask = ip.DefaultMask()
+		}
+
+		if ip == nil {
+			continue
+		}
+
+		ip = ip.To4()
+		if ip == nil {
+			continue
+		}
+
+		if _, err := util.ExecuteCommand("ip", "addr", "del", ip.String(), "dev", ifaceName); err != nil {
+			return nil, errors.Wrapf(err, "failed to remove address from interface %s", ifaceName)
+		}
+
+		fmt.Printf("Found an deleted address: %s (%s)\n", ip.String(), fmt.Sprintf("%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3]))
+
+		return &net.IPNet{
+			IP:   ip,
+			Mask: mask,
+		}, nil
+	}
+
+	return nil, fmt.Errorf("interface %s has no valid addresses", ifaceName)
+}
+
+func createTAPAdapter(tapName string) error {
+	_, err := util.ExecuteCommand("ip", "tuntap", "add", "mode", "tap", tapName)
+	if err != nil {
+		return err
+	}
+	_, err = util.ExecuteCommand("ip", "link", "set", tapName, "up")
+	return err
+}
+
+func createBridge(bridgeName string) error {
+	_, err := util.ExecuteCommand("ip", "link", "add", "name", bridgeName, "type", "bridge")
+	if err != nil {
+		return err
+	}
+	_, err = util.ExecuteCommand("ip", "link", "set", bridgeName, "up")
+	return err
+}
+
+func connectAdapterToBridge(adapterName, bridgeName string) error {
+	_, err := util.ExecuteCommand("ip", "link", "set", adapterName, "master", bridgeName)
+	return err
 }
 
 func runVM(md *vmMetadata) {
@@ -70,6 +192,12 @@ func runVM(md *vmMetadata) {
 			IsReadOnly:   firecracker.Bool(false),
 			Partuuid:     "",
 		}},
+		NetworkInterfaces: []firecracker.NetworkInterface{
+			{
+				//MacAddress:     "6E-EF-7C-27-D1-72",
+				HostDevName: "vm0",
+			},
+		},
 		MachineCfg: models.MachineConfiguration{
 			VcpuCount: 1,
 		},
@@ -167,18 +295,4 @@ func installSignalHandlers(ctx context.Context, m *firecracker.Machine) {
 			}
 		}
 	}()
-}
-
-func createTAPAdapter(tapName string) error {
-	_, err := util.ExecuteCommand("ip", "tuntap", "add", "mode", "tap", tapName)
-	if err != nil {
-		return err
-	}
-	_, err = util.ExecuteCommand("ip", "link", "set", tapName, "up")
-	return err
-}
-
-func connectTAPToBridge(tapName, bridgeName string) error {
-	_, err := util.ExecuteCommand("brctl", "addif", bridgeName, tapName)
-	return err
 }

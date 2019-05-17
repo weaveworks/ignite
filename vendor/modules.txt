@@ -53,6 +53,9 @@ github.com/golang/snappy
 github.com/inconshreveable/mousetrap
 # github.com/konsorten/go-windows-terminal-sequences v0.0.0-20180402223658-b729f2633dfe
 github.com/konsorten/go-windows-terminal-sequences
+# github.com/krolaw/dhcp4 v0.0.0-20180925202202-7cead472c414
+github.com/krolaw/dhcp4
+github.com/krolaw/dhcp4/conn
 # github.com/lithammer/dedent v1.1.0
 github.com/lithammer/dedent
 # github.com/lunixbochs/struc v0.0.0-20190326164542-a9e4041416c2
@@ -90,7 +93,11 @@ github.com/xi2/xz
 # golang.org/x/crypto v0.0.0-20190513172903-22d7a77e9e5f
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
+golang.org/x/net/ipv4
 golang.org/x/net/context
+golang.org/x/net/bpf
+golang.org/x/net/internal/iana
+golang.org/x/net/internal/socket
 golang.org/x/net/idna
 # golang.org/x/sys v0.0.0-20190412213103-97732733099d
 golang.org/x/sys/unix
