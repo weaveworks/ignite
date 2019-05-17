@@ -24,4 +24,7 @@ const (
 
 	// Kernel filename
 	KERNEL_FILE = "vmlinux"
+
+	// DHCP infinite lease time
+	DHCP_INFINITE_LEASE = "4294967295s"
 )
