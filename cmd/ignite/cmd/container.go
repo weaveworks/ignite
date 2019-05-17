@@ -17,6 +17,7 @@ import (
 	"os/signal"
 	"path"
 	"syscall"
+	"time"
 )
 
 /*
@@ -68,7 +69,14 @@ func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	go container.ExampleHandler()
+	// func RunDHCP(gatewayIP, clientIP, subnetMask net.IP, leaseDuration time.Duration, iface string) error {
+	leaseDuration, _ := time.ParseDuration("1d")
+	go func() {
+		fmt.Println("DHCP Server start!")
+		if err := container.RunDHCP(net.IP{172, 17, 0, 1}, net.IP{172, 17, 0, 2}, net.IP{255, 255, 0, 0}, leaseDuration, "vm0"); err != nil {
+			fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		}
+	}()
 
 	// VM state handling
 	md.setState(Running)
