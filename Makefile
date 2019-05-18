@@ -1,6 +1,6 @@
 UID_GID?=$(shell id -u):$(shell id -g)
 
-all: build
+all: binary
 build:
 	docker build -t ignite .
 
