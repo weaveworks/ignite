@@ -13,6 +13,8 @@ $ ignite attach my-vm-image
 $ ignite ps
 ```
 
+Note: `sysctl net.bridge.bridge-nf-call-iptables=0` need to be set on any machine using FC.
+
 ### Maintainers
 
 - Lucas Käldström, @luxas
