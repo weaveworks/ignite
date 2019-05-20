@@ -14,29 +14,29 @@ import (
 )
 
 func (so *sockOpt) getMulticastInterface(c *socket.Conn) (*net.Interface, error) {
-	return nil, errNotImplemented
+	return nil, errOpNoSupport
 }
 
 func (so *sockOpt) setMulticastInterface(c *socket.Conn, ifi *net.Interface) error {
-	return errNotImplemented
+	return errOpNoSupport
 }
 
 func (so *sockOpt) getICMPFilter(c *socket.Conn) (*ICMPFilter, error) {
-	return nil, errNotImplemented
+	return nil, errOpNoSupport
 }
 
 func (so *sockOpt) setICMPFilter(c *socket.Conn, f *ICMPFilter) error {
-	return errNotImplemented
+	return errOpNoSupport
 }
 
 func (so *sockOpt) setGroup(c *socket.Conn, ifi *net.Interface, grp net.IP) error {
-	return errNotImplemented
+	return errOpNoSupport
 }
 
 func (so *sockOpt) setSourceGroup(c *socket.Conn, ifi *net.Interface, grp, src net.IP) error {
-	return errNotImplemented
+	return errOpNoSupport
 }
 
 func (so *sockOpt) setBPF(c *socket.Conn, f []bpf.RawInstruction) error {
-	return errNotImplemented
+	return errOpNoSupport
 }

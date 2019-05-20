@@ -6,15 +6,9 @@
 
 package socket
 
-import (
-	"runtime"
-	"unsafe"
-)
+import "unsafe"
 
 func probeProtocolStack() int {
-	if (runtime.GOOS == "netbsd" || runtime.GOOS == "openbsd") && runtime.GOARCH == "arm" {
-		return 8
-	}
 	var p uintptr
 	return int(unsafe.Sizeof(p))
 }
