@@ -9,6 +9,7 @@ import (
 	"github.com/luxas/ignite/pkg/container"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/luxas/ignite/pkg/util"
+	"github.com/miekg/dns"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"io"
@@ -80,7 +81,16 @@ func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("network setup failed: %v", err)
 	}
 
+	// Fetch the DNS servers given to the container
+	clientConfig, err := dns.ClientConfigFromFile("/etc/resolv.conf")
+	if err != nil {
+		return fmt.Errorf("failed to get DNS configuration: %v", err)
+	}
+
 	for _, dhcpIface := range dhcpIfaces {
+		// Add the DNS servers from the container
+		dhcpIface.SetDNSServers(clientConfig.Servers)
+
 		go func() {
 			fmt.Printf("Starting DHCP server for interface %s\n", dhcpIface.Bridge)
 			if err := container.RunDHCP(&dhcpIface); err != nil {
@@ -100,7 +110,6 @@ func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 }
 
 func newNetworkSetup(dhcpIfaces *[]container.DHCPInterface) error {
-
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		return fmt.Errorf("cannot get local network interfaces: %v", err)
