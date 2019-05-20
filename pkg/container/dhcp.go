@@ -26,6 +26,7 @@ type DHCPInterface struct {
 	GatewayIP  *net.IP
 	VMTAP      string
 	Bridge     string
+	Hostname   string
 	dnsServers []byte
 }
 
@@ -51,6 +52,7 @@ func (i *DHCPInterface) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, optio
 			dhcp.OptionSubnetMask:       []byte(i.VMIPNet.Mask),
 			dhcp.OptionRouter:           []byte(*i.GatewayIP),
 			dhcp.OptionDomainNameServer: i.dnsServers,
+			dhcp.OptionHostName:         []byte(i.Hostname),
 		}
 		optSlice := opts.SelectOrderOrAll(options[dhcp.OptionParameterRequestList])
 		requestingMAC := p.CHAddr().String()

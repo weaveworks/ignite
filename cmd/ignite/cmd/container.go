@@ -88,6 +88,9 @@ func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 	}
 
 	for _, dhcpIface := range dhcpIfaces {
+		// Set the VM hostname to the VM ID
+		dhcpIface.Hostname = md.ID
+
 		// Add the DNS servers from the container
 		dhcpIface.SetDNSServers(clientConfig.Servers)
 
@@ -100,7 +103,9 @@ func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 	}
 
 	// VM state handling
-	md.setState(Running)
+	if err := md.setState(Running); err != nil {
+		return fmt.Errorf("failed to update VM state: %v", err)
+	}
 	defer md.setState(Stopped)
 
 	// Run the VM
