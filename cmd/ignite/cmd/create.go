@@ -147,6 +147,12 @@ func (md *vmMetadata) copyImage() error {
 	return nil
 }
 
-func (md *vmMetadata) setState(s state) {
+func (md *vmMetadata) setState(s state) error {
 	md.State = s
+
+	if err := md.save(); err != nil {
+		return err
+	}
+
+	return nil
 }

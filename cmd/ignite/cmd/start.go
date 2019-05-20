@@ -55,6 +55,9 @@ func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
 	dockerArgs := []string{
 		"run",
 		"-itd",
+		"--rm",
+		"--name",
+		vmID,
 		fmt.Sprintf("-v=%s:/ignite/ignite", igniteBinary),
 		fmt.Sprintf("-v=%s:%s", constants.DATA_DIR, constants.DATA_DIR),
 		"--privileged",
@@ -63,7 +66,7 @@ func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
 		vmID,
 	}
 
-	// Start the vm in docker
+	// Start the VM in docker
 	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
 		return errors.Wrapf(err, "failed to start container for VM: %s", vmID)
 	}
