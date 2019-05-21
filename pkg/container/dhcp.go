@@ -27,6 +27,7 @@ type DHCPInterface struct {
 	VMTAP      string
 	Bridge     string
 	Hostname   string
+	MACFilter  string
 	dnsServers []byte
 }
 
@@ -48,16 +49,18 @@ func (i *DHCPInterface) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, optio
 	}
 	fmt.Printf("Packet %v, Request: %s, Options: %v, Response: %v\n", p, msgType.String(), options, respMsg.String())
 	if respMsg != 0 {
-		opts := dhcp.Options{
-			dhcp.OptionSubnetMask:       []byte(i.VMIPNet.Mask),
-			dhcp.OptionRouter:           []byte(*i.GatewayIP),
-			dhcp.OptionDomainNameServer: i.dnsServers,
-			dhcp.OptionHostName:         []byte(i.Hostname),
-		}
-		optSlice := opts.SelectOrderOrAll(options[dhcp.OptionParameterRequestList])
 		requestingMAC := p.CHAddr().String()
-		fmt.Printf("Response: %s, Source %s, Client: %s, Options: %v, MAC: %s\n", respMsg.String(), i.GatewayIP.String(), i.VMIPNet.IP.String(), optSlice, requestingMAC)
-		return dhcp.ReplyPacket(p, respMsg, *i.GatewayIP, i.VMIPNet.IP, leaseDuration, optSlice)
+		if requestingMAC == i.MACFilter {
+			opts := dhcp.Options{
+				dhcp.OptionSubnetMask:       []byte(i.VMIPNet.Mask),
+				dhcp.OptionRouter:           []byte(*i.GatewayIP),
+				dhcp.OptionDomainNameServer: i.dnsServers,
+				dhcp.OptionHostName:         []byte(i.Hostname),
+			}
+			optSlice := opts.SelectOrderOrAll(options[dhcp.OptionParameterRequestList])
+			fmt.Printf("Response: %s, Source %s, Client: %s, Options: %v, MAC: %s\n", respMsg.String(), i.GatewayIP.String(), i.VMIPNet.IP.String(), optSlice, requestingMAC)
+			return dhcp.ReplyPacket(p, respMsg, *i.GatewayIP, i.VMIPNet.IP, leaseDuration, optSlice)
+		}
 	}
 	return nil
 }
