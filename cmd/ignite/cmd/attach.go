@@ -36,15 +36,12 @@ func RunAttach(out io.Writer, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("not a vm: %s", vmID)
 	}
 
-	md := &vmMetadata{
-		ID: vmID,
-	}
-
-	if err := md.load(); err != nil {
+	md, err := loadVMMetadata(vmID)
+	if err != nil {
 		return err
 	}
 
-	if md.State != Running {
+	if !md.running() {
 		return errors.New("given VM is not running")
 	}
 
@@ -55,7 +52,7 @@ func RunAttach(out io.Writer, cmd *cobra.Command, args []string) error {
 
 	// Attach to the VM in Docker
 	if ec, err := util.ExecForeground("docker", dockerArgs...); err != nil {
-		if ec != 1 { // Docker's detach sequence has an exit code of -1
+		if ec != 1 { // Docker's detach sequence (^P^Q) has an exit code of -1
 			return fmt.Errorf("failed to attach to container for VM %s: %v", vmID, err)
 		}
 	}

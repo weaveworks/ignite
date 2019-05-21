@@ -38,15 +38,12 @@ func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("not a vm: %s", vmID)
 	}
 
-	md := &vmMetadata{
-		ID: vmID,
-	}
-
-	if err := md.load(); err != nil {
+	md, err := loadVMMetadata(vmID)
+	if err != nil {
 		return err
 	}
 
-	if md.State == Running {
+	if md.running() {
 		return errors.New("given VM is already running")
 	}
 

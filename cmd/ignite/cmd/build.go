@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/image"
+	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/pkg/errors"
 	"io"
@@ -106,22 +107,26 @@ func RunBuild(out io.Writer, cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// Create new file to host the filesystem and format it
 	// Create new image metadata
-	image := build.ImageMetadata{
-		ID:   buildOptions.imageID,
-		Name: buildOptions.imageName,
+	md := image.ImageMetadata{
+		Metadata: &metadata.Metadata{
+			ID:   buildOptions.imageID,
+			Name: buildOptions.imageName,
+			Type: metadata.Image,
+		},
 	}
 
-	if err := image.AllocateAndFormat(); err != nil {
+	// Create new file to host the filesystem and format it
+	if err := md.AllocateAndFormat(); err != nil {
 		return err
 	}
 
-	if err := image.AddFiles3(path.Join(buildOptions.imageDir, constants.IMAGE_TAR)); err != nil {
+	// Add the files to the filesystem
+	if err := md.AddFiles3(path.Join(buildOptions.imageDir, constants.IMAGE_TAR)); err != nil {
 		return err
 	}
 
-	if err := image.WriteMetadata(); err != nil {
+	if err := md.Save(); err != nil {
 		return err
 	}
 
