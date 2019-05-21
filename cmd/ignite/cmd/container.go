@@ -81,22 +81,32 @@ func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("network setup failed: %v", err)
 	}
 
+	// Generate the MAC addresses for the VM's adapters
+	macAddresses := make([]string, 0, len(dhcpIfaces))
+	if err := util.NewMAC(&macAddresses); err != nil {
+		return fmt.Errorf("failed to generate MAC addresses: %v", err)
+	}
+
 	// Fetch the DNS servers given to the container
 	clientConfig, err := dns.ClientConfigFromFile("/etc/resolv.conf")
 	if err != nil {
 		return fmt.Errorf("failed to get DNS configuration: %v", err)
 	}
 
-	for _, dhcpIface := range dhcpIfaces {
+	for i := range dhcpIfaces {
+		dhcpIface := &dhcpIfaces[i]
 		// Set the VM hostname to the VM ID
 		dhcpIface.Hostname = md.ID
+
+		// Set the MAC address filter for the DHCP server
+		dhcpIface.MACFilter = macAddresses[i]
 
 		// Add the DNS servers from the container
 		dhcpIface.SetDNSServers(clientConfig.Servers)
 
 		go func() {
 			fmt.Printf("Starting DHCP server for interface %s\n", dhcpIface.Bridge)
-			if err := container.RunDHCP(&dhcpIface); err != nil {
+			if err := container.RunDHCP(dhcpIface); err != nil {
 				fmt.Fprintf(os.Stderr, "%s DHCP server error: %v\n", dhcpIface.Bridge, err)
 			}
 		}()
@@ -175,36 +185,6 @@ func bridge(iface *net.Interface) (container.DHCPInterface, error) {
 	return d, nil
 }
 
-func setupNetwork() error {
-	iface, err := net.InterfaceByName("eth0")
-	if err != nil {
-		return err
-	}
-
-	_, err = takeAddress(iface)
-	if err != nil {
-		return err
-	}
-
-	if err := createTAPAdapter("vm0"); err != nil {
-		return err
-	}
-
-	if err := createBridge("br0"); err != nil {
-		return err
-	}
-
-	if err := connectAdapterToBridge("vm0", "br0"); err != nil {
-		return err
-	}
-
-	if err := connectAdapterToBridge("eth0", "br0"); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // takeAddress removes the first address of an interface and returns it
 func takeAddress(iface *net.Interface) (*net.IPNet, error) {
 	addrs, err := iface.Addrs()
@@ -250,20 +230,23 @@ func takeAddress(iface *net.Interface) (*net.IPNet, error) {
 }
 
 func createTAPAdapter(tapName string) error {
-	_, err := util.ExecuteCommand("ip", "tuntap", "add", "mode", "tap", tapName)
-	if err != nil {
+	if _, err := util.ExecuteCommand("ip", "tuntap", "add", "mode", "tap", tapName); err != nil {
 		return err
 	}
-	_, err = util.ExecuteCommand("ip", "link", "set", tapName, "up")
-	return err
+
+	return setLinkUp(tapName)
 }
 
 func createBridge(bridgeName string) error {
-	_, err := util.ExecuteCommand("ip", "link", "add", "name", bridgeName, "type", "bridge")
-	if err != nil {
+	if _, err := util.ExecuteCommand("ip", "link", "add", "name", bridgeName, "type", "bridge"); err != nil {
 		return err
 	}
-	_, err = util.ExecuteCommand("ip", "link", "set", bridgeName, "up")
+
+	return setLinkUp(bridgeName)
+}
+
+func setLinkUp(adapterName string) error {
+	_, err := util.ExecuteCommand("ip", "link", "set", adapterName, "up")
 	return err
 }
 
@@ -278,7 +261,8 @@ func runVM(md *vmMetadata, dhcpIfaces *[]container.DHCPInterface) {
 	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(*dhcpIfaces))
 	for _, dhcpIface := range *dhcpIfaces {
 		networkInterfaces = append(networkInterfaces, firecracker.NetworkInterface{
-			HostDevName: dhcpIface.VMTAP, // TODO: Single DHCP server with MAC matching and pre-generated MACs
+			MacAddress:  dhcpIface.MACFilter,
+			HostDevName: dhcpIface.VMTAP,
 		})
 	}
 
