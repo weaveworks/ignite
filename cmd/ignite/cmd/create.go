@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/errutils"
+	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"io"
-	"io/ioutil"
-	"os"
 	"path"
 )
 
@@ -21,13 +20,48 @@ const (
 	Running
 )
 
-type vmMetadata struct {
-	ID       string `json:"ID"`
-	Name     string `json:"Name"`
-	ImageID  string `json:"ImageID"`
-	KernelID string `json:"KernelID"`
-	State    state  `json:"State"`
+var stateLookup = map[state]string{
+	Stopped: "stopped",
+	Running: "running",
 }
+
+func (x state) MarshalJSON() ([]byte, error) {
+	return json.Marshal(stateLookup[x])
+}
+
+func (x *state) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err != nil {
+		return err
+	}
+
+	for k, v := range stateLookup {
+		if v == s {
+			*x = k
+			break
+		}
+	}
+
+	return nil
+}
+
+type vmMetadata struct {
+	*metadata.Metadata
+}
+
+type vmObjectData struct {
+	ImageID  string
+	KernelID string
+	State    state
+}
+
+//type vmMetadata struct {
+//	ID       string `json:"ID"`
+//	Name     string `json:"Name"`
+//	ImageID  string `json:"ImageID"`
+//	KernelID string `json:"KernelID"`
+//	State    state  `json:"State"`
+//}
 
 // NewCmdCreate creates a new VM from an image
 func NewCmdCreate(out io.Writer) *cobra.Command {
@@ -67,15 +101,20 @@ func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
 	}
 
 	md := &vmMetadata{
-		ID:       vmID,
-		Name:     args[2],
-		ImageID:  imageID,
-		KernelID: kernelID,
-		State:    Stopped,
+		Metadata: &metadata.Metadata{
+			ID:   vmID,
+			Name: args[2],
+			Type: metadata.VM,
+			ObjectData: &vmObjectData{
+				ImageID:  imageID,
+				KernelID: kernelID,
+				State:    Stopped,
+			},
+		},
 	}
 
 	// Save the metadata
-	if err := md.save(); err != nil {
+	if err := md.Save(); err != nil {
 		return err
 	}
 
@@ -90,69 +129,43 @@ func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func (md *vmMetadata) save() error {
-	f, err := os.Create(path.Join(constants.VM_DIR, md.ID, constants.METADATA))
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	y, err := json.MarshalIndent(&md, "", "    ")
-	if err != nil {
-		return err
+func loadVMMetadata(vmID string) (*vmMetadata, error) {
+	md := &vmMetadata{
+		Metadata: &metadata.Metadata{
+			ID:         vmID,
+			Type:       metadata.VM,
+			ObjectData: &vmObjectData{},
+		},
 	}
 
-	if _, err := f.Write(append(y, '\n')); err != nil {
-		return err
+	if err := md.Load(); err != nil {
+		return nil, fmt.Errorf("failed to load VM metadata: %v", err)
 	}
 
-	return nil
-}
-
-func (md *vmMetadata) load() error {
-	if md.ID == "" {
-		return errors.New("cannot load, VM metadata ID not set")
-	}
-
-	vmDir := path.Join(constants.VM_DIR, md.ID)
-
-	if dir, err := os.Stat(vmDir); os.IsNotExist(err) || !dir.IsDir() {
-		return fmt.Errorf("not a vm: %s", md.ID)
-	}
-
-	mdFile := path.Join(vmDir, constants.METADATA)
-
-	if !util.FileExists(mdFile) {
-		return fmt.Errorf("metadata file missing for VM: %s", md.ID)
-	}
-
-	d, err := ioutil.ReadFile(mdFile)
-	if err != nil {
-		return err
-	}
-
-	if err := json.Unmarshal(d, &md); err != nil {
-		return err
-	}
-
-	return nil
+	return md, nil
 }
 
 func (md *vmMetadata) copyImage() error {
-	if err := util.CopyFile(path.Join(constants.IMAGE_DIR, md.ImageID, constants.IMAGE_FS),
-		path.Join(constants.VM_DIR, md.ID, constants.IMAGE_FS)); err != nil {
-		return errors.Wrapf(err, "failed to copy image %s to VM %s", md.ImageID, md.ID)
+	od := md.ObjectData.(*vmObjectData)
+
+	if err := util.CopyFile(path.Join(constants.IMAGE_DIR, od.ImageID, constants.IMAGE_FS),
+		path.Join(md.ObjectPath(), constants.IMAGE_FS)); err != nil {
+		return errors.Wrapf(err, "failed to copy image %q to VM %q", od.ImageID, md.ID)
 	}
 
 	return nil
 }
 
 func (md *vmMetadata) setState(s state) error {
-	md.State = s
+	md.ObjectData.(*vmObjectData).State = s // Won't panic as this can only receive *vmMetadata objects
 
-	if err := md.save(); err != nil {
+	if err := md.Save(); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (md *vmMetadata) running() bool {
+	return md.ObjectData.(*vmObjectData).State == Running
 }
