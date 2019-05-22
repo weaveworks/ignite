@@ -3,18 +3,18 @@ package cmd
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/pkg/errors"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
 )
 
-// NewCmdStart starts a Firecracker VM.
+// NewCmdStart starts a Firecracker VM
 func NewCmdStart(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start [vm]",
@@ -29,22 +29,22 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 	return cmd
 }
 
-// RunStart runs when the start command is invoked
 func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
-	vmID := args[0]
-
-	// Check if given vm exists TODO: Selection by name
-	if !util.DirExists(path.Join(constants.VM_DIR, vmID)) {
-		return fmt.Errorf("not a vm: %s", vmID)
+	// Get the VM ID
+	vmID, err := metadata.MatchObject(args[0], metadata.VM)
+	if err != nil {
+		return err
 	}
 
+	// Load the VM metadata
 	md, err := loadVMMetadata(vmID)
 	if err != nil {
 		return err
 	}
 
+	// Check if the given VM is already running
 	if md.running() {
-		return errors.New("given VM is already running")
+		return fmt.Errorf("%s is already running", vmID)
 	}
 
 	igniteBinary, _ := filepath.Abs(os.Args[0])
@@ -67,6 +67,9 @@ func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
 	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
 		return errors.Wrapf(err, "failed to start container for VM: %s", vmID)
 	}
+
+	// Print the ID of the started VM
+	fmt.Println(vmID)
 
 	return nil
 }

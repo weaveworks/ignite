@@ -22,11 +22,11 @@ const (
 var ObjectTypeLookup = map[ObjectType]string{
 	Image:  "image",
 	Kernel: "kernel",
-	VM:     "vm",
+	VM:     "VM",
 }
 
 func (x ObjectType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(ObjectTypeLookup[x])
+	return json.Marshal(x.String())
 }
 
 func (x *ObjectType) UnmarshalJSON(b []byte) error {
@@ -45,6 +45,23 @@ func (x *ObjectType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (x ObjectType) String() string {
+	return ObjectTypeLookup[x]
+}
+
+func (x ObjectType) Path() string {
+	switch x {
+	case Image:
+		return constants.IMAGE_DIR
+	case Kernel:
+		return constants.KERNEL_DIR
+	case VM:
+		return constants.VM_DIR
+	}
+
+	return ""
+}
+
 type ObjectData interface{}
 
 type Metadata struct {
@@ -55,18 +72,7 @@ type Metadata struct {
 }
 
 func (md *Metadata) ObjectPath() string {
-	var prefix string
-
-	switch md.Type {
-	case Image:
-		prefix = constants.IMAGE_DIR
-	case Kernel:
-		prefix = constants.KERNEL_DIR
-	case VM:
-		prefix = constants.VM_DIR
-	}
-
-	return path.Join(prefix, md.ID)
+	return path.Join(md.Type.Path(), md.ID)
 }
 
 func (md *Metadata) Save() error {
@@ -98,16 +104,15 @@ func (md *Metadata) Load() error {
 	}
 
 	p := md.ObjectPath()
-	t := ObjectTypeLookup[md.Type]
 
 	if !util.DirExists(p) {
-		return fmt.Errorf("nonexistent %q object: %s", t, md.ID)
+		return fmt.Errorf("nonexistent %s: %s", md.Type, md.ID)
 	}
 
 	f := path.Join(p, constants.METADATA)
 
 	if !util.FileExists(f) {
-		return fmt.Errorf("metadata file missing for %q object: %s", t, md.ID)
+		return fmt.Errorf("metadata file missing for %s: %s", md.Type, md.ID)
 	}
 
 	d, err := ioutil.ReadFile(f)

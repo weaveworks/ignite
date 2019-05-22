@@ -81,17 +81,16 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 
 // RunCreate runs when the Create command is invoked
 func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
-	imageID := args[0]
-	kernelID := args[1]
-
-	// Check if given image exists TODO: Selection by name
-	if !util.DirExists(path.Join(constants.IMAGE_DIR, imageID)) {
-		return fmt.Errorf("not an image: %s", imageID)
+	// Resolve the image ID
+	imageID, err := metadata.MatchObject(args[0], metadata.Image)
+	if err != nil {
+		return err
 	}
 
-	// Check if given kernel exists TODO: Selection by name
-	if !util.DirExists(path.Join(constants.KERNEL_DIR, kernelID)) {
-		return fmt.Errorf("not a kernel: %s", kernelID)
+	// Resolve the kernel ID
+	kernelID, err := metadata.MatchObject(args[1], metadata.Kernel)
+	if err != nil {
+		return err
 	}
 
 	// Create a new ID for the VM
