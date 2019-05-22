@@ -1,18 +1,15 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/util"
-	"io"
-	"path"
-
 	"github.com/luxas/ignite/pkg/errutils"
+	"github.com/luxas/ignite/pkg/metadata"
+	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
+	"io"
 )
 
-// NewCmdExec execs a command in a Firecracker VM.
+// NewCmdAttach attaches to a running Firecracker VM
 func NewCmdAttach(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "attach [vm]",
@@ -23,27 +20,30 @@ func NewCmdAttach(out io.Writer) *cobra.Command {
 			errutils.Check(err)
 		},
 	}
-	//cmd.Flags().StringP("output", "o", "", "Output format; available options are 'yaml', 'json' and 'short'")
+
 	return cmd
 }
 
-// RunExec runs when the Exec command is invoked
 func RunAttach(out io.Writer, cmd *cobra.Command, args []string) error {
-	vmID := args[0]
-
-	// Check if given vm exists TODO: Selection by name
-	if !util.DirExists(path.Join(constants.VM_DIR, vmID)) {
-		return fmt.Errorf("not a vm: %s", vmID)
+	// Get the VM ID
+	vmID, err := metadata.MatchObject(args[0], metadata.VM)
+	if err != nil {
+		return err
 	}
 
+	// Load the VM metadata
 	md, err := loadVMMetadata(vmID)
 	if err != nil {
 		return err
 	}
 
+	// Check if the VM is running
 	if !md.running() {
-		return errors.New("given VM is not running")
+		return fmt.Errorf("%s is not running", vmID)
 	}
+
+	// Print the ID before attaching
+	fmt.Println(vmID)
 
 	dockerArgs := []string{
 		"attach",

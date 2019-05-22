@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/container"
 	"github.com/luxas/ignite/pkg/errutils"
+	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/miekg/dns"
 	"github.com/spf13/cobra"
@@ -30,10 +31,14 @@ func NewCmdContainer(out io.Writer) *cobra.Command {
 // RunBuild runs when the Container command is invoked
 func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 	// The VM to run in container mode
-	id := args[0]
+	// Get the VM ID
+	vmID, err := metadata.MatchObject(args[0], metadata.VM)
+	if err != nil {
+		return err
+	}
 
 	// Load the metadata for the VM
-	md, err := loadVMMetadata(id)
+	md, err := loadVMMetadata(vmID)
 	if err != nil {
 		return err
 	}
