@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/container"
 	"github.com/luxas/ignite/pkg/errutils"
+	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/miekg/dns"
@@ -30,19 +31,23 @@ func NewCmdContainer(out io.Writer) *cobra.Command {
 
 // RunBuild runs when the Container command is invoked
 func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
-	// Get a metadata entry for the VM
-	d, err := metadata.NewObjectMatcher(metadata.Filter(args[0])).Single(metadata.VM, loadVMMetadata)
+	// Load all VM metadata as Filterable objects
+	mdf, err := metadata.LoadVMMetadataFilterable()
 	if err != nil {
 		return err
 	}
 
-	md := (*d).(*vmMetadata)
+	// Create an IDNameFilter to match a single VM
+	d, err := filter.NewFilterer(metadata.NewVMFilter(args[0])).Single(mdf)
+	if err != nil {
+		return err
+	}
 
-	// Type assert to VM metadata
-	//md, err := toVMMetadata(d)
-	//if err != nil {
-	//	return err
-	//}
+	// Convert the result Filterable to a VMMetadata
+	md, err := metadata.ToVMMetadata(d)
+	if err != nil {
+		return err
+	}
 
 	var dhcpIfaces []container.DHCPInterface
 
@@ -83,13 +88,13 @@ func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 	}
 
 	// VM state handling
-	if err := md.setState(Running); err != nil {
+	if err := md.SetState(metadata.VMRunning); err != nil {
 		return fmt.Errorf("failed to update VM state: %v", err)
 	}
-	defer md.setState(Stopped)
+	defer md.SetState(metadata.VMStopped)
 
 	// Run the VM
-	container.RunVM(md.ID, md.ObjectData.(*vmObjectData).KernelID, &dhcpIfaces)
+	container.RunVM(md.ID, md.GetKernelID(), &dhcpIfaces)
 
 	return nil
 }

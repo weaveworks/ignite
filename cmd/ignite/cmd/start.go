@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/pkg/errors"
@@ -30,34 +31,26 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 }
 
 func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
-	//// Get a metadata entry for the VM
-	//d, err := metadata.NewObjectMatcher(args[0]).Single(metadata.VM)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//// Type assert to VM metadata
-	//md, err := toVMMetadata(d)
-	//if err != nil {
-	//	return err
-	//}
-
-	// Get a metadata entry for the VM
-	d, err := metadata.NewObjectMatcher(metadata.Filter(args[0])).Single(metadata.VM, loadVMMetadata)
+	// Load all VM metadata as Filterable objects
+	mdf, err := metadata.LoadVMMetadataFilterable()
 	if err != nil {
 		return err
 	}
 
-	md := (*d).(*vmMetadata)
+	// Create an IDNameFilter to match a single VM
+	d, err := filter.NewFilterer(metadata.NewVMFilter(args[0])).Single(mdf)
+	if err != nil {
+		return err
+	}
 
-	// Type assert to VM metadata
-	//md, err := toVMMetadata(d)
-	//if err != nil {
-	//	return err
-	//}
+	// Convert the result Filterable to a VMMetadata
+	md, err := metadata.ToVMMetadata(d)
+	if err != nil {
+		return err
+	}
 
 	// Check if the given VM is already running
-	if md.running() {
+	if md.Running() {
 		return fmt.Errorf("%s is already running", md.ID)
 	}
 
