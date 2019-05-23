@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/errutils"
+	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
@@ -25,22 +26,26 @@ func NewCmdAttach(out io.Writer) *cobra.Command {
 }
 
 func RunAttach(out io.Writer, cmd *cobra.Command, args []string) error {
-	// Get a metadata entry for the VM
-	d, err := metadata.NewObjectMatcher(metadata.Filter(args[0])).Single(metadata.VM, loadVMMetadata)
+	// Load all VM metadata as Filterable objects
+	mdf, err := metadata.LoadVMMetadataFilterable()
 	if err != nil {
 		return err
 	}
 
-	md := (*d).(*vmMetadata)
+	// Create an IDNameFilter to match a single VM
+	d, err := filter.NewFilterer(metadata.NewVMFilter(args[0])).Single(mdf)
+	if err != nil {
+		return err
+	}
 
-	// Type assert to VM metadata
-	//md, err := toVMMetadata(d.(*vmMetadata))
-	//if err != nil {
-	//	return err
-	//}
+	// Convert the result Filterable to a VMMetadata
+	md, err := metadata.ToVMMetadata(d)
+	if err != nil {
+		return err
+	}
 
 	// Check if the VM is running
-	if !md.running() {
+	if !md.Running() {
 		return fmt.Errorf("%s is not running", md.ID)
 	}
 

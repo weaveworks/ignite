@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/errutils"
+	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/spf13/cobra"
 	"io"
@@ -25,31 +26,47 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 }
 
 func RunPs(out io.Writer, cmd *cobra.Command) error {
-	// match all VMs by specifying an empty filter
-	ds, err := metadata.NewObjectMatcher("").All(metadata.VM, loadVMMetadata)
+	// Load all VM metadata as Filterable objects
+	mdf, err := metadata.LoadVMMetadataFilterable()
 	if err != nil {
 		return err
 	}
 
-	var mds []*vmMetadata
+	// TODO: Temporary, this will be a RunningVMFilter
+	d, err := filter.NewFilterer(metadata.NewVMFilter("")).All(mdf)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%v\n", d)
+
+	// Convert the result Filterable to a VMMetadata
+	//md, err := metadata.ToVMMetadata(d)
+	//if err != nil {
+	//	return err
+	//}
+
+	var mds []*metadata.VMMetadata
 
 	// Type assert all to VM metadata
-	for _, d := range ds {
-		mds = append(mds, (*d).(*vmMetadata))
-
-		//if md, err := toVMMetadata(d); err == nil {
-		//	mds = append(mds, md)
-		//} else {
-		//	return err
-		//}
+	for _, a := range d {
+		if md, err := metadata.ToVMMetadata(a); err == nil {
+			fmt.Printf("%v\n", md)
+			mds = append(mds, md)
+		} else {
+			return err
+		}
 	}
+
+	fmt.Printf("mds: %v\n", mds)
 
 	// TODO: tabwriter stuff
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 1, '\t', 0)
 	fmt.Fprintln(w, "VM ID\tIMAGE\tKERNEL\tSTATE\tNAME")
 	for _, md := range mds {
-		od := md.ObjectData.(*vmObjectData)
+		fmt.Printf("%v\n", mds)
+		od := md.ObjectData.(*metadata.VMObjectData)
 		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", md.ID, od.ImageID, od.KernelID, od.State, md.Name)
 	}
 	w.Flush()
