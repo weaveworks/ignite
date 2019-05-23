@@ -5,6 +5,7 @@ import (
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
+	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/pkg/errors"
 	"io"
@@ -31,21 +32,18 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 }
 
 func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
-	// Load all VM metadata as Filterable objects
-	mdf, err := metadata.LoadVMMetadataFilterable()
-	if err != nil {
-		return err
-	}
+	var md *vmmd.VMMetadata
 
-	// Create an IDNameFilter to match a single VM
-	d, err := filter.NewFilterer(metadata.NewVMFilter(args[0])).Single(mdf)
-	if err != nil {
-		return err
-	}
-
-	// Convert the result Filterable to a VMMetadata
-	md, err := metadata.ToVMMetadata(d)
-	if err != nil {
+	// Match a single VM using the VMFilter
+	if matches, err := filter.NewFilterer(vmmd.NewVMFilter(args[0]), metadata.VM.Path(), vmmd.LoadVMMetadata); err == nil {
+		if filterable, err := matches.Single(); err == nil {
+			if md, err = vmmd.ToVMMetadata(filterable); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
 		return err
 	}
 

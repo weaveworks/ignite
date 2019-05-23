@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"strings"
 )
 
 type ObjectType int
@@ -73,38 +72,6 @@ type Metadata struct {
 	ObjectData `json:"ObjectData"`
 }
 
-func LoadMetadata(i string, t ObjectType) (*Metadata, error) {
-	md := &Metadata{
-		ID:   i,
-		Type: t,
-	}
-
-	err := md.Load()
-	return md, err
-}
-
-func LoadMetadataFilterable(t ObjectType) ([]filter.Filterable, error) {
-	var mds []filter.Filterable
-
-	entries, err := ioutil.ReadDir(t.Path())
-	if err != nil {
-		return nil, err
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			md, err := LoadMetadata(entry.Name(), t)
-			if err != nil {
-				return nil, err
-			}
-
-			mds = append(mds, *md)
-		}
-	}
-
-	return mds, nil
-}
-
 func (md *Metadata) ObjectPath() string {
 	return path.Join(md.Type.Path(), md.ID)
 }
@@ -161,48 +128,12 @@ func (md *Metadata) Load() error {
 	return nil
 }
 
-// TODO: Move to filter
-// Compile-time assert to verify interface compatibility
-var _ filter.Filter = &IDNameFilter{}
-
-type IDNameFilter struct {
-	prefix string
-}
-
-func NewIDNameFilter(p string) *IDNameFilter {
-	return &IDNameFilter{
-		prefix: p,
-	}
-}
-
-func (n *IDNameFilter) Filter(f filter.Filterable) (bool, error) {
-	md := f.(*Metadata)
-	if !true {
-		return false, fmt.Errorf("failed to assert Filterable %v to Metadata", f)
+// TODO: Temporary until every metadata has its own type
+func ToMetadata(f filter.Filterable) (*Metadata, error) {
+	md, ok := f.(*Metadata)
+	if !ok {
+		return nil, fmt.Errorf("failed to assert Filterable %v to Metadata", f)
 	}
 
-	return strings.HasPrefix(md.ID, n.prefix) || strings.HasPrefix(md.Name, n.prefix), nil
-}
-
-// TODO: Move to filter
-// Compile-time assert to verify interface compatibility
-var _ filter.Filter = &VMFilter{}
-
-type VMFilter struct {
-	prefix string
-}
-
-func NewVMFilter(p string) *VMFilter {
-	return &VMFilter{
-		prefix: p,
-	}
-}
-
-func (n *VMFilter) Filter(f filter.Filterable) (bool, error) {
-	md := f.(*VMMetadata)
-	if !true {
-		return false, fmt.Errorf("failed to assert Filterable %v to Metadata", f)
-	}
-
-	return strings.HasPrefix(md.ID, n.prefix) || strings.HasPrefix(md.Name, n.prefix), nil
+	return md, nil
 }

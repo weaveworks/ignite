@@ -1,25 +1,25 @@
-package metadata
+package vmmd
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/filter"
+	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/util"
-	"io/ioutil"
 	"path"
 )
 
 type state int
 
 const (
-	VMStopped state = iota
-	VMRunning
+	Stopped state = iota
+	Running
 )
 
 var stateLookup = map[state]string{
-	VMStopped: "stopped",
-	VMRunning: "running",
+	Stopped: "stopped",
+	Running: "running",
 }
 
 func (x state) MarshalJSON() ([]byte, error) {
@@ -47,7 +47,7 @@ func (x state) String() string {
 }
 
 type VMMetadata struct {
-	*Metadata
+	*metadata.Metadata
 }
 
 type VMObjectData struct {
@@ -58,57 +58,21 @@ type VMObjectData struct {
 
 func NewVMMetadata(id, name, imageID, kernelID string) *VMMetadata {
 	return &VMMetadata{
-		Metadata: &Metadata{
+		Metadata: &metadata.Metadata{
 			ID:   id,
 			Name: name,
-			Type: VM,
+			Type: metadata.VM,
 			ObjectData: &VMObjectData{
 				ImageID:  imageID,
 				KernelID: kernelID,
-				State:    VMStopped,
+				State:    Stopped,
 			},
 		},
 	}
 }
 
-func LoadVMMetadata(id string) (*VMMetadata, error) {
-	md := &VMMetadata{
-		Metadata: &Metadata{
-			ID:         id,
-			Type:       VM,
-			ObjectData: &VMObjectData{},
-		},
-	}
-
-	err := md.Load()
-	return md, err
-}
-
-func LoadVMMetadataFilterable() ([]filter.Filterable, error) {
-	var mds []filter.Filterable
-
-	entries, err := ioutil.ReadDir(VM.Path())
-	if err != nil {
-		return nil, err
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			md, err := LoadVMMetadata(entry.Name())
-			if err != nil {
-				return nil, err
-			}
-
-			mds = append(mds, md)
-		}
-	}
-
-	return mds, nil
-}
-
 func ToVMMetadata(f filter.Filterable) (*VMMetadata, error) {
 	md, ok := f.(*VMMetadata)
-	fmt.Printf("%v: %v\n", f, md)
 	if !ok {
 		return nil, fmt.Errorf("failed to assert Filterable %v to VMMetadata", f)
 	}
@@ -116,6 +80,21 @@ func ToVMMetadata(f filter.Filterable) (*VMMetadata, error) {
 	return md, nil
 }
 
+func ToVMMetadataAll(a []filter.Filterable) ([]*VMMetadata, error) {
+	var mds []*VMMetadata
+
+	for _, f := range a {
+		if md, err := ToVMMetadata(f); err == nil {
+			mds = append(mds, md)
+		} else {
+			return nil, err
+		}
+	}
+
+	return mds, nil
+}
+
+// The md.ObjectData.(*VMObjectData) assert won't panic as these methods can only receive *VMMetadata objects
 func (md *VMMetadata) CopyImage() error {
 	od := md.ObjectData.(*VMObjectData)
 
@@ -128,7 +107,7 @@ func (md *VMMetadata) CopyImage() error {
 }
 
 func (md *VMMetadata) SetState(s state) error {
-	md.ObjectData.(*VMObjectData).State = s // Won't panic as this can only receive *VMMetadata objects
+	md.ObjectData.(*VMObjectData).State = s
 
 	if err := md.Save(); err != nil {
 		return err
@@ -138,9 +117,9 @@ func (md *VMMetadata) SetState(s state) error {
 }
 
 func (md *VMMetadata) Running() bool {
-	return md.ObjectData.(*VMObjectData).State == VMRunning
+	return md.ObjectData.(*VMObjectData).State == Running
 }
 
-func (md *VMMetadata) GetKernelID() string {
+func (md *VMMetadata) KernelID() string {
 	return md.ObjectData.(*VMObjectData).KernelID
 }

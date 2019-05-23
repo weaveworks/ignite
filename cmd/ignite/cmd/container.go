@@ -6,6 +6,7 @@ import (
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
+	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/miekg/dns"
 	"github.com/spf13/cobra"
@@ -29,23 +30,19 @@ func NewCmdContainer(out io.Writer) *cobra.Command {
 	return cmd
 }
 
-// RunBuild runs when the Container command is invoked
 func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
-	// Load all VM metadata as Filterable objects
-	mdf, err := metadata.LoadVMMetadataFilterable()
-	if err != nil {
-		return err
-	}
+	var md *vmmd.VMMetadata
 
-	// Create an IDNameFilter to match a single VM
-	d, err := filter.NewFilterer(metadata.NewVMFilter(args[0])).Single(mdf)
-	if err != nil {
-		return err
-	}
-
-	// Convert the result Filterable to a VMMetadata
-	md, err := metadata.ToVMMetadata(d)
-	if err != nil {
+	// Match a single VM using the VMFilter
+	if matches, err := filter.NewFilterer(vmmd.NewVMFilter(args[0]), metadata.VM.Path(), vmmd.LoadVMMetadata); err == nil {
+		if filterable, err := matches.Single(); err == nil {
+			if md, err = vmmd.ToVMMetadata(filterable); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
 		return err
 	}
 
@@ -88,13 +85,13 @@ func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 	}
 
 	// VM state handling
-	if err := md.SetState(metadata.VMRunning); err != nil {
+	if err := md.SetState(vmmd.Running); err != nil {
 		return fmt.Errorf("failed to update VM state: %v", err)
 	}
-	defer md.SetState(metadata.VMStopped)
+	defer md.SetState(vmmd.Stopped)
 
 	// Run the VM
-	container.RunVM(md.ID, md.GetKernelID(), &dhcpIfaces)
+	container.RunVM(md.ID, md.KernelID(), &dhcpIfaces)
 
 	return nil
 }
