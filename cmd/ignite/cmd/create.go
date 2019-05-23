@@ -6,6 +6,7 @@ import (
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
+	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
 	"io"
@@ -27,29 +28,33 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 	return cmd
 }
 
-// RunCreate runs when the Create command is invoked
 func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
-	// Load all image metadata as Filterable objects
-	mdf, err := metadata.LoadMetadataFilterable(metadata.Image)
-	if err != nil {
+	var image *metadata.Metadata
+	var kernel *metadata.Metadata
+
+	// Match a single Image using the IDNameFilter
+	if matches, err := filter.NewFilterer(metadata.NewIDNameFilter(args[0]), metadata.Image.Path(), metadata.LoadImageMetadata); err == nil {
+		if filterable, err := matches.Single(); err == nil {
+			if image, err = metadata.ToMetadata(filterable); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
 		return err
 	}
 
-	// Create an IDNameFilter to match a single image
-	image, err := filter.NewFilterer(metadata.NewIDNameFilter(args[0])).Single(mdf)
-	if err != nil {
-		return err
-	}
-
-	// Load all kernel metadata as Filterable objects
-	mdf, err = metadata.LoadMetadataFilterable(metadata.Kernel)
-	if err != nil {
-		return err
-	}
-
-	// Create an IDNameFilter to match a single kernel
-	kernel, err := filter.NewFilterer(metadata.NewIDNameFilter(args[1])).Single(mdf)
-	if err != nil {
+	// Match a single Image using the IDNameFilter
+	if matches, err := filter.NewFilterer(metadata.NewIDNameFilter(args[1]), metadata.Kernel.Path(), metadata.LoadKernelMetadata); err == nil {
+		if filterable, err := matches.Single(); err == nil {
+			if kernel, err = metadata.ToMetadata(filterable); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
 		return err
 	}
 
@@ -59,7 +64,7 @@ func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	md := metadata.NewVMMetadata(vmID, args[2], image.(*metadata.Metadata).ID, kernel.(*metadata.Metadata).ID)
+	md := vmmd.NewVMMetadata(vmID, args[2], image.ID, kernel.ID)
 
 	// Save the metadata
 	if err := md.Save(); err != nil {
@@ -76,19 +81,3 @@ func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
 
 	return nil
 }
-
-//func loadVMMetadata(vmID string) (metadata.Filterable, error) {
-//	md := &vmMetadata{
-//		Metadata: &metadata.Metadata{
-//			ID:         vmID,
-//			Type:       metadata.VM,
-//			ObjectData: &vmObjectData{},
-//		},
-//	}
-//
-//	if err := md.Load(); err != nil {
-//		return nil, fmt.Errorf("failed to load VM metadata: %v", err)
-//	}
-//
-//	return md, nil
-//}

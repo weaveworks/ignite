@@ -2,7 +2,7 @@ package filter
 
 import (
 	"errors"
-	"fmt"
+	"io/ioutil"
 )
 
 var (
@@ -10,68 +10,83 @@ var (
 	errFilterAmbiguous   = errors.New("ambiguous")
 )
 
+type LoadFunc func(string) (Filterable, error)
+
 type Filter interface {
 	Filter(Filterable) (bool, error)
 }
 
-type Filterable interface {
-	//Matches(Filter) bool
-}
+type Filterable interface{}
 
 type filterer struct {
 	filter  Filter
-	matches []Filterable
+	sources []Filterable
 }
 
-func NewFilterer(filter Filter) *filterer {
+func NewFilterer(filter Filter, path string, loadFunc LoadFunc) (*filterer, error) {
+	var sources []Filterable
+
+	entries, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			filterable, err := loadFunc(entry.Name())
+			if err != nil {
+				return nil, err
+			}
+
+			sources = append(sources, filterable)
+		}
+	}
+
 	return &filterer{
 		filter:  filter,
-		matches: []Filterable{},
-	}
+		sources: sources,
+	}, nil
 }
 
-func (o *filterer) match(input []Filterable) error {
-	// Clear previous matches
-	o.matches = nil
+func (o *filterer) match() ([]Filterable, error) {
+	var matches []Filterable
 
-	fmt.Printf("input: %v\n", input)
-
-	for _, f := range input {
+	for _, f := range o.sources {
 		ok, err := o.filter.Filter(f)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if ok {
-			o.matches = append(o.matches, f)
+			matches = append(matches, f)
 		}
 	}
 
-	fmt.Printf("matches: %v\n", o.matches)
-
-	return nil
+	return matches, nil
 }
 
-func (o *filterer) Single(input []Filterable) (Filterable, error) {
-	if err := o.match(input); err != nil {
+func (o *filterer) Single() (Filterable, error) {
+	matches, err := o.match()
+	if err != nil {
 		return nil, err
 	}
 
-	if len(o.matches) == 0 {
+	if len(matches) == 0 {
 		return nil, errFilterNonexistent
 	}
 
-	if len(o.matches) > 1 {
+	if len(matches) > 1 {
 		return nil, errFilterAmbiguous
 	}
 
-	return o.matches[0], nil
+	return matches[0], nil
 }
 
-func (o *filterer) All(input []Filterable) ([]Filterable, error) {
-	if err := o.match(input); err != nil {
+func (o *filterer) All() ([]Filterable, error) {
+	matches, err := o.match()
+	if err != nil {
 		return nil, err
 	}
 
-	return o.matches, nil
+	return matches, nil
 }

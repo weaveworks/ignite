@@ -5,6 +5,7 @@ import (
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
+	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/spf13/cobra"
 	"io"
 	"os"
@@ -26,47 +27,28 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 }
 
 func RunPs(out io.Writer, cmd *cobra.Command) error {
-	// Load all VM metadata as Filterable objects
-	mdf, err := metadata.LoadVMMetadataFilterable()
-	if err != nil {
-		return err
-	}
+	var mds []*vmmd.VMMetadata
 
-	// TODO: Temporary, this will be a RunningVMFilter
-	d, err := filter.NewFilterer(metadata.NewVMFilter("")).All(mdf)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("%v\n", d)
-
-	// Convert the result Filterable to a VMMetadata
-	//md, err := metadata.ToVMMetadata(d)
-	//if err != nil {
-	//	return err
-	//}
-
-	var mds []*metadata.VMMetadata
-
-	// Type assert all to VM metadata
-	for _, a := range d {
-		if md, err := metadata.ToVMMetadata(a); err == nil {
-			fmt.Printf("%v\n", md)
-			mds = append(mds, md)
+	// Match all VMs using the VMFilter
+	// TODO: VMFilter support for running/stopped VMs
+	if matches, err := filter.NewFilterer(vmmd.NewVMFilter(""), metadata.VM.Path(), vmmd.LoadVMMetadata); err == nil {
+		if all, err := matches.All(); err == nil {
+			if mds, err = vmmd.ToVMMetadataAll(all); err != nil {
+				return err
+			}
 		} else {
 			return err
 		}
+	} else {
+		return err
 	}
-
-	fmt.Printf("mds: %v\n", mds)
 
 	// TODO: tabwriter stuff
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 1, '\t', 0)
 	fmt.Fprintln(w, "VM ID\tIMAGE\tKERNEL\tSTATE\tNAME")
 	for _, md := range mds {
-		fmt.Printf("%v\n", mds)
-		od := md.ObjectData.(*metadata.VMObjectData)
+		od := md.ObjectData.(*vmmd.VMObjectData)
 		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", md.ID, od.ImageID, od.KernelID, od.State, md.Name)
 	}
 	w.Flush()
