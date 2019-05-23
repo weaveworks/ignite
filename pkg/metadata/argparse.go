@@ -3,43 +3,69 @@ package metadata
 import (
 	"fmt"
 	"io/ioutil"
-	"strings"
 )
 
-// TODO: Filters, for example if a VM is running
-// MatchObject gets the full ID of an object based on the given name/ID sample
-func MatchObject(input string, objectType ObjectType) (string, error) {
-	var object string
+type LoadFunc func(string) (Filterable, error)
 
+type objectMatcher struct {
+	filter  Filter
+	matches []*Filterable
+}
+
+func NewObjectMatcher(filter Filter) *objectMatcher {
+	return &objectMatcher{
+		filter:  filter,
+		matches: []*Filterable{},
+	}
+}
+
+// TODO: Filters, for example if a VM is running
+// MatchObject gets the full IDs of matching objects based on the given name/ID sample
+func (o *objectMatcher) match(objectType ObjectType, lf LoadFunc) error {
 	entries, err := ioutil.ReadDir(objectType.Path())
 	if err != nil {
-		return "", err
+		return err
 	}
+
+	// Clear previous matches
+	o.matches = nil
 
 	for _, entry := range entries {
 		if entry.IsDir() {
-			md := &Metadata{
-				ID:   entry.Name(),
-				Type: objectType,
+			md, err := lf(entry.Name())
+			if err != nil {
+				return fmt.Errorf("failed to load metadata for %s %q: %v", objectType, entry.Name(), err)
 			}
 
-			if err := md.Load(); err != nil {
-				return "", fmt.Errorf("failed to load metadata for %s object %q: %v", objectType, entry.Name(), err)
-			}
-
-			if strings.HasPrefix(md.ID, input) || strings.HasPrefix(md.Name, input) {
-				if object != "" {
-					return "", fmt.Errorf("ambiguous %s: %s", objectType, input)
-				}
-
-				object = md.ID
+			if md.Matches(o.filter) {
+				o.matches = append(o.matches, &md)
 			}
 		}
 	}
 
-	if object == "" {
-		return "", fmt.Errorf("nonexistent %s: %s", objectType, input)
+	return nil
+}
+
+func (o *objectMatcher) Single(objectType ObjectType, lf func(string) (Filterable, error)) (*Filterable, error) {
+	if err := o.match(objectType, lf); err != nil {
+		return nil, err
 	}
 
-	return object, nil
+	if len(o.matches) == 0 {
+		return nil, fmt.Errorf("nonexistent %s: %s", objectType, o.filter)
+	}
+
+	if len(o.matches) > 1 {
+		return nil, fmt.Errorf("ambiguous %s: %s", objectType, o.filter)
+	}
+
+	return o.matches[0], nil
+}
+
+func (o *objectMatcher) All(objectType ObjectType, lf func(string) (Filterable, error)) ([]*Filterable, error) {
+	if err := o.match(objectType, lf); err != nil {
+		return nil, err
+	}
+
+	return o.matches, nil
 }

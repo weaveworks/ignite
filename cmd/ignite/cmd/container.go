@@ -12,7 +12,7 @@ import (
 	"os"
 )
 
-// NewContainerCmd runs the dhcp server and sets up routing inside Docker
+// NewContainerCmd runs the DHCP server and sets up routing inside Docker
 func NewCmdContainer(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:    "container [id]",
@@ -30,18 +30,19 @@ func NewCmdContainer(out io.Writer) *cobra.Command {
 
 // RunBuild runs when the Container command is invoked
 func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
-	// The VM to run in container mode
-	// Get the VM ID
-	vmID, err := metadata.MatchObject(args[0], metadata.VM)
+	// Get a metadata entry for the VM
+	d, err := metadata.NewObjectMatcher(metadata.Filter(args[0])).Single(metadata.VM, loadVMMetadata)
 	if err != nil {
 		return err
 	}
 
-	// Load the metadata for the VM
-	md, err := loadVMMetadata(vmID)
-	if err != nil {
-		return err
-	}
+	md := (*d).(*vmMetadata)
+
+	// Type assert to VM metadata
+	//md, err := toVMMetadata(d)
+	//if err != nil {
+	//	return err
+	//}
 
 	var dhcpIfaces []container.DHCPInterface
 

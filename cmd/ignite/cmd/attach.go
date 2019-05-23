@@ -25,35 +25,37 @@ func NewCmdAttach(out io.Writer) *cobra.Command {
 }
 
 func RunAttach(out io.Writer, cmd *cobra.Command, args []string) error {
-	// Get the VM ID
-	vmID, err := metadata.MatchObject(args[0], metadata.VM)
+	// Get a metadata entry for the VM
+	d, err := metadata.NewObjectMatcher(metadata.Filter(args[0])).Single(metadata.VM, loadVMMetadata)
 	if err != nil {
 		return err
 	}
 
-	// Load the VM metadata
-	md, err := loadVMMetadata(vmID)
-	if err != nil {
-		return err
-	}
+	md := (*d).(*vmMetadata)
+
+	// Type assert to VM metadata
+	//md, err := toVMMetadata(d.(*vmMetadata))
+	//if err != nil {
+	//	return err
+	//}
 
 	// Check if the VM is running
 	if !md.running() {
-		return fmt.Errorf("%s is not running", vmID)
+		return fmt.Errorf("%s is not running", md.ID)
 	}
 
 	// Print the ID before attaching
-	fmt.Println(vmID)
+	fmt.Println(md.ID)
 
 	dockerArgs := []string{
 		"attach",
-		vmID,
+		md.ID,
 	}
 
 	// Attach to the VM in Docker
 	if ec, err := util.ExecForeground("docker", dockerArgs...); err != nil {
 		if ec != 1 { // Docker's detach sequence (^P^Q) has an exit code of -1
-			return fmt.Errorf("failed to attach to container for VM %s: %v", vmID, err)
+			return fmt.Errorf("failed to attach to container for VM %s: %v", md.ID, err)
 		}
 	}
 

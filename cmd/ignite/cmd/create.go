@@ -7,10 +7,10 @@ import (
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/util"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"io"
 	"path"
+	"strings"
 )
 
 type state int
@@ -43,6 +43,10 @@ func (x *state) UnmarshalJSON(b []byte) error {
 	}
 
 	return nil
+}
+
+func (x state) String() string {
+	return stateLookup[x]
 }
 
 type vmMetadata struct {
@@ -81,14 +85,32 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 
 // RunCreate runs when the Create command is invoked
 func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
-	// Resolve the image ID
-	imageID, err := metadata.MatchObject(args[0], metadata.Image)
+	// Resolve the image
+	image, err := metadata.NewObjectMatcher(metadata.Filter(args[0])).Single(metadata.Image, func(vmID string) (metadata.Filterable, error) {
+		md := &metadata.Metadata{
+			ID:   vmID,
+			Type: metadata.Image,
+		}
+
+		err := md.Load()
+
+		return md, err
+	})
 	if err != nil {
 		return err
 	}
 
-	// Resolve the kernel ID
-	kernelID, err := metadata.MatchObject(args[1], metadata.Kernel)
+	// Resolve the kernel
+	kernel, err := metadata.NewObjectMatcher(metadata.Filter(args[1])).Single(metadata.Kernel, func(vmID string) (metadata.Filterable, error) {
+		md := &metadata.Metadata{
+			ID:   vmID,
+			Type: metadata.Kernel,
+		}
+
+		err := md.Load()
+
+		return md, err
+	})
 	if err != nil {
 		return err
 	}
@@ -105,8 +127,8 @@ func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
 			Name: args[2],
 			Type: metadata.VM,
 			ObjectData: &vmObjectData{
-				ImageID:  imageID,
-				KernelID: kernelID,
+				ImageID:  (*image).(*metadata.Metadata).ID,
+				KernelID: (*kernel).(*metadata.Metadata).ID,
 				State:    Stopped,
 			},
 		},
@@ -128,7 +150,7 @@ func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func loadVMMetadata(vmID string) (*vmMetadata, error) {
+func loadVMMetadata(vmID string) (metadata.Filterable, error) {
 	md := &vmMetadata{
 		Metadata: &metadata.Metadata{
 			ID:         vmID,
@@ -144,12 +166,42 @@ func loadVMMetadata(vmID string) (*vmMetadata, error) {
 	return md, nil
 }
 
+func toVMMetadata(md *metadata.Metadata) (*vmMetadata, error) {
+	fmt.Printf("ObjectData: %v\n", md.ObjectData)
+	//test := &vmObjectData{
+	//	ImageID: md.ObjectData.ImageID,
+	//}
+	m, ok := md.ObjectData.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("failed to assert ObjectData %v to map[string]interface{}", md.ObjectData)
+	}
+
+	objectData := &vmObjectData{
+		ImageID:  m["ImageID"].(string),
+		KernelID: m["KernelID"].(string),
+		State:    m["State"].(state),
+	}
+
+	return &vmMetadata{
+		Metadata: &metadata.Metadata{
+			ID:         md.ID,
+			Name:       md.Name,
+			Type:       md.Type,
+			ObjectData: objectData,
+		},
+	}, nil
+}
+
+func (md *vmMetadata) Matches(f metadata.Filter) bool {
+	return strings.HasPrefix(md.ID, string(f)) || strings.HasPrefix(md.Name, string(f))
+}
+
 func (md *vmMetadata) copyImage() error {
 	od := md.ObjectData.(*vmObjectData)
 
 	if err := util.CopyFile(path.Join(constants.IMAGE_DIR, od.ImageID, constants.IMAGE_FS),
 		path.Join(md.ObjectPath(), constants.IMAGE_FS)); err != nil {
-		return errors.Wrapf(err, "failed to copy image %q to VM %q", od.ImageID, md.ID)
+		return fmt.Errorf("failed to copy image %q to VM %q: %v", od.ImageID, md.ID, err)
 	}
 
 	return nil
@@ -168,3 +220,8 @@ func (md *vmMetadata) setState(s state) error {
 func (md *vmMetadata) running() bool {
 	return md.ObjectData.(*vmObjectData).State == Running
 }
+
+// TODO: This
+//func (md *vmMetadata) Matches(f metadata.Filter) bool {
+//
+//}
