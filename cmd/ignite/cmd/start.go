@@ -30,21 +30,35 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 }
 
 func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
-	// Get the VM ID
-	vmID, err := metadata.MatchObject(args[0], metadata.VM)
+	//// Get a metadata entry for the VM
+	//d, err := metadata.NewObjectMatcher(args[0]).Single(metadata.VM)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//// Type assert to VM metadata
+	//md, err := toVMMetadata(d)
+	//if err != nil {
+	//	return err
+	//}
+
+	// Get a metadata entry for the VM
+	d, err := metadata.NewObjectMatcher(metadata.Filter(args[0])).Single(metadata.VM, loadVMMetadata)
 	if err != nil {
 		return err
 	}
 
-	// Load the VM metadata
-	md, err := loadVMMetadata(vmID)
-	if err != nil {
-		return err
-	}
+	md := (*d).(*vmMetadata)
+
+	// Type assert to VM metadata
+	//md, err := toVMMetadata(d)
+	//if err != nil {
+	//	return err
+	//}
 
 	// Check if the given VM is already running
 	if md.running() {
-		return fmt.Errorf("%s is already running", vmID)
+		return fmt.Errorf("%s is already running", md.ID)
 	}
 
 	igniteBinary, _ := filepath.Abs(os.Args[0])
@@ -54,22 +68,22 @@ func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
 		"-itd",
 		"--rm",
 		"--name",
-		vmID,
+		md.ID,
 		fmt.Sprintf("-v=%s:/ignite/ignite", igniteBinary),
 		fmt.Sprintf("-v=%s:%s", constants.DATA_DIR, constants.DATA_DIR),
 		"--privileged",
 		"--device=/dev/kvm",
 		"ignite",
-		vmID,
+		md.ID,
 	}
 
 	// Start the VM in docker
 	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
-		return errors.Wrapf(err, "failed to start container for VM: %s", vmID)
+		return errors.Wrapf(err, "failed to start container for VM: %s", md.ID)
 	}
 
 	// Print the ID of the started VM
-	fmt.Println(vmID)
+	fmt.Println(md.ID)
 
 	return nil
 }

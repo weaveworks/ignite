@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
 )
 
 type ObjectType int
@@ -62,6 +63,12 @@ func (x ObjectType) Path() string {
 	return ""
 }
 
+type Filter string
+
+type Filterable interface {
+	Matches(Filter) bool
+}
+
 type ObjectData interface{}
 
 type Metadata struct {
@@ -69,6 +76,10 @@ type Metadata struct {
 	Name       string     `json:"Name"`
 	Type       ObjectType `json:"Type"`
 	ObjectData `json:"ObjectData"`
+}
+
+func (md *Metadata) Matches(f Filter) bool {
+	return strings.HasPrefix(md.ID, string(f)) || strings.HasPrefix(md.Name, string(f))
 }
 
 func (md *Metadata) ObjectPath() string {
