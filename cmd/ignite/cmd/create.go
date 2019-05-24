@@ -6,6 +6,8 @@ import (
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
+	"github.com/luxas/ignite/pkg/metadata/imgmd"
+	"github.com/luxas/ignite/pkg/metadata/kernmd"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
@@ -29,13 +31,13 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 }
 
 func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
-	var image *metadata.Metadata
-	var kernel *metadata.Metadata
+	var image *imgmd.ImageMetadata
+	var kernel *kernmd.KernelMetadata
 
 	// Match a single Image using the IDNameFilter
-	if matches, err := filter.NewFilterer(metadata.NewIDNameFilter(args[0]), metadata.Image.Path(), metadata.LoadImageMetadata); err == nil {
+	if matches, err := filter.NewFilterer(imgmd.NewImageFilter(args[0]), metadata.Image.Path(), imgmd.LoadImageMetadata); err == nil {
 		if filterable, err := matches.Single(); err == nil {
-			if image, err = metadata.ToMetadata(filterable); err != nil {
+			if image, err = imgmd.ToImageMetadata(filterable); err != nil {
 				return err
 			}
 		} else {
@@ -46,9 +48,9 @@ func RunCreate(out io.Writer, cmd *cobra.Command, args []string) error {
 	}
 
 	// Match a single Image using the IDNameFilter
-	if matches, err := filter.NewFilterer(metadata.NewIDNameFilter(args[1]), metadata.Kernel.Path(), metadata.LoadKernelMetadata); err == nil {
+	if matches, err := filter.NewFilterer(kernmd.NewKernelFilter(args[1]), metadata.Kernel.Path(), kernmd.LoadKernelMetadata); err == nil {
 		if filterable, err := matches.Single(); err == nil {
-			if kernel, err = metadata.ToMetadata(filterable); err != nil {
+			if kernel, err = kernmd.ToKernelMetadata(filterable); err != nil {
 				return err
 			}
 		} else {
