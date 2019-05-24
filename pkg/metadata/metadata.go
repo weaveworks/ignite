@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"time"
 )
 
 type ObjectType int
@@ -68,7 +69,18 @@ type Metadata struct {
 	ID         string     `json:"ID"`
 	Name       string     `json:"Name"`
 	Type       ObjectType `json:"Type"`
+	Created    time.Time  `json:"Created"`
 	ObjectData `json:"ObjectData"`
+}
+
+func NewMetadata(id, name string, t ObjectType, data ObjectData) *Metadata {
+	return &Metadata{
+		ID:         id,
+		Name:       name,
+		Type:       t,
+		Created:    time.Now(),
+		ObjectData: data,
+	}
 }
 
 func (md *Metadata) ObjectPath() string {

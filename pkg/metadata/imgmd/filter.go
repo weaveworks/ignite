@@ -3,7 +3,6 @@ package imgmd
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/filter"
-	"github.com/luxas/ignite/pkg/metadata"
 	"strings"
 )
 
@@ -30,14 +29,7 @@ func (n *ImageFilter) Filter(f filter.Filterable) (bool, error) {
 }
 
 func LoadImageMetadata(id string) (filter.Filterable, error) {
-	md := &ImageMetadata{
-		Metadata: &metadata.Metadata{
-			ID:         id,
-			Type:       metadata.Image,
-			ObjectData: &ImageObjectData{},
-		},
-	}
-
+	md := NewImageMetadata(id, "")
 	err := md.Load()
 	return md, err
 }

@@ -1,8 +1,7 @@
-package image
+package imgmd
 
 import (
 	"archive/tar"
-	"github.com/luxas/ignite/pkg/metadata"
 	"io/ioutil"
 	"path/filepath"
 
@@ -16,10 +15,6 @@ import (
 	"os"
 	"path"
 )
-
-type ImageMetadata struct {
-	*metadata.Metadata
-}
 
 func (md *ImageMetadata) AllocateAndFormat() error {
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
@@ -155,4 +150,13 @@ func (md *ImageMetadata) AddFiles3(sourcePath string) error {
 	}
 
 	return nil
+}
+
+func (md *ImageMetadata) Size() (int64, error) {
+	fi, err := os.Stat(path.Join(md.ObjectPath(), constants.IMAGE_FS))
+	if err != nil {
+		return 0, err
+	}
+
+	return fi.Size(), nil
 }

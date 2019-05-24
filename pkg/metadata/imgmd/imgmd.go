@@ -16,12 +16,11 @@ type ImageObjectData struct {
 
 func NewImageMetadata(id, name string) *ImageMetadata {
 	return &ImageMetadata{
-		Metadata: &metadata.Metadata{
-			ID:         id,
-			Name:       name,
-			Type:       metadata.Image,
-			ObjectData: &ImageObjectData{},
-		},
+		Metadata: metadata.NewMetadata(
+			id,
+			name,
+			metadata.Image,
+			&ImageObjectData{}),
 	}
 }
 
@@ -48,9 +47,7 @@ func ToImageMetadataAll(a []filter.Filterable) ([]*ImageMetadata, error) {
 	return mds, nil
 }
 
-// The md.ObjectData.(*ImageObjectData) assert won't panic as these methods can only receive *KernelMetadata objects
-//func (md *ImageMetadata) Placeholder() error {
-//	od := md.ObjectData.(*ImageObjectData)
-//
-//	return nil
-//}
+// The md.ObjectData.(*ImageObjectData) assert won't panic as this method can only receive *ImageMetadata objects
+func (md *ImageMetadata) ImageOD() *ImageObjectData {
+	return md.ObjectData.(*ImageObjectData)
+}

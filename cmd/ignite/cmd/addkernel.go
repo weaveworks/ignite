@@ -4,16 +4,11 @@ import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/errutils"
-	"github.com/luxas/ignite/pkg/metadata"
+	"github.com/luxas/ignite/pkg/metadata/kernmd"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
 	"io"
-	"path"
 )
-
-type kernelMetadata struct {
-	*metadata.Metadata
-}
 
 // NewCmdAddKernel adds a new kernel for VM use
 func NewCmdAddKernel(out io.Writer) *cobra.Command {
@@ -31,7 +26,6 @@ func NewCmdAddKernel(out io.Writer) *cobra.Command {
 	return cmd
 }
 
-// RunCreate runs when the Create command is invoked
 func RunAddKernel(out io.Writer, cmd *cobra.Command, args []string) error {
 	p := args[0]
 
@@ -45,13 +39,7 @@ func RunAddKernel(out io.Writer, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	md := &kernelMetadata{
-		Metadata: &metadata.Metadata{
-			ID:   kernelID,
-			Name: args[1],
-			Type: metadata.Kernel,
-		},
-	}
+	md := kernmd.NewKernelMetadata(kernelID, args[1])
 
 	// Save the metadata
 	if err := md.Save(); err != nil {
@@ -60,19 +48,11 @@ func RunAddKernel(out io.Writer, cmd *cobra.Command, args []string) error {
 
 	// Perform the image copy
 	// TODO: Replace this with overlayfs
-	if err := md.importKernel(p); err != nil {
+	if err := md.ImportKernel(p); err != nil {
 		return err
 	}
 
 	fmt.Println(kernelID)
-
-	return nil
-}
-
-func (md kernelMetadata) importKernel(p string) error {
-	if err := util.CopyFile(p, path.Join(md.ObjectPath(), constants.KERNEL_FILE)); err != nil {
-		return fmt.Errorf("failed to copy kernel file %q to kernel %q: %v", p, md.ID, err)
-	}
 
 	return nil
 }
