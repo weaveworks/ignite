@@ -3,11 +3,8 @@ package vmmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
-	"github.com/luxas/ignite/pkg/util"
-	"path"
 )
 
 type state int
@@ -58,18 +55,21 @@ type VMObjectData struct {
 	State    state
 }
 
+func newVMObjectData(imageID, kernelID string) *VMObjectData {
+	return &VMObjectData{
+		KernelID: kernelID,
+		ImageID:  imageID,
+		State:    Created,
+	}
+}
+
 func NewVMMetadata(id, name, imageID, kernelID string) *VMMetadata {
 	return &VMMetadata{
-		Metadata: &metadata.Metadata{
-			ID:   id,
-			Name: name,
-			Type: metadata.VM,
-			ObjectData: &VMObjectData{
-				ImageID:  imageID,
-				KernelID: kernelID,
-				State:    Created,
-			},
-		},
+		Metadata: metadata.NewMetadata(
+			id,
+			name,
+			metadata.VM,
+			newVMObjectData(imageID, kernelID)),
 	}
 }
 
@@ -96,32 +96,7 @@ func ToVMMetadataAll(a []filter.Filterable) ([]*VMMetadata, error) {
 	return mds, nil
 }
 
-// The md.ObjectData.(*VMObjectData) assert won't panic as these methods can only receive *VMMetadata objects
-func (md *VMMetadata) CopyImage() error {
-	od := md.ObjectData.(*VMObjectData)
-
-	if err := util.CopyFile(path.Join(constants.IMAGE_DIR, od.ImageID, constants.IMAGE_FS),
-		path.Join(md.ObjectPath(), constants.IMAGE_FS)); err != nil {
-		return fmt.Errorf("failed to copy image %q to VM %q: %v", od.ImageID, md.ID, err)
-	}
-
-	return nil
-}
-
-func (md *VMMetadata) SetState(s state) error {
-	md.ObjectData.(*VMObjectData).State = s
-
-	if err := md.Save(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (md *VMMetadata) Running() bool {
-	return md.ObjectData.(*VMObjectData).State == Running
-}
-
-func (md *VMMetadata) KernelID() string {
-	return md.ObjectData.(*VMObjectData).KernelID
+// The md.ObjectData.(*VMObjectData) assert won't panic as this method can only receive *VMMetadata objects
+func (md *VMMetadata) VMOD() *VMObjectData {
+	return md.ObjectData.(*VMObjectData)
 }

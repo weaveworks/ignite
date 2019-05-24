@@ -2,15 +2,17 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/luxas/ignite/pkg/constants"
-	"io"
-	"io/ioutil"
-
 	"github.com/luxas/ignite/pkg/errutils"
+	"github.com/luxas/ignite/pkg/filter"
+	"github.com/luxas/ignite/pkg/metadata"
+	"github.com/luxas/ignite/pkg/metadata/kernmd"
+	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
+	"io"
+	"time"
 )
 
-// NewCmdImages lists the images for your Firecracker VM.
+// NewCmdKernels lists the available kernels
 func NewCmdKernels(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "kernels",
@@ -20,19 +22,38 @@ func NewCmdKernels(out io.Writer) *cobra.Command {
 			errutils.Check(err)
 		},
 	}
+
 	//cmd.Flags().StringP("output", "o", "", "Output format; available options are 'yaml', 'json' and 'short'")
 	return cmd
 }
 
-// RunImages runs when the Images command is invoked and lists the images
 func RunKernels(out io.Writer, cmd *cobra.Command) error {
-	ids, err := ioutil.ReadDir(constants.KERNEL_DIR)
-	if err != nil {
+	var mds []*kernmd.KernelMetadata
+
+	// Match all Kernels using the KernelFilter
+	if matches, err := filter.NewFilterer(kernmd.NewKernelFilter(""), metadata.Kernel.Path(), kernmd.LoadKernelMetadata); err == nil {
+		if all, err := matches.All(); err == nil {
+			if mds, err = kernmd.ToKernelMetadataAll(all); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	} else {
 		return err
 	}
 
-	for _, id := range ids {
-		fmt.Println(id.Name())
+	o := util.NewOutput()
+	defer o.Flush()
+
+	o.Write("KERNEL ID\tCREATED\tSIZE\tNAME")
+	for _, md := range mds {
+		size, err := md.Size()
+		if err != nil {
+			return fmt.Errorf("failed to get size for %s %q: %v", md.Type, md.ID, err)
+		}
+
+		o.Write(fmt.Sprintf("%s\t%s\t%d\t%s", md.ID, md.Created.Format(time.UnixDate), size, md.Name))
 	}
 
 	return nil

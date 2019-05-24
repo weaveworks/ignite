@@ -3,7 +3,6 @@ package kernmd
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/filter"
-	"github.com/luxas/ignite/pkg/metadata"
 	"strings"
 )
 
@@ -30,14 +29,7 @@ func (n *KernelFilter) Filter(f filter.Filterable) (bool, error) {
 }
 
 func LoadKernelMetadata(id string) (filter.Filterable, error) {
-	md := &KernelMetadata{
-		Metadata: &metadata.Metadata{
-			ID:         id,
-			Type:       metadata.Kernel,
-			ObjectData: &KernelObjectData{},
-		},
-	}
-
+	md := NewKernelMetadata(id, "")
 	err := md.Load()
 	return md, err
 }

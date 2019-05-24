@@ -3,8 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/image"
-	"github.com/luxas/ignite/pkg/metadata"
+	"github.com/luxas/ignite/pkg/metadata/imgmd"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/pkg/errors"
 	"io"
@@ -40,7 +39,6 @@ func NewCmdBuild(out io.Writer) *cobra.Command {
 	return cmd
 }
 
-// RunBuild runs when the Build command is invoked
 func RunBuild(out io.Writer, cmd *cobra.Command, args []string) error {
 	// Construct the build options for a new image
 	buildOptions, err := newBuildOptions(cmd, args)
@@ -108,13 +106,7 @@ func RunBuild(out io.Writer, cmd *cobra.Command, args []string) error {
 	}
 
 	// Create new image metadata
-	md := image.ImageMetadata{
-		Metadata: &metadata.Metadata{
-			ID:   buildOptions.imageID,
-			Name: buildOptions.imageName,
-			Type: metadata.Image,
-		},
-	}
+	md := imgmd.NewImageMetadata(buildOptions.imageID, buildOptions.imageName)
 
 	// Create new file to host the filesystem and format it
 	if err := md.AllocateAndFormat(); err != nil {
