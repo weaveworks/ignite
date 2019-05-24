@@ -13,11 +13,13 @@ import (
 type state int
 
 const (
-	Stopped state = iota
+	Created state = iota
+	Stopped
 	Running
 )
 
 var stateLookup = map[state]string{
+	Created: "created",
 	Stopped: "stopped",
 	Running: "running",
 }
@@ -65,7 +67,7 @@ func NewVMMetadata(id, name, imageID, kernelID string) *VMMetadata {
 			ObjectData: &VMObjectData{
 				ImageID:  imageID,
 				KernelID: kernelID,
-				State:    Stopped,
+				State:    Created,
 			},
 		},
 	}

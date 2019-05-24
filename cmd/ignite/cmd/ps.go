@@ -6,10 +6,9 @@ import (
 	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
+	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
 	"io"
-	"os"
-	"text/tabwriter"
 )
 
 // NewCmdPs lists running Firecracker VMs
@@ -43,15 +42,14 @@ func RunPs(out io.Writer, cmd *cobra.Command) error {
 		return err
 	}
 
-	// TODO: tabwriter stuff
-	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 0, 8, 1, '\t', 0)
-	fmt.Fprintln(w, "VM ID\tIMAGE\tKERNEL\tSTATE\tNAME")
+	o := util.NewOutput()
+	defer o.Flush()
+
+	o.Write("VM ID\tIMAGE\tKERNEL\tSTATE\tNAME")
 	for _, md := range mds {
 		od := md.ObjectData.(*vmmd.VMObjectData)
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", md.ID, od.ImageID, od.KernelID, od.State, md.Name)
+		o.Write(fmt.Sprintf("%s\t%s\t%s\t%s\t%s", md.ID, od.ImageID, od.KernelID, od.State, md.Name))
 	}
-	w.Flush()
 
 	return nil
 }

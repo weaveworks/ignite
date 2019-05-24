@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/util"
 	"io/ioutil"
 	"os"
@@ -126,14 +125,4 @@ func (md *Metadata) Load() error {
 	}
 
 	return nil
-}
-
-// TODO: Temporary until every metadata has its own type
-func ToMetadata(f filter.Filterable) (*Metadata, error) {
-	md, ok := f.(*Metadata)
-	if !ok {
-		return nil, fmt.Errorf("failed to assert Filterable %v to Metadata", f)
-	}
-
-	return md, nil
 }
