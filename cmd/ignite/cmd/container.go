@@ -91,7 +91,9 @@ func RunContainer(out io.Writer, cmd *cobra.Command, args []string) error {
 	defer md.SetState(vmmd.Stopped)
 
 	// Run the VM
-	container.RunVM(md.ID, md.KernelID(), &dhcpIfaces)
+	if err := container.RunVM(md, &dhcpIfaces); err != nil {
+		return fmt.Errorf("runtime error for VM %q: %v", md.ID, err)
+	}
 
 	return nil
 }
