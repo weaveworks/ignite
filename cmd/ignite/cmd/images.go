@@ -9,7 +9,6 @@ import (
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
 	"io"
-	"time"
 )
 
 // NewCmdImages lists the images for your Firecracker VM.
@@ -46,14 +45,14 @@ func RunImages(out io.Writer, cmd *cobra.Command) error {
 	o := util.NewOutput()
 	defer o.Flush()
 
-	o.Write("IMAGE ID\tCREATED\tSIZE\tNAME")
+	o.Write("IMAGE ID", "CREATED", "SIZE", "NAME")
 	for _, md := range mds {
 		size, err := md.Size()
 		if err != nil {
 			return fmt.Errorf("failed to get size for %s %q: %v", md.Type, md.ID, err)
 		}
 
-		o.Write(fmt.Sprintf("%s\t%s\t%d\t%s", md.ID, md.Created.Format(time.UnixDate), size, md.Name))
+		o.Write(md.ID, md.Created, size, md.Name)
 	}
 
 	return nil
