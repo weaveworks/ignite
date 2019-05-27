@@ -6,6 +6,7 @@ import (
 	"github.com/firecracker-microvm/firecracker-go-sdk"
 	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/pkg/errors"
 	"net"
@@ -13,6 +14,7 @@ import (
 	"os/signal"
 	"path"
 	"syscall"
+	"time"
 )
 
 /*
@@ -166,8 +168,9 @@ func connectAdapterToBridge(adapterName, bridgeName string) error {
 	return err
 }
 
-func RunVM(vmID string, kernelID string, dhcpIfaces *[]DHCPInterface) {
-	drivePath := path.Join(constants.VM_DIR, vmID, constants.IMAGE_FS)
+func RunVM(md *vmmd.VMMetadata, dhcpIfaces *[]DHCPInterface) error {
+	od := md.VMOD()
+	drivePath := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 
 	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(*dhcpIfaces))
 	for _, dhcpIface := range *dhcpIfaces {
@@ -177,21 +180,20 @@ func RunVM(vmID string, kernelID string, dhcpIfaces *[]DHCPInterface) {
 		})
 	}
 
-	const socketPath = "/tmp/firecracker.sock"
 	cfg := firecracker.Config{
-		SocketPath:      socketPath,
-		KernelImagePath: path.Join(constants.KERNEL_DIR, kernelID, constants.KERNEL_FILE),
-		KernelArgs:      "console=ttyS0 reboot=k panic=1 pci=off",
+		SocketPath:      constants.SOCKET_PATH,
+		KernelImagePath: path.Join(constants.KERNEL_DIR, od.KernelID, constants.KERNEL_FILE),
+		KernelArgs:      constants.VM_KERNEL_ARGS,
 		Drives: []models.Drive{{
 			DriveID:      firecracker.String("1"),
 			PathOnHost:   &drivePath,
 			IsRootDevice: firecracker.Bool(true),
 			IsReadOnly:   firecracker.Bool(false),
-			Partuuid:     "",
 		}},
 		NetworkInterfaces: networkInterfaces,
 		MachineCfg: models.MachineConfiguration{
-			VcpuCount: 1,
+			VcpuCount:  od.VCPUs,
+			MemSizeMib: od.Memory,
 		},
 		//JailerCfg: firecracker.JailerConfig{
 		//	GID:      firecracker.Int(0),
@@ -200,29 +202,23 @@ func RunVM(vmID string, kernelID string, dhcpIfaces *[]DHCPInterface) {
 		//	NumaNode: firecracker.Int(0),
 		//	ExecFile: "firecracker",
 		//},
+
+		// TODO: We could use /dev/null, but firecracker-go-sdk issues Mkfifo which collides with the existing device
+		LogLevel:    constants.VM_LOG_LEVEL,
+		LogFifo:     constants.LOG_FIFO,
+		MetricsFifo: constants.METRICS_FIFO,
 	}
 
-	// stdout will be directed to this file
-	//stdoutPath := "/tmp/stdout.log"
-	//stdout, err := os.OpenFile(stdoutPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	//if err != nil {
-	//	panic(fmt.Errorf("failed to create stdout file: %v", err))
-	//}
-
-	// stderr will be directed to this file
-	//stderrPath := "/tmp/stderr.log"
-	//stderr, err := os.OpenFile(stderrPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
-	//if err != nil {
-	//	panic(fmt.Errorf("failed to create stderr file: %v", err))
-	//}
+	// Remove these FIFOs for now
+	defer os.Remove(constants.LOG_FIFO)
+	defer os.Remove(constants.METRICS_FIFO)
 
 	ctx, vmmCancel := context.WithCancel(context.Background())
 	defer vmmCancel()
-	// build our custom command that contains our two files to
-	// write to during process execution
+
 	cmd := firecracker.VMCommandBuilder{}.
 		WithBin("firecracker").
-		WithSocketPath(socketPath).
+		WithSocketPath(constants.SOCKET_PATH).
 		WithStdin(os.Stdin).
 		WithStdout(os.Stdout).
 		WithStderr(os.Stderr).
@@ -230,15 +226,17 @@ func RunVM(vmID string, kernelID string, dhcpIfaces *[]DHCPInterface) {
 
 	m, err := firecracker.NewMachine(ctx, cfg, firecracker.WithProcessRunner(cmd))
 	if err != nil {
-		panic(fmt.Errorf("Failed creating machine: %s", err))
+		return fmt.Errorf("failed to create machine: %s", err)
 	}
+
+	//defer os.Remove(cfg.SocketPath)
 
 	//if opts.validMetadata != nil {
 	//	m.EnableMetadata(opts.validMetadata)
 	//}
 
 	if err := m.Start(ctx); err != nil {
-		panic(fmt.Errorf("Failed to start machine: %v", err))
+		return fmt.Errorf("failed to start machine: %v", err)
 	}
 	defer m.StopVMM()
 
@@ -246,26 +244,10 @@ func RunVM(vmID string, kernelID string, dhcpIfaces *[]DHCPInterface) {
 
 	// wait for the VMM to exit
 	if err := m.Wait(ctx); err != nil {
-		panic(fmt.Errorf("Wait returned an error %s", err))
+		return fmt.Errorf("wait returned an error %s", err)
 	}
-	fmt.Println("Start machine was happy")
 
-	//m, err := firecracker.NewMachine(ctx, cfg, firecracker.WithProcessRunner(cmd))
-	//if err != nil {
-	//	panic(fmt.Errorf("failed to create new machine: %v", err))
-	//}
-	//
-	//defer os.Remove(cfg.SocketPath)
-	//
-	//fmt.Println("Starting machine...")
-	//if err := m.Start(ctx); err != nil {
-	//	panic(fmt.Errorf("failed to initialize machine: %v", err))
-	//}
-	//
-	//// wait for VMM to execute
-	//if err := m.Wait(ctx); err != nil {
-	//	panic(err)
-	//}
+	return nil
 }
 
 // Install custom signal handlers:
@@ -281,6 +263,14 @@ func installSignalHandlers(ctx context.Context, m *firecracker.Machine) {
 			case s == syscall.SIGTERM || s == os.Interrupt:
 				fmt.Println("Caught SIGINT, requesting clean shutdown")
 				m.Shutdown(ctx)
+				time.Sleep(constants.STOP_TIMEOUT * time.Second)
+
+				// There's no direct way of checking if a VM is running, so we test if we can send it another shutdown
+				// request. If that fails, the VM is still running and we need to kill it.
+				if err := m.Shutdown(ctx); err == nil {
+					fmt.Println("Timeout exceeded, forcing shutdown") // TODO: Proper logging
+					m.StopVMM()
+				}
 			case s == syscall.SIGQUIT:
 				fmt.Println("Caught SIGTERM, forcing shutdown")
 				m.StopVMM()

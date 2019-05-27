@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/errutils"
-	"github.com/luxas/ignite/pkg/metadata/kernmd"
+	"github.com/luxas/ignite/pkg/metadata/imgmd"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
 	"io"
 )
 
-// NewCmdAddKernel adds a new kernel for VM use
-func NewCmdAddKernel(out io.Writer) *cobra.Command {
+// NewCmdAddImage imports an image for VM use
+func NewCmdAddImage(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "addkernel [path] [name]",
-		Short: "Add an uncompressed kernel image for VM use",
+		Use:   "addimage [path] [name]",
+		Short: "Import an existing VM base image",
 		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := RunAddKernel(out, cmd, args)
+			err := RunAddImage(out, cmd, args)
 			errutils.Check(err)
 		},
 	}
@@ -26,20 +26,20 @@ func NewCmdAddKernel(out io.Writer) *cobra.Command {
 	return cmd
 }
 
-func RunAddKernel(out io.Writer, cmd *cobra.Command, args []string) error {
+func RunAddImage(out io.Writer, cmd *cobra.Command, args []string) error {
 	p := args[0]
 
 	if !util.FileExists(p) {
-		return fmt.Errorf("not a kernel image: %s", p)
+		return fmt.Errorf("not an image file: %s", p)
 	}
 
 	// Create a new ID for the VM
-	kernelID, err := util.NewID(constants.KERNEL_DIR)
+	imageID, err := util.NewID(constants.IMAGE_DIR)
 	if err != nil {
 		return err
 	}
 
-	md := kernmd.NewKernelMetadata(kernelID, args[1])
+	md := imgmd.NewImageMetadata(imageID, args[1])
 
 	// Save the metadata
 	if err := md.Save(); err != nil {
@@ -47,7 +47,7 @@ func RunAddKernel(out io.Writer, cmd *cobra.Command, args []string) error {
 	}
 
 	// Perform the image copy
-	if err := md.ImportKernel(p); err != nil {
+	if err := md.ImportImage(p); err != nil {
 		return err
 	}
 

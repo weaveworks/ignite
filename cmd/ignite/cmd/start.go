@@ -7,7 +7,6 @@ import (
 	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
-	"github.com/pkg/errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -62,6 +61,7 @@ func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
 		md.ID,
 		fmt.Sprintf("-v=%s:/ignite/ignite", igniteBinary),
 		fmt.Sprintf("-v=%s:%s", constants.DATA_DIR, constants.DATA_DIR),
+		fmt.Sprintf("--stop-timeout=%d", constants.STOP_TIMEOUT+constants.IGNITE_TIMEOUT),
 		"--privileged",
 		"--device=/dev/kvm",
 		"ignite",
@@ -70,7 +70,7 @@ func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
 
 	// Start the VM in docker
 	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
-		return errors.Wrapf(err, "failed to start container for VM: %s", md.ID)
+		return fmt.Errorf("failed to start container for VM %q: %v", md.ID, err)
 	}
 
 	// Print the ID of the started VM

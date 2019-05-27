@@ -46,7 +46,7 @@ func RunPs(out io.Writer, cmd *cobra.Command) error {
 	o := util.NewOutput()
 	defer o.Flush()
 
-	o.Write("VM ID", "IMAGE", "KERNEL", "CREATED", "SIZE", "STATE", "NAME")
+	o.Write("VM ID", "IMAGE", "KERNEL", "CREATED", "SIZE", "CPUS", "MEMORY", "STATE", "NAME")
 	for _, md := range mds {
 		od := md.ObjectData.(*vmmd.VMObjectData)
 		size, err := md.Size()
@@ -54,7 +54,7 @@ func RunPs(out io.Writer, cmd *cobra.Command) error {
 			return fmt.Errorf("failed to get size for %s %q: %v", md.Type, md.ID, err)
 		}
 
-		o.Write(md.ID, od.ImageID, od.KernelID, md.Created, size, od.State, md.Name)
+		o.Write(md.ID, od.ImageID, od.KernelID, md.Created, size, od.VCPUs, od.Memory, od.State, md.Name)
 	}
 
 	return nil

@@ -16,6 +16,14 @@ import (
 	"path"
 )
 
+func (md *ImageMetadata) ImportImage(p string) error {
+	if err := util.CopyFile(p, path.Join(md.ObjectPath(), constants.IMAGE_FS)); err != nil {
+		return fmt.Errorf("failed to copy image file %q to image %q: %v", p, md.ID, err)
+	}
+
+	return nil
+}
+
 func (md *ImageMetadata) AllocateAndFormat() error {
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 	imageFile, err := os.Create(p)
