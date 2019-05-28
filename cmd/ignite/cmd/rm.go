@@ -3,54 +3,64 @@ package cmd
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/errutils"
-	"github.com/luxas/ignite/pkg/filter"
-	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"io"
 	"os"
 )
 
+type rmOptions struct {
+	vm    *vmmd.VMMetadata
+	force bool
+}
+
 // NewCmdRm removes the given VM
 func NewCmdRm(out io.Writer) *cobra.Command {
+	ro := &rmOptions{}
+
 	cmd := &cobra.Command{
 		Use:   "rm [id]",
 		Short: "Remove a VM",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := RunRm(out, cmd, args)
-			errutils.Check(err)
+			errutils.Check(func() error {
+				var err error
+				if ro.vm, err = matchSingleVM(args[0]); err != nil {
+					return err
+				}
+				return RunRm(ro)
+			}())
 		},
 	}
-	//cmd.Flags().StringP("output", "o", "", "Output format; available options are 'yaml', 'json' and 'short'")
+
+	addRmFlags(cmd.Flags(), ro)
 	return cmd
 }
 
-func RunRm(out io.Writer, cmd *cobra.Command, args []string) error {
-	var md *vmmd.VMMetadata
+func addRmFlags(fs *pflag.FlagSet, ro *rmOptions) {
+	fs.BoolVarP(&ro.force, "force", "f", false, "Kill VM if running before removal")
+}
 
-	// Match a single VM using the VMFilter
-	if matches, err := filter.NewFilterer(vmmd.NewVMFilter(args[0]), metadata.VM.Path(), vmmd.LoadVMMetadata); err == nil {
-		if filterable, err := matches.Single(); err == nil {
-			if md, err = vmmd.ToVMMetadata(filterable); err != nil {
+func RunRm(ro *rmOptions) error {
+	// Check if the VM is running
+	if ro.vm.Running() {
+		// If force is set, kill the VM
+		if ro.force {
+			if err := RunKill(&killOptions{
+				vm: ro.vm,
+			}); err != nil {
 				return err
 			}
 		} else {
-			return err
+			return fmt.Errorf("%s is running", ro.vm.ID)
 		}
-	} else {
-		return err
 	}
 
-	// Check if the VM is running
-	if md.Running() {
-		return fmt.Errorf("%s is running", md.ID)
+	if err := os.RemoveAll(ro.vm.ObjectPath()); err != nil {
+		return fmt.Errorf("unable to remove directory for %s %q: %v", ro.vm.Type, ro.vm.ID, err)
 	}
 
-	if err := os.RemoveAll(md.ObjectPath()); err != nil {
-		return fmt.Errorf("unable to remove directory for %s %q: %v", md.Type, md.ID, err)
-	}
-
-	fmt.Println(md.ID)
+	fmt.Println(ro.vm.ID)
 	return nil
 }

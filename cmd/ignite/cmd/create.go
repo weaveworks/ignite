@@ -4,93 +4,84 @@ import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/errutils"
-	"github.com/luxas/ignite/pkg/filter"
-	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/metadata/imgmd"
 	"github.com/luxas/ignite/pkg/metadata/kernmd"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"io"
 )
+
+type createOptions struct {
+	image  *imgmd.ImageMetadata
+	kernel *kernmd.KernelMetadata
+	vm     *vmmd.VMMetadata
+	name   string
+	cpus   int64
+	memory int64
+}
 
 // NewCmdCreate creates a new VM from an image
 func NewCmdCreate(out io.Writer) *cobra.Command {
 	co := &createOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "create [image] [kernel] [name]",
+		// TODO: ValidArgs and different metadata loading setup
+		Use:   "create [image] [kernel]",
 		Short: "Create a new containerized VM without starting it",
-		Args:  cobra.MinimumNArgs(3),
+		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := RunCreate(out, cmd, args[0], args[1], args[2], co, false)
-			errutils.Check(err)
+			errutils.Check(func() error {
+				var err error
+				if co.image, err = matchSingleImage(args[0]); err != nil {
+					return err
+				}
+				if co.kernel, err = matchSingleKernel(args[1]); err != nil {
+					return err
+				}
+				return RunCreate(co)
+			}())
 		},
 	}
 
-	cmd.Flags().Int64Var(&co.cpus, "cpus", constants.VM_DEFAULT_CPUS, "VM vCPU count, 1 or even numbers between 1 and 32")
-	cmd.Flags().Int64Var(&co.memory, "memory", constants.VM_DEFAULT_MEMORY, "VM RAM in MiB")
+	addCreateFlags(cmd.Flags(), co)
 	return cmd
 }
 
-func RunCreate(out io.Writer, cmd *cobra.Command, imageMatch, kernelMatch, name string, co *createOptions, start bool) error {
-	var image *imgmd.ImageMetadata
-	var kernel *kernmd.KernelMetadata
+func addCreateFlags(fs *pflag.FlagSet, co *createOptions) {
+	addNameFlag(fs, &co.name)
+	fs.Int64Var(&co.cpus, "cpus", constants.VM_DEFAULT_CPUS, "VM vCPU count, 1 or even numbers between 1 and 32")
+	fs.Int64Var(&co.memory, "memory", constants.VM_DEFAULT_MEMORY, "VM RAM in MiB")
+}
 
-	// Match a single Image using the ImageFilter
-	if matches, err := filter.NewFilterer(imgmd.NewImageFilter(imageMatch), metadata.Image.Path(), imgmd.LoadImageMetadata); err == nil {
-		if filterable, err := matches.Single(); err == nil {
-			if image, err = imgmd.ToImageMetadata(filterable); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	} else {
-		return err
-	}
-
-	// Match a single Kernel using the KernelFilter
-	if matches, err := filter.NewFilterer(kernmd.NewKernelFilter(kernelMatch), metadata.Kernel.Path(), kernmd.LoadKernelMetadata); err == nil {
-		if filterable, err := matches.Single(); err == nil {
-			if kernel, err = kernmd.ToKernelMetadata(filterable); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	} else {
-		return err
-	}
-
+func RunCreate(co *createOptions) error {
 	// Create a new ID for the VM
 	vmID, err := util.NewID(constants.VM_DIR)
 	if err != nil {
 		return err
 	}
 
-	md := vmmd.NewVMMetadata(vmID, name, vmmd.NewVMObjectData(image.ID, kernel.ID, co.cpus, co.memory))
+	// Create a new name for the VM if none is given
+	util.NewName(&co.name)
+
+	// Create new metadata for the VM and add to createOptions for further processing
+	// This enables the generated VM metadata to pass straight to start and attach via run
+	co.vm = vmmd.NewVMMetadata(vmID, co.name, vmmd.NewVMObjectData(co.image.ID, co.kernel.ID, co.cpus, co.memory))
 
 	// Save the metadata
-	if err := md.Save(); err != nil {
+	if err := co.vm.Save(); err != nil {
 		return err
 	}
 
 	// Perform the image copy
 	// TODO: Replace this with overlayfs
-	if err := md.CopyImage(); err != nil {
+	if err := co.vm.CopyImage(); err != nil {
 		return err
 	}
 
-	// If start is specified, start teh VM after creation
-	if start {
-		if err := RunStart(out, cmd, name); err != nil {
-			return err
-		}
-	} else {
-		// Print the ID of the created VM
-		fmt.Println(md.ID)
-	}
+	// Print the ID of the created VM
+	fmt.Println(co.vm.ID)
 
 	return nil
 }

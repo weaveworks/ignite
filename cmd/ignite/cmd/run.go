@@ -1,34 +1,56 @@
 package cmd
 
 import (
-	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"io"
 )
 
+type runOptions struct {
+	createOptions
+	startOptions
+}
+
 // NewCmdRun creates, starts (and attaches to) a Firecracker VM
 func NewCmdRun(out io.Writer) *cobra.Command {
-	co := &createOptions{}
+	ro := &runOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "run [image] [kernel] [name]",
+		Use:   "run [image] [kernel]",
 		Short: "Create and start a new Firecracker VM",
-		Args:  cobra.MinimumNArgs(3),
+		Args:  cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := RunRun(out, cmd, args[0], args[1], args[2], co)
-			errutils.Check(err)
+			errutils.Check(func() error {
+				var err error
+				if ro.image, err = matchSingleImage(args[0]); err != nil {
+					return err
+				}
+				if ro.kernel, err = matchSingleKernel(args[1]); err != nil {
+					return err
+				}
+				return RunRun(ro)
+			}())
 		},
 	}
 
-	cmd.Flags().BoolVarP(&interactive, "interactive", "i", false, "Immediately attach to created and started VM")
-	cmd.Flags().Int64Var(&co.cpus, "cpus", constants.VM_DEFAULT_CPUS, "VM vCPU count, 1 or even numbers between 1 and 32")
-	cmd.Flags().Int64Var(&co.memory, "memory", constants.VM_DEFAULT_MEMORY, "VM RAM in MiB")
+	addRunFlags(cmd.Flags(), ro)
 	return cmd
 }
 
-func RunRun(out io.Writer, cmd *cobra.Command, imageMatch, kernelMatch, name string, co *createOptions) error {
-	if err := RunCreate(out, cmd, imageMatch, kernelMatch, name, co, true); err != nil {
+func addRunFlags(fs *pflag.FlagSet, ro *runOptions) {
+	addCreateFlags(fs, &ro.createOptions)
+	addStartFlags(fs, &ro.startOptions)
+}
+
+func RunRun(ro *runOptions) error {
+	if err := RunCreate(&ro.createOptions); err != nil {
+		return err
+	}
+
+	ro.startOptions.vm = ro.createOptions.vm
+
+	if err := RunStart(&ro.startOptions); err != nil {
 		return err
 	}
 
