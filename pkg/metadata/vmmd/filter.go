@@ -12,11 +12,17 @@ var _ filter.Filter = &VMFilter{}
 
 type VMFilter struct {
 	prefix string
+	all    bool
 }
 
 func NewVMFilter(p string) *VMFilter {
+	return NewVMFilterAll(p, true)
+}
+
+func NewVMFilterAll(p string, all bool) *VMFilter {
 	return &VMFilter{
 		prefix: p,
+		all:    all,
 	}
 }
 
@@ -26,7 +32,13 @@ func (n *VMFilter) Filter(f filter.Filterable) (bool, error) {
 		return false, fmt.Errorf("failed to assert Filterable %v to VMMetadata", f)
 	}
 
-	return strings.HasPrefix(md.ID, n.prefix) || strings.HasPrefix(md.Name, n.prefix), nil
+	// Option to list just running VMs
+	running := true
+	if !n.all {
+		running = md.VMOD().State == Running
+	}
+
+	return running && (strings.HasPrefix(md.ID, n.prefix) || strings.HasPrefix(md.Name, n.prefix)), nil
 }
 
 func LoadVMMetadata(id string) (filter.Filterable, error) {
