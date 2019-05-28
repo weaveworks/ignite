@@ -18,7 +18,7 @@ func NewCmdAttach(out io.Writer) *cobra.Command {
 		Short: "Attach to a running Firecracker VM",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := RunAttach(out, cmd, args, true)
+			err := RunAttach(out, cmd, args[0], true)
 			errutils.Check(err)
 		},
 	}
@@ -28,11 +28,11 @@ func NewCmdAttach(out io.Writer) *cobra.Command {
 
 // checkRunning can be used to skip the running check, this is used by CmdRun
 // As the in-container ignite takes some time to start up and update the state
-func RunAttach(out io.Writer, cmd *cobra.Command, args []string, checkRunning bool) error {
+func RunAttach(out io.Writer, cmd *cobra.Command, vmMatch string, checkRunning bool) error {
 	var md *vmmd.VMMetadata
 
 	// Match a single VM using the VMFilter
-	if matches, err := filter.NewFilterer(vmmd.NewVMFilter(args[0]), metadata.VM.Path(), vmmd.LoadVMMetadata); err == nil {
+	if matches, err := filter.NewFilterer(vmmd.NewVMFilter(vmMatch), metadata.VM.Path(), vmmd.LoadVMMetadata); err == nil {
 		if filterable, err := matches.Single(); err == nil {
 			if md, err = vmmd.ToVMMetadata(filterable); err != nil {
 				return err

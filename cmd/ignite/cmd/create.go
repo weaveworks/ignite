@@ -14,36 +14,31 @@ import (
 	"io"
 )
 
-type flagData struct {
-	cpus   int64
-	memory int64
-}
-
 // NewCmdCreate creates a new VM from an image
 func NewCmdCreate(out io.Writer) *cobra.Command {
-	fd := &flagData{}
+	co := &createOptions{}
 
 	cmd := &cobra.Command{
 		Use:   "create [image] [kernel] [name]",
 		Short: "Create a new containerized VM without starting it",
 		Args:  cobra.MinimumNArgs(3),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := RunCreate(out, cmd, args, fd)
+			err := RunCreate(out, cmd, args[0], args[1], args[2], co, false)
 			errutils.Check(err)
 		},
 	}
 
-	cmd.Flags().Int64Var(&fd.cpus, "cpus", constants.VM_DEFAULT_CPUS, "VM vCPU count, 1 or even numbers between 1 and 32")
-	cmd.Flags().Int64Var(&fd.memory, "memory", constants.VM_DEFAULT_MEMORY, "VM RAM in MiB")
+	cmd.Flags().Int64Var(&co.cpus, "cpus", constants.VM_DEFAULT_CPUS, "VM vCPU count, 1 or even numbers between 1 and 32")
+	cmd.Flags().Int64Var(&co.memory, "memory", constants.VM_DEFAULT_MEMORY, "VM RAM in MiB")
 	return cmd
 }
 
-func RunCreate(out io.Writer, cmd *cobra.Command, args []string, fd *flagData) error {
+func RunCreate(out io.Writer, cmd *cobra.Command, imageMatch, kernelMatch, name string, co *createOptions, start bool) error {
 	var image *imgmd.ImageMetadata
 	var kernel *kernmd.KernelMetadata
 
 	// Match a single Image using the ImageFilter
-	if matches, err := filter.NewFilterer(imgmd.NewImageFilter(args[0]), metadata.Image.Path(), imgmd.LoadImageMetadata); err == nil {
+	if matches, err := filter.NewFilterer(imgmd.NewImageFilter(imageMatch), metadata.Image.Path(), imgmd.LoadImageMetadata); err == nil {
 		if filterable, err := matches.Single(); err == nil {
 			if image, err = imgmd.ToImageMetadata(filterable); err != nil {
 				return err
@@ -56,7 +51,7 @@ func RunCreate(out io.Writer, cmd *cobra.Command, args []string, fd *flagData) e
 	}
 
 	// Match a single Kernel using the KernelFilter
-	if matches, err := filter.NewFilterer(kernmd.NewKernelFilter(args[1]), metadata.Kernel.Path(), kernmd.LoadKernelMetadata); err == nil {
+	if matches, err := filter.NewFilterer(kernmd.NewKernelFilter(kernelMatch), metadata.Kernel.Path(), kernmd.LoadKernelMetadata); err == nil {
 		if filterable, err := matches.Single(); err == nil {
 			if kernel, err = kernmd.ToKernelMetadata(filterable); err != nil {
 				return err
@@ -74,7 +69,7 @@ func RunCreate(out io.Writer, cmd *cobra.Command, args []string, fd *flagData) e
 		return err
 	}
 
-	md := vmmd.NewVMMetadata(vmID, args[2], vmmd.NewVMObjectData(image.ID, kernel.ID, fd.cpus, fd.memory))
+	md := vmmd.NewVMMetadata(vmID, name, vmmd.NewVMObjectData(image.ID, kernel.ID, co.cpus, co.memory))
 
 	// Save the metadata
 	if err := md.Save(); err != nil {
@@ -87,7 +82,15 @@ func RunCreate(out io.Writer, cmd *cobra.Command, args []string, fd *flagData) e
 		return err
 	}
 
-	fmt.Println(vmID)
+	// If start is specified, start teh VM after creation
+	if start {
+		if err := RunStart(out, cmd, name); err != nil {
+			return err
+		}
+	} else {
+		// Print the ID of the created VM
+		fmt.Println(md.ID)
+	}
 
 	return nil
 }
