@@ -13,8 +13,6 @@ import (
 	"io"
 )
 
-var all bool
-
 // NewCmdPs lists running Firecracker VMs
 func NewCmdPs(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{

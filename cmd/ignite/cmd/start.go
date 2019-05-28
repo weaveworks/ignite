@@ -15,8 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var interactive bool
-
 // NewCmdStart starts a Firecracker VM
 func NewCmdStart(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
@@ -24,7 +22,7 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 		Short: "Start a Firecracker VM",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := RunStart(out, cmd, args)
+			err := RunStart(out, cmd, args[0])
 			errutils.Check(err)
 		},
 	}
@@ -33,11 +31,11 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 	return cmd
 }
 
-func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
+func RunStart(out io.Writer, cmd *cobra.Command, vmMatch string) error {
 	var md *vmmd.VMMetadata
 
 	// Match a single VM using the VMFilter
-	if matches, err := filter.NewFilterer(vmmd.NewVMFilter(args[0]), metadata.VM.Path(), vmmd.LoadVMMetadata); err == nil {
+	if matches, err := filter.NewFilterer(vmmd.NewVMFilter(vmMatch), metadata.VM.Path(), vmmd.LoadVMMetadata); err == nil {
 		if filterable, err := matches.Single(); err == nil {
 			if md, err = vmmd.ToVMMetadata(filterable); err != nil {
 				return err
@@ -78,7 +76,7 @@ func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
 
 	// If starting interactively, attach after starting
 	if interactive {
-		if err := RunAttach(out, cmd, args, false); err != nil {
+		if err := RunAttach(out, cmd, vmMatch, false); err != nil {
 			return err
 		}
 	} else {
