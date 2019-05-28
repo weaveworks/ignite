@@ -33,8 +33,7 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 func RunPs(out io.Writer, cmd *cobra.Command) error {
 	var mds []*vmmd.VMMetadata
 
-	// Match all VMs using the VMFilter
-	// TODO: VMFilter support for running/stopped VMs
+	// Match all VMs using the VMFilter with state checking
 	if matches, err := filter.NewFilterer(vmmd.NewVMFilterAll("", all), metadata.VM.Path(), vmmd.LoadVMMetadata); err == nil {
 		if all, err := matches.All(); err == nil {
 			if mds, err = vmmd.ToVMMetadataAll(all); err != nil {

@@ -15,6 +15,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var interactive bool
+
 // NewCmdStart starts a Firecracker VM
 func NewCmdStart(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
@@ -26,7 +28,8 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 			errutils.Check(err)
 		},
 	}
-	//cmd.Flags().StringP("output", "o", "", "Output format; available options are 'yaml', 'json' and 'short'")
+
+	cmd.Flags().BoolVarP(&interactive, "interactive", "i", false, "Immediately attach to started VM")
 	return cmd
 }
 
@@ -73,8 +76,15 @@ func RunStart(out io.Writer, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to start container for VM %q: %v", md.ID, err)
 	}
 
-	// Print the ID of the started VM
-	fmt.Println(md.ID)
+	// If starting interactively, attach after starting
+	if interactive {
+		if err := RunAttach(out, cmd, args, false); err != nil {
+			return err
+		}
+	} else {
+		// Print the ID of the started VM
+		fmt.Println(md.ID)
+	}
 
 	return nil
 }
