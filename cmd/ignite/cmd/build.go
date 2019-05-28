@@ -46,9 +46,8 @@ func RunBuild(out io.Writer, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// TODO: Better docker/tarfile detection
-	// Currently source is docker if the given path contains a tag separator ":"
-	if strings.Contains(buildOptions.source, ":") {
+	// If the source is a file, import it as a file, otherwise check if it's a docker image
+	if !util.FileExists(buildOptions.source) {
 		// Query docker for the image
 		out, err := util.ExecuteCommand("docker", "images", "-q", buildOptions.source)
 		if err != nil {
@@ -89,11 +88,6 @@ func RunBuild(out io.Writer, cmd *cobra.Command, args []string) error {
 		}
 
 	} else {
-		// Check if given tarfile exists
-		if !util.FileExists(buildOptions.source) {
-			return fmt.Errorf("input %q is not a file", buildOptions.source)
-		}
-
 		// Decompress given file to later be extracted into the disk image
 		// TODO: Either extract directly into image or intermediate tarfile from different formats
 		decompressor := archiver.FileCompressor{
