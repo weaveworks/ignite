@@ -11,6 +11,8 @@ import (
 	"io"
 )
 
+var all bool
+
 // NewCmdPs lists running Firecracker VMs
 func NewCmdPs(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
@@ -22,7 +24,7 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 		},
 	}
 
-	//cmd.Flags().StringP("output", "o", "", "Output format; available options are 'yaml', 'json' and 'short'")
+	cmd.Flags().BoolVarP(&all, "all", "a", false, "Show all VMs instead of just running ones")
 	return cmd
 }
 
@@ -31,7 +33,7 @@ func RunPs(out io.Writer, cmd *cobra.Command) error {
 
 	// Match all VMs using the VMFilter
 	// TODO: VMFilter support for running/stopped VMs
-	if matches, err := filter.NewFilterer(vmmd.NewVMFilter(""), metadata.VM.Path(), vmmd.LoadVMMetadata); err == nil {
+	if matches, err := filter.NewFilterer(vmmd.NewVMFilterAll("", all), metadata.VM.Path(), vmmd.LoadVMMetadata); err == nil {
 		if all, err := matches.All(); err == nil {
 			if mds, err = vmmd.ToVMMetadataAll(all); err != nil {
 				return err
