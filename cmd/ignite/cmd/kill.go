@@ -11,14 +11,14 @@ import (
 	"io"
 )
 
-// NewCmdStop stops a Firecracker VM
-func NewCmdStop(out io.Writer) *cobra.Command {
+// NewCmdStop kills a Firecracker VM
+func NewCmdKill(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "stop [id]",
-		Short: "Stop a running Firecracker VM",
+		Use:   "kill [id]",
+		Short: "Kill a running Firecracker VM",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := RunStop(out, cmd, args)
+			err := RunKill(out, cmd, args)
 			errutils.Check(err)
 		},
 	}
@@ -27,7 +27,7 @@ func NewCmdStop(out io.Writer) *cobra.Command {
 	return cmd
 }
 
-func RunStop(out io.Writer, cmd *cobra.Command, args []string) error {
+func RunKill(out io.Writer, cmd *cobra.Command, args []string) error {
 	var md *vmmd.VMMetadata
 
 	// Match a single VM using the VMFilter
@@ -49,13 +49,15 @@ func RunStop(out io.Writer, cmd *cobra.Command, args []string) error {
 	}
 
 	dockerArgs := []string{
-		"stop",
+		"kill",
+		"-s",
+		"SIGQUIT",
 		md.ID,
 	}
 
-	// Stop the VM in docker
+	// Kill the VM in docker
 	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
-		return fmt.Errorf("failed to stop container for VM %q: %v", md.ID, err)
+		return fmt.Errorf("failed to kill container for VM %q: %v", md.ID, err)
 	}
 
 	fmt.Println(md.ID)
