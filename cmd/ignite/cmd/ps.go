@@ -5,6 +5,8 @@ import (
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
+	"github.com/luxas/ignite/pkg/metadata/imgmd"
+	"github.com/luxas/ignite/pkg/metadata/kernmd"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
@@ -56,7 +58,18 @@ func RunPs(out io.Writer, cmd *cobra.Command) error {
 			return fmt.Errorf("failed to get size for %s %q: %v", md.Type, md.ID, err)
 		}
 
-		o.Write(md.ID, od.ImageID, od.KernelID, md.Created, util.ByteCountDecimal(size), od.VCPUs, util.ByteCountDecimal(od.Memory*1000000), od.State, md.Name)
+		image := imgmd.NewImageMetadata(od.ImageID, "")
+		kernel := kernmd.NewKernelMetadata(od.KernelID, "")
+
+		if err := image.Load(); err != nil {
+			return fmt.Errorf("failed to load image metadata for %s %q: %v", md.Type, md.ID, err)
+		}
+
+		if err := kernel.Load(); err != nil {
+			return fmt.Errorf("failed to load kernel metadata for %s %q: %v", md.Type, md.ID, err)
+		}
+
+		o.Write(md.ID, image.Name, kernel.Name, md.Created, util.ByteCountDecimal(size), od.VCPUs, util.ByteCountDecimal(od.Memory*1000000), od.State, md.Name)
 	}
 
 	return nil
