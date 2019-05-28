@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/luxas/ignite/pkg/util"
 	"io"
 	"os"
 
@@ -13,6 +14,12 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	cmds := &cobra.Command{
 		Use:   "ignite",
 		Short: "ignite: easily run Firecracker VMs",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			// TODO: Handle this error more softly?
+			if err := util.CreateDirectories(); err != nil {
+				panic(err)
+			}
+		},
 		Long: dedent.Dedent(`
 			Ignite helps you with foo, bar
 

@@ -3,10 +3,8 @@ package cmd
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/filter"
-	"github.com/luxas/ignite/pkg/metadata"
-	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
+	"github.com/spf13/pflag"
 	"io"
 	"os"
 	"path/filepath"
@@ -15,41 +13,42 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type startOptions struct {
+	attachOptions
+	interactive bool
+}
+
 // NewCmdStart starts a Firecracker VM
 func NewCmdStart(out io.Writer) *cobra.Command {
+	so := &startOptions{}
+
 	cmd := &cobra.Command{
 		Use:   "start [vm]",
 		Short: "Start a Firecracker VM",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := RunStart(out, cmd, args[0])
-			errutils.Check(err)
+			errutils.Check(func() error {
+				var err error
+				if so.vm, err = matchSingleVM(args[0]); err != nil {
+					return err
+				}
+				return RunStart(so)
+			}())
 		},
 	}
 
-	cmd.Flags().BoolVarP(&interactive, "interactive", "i", false, "Immediately attach to started VM")
+	addStartFlags(cmd.Flags(), so)
 	return cmd
 }
 
-func RunStart(out io.Writer, cmd *cobra.Command, vmMatch string) error {
-	var md *vmmd.VMMetadata
+func addStartFlags(fs *pflag.FlagSet, so *startOptions) {
+	addInteractiveFlag(fs, &so.interactive)
+}
 
-	// Match a single VM using the VMFilter
-	if matches, err := filter.NewFilterer(vmmd.NewVMFilter(vmMatch), metadata.VM.Path(), vmmd.LoadVMMetadata); err == nil {
-		if filterable, err := matches.Single(); err == nil {
-			if md, err = vmmd.ToVMMetadata(filterable); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	} else {
-		return err
-	}
-
+func RunStart(so *startOptions) error {
 	// Check if the given VM is already running
-	if md.Running() {
-		return fmt.Errorf("%s is already running", md.ID)
+	if so.vm.Running() {
+		return fmt.Errorf("%s is already running", so.vm.ID)
 	}
 
 	igniteBinary, _ := filepath.Abs(os.Args[0])
@@ -59,29 +58,29 @@ func RunStart(out io.Writer, cmd *cobra.Command, vmMatch string) error {
 		"-itd",
 		"--rm",
 		"--name",
-		md.ID,
+		so.vm.ID,
 		fmt.Sprintf("-v=%s:/ignite/ignite", igniteBinary),
 		fmt.Sprintf("-v=%s:%s", constants.DATA_DIR, constants.DATA_DIR),
 		fmt.Sprintf("--stop-timeout=%d", constants.STOP_TIMEOUT+constants.IGNITE_TIMEOUT),
 		"--privileged",
 		"--device=/dev/kvm",
 		"ignite",
-		md.ID,
+		so.vm.ID,
 	}
 
 	// Start the VM in docker
 	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
-		return fmt.Errorf("failed to start container for VM %q: %v", md.ID, err)
+		return fmt.Errorf("failed to start container for VM %q: %v", so.vm.ID, err)
 	}
 
 	// If starting interactively, attach after starting
-	if interactive {
-		if err := RunAttach(out, cmd, vmMatch, false); err != nil {
+	if so.interactive {
+		if err := RunAttach(&so.attachOptions); err != nil {
 			return err
 		}
 	} else {
 		// Print the ID of the started VM
-		fmt.Println(md.ID)
+		fmt.Println(so.vm.ID)
 	}
 
 	return nil

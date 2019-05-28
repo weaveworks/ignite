@@ -3,50 +3,43 @@ package cmd
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/errutils"
-	"github.com/luxas/ignite/pkg/filter"
-	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/metadata/kernmd"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
 	"io"
 )
 
+type kernelsOptions struct {
+	kernels []*kernmd.KernelMetadata
+}
+
 // NewCmdKernels lists the available kernels
 func NewCmdKernels(out io.Writer) *cobra.Command {
+	ko := &kernelsOptions{}
+
 	cmd := &cobra.Command{
 		Use:   "kernels",
 		Short: "List available kernels",
 		Run: func(cmd *cobra.Command, args []string) {
-			err := RunKernels(out, cmd)
-			errutils.Check(err)
+			errutils.Check(func() error {
+				var err error
+				if ko.kernels, err = matchAllKernels(); err != nil {
+					return err
+				}
+				return RunKernels(ko)
+			}())
 		},
 	}
 
-	//cmd.Flags().StringP("output", "o", "", "Output format; available options are 'yaml', 'json' and 'short'")
 	return cmd
 }
 
-func RunKernels(out io.Writer, cmd *cobra.Command) error {
-	var mds []*kernmd.KernelMetadata
-
-	// Match all Kernels using the KernelFilter
-	if matches, err := filter.NewFilterer(kernmd.NewKernelFilter(""), metadata.Kernel.Path(), kernmd.LoadKernelMetadata); err == nil {
-		if all, err := matches.All(); err == nil {
-			if mds, err = kernmd.ToKernelMetadataAll(all); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	} else {
-		return err
-	}
-
+func RunKernels(ko *kernelsOptions) error {
 	o := util.NewOutput()
 	defer o.Flush()
 
 	o.Write("KERNEL ID", "CREATED", "SIZE", "NAME")
-	for _, md := range mds {
+	for _, md := range ko.kernels {
 		size, err := md.Size()
 		if err != nil {
 			return fmt.Errorf("failed to get size for %s %q: %v", md.Type, md.ID, err)
