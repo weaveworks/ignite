@@ -1,57 +1,31 @@
 package cmd
 
 import (
-	"fmt"
-	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/cmd/ignite/run"
 	"github.com/luxas/ignite/pkg/errutils"
-	"github.com/luxas/ignite/pkg/metadata/imgmd"
-	"github.com/luxas/ignite/pkg/util"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"io"
 )
 
 // NewCmdAddImage imports an image for VM use
 func NewCmdAddImage(out io.Writer) *cobra.Command {
+	ao := &run.AddImageOptions{}
+
 	cmd := &cobra.Command{
-		Use:   "addimage [path] [name]",
+		Use:   "addimage [path]",
 		Short: "Import an existing VM base image",
-		Args:  cobra.MinimumNArgs(2),
+		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := RunAddImage(out, cmd, args)
-			errutils.Check(err)
+			ao.Source = args[0]
+			errutils.Check(run.AddImage(ao))
 		},
 	}
 
-	//cmd.Flags().StringP("output", "o", "", "Output format; available options are 'yaml', 'json' and 'short'")
+	addAddImageFlags(cmd.Flags(), ao)
 	return cmd
 }
 
-func RunAddImage(out io.Writer, cmd *cobra.Command, args []string) error {
-	p := args[0]
-
-	if !util.FileExists(p) {
-		return fmt.Errorf("not an image file: %s", p)
-	}
-
-	// Create a new ID for the VM
-	imageID, err := util.NewID(constants.IMAGE_DIR)
-	if err != nil {
-		return err
-	}
-
-	md := imgmd.NewImageMetadata(imageID, args[1])
-
-	// Save the metadata
-	if err := md.Save(); err != nil {
-		return err
-	}
-
-	// Perform the image copy
-	if err := md.ImportImage(p); err != nil {
-		return err
-	}
-
-	fmt.Println(md.ID)
-
-	return nil
+func addAddImageFlags(fs *pflag.FlagSet, ao *run.AddImageOptions) {
+	addNameFlag(fs, &ao.Name)
 }
