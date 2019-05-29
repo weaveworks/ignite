@@ -7,6 +7,5 @@ import (
 
 // NewCmdBuild is an alias for NewCmdImageBuild
 func NewCmdBuild(out io.Writer) *cobra.Command {
-	cmd := NewCmdImageBuild(out)
-	return cmd
+	return NewCmdImageBuild(out)
 }

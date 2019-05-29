@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-// NewContainerCmd runs the DHCP server and sets up routing inside Docker
+// NewCmdContainer runs the DHCP server and sets up routing inside Docker
 func NewCmdContainer(out io.Writer) *cobra.Command {
 	co := &run.ContainerOptions{}
 
