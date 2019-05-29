@@ -6,8 +6,14 @@ import (
 	"github.com/luxas/ignite/pkg/util"
 )
 
+var (
+	stopArgs = []string{"stop"}
+	killArgs = []string{"kill", "-s", "SIGQUIT"}
+)
+
 type StopOptions struct {
-	VM *vmmd.VMMetadata
+	VM   *vmmd.VMMetadata
+	Kill bool
 }
 
 func Stop(so *StopOptions) error {
@@ -16,12 +22,16 @@ func Stop(so *StopOptions) error {
 		return fmt.Errorf("%s is not running", so.VM.ID)
 	}
 
-	dockerArgs := []string{
-		"stop",
-		so.VM.ID,
+	dockerArgs := stopArgs
+
+	// Change to kill arguments if requested
+	if so.Kill {
+		dockerArgs = killArgs
 	}
 
-	// Stop the VM in docker
+	dockerArgs = append(dockerArgs, so.VM.ID)
+
+	// Stop/Kill the VM in docker
 	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
 		return fmt.Errorf("failed to stop container for VM %q: %v", so.VM.ID, err)
 	}
