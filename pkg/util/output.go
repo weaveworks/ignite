@@ -2,6 +2,8 @@ package util
 
 import (
 	"fmt"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/duration"
 	"os"
 	"strings"
 	"text/tabwriter"
@@ -28,8 +30,8 @@ func (o *output) Write(input ...interface{}) {
 			sb.WriteString(fmt.Sprintf("%s", data))
 		case int64:
 			sb.WriteString(fmt.Sprintf("%d", data))
-		case time.Time:
-			sb.WriteString(data.(time.Time).Format(time.UnixDate))
+		case metav1.Time:
+			sb.WriteString(fmt.Sprintf("%s ago", duration.HumanDuration(time.Now().Sub(data.(metav1.Time).Time))))
 		default:
 			sb.WriteString(fmt.Sprintf("%v", data))
 		}

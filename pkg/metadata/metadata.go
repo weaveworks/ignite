@@ -7,9 +7,9 @@ import (
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/util"
 	"io/ioutil"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path"
-	"time"
 )
 
 type ObjectType int
@@ -66,10 +66,10 @@ func (x ObjectType) Path() string {
 type ObjectData interface{}
 
 type Metadata struct {
-	ID         string     `json:"ID"`
-	Name       string     `json:"Name"`
-	Type       ObjectType `json:"Type"`
-	Created    time.Time  `json:"Created"`
+	ID         string      `json:"ID"`
+	Name       string      `json:"Name"`
+	Type       ObjectType  `json:"Type"`
+	Created    metav1.Time `json:"Created"`
 	ObjectData `json:"ObjectData"`
 }
 
@@ -79,7 +79,7 @@ func NewMetadata(id, name string, t ObjectType, data ObjectData) *Metadata {
 		ID:         id,
 		Name:       name,
 		Type:       t,
-		Created:    time.Now(),
+		Created:    metav1.Now(),
 		ObjectData: data,
 	}
 }

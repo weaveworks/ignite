@@ -20,5 +20,6 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
+	k8s.io/apimachinery v0.0.0-20190528154326-e59c2fb0a8e5
 	sigs.k8s.io/yaml v1.1.0
 )
