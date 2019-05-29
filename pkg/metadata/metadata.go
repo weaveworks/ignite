@@ -74,6 +74,7 @@ type Metadata struct {
 }
 
 func NewMetadata(id, name string, t ObjectType, data ObjectData) *Metadata {
+	util.NewName(&name) // If the name is unset, create a new random one
 	return &Metadata{
 		ID:         id,
 		Name:       name,

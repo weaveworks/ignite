@@ -13,9 +13,9 @@ func NewCmdAddKernel(out io.Writer) *cobra.Command {
 	ao := &run.AddKernelOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "addkernel [path] [name]",
+		Use:   "addkernel [path]",
 		Short: "Add an uncompressed kernel image for VM use",
-		Args:  cobra.MinimumNArgs(2),
+		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			ao.Source = args[0]
 			errutils.Check(run.AddKernel(ao))

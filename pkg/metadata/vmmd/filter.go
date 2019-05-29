@@ -3,7 +3,6 @@ package vmmd
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/filter"
-	"github.com/luxas/ignite/pkg/metadata"
 	"strings"
 )
 
@@ -41,15 +40,12 @@ func (n *VMFilter) Filter(f filter.Filterable) (bool, error) {
 	return running && (strings.HasPrefix(md.ID, n.prefix) || strings.HasPrefix(md.Name, n.prefix)), nil
 }
 
-func LoadVMMetadata(id string) (filter.Filterable, error) {
-	md := &VMMetadata{
-		Metadata: &metadata.Metadata{
-			ID:         id,
-			Type:       metadata.VM,
-			ObjectData: &VMObjectData{},
-		},
-	}
-
+func LoadVMMetadata(id string) (*VMMetadata, error) {
+	md := NewVMMetadata(id, "-", &VMObjectData{}) // A blank name triggers an unnecessary name generation
 	err := md.Load()
 	return md, err
+}
+
+func LoadVMMetadataFilterable(id string) (filter.Filterable, error) {
+	return LoadVMMetadata(id)
 }

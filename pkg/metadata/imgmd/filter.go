@@ -28,8 +28,12 @@ func (n *ImageFilter) Filter(f filter.Filterable) (bool, error) {
 	return strings.HasPrefix(md.ID, n.prefix) || strings.HasPrefix(md.Name, n.prefix), nil
 }
 
-func LoadImageMetadata(id string) (filter.Filterable, error) {
-	md := NewImageMetadata(id, "")
+func LoadImageMetadata(id string) (*ImageMetadata, error) {
+	md := NewImageMetadata(id, "-") // A blank name triggers an unnecessary name generation
 	err := md.Load()
 	return md, err
+}
+
+func LoadImageMetadataFilterable(id string) (filter.Filterable, error) {
+	return LoadImageMetadata(id)
 }

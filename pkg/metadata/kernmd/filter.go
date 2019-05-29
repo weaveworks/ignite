@@ -28,8 +28,12 @@ func (n *KernelFilter) Filter(f filter.Filterable) (bool, error) {
 	return strings.HasPrefix(md.ID, n.prefix) || strings.HasPrefix(md.Name, n.prefix), nil
 }
 
-func LoadKernelMetadata(id string) (filter.Filterable, error) {
-	md := NewKernelMetadata(id, "")
+func LoadKernelMetadata(id string) (*KernelMetadata, error) {
+	md := NewKernelMetadata(id, "-") // A blank name triggers an unnecessary name generation
 	err := md.Load()
 	return md, err
+}
+
+func LoadKernelMetadataFilterable(id string) (filter.Filterable, error) {
+	return LoadKernelMetadata(id)
 }
