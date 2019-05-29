@@ -4,6 +4,7 @@ import (
 	"github.com/luxas/ignite/cmd/ignite/run"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"io"
 )
 
@@ -26,5 +27,10 @@ func NewCmdVMStop(out io.Writer) *cobra.Command {
 		},
 	}
 
+	addVMStopFlags(cmd.Flags(), so)
 	return cmd
+}
+
+func addVMStopFlags(fs *pflag.FlagSet, so *run.StopOptions) {
+	fs.BoolVarP(&so.Kill, "force-kill", "f", false, "Force kill the VM")
 }

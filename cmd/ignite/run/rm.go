@@ -16,8 +16,9 @@ func Rm(ro *RmOptions) error {
 	if ro.VM.Running() {
 		// If force is set, kill the VM
 		if ro.Force {
-			if err := Kill(&KillOptions{
-				VM: ro.VM,
+			if err := Stop(&StopOptions{
+				VM:   ro.VM,
+				Kill: true,
 			}); err != nil {
 				return err
 			}

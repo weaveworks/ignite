@@ -9,7 +9,7 @@ import (
 
 // NewCmdVMKill kills a VM
 func NewCmdVMKill(out io.Writer) *cobra.Command {
-	ko := &run.KillOptions{}
+	so := &run.StopOptions{Kill: true}
 
 	cmd := &cobra.Command{
 		Use:   "kill [vm]",
@@ -18,10 +18,10 @@ func NewCmdVMKill(out io.Writer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if ko.VM, err = matchSingleVM(args[0]); err != nil {
+				if so.VM, err = matchSingleVM(args[0]); err != nil {
 					return err
 				}
-				return run.Kill(ko)
+				return run.Stop(so)
 			}())
 		},
 	}
