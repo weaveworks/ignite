@@ -17,7 +17,7 @@ func ImportImage(ao *ImportImageOptions) error {
 		return fmt.Errorf("not an image file: %s", ao.Source)
 	}
 
-	// Create a new ID for the VM
+	// Create a new ID for the image
 	imageID, err := util.NewID(constants.IMAGE_DIR)
 	if err != nil {
 		return err
@@ -30,7 +30,7 @@ func ImportImage(ao *ImportImageOptions) error {
 		return err
 	}
 
-	// Perform the image copy
+	// Perform the copy
 	if err := md.ImportImage(ao.Source); err != nil {
 		return err
 	}

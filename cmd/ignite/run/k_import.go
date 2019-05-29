@@ -7,17 +7,17 @@ import (
 	"github.com/luxas/ignite/pkg/util"
 )
 
-type AddKernelOptions struct {
+type ImportKernelOptions struct {
 	Source string
 	Name   string
 }
 
-func AddKernel(ao *AddKernelOptions) error {
+func ImportKernel(ao *ImportKernelOptions) error {
 	if !util.FileExists(ao.Source) {
 		return fmt.Errorf("not a kernel image: %s", ao.Source)
 	}
 
-	// Create a new ID for the VM
+	// Create a new ID for the kernel
 	kernelID, err := util.NewID(constants.KERNEL_DIR)
 	if err != nil {
 		return err
@@ -30,7 +30,7 @@ func AddKernel(ao *AddKernelOptions) error {
 		return err
 	}
 
-	// Perform the image copy
+	// Perform the copy
 	if err := md.ImportKernel(ao.Source); err != nil {
 		return err
 	}
