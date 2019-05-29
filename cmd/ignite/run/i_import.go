@@ -7,12 +7,12 @@ import (
 	"github.com/luxas/ignite/pkg/util"
 )
 
-type AddImageOptions struct {
+type ImportImageOptions struct {
 	Source string
 	Name   string
 }
 
-func AddImage(ao *AddImageOptions) error {
+func ImportImage(ao *ImportImageOptions) error {
 	if !util.FileExists(ao.Source) {
 		return fmt.Errorf("not an image file: %s", ao.Source)
 	}
