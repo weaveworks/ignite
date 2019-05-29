@@ -1,4 +1,4 @@
-package cmd
+package vmcmd
 
 import (
 	"github.com/spf13/cobra"
@@ -14,14 +14,14 @@ func NewCmdVM(out io.Writer) *cobra.Command {
 		Aliases: []string{"vms"},
 	}
 
-	cmd.AddCommand(NewCmdVMAttach(out))
-	cmd.AddCommand(NewCmdVMCreate(out))
-	cmd.AddCommand(NewCmdVMKill(out))
-	cmd.AddCommand(NewCmdVMLogs(out))
-	cmd.AddCommand(NewCmdVMPs(out))
-	cmd.AddCommand(NewCmdVMRm(out))
-	cmd.AddCommand(NewCmdVMRun(out))
-	cmd.AddCommand(NewCmdVMStart(out))
-	cmd.AddCommand(NewCmdVMStop(out))
+	cmd.AddCommand(NewCmdAttach(out))
+	cmd.AddCommand(NewCmdCreate(out))
+	cmd.AddCommand(NewCmdKill(out))
+	cmd.AddCommand(NewCmdLogs(out))
+	cmd.AddCommand(NewCmdPs(out))
+	cmd.AddCommand(NewCmdRm(out))
+	cmd.AddCommand(NewCmdRun(out))
+	cmd.AddCommand(NewCmdStart(out))
+	cmd.AddCommand(NewCmdStop(out))
 	return cmd
 }

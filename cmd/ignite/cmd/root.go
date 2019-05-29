@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"github.com/luxas/ignite/cmd/ignite/cmd/imgcmd"
+	"github.com/luxas/ignite/cmd/ignite/cmd/kerncmd"
+	"github.com/luxas/ignite/cmd/ignite/cmd/vmcmd"
 	"github.com/luxas/ignite/pkg/util"
 	"io"
 	"os"
@@ -9,9 +12,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewIgniteCommand returns cobra.Command to run kubeadm command
+// NewIgniteCommand returns the root command for ignite
 func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
-	cmds := &cobra.Command{
+	root := &cobra.Command{
 		Use:   "ignite",
 		Short: "ignite: easily run Firecracker VMs",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
@@ -29,26 +32,26 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 		`),
 	}
 
-	cmds.AddCommand(NewCmdImage(os.Stdout))
-	cmds.AddCommand(NewCmdKernel(os.Stdout))
-	cmds.AddCommand(NewCmdVM(os.Stdout))
+	root.AddCommand(imgcmd.NewCmdImage(os.Stdout))
+	root.AddCommand(kerncmd.NewCmdKernel(os.Stdout))
+	root.AddCommand(vmcmd.NewCmdVM(os.Stdout))
 
-	cmds.AddCommand(NewCmdAddImage(os.Stdout))
-	cmds.AddCommand(NewCmdAddKernel(os.Stdout))
-	cmds.AddCommand(NewCmdAttach(os.Stdout))
-	cmds.AddCommand(NewCmdBuild(os.Stdout))
-	cmds.AddCommand(NewCmdCompletion(os.Stdout, cmds))
-	cmds.AddCommand(NewCmdContainer(os.Stdout))
-	cmds.AddCommand(NewCmdCreate(os.Stdout))
-	cmds.AddCommand(NewCmdKill(os.Stdout))
-	cmds.AddCommand(NewCmdLogs(os.Stdout))
-	cmds.AddCommand(NewCmdPs(os.Stdout))
-	cmds.AddCommand(NewCmdRm(os.Stdout))
-	cmds.AddCommand(NewCmdRmi(os.Stdout))
-	cmds.AddCommand(NewCmdRmk(os.Stdout))
-	cmds.AddCommand(NewCmdRun(os.Stdout))
-	cmds.AddCommand(NewCmdStart(os.Stdout))
-	cmds.AddCommand(NewCmdStop(os.Stdout))
-	cmds.AddCommand(NewCmdVersion(os.Stdout))
-	return cmds
+	root.AddCommand(NewCmdAddImage(os.Stdout))
+	root.AddCommand(NewCmdAddKernel(os.Stdout))
+	root.AddCommand(NewCmdAttach(os.Stdout))
+	root.AddCommand(NewCmdBuild(os.Stdout))
+	root.AddCommand(NewCmdCompletion(os.Stdout, root))
+	root.AddCommand(NewCmdContainer(os.Stdout))
+	root.AddCommand(NewCmdCreate(os.Stdout))
+	root.AddCommand(NewCmdKill(os.Stdout))
+	root.AddCommand(NewCmdLogs(os.Stdout))
+	root.AddCommand(NewCmdPs(os.Stdout))
+	root.AddCommand(NewCmdRm(os.Stdout))
+	root.AddCommand(NewCmdRmi(os.Stdout))
+	root.AddCommand(NewCmdRmk(os.Stdout))
+	root.AddCommand(NewCmdRun(os.Stdout))
+	root.AddCommand(NewCmdStart(os.Stdout))
+	root.AddCommand(NewCmdStop(os.Stdout))
+	root.AddCommand(NewCmdVersion(os.Stdout))
+	return root
 }

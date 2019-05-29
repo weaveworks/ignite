@@ -1,4 +1,4 @@
-package cmd
+package cmdutil
 
 import (
 	"github.com/luxas/ignite/pkg/filter"
@@ -13,7 +13,7 @@ import (
 
 // TODO: Descriptive errors
 
-func matchSingleVM(match string) (*vmmd.VMMetadata, error) {
+func MatchSingleVM(match string) (*vmmd.VMMetadata, error) {
 	var md *vmmd.VMMetadata
 
 	// Match a single VM using the VMFilter
@@ -32,7 +32,7 @@ func matchSingleVM(match string) (*vmmd.VMMetadata, error) {
 	return md, nil
 }
 
-func matchSingleImage(match string) (*imgmd.ImageMetadata, error) {
+func MatchSingleImage(match string) (*imgmd.ImageMetadata, error) {
 	var md *imgmd.ImageMetadata
 
 	// Match a single Image using the ImageFilter
@@ -51,7 +51,7 @@ func matchSingleImage(match string) (*imgmd.ImageMetadata, error) {
 	return md, nil
 }
 
-func matchSingleKernel(match string) (*kernmd.KernelMetadata, error) {
+func MatchSingleKernel(match string) (*kernmd.KernelMetadata, error) {
 	var md *kernmd.KernelMetadata
 
 	// Match a single Kernel using the KernelFilter
@@ -70,7 +70,7 @@ func matchSingleKernel(match string) (*kernmd.KernelMetadata, error) {
 	return md, nil
 }
 
-func matchAllVMs(all bool) ([]*vmmd.VMMetadata, error) {
+func MatchAllVMs(all bool) ([]*vmmd.VMMetadata, error) {
 	var mds []*vmmd.VMMetadata
 
 	// Match all VMs using the VMFilter with state checking
@@ -89,7 +89,7 @@ func matchAllVMs(all bool) ([]*vmmd.VMMetadata, error) {
 	return mds, nil
 }
 
-func matchAllImages() ([]*imgmd.ImageMetadata, error) {
+func MatchAllImages() ([]*imgmd.ImageMetadata, error) {
 	var mds []*imgmd.ImageMetadata
 
 	// Match all Images using the ImageFilter
@@ -108,7 +108,7 @@ func matchAllImages() ([]*imgmd.ImageMetadata, error) {
 	return mds, nil
 }
 
-func matchAllKernels() ([]*kernmd.KernelMetadata, error) {
+func MatchAllKernels() ([]*kernmd.KernelMetadata, error) {
 	var mds []*kernmd.KernelMetadata
 
 	// Match all Kernels using the KernelFilter

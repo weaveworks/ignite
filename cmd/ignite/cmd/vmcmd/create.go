@@ -1,6 +1,7 @@
-package cmd
+package vmcmd
 
 import (
+	"github.com/luxas/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/luxas/ignite/cmd/ignite/run"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/errutils"
@@ -9,8 +10,8 @@ import (
 	"io"
 )
 
-// NewCmdVMCreate creates a new VM given an image and a kernel
-func NewCmdVMCreate(out io.Writer) *cobra.Command {
+// NewCmdCreate creates a new VM given an image and a kernel
+func NewCmdCreate(out io.Writer) *cobra.Command {
 	co := &run.CreateOptions{}
 
 	cmd := &cobra.Command{
@@ -21,10 +22,10 @@ func NewCmdVMCreate(out io.Writer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if co.Image, err = matchSingleImage(args[0]); err != nil {
+				if co.Image, err = cmdutil.MatchSingleImage(args[0]); err != nil {
 					return err
 				}
-				if co.Kernel, err = matchSingleKernel(args[1]); err != nil {
+				if co.Kernel, err = cmdutil.MatchSingleKernel(args[1]); err != nil {
 					return err
 				}
 				return run.Create(co)
@@ -32,12 +33,12 @@ func NewCmdVMCreate(out io.Writer) *cobra.Command {
 		},
 	}
 
-	addVMCreateFlags(cmd.Flags(), co)
+	addCreateFlags(cmd.Flags(), co)
 	return cmd
 }
 
-func addVMCreateFlags(fs *pflag.FlagSet, co *run.CreateOptions) {
-	addNameFlag(fs, &co.Name)
+func addCreateFlags(fs *pflag.FlagSet, co *run.CreateOptions) {
+	cmdutil.AddNameFlag(fs, &co.Name)
 	fs.Int64Var(&co.CPUs, "cpus", constants.VM_DEFAULT_CPUS, "VM vCPU count, 1 or even numbers between 1 and 32")
 	fs.Int64Var(&co.Memory, "memory", constants.VM_DEFAULT_MEMORY, "VM RAM in MiB")
 }

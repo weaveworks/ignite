@@ -9,6 +9,7 @@ import (
 
 func main() {
 	if err := Run(); err != nil {
+		// TODO: This just duplicates cobra's errors
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}

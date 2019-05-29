@@ -1,6 +1,7 @@
-package cmd
+package imgcmd
 
 import (
+	"github.com/luxas/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/luxas/ignite/cmd/ignite/run"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
@@ -8,8 +9,8 @@ import (
 	"io"
 )
 
-// NewCmdImageBuild builds a new VM image
-func NewCmdImageBuild(out io.Writer) *cobra.Command {
+// NewCmdBuild builds a new VM image
+func NewCmdBuild(out io.Writer) *cobra.Command {
 	bo := &run.BuildOptions{}
 
 	cmd := &cobra.Command{
@@ -23,10 +24,10 @@ func NewCmdImageBuild(out io.Writer) *cobra.Command {
 		},
 	}
 
-	addImageBuildFlags(cmd.Flags(), bo)
+	addBuildFlags(cmd.Flags(), bo)
 	return cmd
 }
 
-func addImageBuildFlags(fs *pflag.FlagSet, co *run.BuildOptions) {
-	addNameFlag(fs, &co.Name)
+func addBuildFlags(fs *pflag.FlagSet, co *run.BuildOptions) {
+	cmdutil.AddNameFlag(fs, &co.Name)
 }

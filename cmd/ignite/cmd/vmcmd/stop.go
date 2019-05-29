@@ -1,6 +1,7 @@
-package cmd
+package vmcmd
 
 import (
+	"github.com/luxas/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/luxas/ignite/cmd/ignite/run"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
@@ -8,8 +9,8 @@ import (
 	"io"
 )
 
-// NewCmdVMStop stops a VM
-func NewCmdVMStop(out io.Writer) *cobra.Command {
+// NewCmdStop stops a VM
+func NewCmdStop(out io.Writer) *cobra.Command {
 	so := &run.StopOptions{}
 
 	cmd := &cobra.Command{
@@ -19,7 +20,7 @@ func NewCmdVMStop(out io.Writer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if so.VM, err = matchSingleVM(args[0]); err != nil {
+				if so.VM, err = cmdutil.MatchSingleVM(args[0]); err != nil {
 					return err
 				}
 				return run.Stop(so)
@@ -27,10 +28,10 @@ func NewCmdVMStop(out io.Writer) *cobra.Command {
 		},
 	}
 
-	addVMStopFlags(cmd.Flags(), so)
+	addStopFlags(cmd.Flags(), so)
 	return cmd
 }
 
-func addVMStopFlags(fs *pflag.FlagSet, so *run.StopOptions) {
+func addStopFlags(fs *pflag.FlagSet, so *run.StopOptions) {
 	fs.BoolVarP(&so.Kill, "force-kill", "f", false, "Force kill the VM")
 }

@@ -1,29 +1,30 @@
-package cmd
+package imgcmd
 
 import (
+	"github.com/luxas/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/luxas/ignite/cmd/ignite/run"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
 	"io"
 )
 
-// NewCmdKernelRm removes a kernel
-// TODO: Support removing multiple kernels at once
-func NewCmdKernelRm(out io.Writer) *cobra.Command {
-	ro := &run.RmkOptions{}
+// NewCmdRm removes an images
+// TODO: Support removing multiple images at once
+func NewCmdRm(out io.Writer) *cobra.Command {
+	ro := &run.RmiOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "rm [kernel]",
-		Short: "Remove a kernel",
+		Use:   "rm [image]",
+		Short: "Remove a VM base image",
 		Long:  "TODO", // TODO: Long description
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if ro.Kernel, err = matchSingleKernel(args[0]); err != nil {
+				if ro.Image, err = cmdutil.MatchSingleImage(args[0]); err != nil {
 					return err
 				}
-				return run.Rmk(ro)
+				return run.Rmi(ro)
 			}())
 		},
 	}
