@@ -1,15 +1,15 @@
-package cmd
+package kerncmd
 
 import (
 	"github.com/spf13/cobra"
 	"io"
 )
 
-// NewCmdImageLs lists available images
-func NewCmdImageLs(out io.Writer) *cobra.Command {
+// NewCmdLs lists available kernels
+func NewCmdLs(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "ls",
-		Short:   "List available VM base images",
+		Short:   "List available VM kernels",
 		Long:    "TODO", // TODO: Long description
 		Aliases: []string{"list"},
 		Run: func(cmd *cobra.Command, args []string) {

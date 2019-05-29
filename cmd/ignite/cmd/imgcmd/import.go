@@ -1,6 +1,7 @@
-package cmd
+package imgcmd
 
 import (
+	"github.com/luxas/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/luxas/ignite/cmd/ignite/run"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
@@ -8,8 +9,8 @@ import (
 	"io"
 )
 
-// NewCmdImageImport imports an image from an ext4 block device file
-func NewCmdImageImport(out io.Writer) *cobra.Command {
+// NewCmdImport imports an image from an ext4 block device file
+func NewCmdImport(out io.Writer) *cobra.Command {
 	ao := &run.ImportImageOptions{}
 
 	cmd := &cobra.Command{
@@ -23,10 +24,10 @@ func NewCmdImageImport(out io.Writer) *cobra.Command {
 		},
 	}
 
-	addImageImportFlags(cmd.Flags(), ao)
+	addImportFlags(cmd.Flags(), ao)
 	return cmd
 }
 
-func addImageImportFlags(fs *pflag.FlagSet, ao *run.ImportImageOptions) {
-	addNameFlag(fs, &ao.Name)
+func addImportFlags(fs *pflag.FlagSet, ao *run.ImportImageOptions) {
+	cmdutil.AddNameFlag(fs, &ao.Name)
 }

@@ -1,6 +1,7 @@
-package cmd
+package kerncmd
 
 import (
+	"github.com/luxas/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/luxas/ignite/cmd/ignite/run"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
@@ -8,8 +9,8 @@ import (
 	"io"
 )
 
-// NewCmdKernelImport imports a kernel for VM use
-func NewCmdKernelImport(out io.Writer) *cobra.Command {
+// NewCmdImport imports a kernel for VM use
+func NewCmdImport(out io.Writer) *cobra.Command {
 	ao := &run.ImportKernelOptions{}
 
 	cmd := &cobra.Command{
@@ -22,10 +23,10 @@ func NewCmdKernelImport(out io.Writer) *cobra.Command {
 		},
 	}
 
-	addKernelImportFlags(cmd.Flags(), ao)
+	addImportFlags(cmd.Flags(), ao)
 	return cmd
 }
 
-func addKernelImportFlags(fs *pflag.FlagSet, ao *run.ImportKernelOptions) {
-	addNameFlag(fs, &ao.Name)
+func addImportFlags(fs *pflag.FlagSet, ao *run.ImportKernelOptions) {
+	cmdutil.AddNameFlag(fs, &ao.Name)
 }

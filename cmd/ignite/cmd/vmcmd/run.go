@@ -1,6 +1,7 @@
-package cmd
+package vmcmd
 
 import (
+	"github.com/luxas/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/luxas/ignite/cmd/ignite/run"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
@@ -8,8 +9,8 @@ import (
 	"io"
 )
 
-// NewCmdVMRun creates, starts (and attaches to) a VM
-func NewCmdVMRun(out io.Writer) *cobra.Command {
+// NewCmdRun creates, starts (and attaches to) a VM
+func NewCmdRun(out io.Writer) *cobra.Command {
 	ro := &run.RunOptions{}
 
 	cmd := &cobra.Command{
@@ -19,10 +20,10 @@ func NewCmdVMRun(out io.Writer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if ro.Image, err = matchSingleImage(args[0]); err != nil {
+				if ro.Image, err = cmdutil.MatchSingleImage(args[0]); err != nil {
 					return err
 				}
-				if ro.Kernel, err = matchSingleKernel(args[1]); err != nil {
+				if ro.Kernel, err = cmdutil.MatchSingleKernel(args[1]); err != nil {
 					return err
 				}
 				return run.Run(ro)
@@ -30,11 +31,11 @@ func NewCmdVMRun(out io.Writer) *cobra.Command {
 		},
 	}
 
-	addVMRunFlags(cmd.Flags(), ro)
+	addRunFlags(cmd.Flags(), ro)
 	return cmd
 }
 
-func addVMRunFlags(fs *pflag.FlagSet, ro *run.RunOptions) {
-	addVMCreateFlags(fs, &ro.CreateOptions)
-	addVMStartFlags(fs, &ro.StartOptions)
+func addRunFlags(fs *pflag.FlagSet, ro *run.RunOptions) {
+	addCreateFlags(fs, &ro.CreateOptions)
+	addStartFlags(fs, &ro.StartOptions)
 }

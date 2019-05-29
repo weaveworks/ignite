@@ -1,28 +1,28 @@
-package cmd
+package vmcmd
 
 import (
+	"github.com/luxas/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/luxas/ignite/cmd/ignite/run"
-	"io"
-
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
+	"io"
 )
 
-// NewCmdVMLogs gets the logs for a Firecracker VM
-func NewCmdVMLogs(out io.Writer) *cobra.Command {
-	lo := &run.LogsOptions{}
+// NewCmdKill kills a VM
+func NewCmdKill(out io.Writer) *cobra.Command {
+	so := &run.StopOptions{Kill: true}
 
 	cmd := &cobra.Command{
-		Use:   "logs [vm]",
-		Short: "Get the logs for a running VM",
+		Use:   "kill [vm]",
+		Short: "Kill a running VM",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if lo.VM, err = matchSingleVM(args[0]); err != nil {
+				if so.VM, err = cmdutil.MatchSingleVM(args[0]); err != nil {
 					return err
 				}
-				return run.Logs(lo)
+				return run.Stop(so)
 			}())
 		},
 	}

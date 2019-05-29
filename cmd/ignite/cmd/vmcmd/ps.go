@@ -1,6 +1,7 @@
-package cmd
+package vmcmd
 
 import (
+	"github.com/luxas/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/luxas/ignite/cmd/ignite/run"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
@@ -8,8 +9,8 @@ import (
 	"io"
 )
 
-// NewCmdVMPs lists running VMs
-func NewCmdVMPs(out io.Writer) *cobra.Command {
+// NewCmdPs lists running VMs
+func NewCmdPs(out io.Writer) *cobra.Command {
 	po := &run.PsOptions{}
 
 	cmd := &cobra.Command{
@@ -19,7 +20,7 @@ func NewCmdVMPs(out io.Writer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if po.VMs, err = matchAllVMs(po.All); err != nil {
+				if po.VMs, err = cmdutil.MatchAllVMs(po.All); err != nil {
 					return err
 				}
 				return run.Ps(po)
@@ -27,10 +28,10 @@ func NewCmdVMPs(out io.Writer) *cobra.Command {
 		},
 	}
 
-	addVMPsFlags(cmd.Flags(), po)
+	addPsFlags(cmd.Flags(), po)
 	return cmd
 }
 
-func addVMPsFlags(fs *pflag.FlagSet, po *run.PsOptions) {
+func addPsFlags(fs *pflag.FlagSet, po *run.PsOptions) {
 	fs.BoolVarP(&po.All, "all", "a", false, "Show all VMs, not just running ones")
 }

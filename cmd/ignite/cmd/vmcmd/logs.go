@@ -1,28 +1,29 @@
-package cmd
+package vmcmd
 
 import (
 	"github.com/luxas/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/luxas/ignite/cmd/ignite/run"
+	"io"
+
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
-	"io"
 )
 
-// NewCmdContainer runs the DHCP server and sets up routing inside Docker
-func NewCmdContainer(out io.Writer) *cobra.Command {
-	co := &run.ContainerOptions{}
+// NewCmdLogs gets the logs for a Firecracker VM
+func NewCmdLogs(out io.Writer) *cobra.Command {
+	lo := &run.LogsOptions{}
 
 	cmd := &cobra.Command{
-		Use:    "container [id]",
-		Hidden: true,
-		Args:   cobra.MinimumNArgs(1),
+		Use:   "logs [vm]",
+		Short: "Get the logs for a running VM",
+		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if co.VM, err = cmdutil.MatchSingleVM(args[0]); err != nil {
+				if lo.VM, err = cmdutil.MatchSingleVM(args[0]); err != nil {
 					return err
 				}
-				return run.Container(co)
+				return run.Logs(lo)
 			}())
 		},
 	}
