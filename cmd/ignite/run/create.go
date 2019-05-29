@@ -25,9 +25,6 @@ func Create(co *CreateOptions) error {
 		return err
 	}
 
-	// Create a new name for the VM if none is given
-	util.NewName(&co.Name)
-
 	// Create new metadata for the VM and add to createOptions for further processing
 	// This enables the generated VM metadata to pass straight to start and attach via run
 	co.vm = vmmd.NewVMMetadata(vmID, co.Name, vmmd.NewVMObjectData(co.Image.ID, co.Kernel.ID, co.CPUs, co.Memory))
