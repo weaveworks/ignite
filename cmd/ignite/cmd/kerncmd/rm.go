@@ -24,6 +24,9 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 				if ro.Kernel, err = cmdutil.MatchSingleKernel(args[0]); err != nil {
 					return err
 				}
+				if ro.VMs, err = cmdutil.MatchAllVMs(true); err != nil {
+					return err
+				}
 				return run.Rmk(ro)
 			}())
 		},
