@@ -1,9 +1,8 @@
 package vmmd
 
 import (
-	"fmt"
 	"github.com/luxas/ignite/pkg/filter"
-	"strings"
+	"github.com/luxas/ignite/pkg/util"
 )
 
 // Compile-time assert to verify interface compatibility
@@ -25,19 +24,20 @@ func NewVMFilterAll(p string, all bool) *VMFilter {
 	}
 }
 
-func (n *VMFilter) Filter(f filter.Filterable) (bool, error) {
-	md, ok := f.(*VMMetadata)
-	if !ok {
-		return false, fmt.Errorf("failed to assert Filterable %v to VMMetadata", f)
+func (n *VMFilter) Filter(f filter.Filterable) ([]string, error) {
+	md, err := ToVMMetadata(f)
+	if err != nil {
+		return nil, err
 	}
 
 	// Option to list just running VMs
-	running := true
 	if !n.all {
-		running = md.VMOD().State == Running
+		if md.VMOD().State != Running {
+			return nil, nil
+		}
 	}
 
-	return running && (strings.HasPrefix(md.ID, n.prefix) || strings.HasPrefix(md.Name, n.prefix)), nil
+	return util.MatchPrefix(n.prefix, md.ID, md.Name), nil
 }
 
 func LoadVMMetadata(id string) (*VMMetadata, error) {

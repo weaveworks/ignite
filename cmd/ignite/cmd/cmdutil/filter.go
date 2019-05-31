@@ -1,6 +1,7 @@
 package cmdutil
 
 import (
+	"fmt"
 	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/metadata/imgmd"
@@ -10,8 +11,6 @@ import (
 
 // TODO: Make the filter match only strings?
 // Then load the actual metadata later, used together with a custom Args validator
-
-// TODO: Descriptive errors
 
 func MatchSingleVM(match string) (*vmmd.VMMetadata, error) {
 	var md *vmmd.VMMetadata
@@ -23,7 +22,7 @@ func MatchSingleVM(match string) (*vmmd.VMMetadata, error) {
 				return nil, err
 			}
 		} else {
-			return nil, err
+			return nil, filterError(err, "a", "VM", match)
 		}
 	} else {
 		return nil, err
@@ -42,7 +41,7 @@ func MatchSingleImage(match string) (*imgmd.ImageMetadata, error) {
 				return nil, err
 			}
 		} else {
-			return nil, err
+			return nil, filterError(err, "an", "image", match)
 		}
 	} else {
 		return nil, err
@@ -61,7 +60,7 @@ func MatchSingleKernel(match string) (*kernmd.KernelMetadata, error) {
 				return nil, err
 			}
 		} else {
-			return nil, err
+			return nil, filterError(err, "a", "kernel", match)
 		}
 	} else {
 		return nil, err
@@ -125,4 +124,15 @@ func MatchAllKernels() ([]*kernmd.KernelMetadata, error) {
 	}
 
 	return mds, nil
+}
+
+func filterError(err error, article, objectType, match string) error {
+	switch err.(type) {
+	case *filter.ErrNonexistent:
+		return fmt.Errorf(err.Error(), fmt.Sprintf("%s %s", article, objectType), match)
+	case *filter.ErrAmbiguous:
+		return fmt.Errorf(err.Error(), objectType, match)
+	}
+
+	return err
 }

@@ -3,7 +3,7 @@ package metadata
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/filter"
-	"strings"
+	"github.com/luxas/ignite/pkg/util"
 )
 
 // Compile-time assert to verify interface compatibility
@@ -19,11 +19,11 @@ func NewIDNameFilter(p string) *IDNameFilter {
 	}
 }
 
-func (n *IDNameFilter) Filter(f filter.Filterable) (bool, error) {
+func (n *IDNameFilter) Filter(f filter.Filterable) ([]string, error) {
 	md, ok := f.(*Metadata)
 	if !ok {
-		return false, fmt.Errorf("failed to assert Filterable %v to Metadata", f)
+		return nil, fmt.Errorf("failed to assert Filterable %v to Metadata", f)
 	}
 
-	return strings.HasPrefix(md.ID, n.prefix) || strings.HasPrefix(md.Name, n.prefix), nil
+	return util.MatchPrefix(n.prefix, md.ID, md.Name), nil
 }
