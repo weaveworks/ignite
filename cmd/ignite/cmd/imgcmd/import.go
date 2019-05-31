@@ -30,5 +30,5 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 
 func addImportFlags(fs *pflag.FlagSet, io *run.ImportImageOptions) {
 	cmdutil.AddNameFlag(fs, &io.Name)
-	cmdutil.AddImportKernelFlags(fs, &io.ImportKernel, &io.KernelName)
+	cmdutil.AddImportKernelFlags(fs, &io.KernelName)
 }

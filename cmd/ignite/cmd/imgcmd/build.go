@@ -30,5 +30,5 @@ func NewCmdBuild(out io.Writer) *cobra.Command {
 
 func addBuildFlags(fs *pflag.FlagSet, bo *run.BuildOptions) {
 	cmdutil.AddNameFlag(fs, &bo.Name)
-	cmdutil.AddImportKernelFlags(fs, &bo.ImportKernel, &bo.KernelName)
+	cmdutil.AddImportKernelFlags(fs, &bo.KernelName)
 }

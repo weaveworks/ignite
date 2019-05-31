@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"io/ioutil"
 	"path/filepath"
-	"strings"
 	//"archive/tar"
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
@@ -178,15 +177,17 @@ func (md *ImageMetadata) ExportKernel() (string, error) {
 	defer util.ExecuteCommand("umount", tempDir)
 
 	kernelDest := path.Join(kernelDir, constants.KERNEL_FILE)
-	kernelSrc, err := findKernel(path.Join(tempDir, "boot"))
+	kernelSrc, err := findKernel(tempDir)
 	if err != nil {
 		return "", err
 	}
 
-	if kernelSrc != "" {
+	if util.FileExists(kernelSrc) {
 		if err := util.CopyFile(kernelSrc, kernelDest); err != nil {
 			return "", fmt.Errorf("failed to copy kernel file from %q to %q: %v", kernelSrc, kernelDest, err)
 		}
+	} else {
+		return "", fmt.Errorf("no kernel found in image %q", md.ID)
 	}
 
 	return kernelDir, nil
@@ -202,22 +203,29 @@ func (md *ImageMetadata) Size() (int64, error) {
 }
 
 // Quick hack to resolve a kernel in the image
-func findKernel(dir string) (string, error) {
-	files, err := ioutil.ReadDir(dir)
+func findKernel(tmpDir string) (string, error) {
+	bootDir := path.Join(tmpDir, "boot")
+	kernel := path.Join(bootDir, constants.KERNEL_FILE)
+
+	fi, err := os.Lstat(kernel)
 	if err != nil {
 		return "", err
 	}
 
-	for _, file := range files {
-		if strings.HasPrefix(file.Name(), "vmlinux-") {
-			kernel := path.Join(dir, file.Name())
-			fmt.Printf("Found a kernel: %q\n", file.Name())
-			return kernel, nil
+	// The target is a symlink
+	if fi.Mode()&os.ModeSymlink != 0 {
+		kernel, err = os.Readlink(kernel)
+		if err != nil {
+			return "", err
+		}
+
+		// Fix the path for absolute and relative symlinks
+		if path.IsAbs(kernel) {
+			kernel = path.Join(tmpDir, kernel)
+		} else {
+			kernel = path.Join(bootDir, kernel)
 		}
 	}
 
-	// TODO: Replace these with logging
-	fmt.Println("No kernel found in image")
-
-	return "", nil
+	return kernel, nil
 }

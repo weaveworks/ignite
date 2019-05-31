@@ -13,11 +13,10 @@ import (
 )
 
 type BuildOptions struct {
-	Source       string
-	Name         string
-	ImportKernel bool
-	KernelName   string
-	image        *imgmd.ImageMetadata
+	Source     string
+	Name       string
+	KernelName string
+	image      *imgmd.ImageMetadata
 }
 
 func Build(bo *BuildOptions) error {
@@ -94,7 +93,7 @@ func Build(bo *BuildOptions) error {
 	}
 
 	// Import a new kernel from the image if specified
-	if bo.ImportKernel {
+	if bo.KernelName != "" {
 		dir, err := bo.image.ExportKernel()
 		if err != nil {
 			return err

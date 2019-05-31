@@ -10,10 +10,9 @@ import (
 )
 
 type ImportImageOptions struct {
-	Source       string
-	Name         string
-	ImportKernel bool
-	KernelName   string
+	Source     string
+	Name       string
+	KernelName string
 }
 
 func ImportImage(ao *ImportImageOptions) error {
@@ -40,7 +39,7 @@ func ImportImage(ao *ImportImageOptions) error {
 	}
 
 	// Import a new kernel from the image if specified
-	if ao.ImportKernel {
+	if ao.KernelName != "" {
 		dir, err := md.ExportKernel()
 		if err != nil {
 			return err
