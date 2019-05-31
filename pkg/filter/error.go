@@ -28,9 +28,9 @@ func NewErrAmbiguous(matches []*match) *ErrAmbiguous {
 }
 
 func (e *ErrNonexistent) Error() string {
-	return "can't find %s matching %q"
+	return "can't find %s: no matches for %q"
 }
 
 func (e *ErrAmbiguous) Error() string {
-	return fmt.Sprintf("ambiguous %%s search, %%q matched %v", e.matches)
+	return fmt.Sprintf("ambiguous %%s: %%q matched %v", e.matches)
 }
