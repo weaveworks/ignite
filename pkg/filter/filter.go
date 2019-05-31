@@ -1,22 +1,21 @@
 package filter
 
 import (
-	"errors"
 	"io/ioutil"
-)
-
-var (
-	errFilterNonexistent = errors.New("nonexistent")
-	errFilterAmbiguous   = errors.New("ambiguous")
 )
 
 type LoadFunc func(string) (Filterable, error)
 
 type Filter interface {
-	Filter(Filterable) (bool, error)
+	Filter(Filterable) ([]string, error)
 }
 
 type Filterable interface{}
+
+type match struct {
+	object  Filterable
+	strings []string
+}
 
 type filterer struct {
 	filter  Filter
@@ -48,45 +47,53 @@ func NewFilterer(filter Filter, path string, loadFunc LoadFunc) (*filterer, erro
 	}, nil
 }
 
-func (o *filterer) match() ([]Filterable, error) {
-	var matches []Filterable
+func (f *filterer) match() ([]*match, error) {
+	var matches []*match
 
-	for _, f := range o.sources {
-		ok, err := o.filter.Filter(f)
+	for _, object := range f.sources {
+		strings, err := f.filter.Filter(object)
 		if err != nil {
 			return nil, err
 		}
 
-		if ok {
-			matches = append(matches, f)
+		if len(strings) > 0 {
+			matches = append(matches, &match{
+				object:  object,
+				strings: strings,
+			})
 		}
 	}
 
 	return matches, nil
 }
 
-func (o *filterer) Single() (Filterable, error) {
-	matches, err := o.match()
+func (f *filterer) Single() (Filterable, error) {
+	matches, err := f.match()
 	if err != nil {
 		return nil, err
 	}
 
 	if len(matches) == 0 {
-		return nil, errFilterNonexistent
+		return nil, NewErrNonexistent()
 	}
 
 	if len(matches) > 1 {
-		return nil, errFilterAmbiguous
+		return nil, NewErrAmbiguous(matches)
 	}
 
-	return matches[0], nil
+	return matches[0].object, nil
 }
 
-func (o *filterer) All() ([]Filterable, error) {
-	matches, err := o.match()
+func (f *filterer) All() ([]Filterable, error) {
+	matches, err := f.match()
 	if err != nil {
 		return nil, err
 	}
 
-	return matches, nil
+	objects := make([]Filterable, 0, len(matches))
+	for _, match := range matches {
+		objects = append(objects, match.object)
+	}
+
+	return objects, nil
 }

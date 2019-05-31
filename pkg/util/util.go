@@ -130,3 +130,15 @@ func NewName(s *string) {
 		*s = namegenerator.NewNameGenerator(time.Now().UTC().UnixNano()).Generate()
 	}
 }
+
+func MatchPrefix(prefix string, fields ...string) []string {
+	var matches []string
+
+	for _, str := range fields {
+		if strings.HasPrefix(str, prefix) {
+			matches = append(matches, str)
+		}
+	}
+
+	return matches
+}

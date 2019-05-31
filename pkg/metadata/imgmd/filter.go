@@ -1,9 +1,8 @@
 package imgmd
 
 import (
-	"fmt"
 	"github.com/luxas/ignite/pkg/filter"
-	"strings"
+	"github.com/luxas/ignite/pkg/util"
 )
 
 // Compile-time assert to verify interface compatibility
@@ -19,13 +18,13 @@ func NewImageFilter(p string) *ImageFilter {
 	}
 }
 
-func (n *ImageFilter) Filter(f filter.Filterable) (bool, error) {
-	md, ok := f.(*ImageMetadata)
-	if !ok {
-		return false, fmt.Errorf("failed to assert Filterable %v to ImageMetadata", f)
+func (n *ImageFilter) Filter(f filter.Filterable) ([]string, error) {
+	md, err := ToImageMetadata(f)
+	if err != nil {
+		return nil, err
 	}
 
-	return strings.HasPrefix(md.ID, n.prefix) || strings.HasPrefix(md.Name, n.prefix), nil
+	return util.MatchPrefix(n.prefix, md.ID, md.Name), nil
 }
 
 func LoadImageMetadata(id string) (*ImageMetadata, error) {
