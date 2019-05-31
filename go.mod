@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/firecracker-microvm/firecracker-go-sdk v0.15.1
+	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/krolaw/dhcp4 v0.0.0-20180925202202-7cead472c414
@@ -19,6 +20,7 @@ require (
 	github.com/spf13/cobra v0.0.4
 	github.com/spf13/pflag v1.0.3
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
+	golang.org/x/net v0.0.0-20190522155817-f3200d17e092 // indirect
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
 	k8s.io/apimachinery v0.0.0-20190528154326-e59c2fb0a8e5
 	sigs.k8s.io/yaml v1.1.0
