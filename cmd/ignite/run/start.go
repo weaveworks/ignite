@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/util"
+	"github.com/luxas/ignite/pkg/version"
 	"os"
 	"path/filepath"
 )
@@ -32,7 +33,7 @@ func Start(so *StartOptions) error {
 		fmt.Sprintf("--stop-timeout=%d", constants.STOP_TIMEOUT+constants.IGNITE_TIMEOUT),
 		"--privileged",
 		"--device=/dev/kvm",
-		"ignite",
+		"weaveworks/ignite:"+version.GetFirecracker().String(),
 		so.VM.ID,
 	}
 

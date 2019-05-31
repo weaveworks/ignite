@@ -1,16 +1,19 @@
 UID_GID?=$(shell id -u):$(shell id -g)
+FIRECRACKER_VERSION:=$(shell cat hack/FIRECRACKER_VERSION)
+GO_VERSION=1.12
 
 all: binary
-build:
-	docker build -t ignite .
-
 binary:
-	docker run -it --rm -v $(shell pwd):/build -w /build golang:1.12 sh -c "\
+	docker run -it --rm -v $(shell pwd):/build -w /build golang:${GO_VERSION} sh -c "\
 		make ignite && \
 		chown ${UID_GID} bin/ignite"
 
+# Make make execute this target although the file already exists.
+.PHONY: bin/ignite
 ignite: bin/ignite
 bin/ignite:
 	CGO_ENABLED=0 go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/ignite ./cmd/ignite
 
-.PHONY: bin/ignite
+image:
+	docker build -t weaveworks/ignite:${FIRECRACKER_VERSION} \
+		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} .

@@ -72,6 +72,10 @@ ldflags() {
     )
   fi
 
+  # Set the desired Firecracker version
+  SCRIPT_DIR=$( dirname "${BASH_SOURCE[0]}" )
+  ldflags+=($(ldflag "firecrackerVersion" "$(cat ${SCRIPT_DIR}/FIRECRACKER_VERSION)"))
+
   # The -ldflags parameter takes a single string, so join the output.
   echo "${ldflags[*]-}"
 }
