@@ -23,7 +23,7 @@ func Rm(ro *RmOptions) error {
 				return err
 			}
 		} else {
-			return fmt.Errorf("%s is running", ro.VM.ID)
+			return fmt.Errorf("%q is running", ro.VM.ID)
 		}
 	}
 
