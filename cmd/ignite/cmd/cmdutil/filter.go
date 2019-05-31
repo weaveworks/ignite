@@ -22,7 +22,7 @@ func MatchSingleVM(match string) (*vmmd.VMMetadata, error) {
 				return nil, err
 			}
 		} else {
-			return nil, filterError(err, "a", "VM", match)
+			return nil, filterError(err, "VM", match)
 		}
 	} else {
 		return nil, err
@@ -41,7 +41,7 @@ func MatchSingleImage(match string) (*imgmd.ImageMetadata, error) {
 				return nil, err
 			}
 		} else {
-			return nil, filterError(err, "an", "image", match)
+			return nil, filterError(err, "image", match)
 		}
 	} else {
 		return nil, err
@@ -60,7 +60,7 @@ func MatchSingleKernel(match string) (*kernmd.KernelMetadata, error) {
 				return nil, err
 			}
 		} else {
-			return nil, filterError(err, "a", "kernel", match)
+			return nil, filterError(err, "kernel", match)
 		}
 	} else {
 		return nil, err
@@ -126,12 +126,10 @@ func MatchAllKernels() ([]*kernmd.KernelMetadata, error) {
 	return mds, nil
 }
 
-func filterError(err error, article, objectType, match string) error {
+func filterError(err error, object, match string) error {
 	switch err.(type) {
-	case *filter.ErrNonexistent:
-		return fmt.Errorf(err.Error(), fmt.Sprintf("%s %s", article, objectType), match)
-	case *filter.ErrAmbiguous:
-		return fmt.Errorf(err.Error(), objectType, match)
+	case *filter.ErrNonexistent, *filter.ErrAmbiguous:
+		return fmt.Errorf(err.Error(), object, match)
 	}
 
 	return err
