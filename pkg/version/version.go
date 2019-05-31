@@ -12,6 +12,7 @@ var (
 	gitCommit = ""
 	gitTreeState = ""
 	buildDate = ""
+	firecrackerVersion = ""
 )
 
 // Info stores information about a component's version
@@ -50,8 +51,6 @@ func GetIgnite() Info {
 // GetFirecracker returns firecracker's version
 func GetFirecracker() Info {
 	return Info{
-		Major: "0",
-		Minor: "16",
-		GitVersion: "v0.16.0",
+		GitVersion: firecrackerVersion,
 	}
 }

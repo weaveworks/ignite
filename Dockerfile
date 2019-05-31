@@ -4,8 +4,8 @@ RUN apk add --no-cache iproute2
 
 VOLUME /var/lib/firecracker
 
-ARG FIRECRACKER_VERSION=v0.16.0
-ADD https://github.com/firecracker-microvm/firecracker/releases/download/${FIRECRACKER_VERSION}/firecracker /ignite/firecracker
+ARG FIRECRACKER_VERSION
+ADD https://github.com/firecracker-microvm/firecracker/releases/download/${FIRECRACKER_VERSION}/firecracker-${FIRECRACKER_VERSION} /ignite/firecracker
 
 # The ignite binary should be bind-mounted over /ignite/ignite
 RUN touch /ignite/ignite && \
