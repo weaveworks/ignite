@@ -28,6 +28,7 @@ func NewCmdBuild(out io.Writer) *cobra.Command {
 	return cmd
 }
 
-func addBuildFlags(fs *pflag.FlagSet, co *run.BuildOptions) {
-	cmdutil.AddNameFlag(fs, &co.Name)
+func addBuildFlags(fs *pflag.FlagSet, bo *run.BuildOptions) {
+	cmdutil.AddNameFlag(fs, &bo.Name)
+	cmdutil.AddImportKernelFlags(fs, &bo.ImportKernel, &bo.KernelName)
 }

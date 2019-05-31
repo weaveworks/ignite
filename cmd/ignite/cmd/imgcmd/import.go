@@ -11,7 +11,7 @@ import (
 
 // NewCmdImport imports an image from an ext4 block device file
 func NewCmdImport(out io.Writer) *cobra.Command {
-	ao := &run.ImportImageOptions{}
+	io := &run.ImportImageOptions{}
 
 	cmd := &cobra.Command{
 		Use:   "import [path]",
@@ -19,15 +19,16 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 		Long:  "TODO", // TODO: Long description
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			ao.Source = args[0]
-			errutils.Check(run.ImportImage(ao))
+			io.Source = args[0]
+			errutils.Check(run.ImportImage(io))
 		},
 	}
 
-	addImportFlags(cmd.Flags(), ao)
+	addImportFlags(cmd.Flags(), io)
 	return cmd
 }
 
-func addImportFlags(fs *pflag.FlagSet, ao *run.ImportImageOptions) {
-	cmdutil.AddNameFlag(fs, &ao.Name)
+func addImportFlags(fs *pflag.FlagSet, io *run.ImportImageOptions) {
+	cmdutil.AddNameFlag(fs, &io.Name)
+	cmdutil.AddImportKernelFlags(fs, &io.ImportKernel, &io.KernelName)
 }

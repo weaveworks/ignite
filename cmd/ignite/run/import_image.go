@@ -5,11 +5,15 @@ import (
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/metadata/imgmd"
 	"github.com/luxas/ignite/pkg/util"
+	"os"
+	"path"
 )
 
 type ImportImageOptions struct {
-	Source string
-	Name   string
+	Source       string
+	Name         string
+	ImportKernel bool
+	KernelName   string
 }
 
 func ImportImage(ao *ImportImageOptions) error {
@@ -33,6 +37,27 @@ func ImportImage(ao *ImportImageOptions) error {
 	// Perform the copy
 	if err := md.ImportImage(ao.Source); err != nil {
 		return err
+	}
+
+	// Import a new kernel from the image if specified
+	if ao.ImportKernel {
+		dir, err := md.ExportKernel()
+		if err != nil {
+			return err
+		}
+
+		if dir != "" {
+			if err := ImportKernel(&ImportKernelOptions{
+				Source: path.Join(dir, constants.KERNEL_FILE),
+				Name:   ao.KernelName,
+			}); err != nil {
+				return err
+			}
+
+			if err := os.RemoveAll(dir); err != nil {
+				return err
+			}
+		}
 	}
 
 	fmt.Println(md.ID)

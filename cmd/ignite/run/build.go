@@ -7,14 +7,17 @@ import (
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/mholt/archiver"
 	"github.com/pkg/errors"
+	"os"
 	"path"
 	"strings"
 )
 
 type BuildOptions struct {
-	Source string
-	Name   string
-	image  *imgmd.ImageMetadata
+	Source       string
+	Name         string
+	ImportKernel bool
+	KernelName   string
+	image        *imgmd.ImageMetadata
 }
 
 func Build(bo *BuildOptions) error {
@@ -88,6 +91,27 @@ func Build(bo *BuildOptions) error {
 
 	if err := bo.image.Save(); err != nil {
 		return err
+	}
+
+	// Import a new kernel from the image if specified
+	if bo.ImportKernel {
+		dir, err := bo.image.ExportKernel()
+		if err != nil {
+			return err
+		}
+
+		if dir != "" {
+			if err := ImportKernel(&ImportKernelOptions{
+				Source: path.Join(dir, constants.KERNEL_FILE),
+				Name:   bo.KernelName,
+			}); err != nil {
+				return err
+			}
+
+			if err := os.RemoveAll(dir); err != nil {
+				return err
+			}
+		}
 	}
 
 	//if err := container.ExportToDocker(image); err != nil {

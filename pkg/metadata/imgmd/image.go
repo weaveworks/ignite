@@ -4,7 +4,7 @@ import (
 	"archive/tar"
 	"io/ioutil"
 	"path/filepath"
-
+	"strings"
 	//"archive/tar"
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
@@ -149,7 +149,7 @@ func (md *ImageMetadata) AddFiles3(sourcePath string) error {
 	defer os.RemoveAll(tempDir)
 
 	if _, err := util.ExecuteCommand("mount", "-o", "loop", p, tempDir); err != nil {
-		return errors.Wrapf(err, "failed to mount image %s", p)
+		return fmt.Errorf("failed to mount image %q: %v", p, err)
 	}
 	defer util.ExecuteCommand("umount", tempDir)
 
@@ -160,6 +160,38 @@ func (md *ImageMetadata) AddFiles3(sourcePath string) error {
 	return nil
 }
 
+func (md *ImageMetadata) ExportKernel() (string, error) {
+	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
+	tempDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return "", err
+	}
+
+	kernelDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return "", err
+	}
+
+	if _, err := util.ExecuteCommand("mount", "-o", "loop", p, tempDir); err != nil {
+		return "", fmt.Errorf("failed to mount image %q: %v", p, err)
+	}
+	defer util.ExecuteCommand("umount", tempDir)
+
+	kernelDest := path.Join(kernelDir, constants.KERNEL_FILE)
+	kernelSrc, err := findKernel(path.Join(tempDir, "boot"))
+	if err != nil {
+		return "", err
+	}
+
+	if kernelSrc != "" {
+		if err := util.CopyFile(kernelSrc, kernelDest); err != nil {
+			return "", fmt.Errorf("failed to copy kernel file from %q to %q: %v", kernelSrc, kernelDest, err)
+		}
+	}
+
+	return kernelDir, nil
+}
+
 func (md *ImageMetadata) Size() (int64, error) {
 	fi, err := os.Stat(path.Join(md.ObjectPath(), constants.IMAGE_FS))
 	if err != nil {
@@ -167,4 +199,25 @@ func (md *ImageMetadata) Size() (int64, error) {
 	}
 
 	return fi.Size(), nil
+}
+
+// Quick hack to resolve a kernel in the image
+func findKernel(dir string) (string, error) {
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return "", err
+	}
+
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), "vmlinux-") {
+			kernel := path.Join(dir, file.Name())
+			fmt.Printf("Found a kernel: %q\n", file.Name())
+			return kernel, nil
+		}
+	}
+
+	// TODO: Replace these with logging
+	fmt.Println("No kernel found in image")
+
+	return "", nil
 }
