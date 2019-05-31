@@ -26,7 +26,8 @@ func Version(out io.Writer, cmd *cobra.Command) error {
 	of, _ := cmd.Flags().GetString("output")
 	switch of {
 	case "":
-		fmt.Fprintf(out, "ignite version: %#v\n", v.Ignite)
+		fmt.Fprintf(out, "Ignite version: %#v\n", v.Ignite)
+		fmt.Fprintf(out, "Firecracker version: %s\n", v.Firecracker.String())
 	case "short":
 		fmt.Fprintf(out, "%s\n", v.Ignite.GitVersion)
 	case "yaml":

@@ -11,6 +11,6 @@ binary:
 
 ignite: bin/ignite
 bin/ignite:
-	CGO_ENABLED=0 go build -mod=vendor -o bin/ignite ./cmd/ignite
+	CGO_ENABLED=0 go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/ignite ./cmd/ignite
 
 .PHONY: bin/ignite
