@@ -24,11 +24,20 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 			}
 		},
 		Long: dedent.Dedent(`
-			Ignite helps you with foo, bar
+			Ignite is a containerized Firecracker microVM administration tool.
+			It can build VM images, spin VMs up/down and manage multiple VMs efficiently.
 
 			Example usage:
 
-			    $ ignite foo
+			    $ ignite build luxas/ubuntu-base:18.04 \
+					--name my-image \
+					--import-kernel my-kernel
+				$ ignite images
+				$ ignite kernels
+				$ ignite run my-image my-kernel --name my-vm
+				$ ignite ps
+				$ ignite attach my-vm
+				Login with user "root" and password "root".
 		`),
 	}
 
@@ -36,8 +45,6 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	root.AddCommand(kerncmd.NewCmdKernel(os.Stdout))
 	root.AddCommand(vmcmd.NewCmdVM(os.Stdout))
 
-	root.AddCommand(NewCmdAddImage(os.Stdout))
-	root.AddCommand(NewCmdAddKernel(os.Stdout))
 	root.AddCommand(NewCmdAttach(os.Stdout))
 	root.AddCommand(NewCmdBuild(os.Stdout))
 	root.AddCommand(NewCmdCompletion(os.Stdout, root))
