@@ -1,7 +1,6 @@
 package container
 
 import (
-	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"net"
 	"time"
@@ -47,7 +46,7 @@ func (i *DHCPInterface) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, optio
 	case dhcp.Request:
 		respMsg = dhcp.ACK
 	}
-	fmt.Printf("Packet %v, Request: %s, Options: %v, Response: %v\n", p, msgType.String(), options, respMsg.String())
+	//fmt.Printf("Packet %v, Request: %s, Options: %v, Response: %v\n", p, msgType.String(), options, respMsg.String())
 	if respMsg != 0 {
 		requestingMAC := p.CHAddr().String()
 		if requestingMAC == i.MACFilter {
@@ -58,7 +57,7 @@ func (i *DHCPInterface) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, optio
 				dhcp.OptionHostName:         []byte(i.Hostname),
 			}
 			optSlice := opts.SelectOrderOrAll(options[dhcp.OptionParameterRequestList])
-			fmt.Printf("Response: %s, Source %s, Client: %s, Options: %v, MAC: %s\n", respMsg.String(), i.GatewayIP.String(), i.VMIPNet.IP.String(), optSlice, requestingMAC)
+			//fmt.Printf("Response: %s, Source %s, Client: %s, Options: %v, MAC: %s\n", respMsg.String(), i.GatewayIP.String(), i.VMIPNet.IP.String(), optSlice, requestingMAC)
 			return dhcp.ReplyPacket(p, respMsg, *i.GatewayIP, i.VMIPNet.IP, leaseDuration, optSlice)
 		}
 	}
