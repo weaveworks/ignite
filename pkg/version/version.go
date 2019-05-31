@@ -1,7 +1,18 @@
 package version
 
-var firecracker Info
-var ignite Info
+import (
+	"fmt"
+	"runtime"
+)
+
+var (
+	gitMajor = ""
+	gitMinor = ""
+	gitVersion = ""
+	gitCommit = ""
+	gitTreeState = ""
+	buildDate = ""
+)
 
 // Info stores information about a component's version
 type Info struct {
@@ -23,10 +34,24 @@ func (info Info) String() string {
 
 // GetIgnite gets ignite's version
 func GetIgnite() Info {
-	return ignite
+	return Info{
+		Major: gitMajor,
+		Minor: gitMinor,
+		GitVersion: gitVersion,
+		GitCommit: gitCommit,
+		GitTreeState: gitTreeState,
+		BuildDate: buildDate,
+		GoVersion:    runtime.Version(),
+		Compiler:     runtime.Compiler,
+		Platform:     fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+	}
 }
 
 // GetFirecracker returns firecracker's version
 func GetFirecracker() Info {
-	return firecracker
+	return Info{
+		Major: "0",
+		Minor: "16",
+		GitVersion: "v0.16.0",
+	}
 }
