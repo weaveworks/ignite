@@ -49,7 +49,7 @@ ldflag() {
 }
 
 # Prints the value that needs to be passed to the -ldflags parameter of go build
-# in order to set the Kubernetes based on the git tree status.
+# in order to set the Ignite version based on the git tree status.
 ldflags() {
   get_version_vars
 

@@ -33,7 +33,7 @@ func Start(so *StartOptions) error {
 		fmt.Sprintf("--stop-timeout=%d", constants.STOP_TIMEOUT+constants.IGNITE_TIMEOUT),
 		"--privileged",
 		"--device=/dev/kvm",
-		"weaveworks/ignite:"+version.GetFirecracker().String(),
+		fmt.Sprintf("weaveworks/ignite:%s", version.GetFirecracker()),
 		so.VM.ID,
 	}
 
