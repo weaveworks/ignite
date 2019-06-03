@@ -44,13 +44,18 @@ func Container(co *ContainerOptions) error {
 		// Add the DNS servers from the container
 		dhcpIface.SetDNSServers(clientConfig.Servers)
 
+		co.VM.AddIPAddress(dhcpIface.VMIPNet.IP)
+
 		go func() {
-			fmt.Printf("Starting DHCP server for interface %s\n", dhcpIface.Bridge)
+			fmt.Printf("Starting DHCP server for interface %s (%s)\n", dhcpIface.Bridge, dhcpIface.VMIPNet.IP)
 			if err := container.RunDHCP(dhcpIface); err != nil {
 				fmt.Fprintf(os.Stderr, "%s DHCP server error: %v\n", dhcpIface.Bridge, err)
 			}
 		}()
 	}
+
+	// Remove the IP addresses post-run
+	defer co.VM.ClearIPAddresses()
 
 	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
 	defer co.VM.RemoveSnapshot()
