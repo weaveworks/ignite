@@ -54,17 +54,17 @@ func Container(co *ContainerOptions) error {
 		}()
 	}
 
-	// Remove the IP addresses post-run
-	defer co.VM.ClearIPAddresses()
-
-	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
-	defer co.VM.RemoveSnapshot()
-
 	// VM state handling
 	if err := co.VM.SetState(vmmd.Running); err != nil {
 		return fmt.Errorf("failed to update VM state: %v", err)
 	}
-	defer co.VM.SetState(vmmd.Stopped)
+	defer co.VM.SetState(vmmd.Stopped) // Performs a save, all other metadata-modifying defers need to be after this
+
+	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
+	defer co.VM.RemoveSnapshot()
+
+	// Remove the IP addresses post-run
+	defer co.VM.ClearIPAddresses()
 
 	// Run the VM
 	if err := container.RunVM(co.VM, &dhcpIfaces); err != nil {
