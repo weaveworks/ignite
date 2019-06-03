@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-RUN apk add --no-cache iproute2
+RUN apk add --no-cache iproute2 device-mapper
 
 VOLUME /var/lib/firecracker
 

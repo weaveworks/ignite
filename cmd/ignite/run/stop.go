@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
 )
@@ -29,7 +30,7 @@ func Stop(so *StopOptions) error {
 		dockerArgs = killArgs
 	}
 
-	dockerArgs = append(dockerArgs, so.VM.ID)
+	dockerArgs = append(dockerArgs, constants.IGNITE_PREFIX+so.VM.ID)
 
 	// Stop/Kill the VM in docker
 	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {

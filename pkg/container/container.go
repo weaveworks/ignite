@@ -170,7 +170,7 @@ func connectAdapterToBridge(adapterName, bridgeName string) error {
 
 func RunVM(md *vmmd.VMMetadata, dhcpIfaces *[]DHCPInterface) error {
 	od := md.VMOD()
-	drivePath := constants.ROOT_DEV
+	drivePath := md.SnapshotDev()
 
 	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(*dhcpIfaces))
 	for _, dhcpIface := range *dhcpIfaces {

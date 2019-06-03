@@ -52,6 +52,9 @@ func Container(co *ContainerOptions) error {
 		}()
 	}
 
+	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
+	defer co.VM.RemoveSnapshot()
+
 	// VM state handling
 	if err := co.VM.SetState(vmmd.Running); err != nil {
 		return fmt.Errorf("failed to update VM state: %v", err)
