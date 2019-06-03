@@ -6,6 +6,7 @@ import (
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/luxas/ignite/pkg/version"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -26,7 +27,12 @@ func Start(so *StartOptions) error {
 		return err
 	}
 
-	igniteBinary, _ := filepath.Abs(os.Args[0])
+  // Resolve the Ignite binary to be mounted inside the container
+	path, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		return err
+	}
+	igniteBinary, _ := filepath.Abs(path)
 
 	dockerArgs := []string{
 		"run",

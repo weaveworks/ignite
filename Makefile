@@ -8,6 +8,9 @@ binary:
 		make ignite && \
 		chown ${UID_GID} bin/ignite"
 
+install: binary
+	sudo cp bin/ignite /usr/local/bin
+
 # Make make execute this target although the file already exists.
 .PHONY: bin/ignite
 ignite: bin/ignite
