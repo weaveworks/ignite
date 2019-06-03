@@ -6,6 +6,7 @@ import (
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/luxas/ignite/pkg/version"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -20,7 +21,11 @@ func Start(so *StartOptions) error {
 		return fmt.Errorf("%s is already running", so.VM.ID)
 	}
 
-	igniteBinary, _ := filepath.Abs(os.Args[0])
+	path, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		return err
+	}
+	igniteBinary, _ := filepath.Abs(path)
 
 	dockerArgs := []string{
 		"run",
