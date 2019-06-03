@@ -34,4 +34,5 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 
 func addStartFlags(fs *pflag.FlagSet, so *run.StartOptions) {
 	cmdutil.AddInteractiveFlag(fs, &so.Interactive)
+	fs.StringSliceVarP(&so.PortMappings, "ports", "p", nil, "Map hostPorts to VM ports")
 }

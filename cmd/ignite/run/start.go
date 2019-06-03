@@ -1,6 +1,8 @@
 package run
 
 import (
+	"strconv"
+	"strings"
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/util"
@@ -12,6 +14,7 @@ import (
 
 type StartOptions struct {
 	AttachOptions
+	PortMappings []string
 	Interactive bool
 }
 
@@ -48,9 +51,19 @@ func Start(so *StartOptions) error {
 		"--device=/dev/net/tun",        // Needed for creating TAP adapters
 		"--device=/dev/kvm",            // Pass though virtualization support
 		fmt.Sprintf("--device=%s", so.VM.SnapshotDev()),
-		fmt.Sprintf("weaveworks/ignite:%s", version.GetFirecracker()),
-		so.VM.ID,
 	}
+
+	ports, err := parsePortMappings(so.PortMappings)
+	if err != nil {
+		return err
+	}
+
+	for hostPort, vmPort := range ports {
+		dockerArgs = append(dockerArgs, fmt.Sprintf("-p=%d:%d", hostPort, vmPort))
+	}
+
+	dockerArgs = append(dockerArgs, fmt.Sprintf("weaveworks/ignite:%s", version.GetFirecracker()))
+	dockerArgs = append(dockerArgs, so.VM.ID)
 
 	// Start the VM in docker
 	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
@@ -68,4 +81,27 @@ func Start(so *StartOptions) error {
 	}
 
 	return nil
+}
+
+func parsePortMappings(portMappings []string) (map[uint64]uint64, error) {
+	result := map[uint64]uint64{}
+	for _, portMapping := range portMappings {
+		ports := strings.Split(portMapping, ":")
+		if len(ports) != 2 {
+			return nil, fmt.Errorf("invalid --ports must be of the form hostPort:vmPort")
+		}
+		hostPort, err := strconv.ParseUint(ports[0], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		vmPort, err := strconv.ParseUint(ports[1], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		if _, ok := result[hostPort]; ok {
+			return nil, fmt.Errorf("you can't specify two hostports twice")
+		}
+		result[hostPort] = vmPort
+	}
+	return result, nil
 }
