@@ -20,6 +20,12 @@ func Start(so *StartOptions) error {
 		return fmt.Errorf("%s is already running", so.VM.ID)
 	}
 
+	// TODO: Remove the snapshot devices somewhere
+	rootDev, err := so.VM.SetupSnapshot()
+	if err != nil {
+		return err
+	}
+
 	igniteBinary, _ := filepath.Abs(os.Args[0])
 
 	dockerArgs := []string{
@@ -27,12 +33,14 @@ func Start(so *StartOptions) error {
 		"-itd",
 		"--rm",
 		"--name",
-		so.VM.ID,
+		constants.IGNITE_PREFIX + so.VM.ID,
 		fmt.Sprintf("-v=%s:/ignite/ignite", igniteBinary),
 		fmt.Sprintf("-v=%s:%s", constants.DATA_DIR, constants.DATA_DIR),
 		fmt.Sprintf("--stop-timeout=%d", constants.STOP_TIMEOUT+constants.IGNITE_TIMEOUT),
-		"--privileged",
+		"--cap-add=NET_ADMIN",
+		"--device=/dev/net/tun",
 		"--device=/dev/kvm",
+		fmt.Sprintf("--device=%s:%s", rootDev, constants.ROOT_DEV),
 		fmt.Sprintf("weaveworks/ignite:%s", version.GetFirecracker()),
 		so.VM.ID,
 	}

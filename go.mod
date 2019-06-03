@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/dsnet/compress v0.0.1 // indirect
 	github.com/firecracker-microvm/firecracker-go-sdk v0.15.1
+	github.com/freddierice/go-losetup v0.0.0-20170407175016-fc9adea44124
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
