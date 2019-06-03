@@ -16,10 +16,16 @@ type BuildOptions struct {
 	Source     string
 	Name       string
 	KernelName string
+	CopyFiles []string
 	image      *imgmd.ImageMetadata
 }
 
 func Build(bo *BuildOptions) error {
+	fileMappings, err := parseFileMappings(bo.CopyFiles)
+	if err != nil {
+		return err
+	}
+
 	// Create new image metadata
 	if err := bo.newImage(); err != nil {
 		return err
@@ -88,6 +94,14 @@ func Build(bo *BuildOptions) error {
 		return err
 	}
 
+	// Copy files into the VM filesystem.
+	// TODO: the real solution here should use layering at ignite create time.
+	for src, dest := range fileMappings {
+		if err := util.CopyFile(src, dest); err != nil {
+			return err
+		}
+	}
+
 	if err := bo.image.Save(); err != nil {
 		return err
 	}
@@ -133,4 +147,20 @@ func (bo *BuildOptions) newImage() error {
 	bo.image = imgmd.NewImageMetadata(newID, bo.Name)
 
 	return nil
+}
+
+func parseFileMappings(fileMappings []string) (map[string]string, error) {
+	result := map[string]string{}
+	for _, fileMapping := range fileMappings {
+		files := strings.Split(fileMapping, ":")
+		if len(files) != 2 {
+			return nil, fmt.Errorf("--copy-files must be of the hostFile:vmFile form")
+		}
+		src, dest := files[0], files[1]
+		if path.IsAbs(src) || path.IsAbs(dest) {
+			return nil, fmt.Errorf("--copy-files path arguments must be absolute")
+		}
+		result[src] = dest
+	}
+	return result, nil
 }
