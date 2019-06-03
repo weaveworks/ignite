@@ -3,6 +3,7 @@ package vmmd
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
+	"net"
 	"os"
 	"path"
 )
@@ -58,4 +59,13 @@ func (md *VMMetadata) Size() (int64, error) {
 	}
 
 	return fi.Size(), nil
+}
+
+func (md *VMMetadata) AddIPAddress(address net.IP) {
+	od := md.VMOD()
+	od.IPAddrs = append(od.IPAddrs, address)
+}
+
+func (md *VMMetadata) ClearIPAddresses() {
+	md.VMOD().IPAddrs = nil
 }

@@ -17,7 +17,7 @@ func Ps(po *PsOptions) error {
 	o := util.NewOutput()
 	defer o.Flush()
 
-	o.Write("VM ID", "IMAGE", "KERNEL", "CREATED", "SIZE", "CPUS", "MEMORY", "STATE", "NAME")
+	o.Write("VM ID", "IMAGE", "KERNEL", "CREATED", "SIZE", "CPUS", "MEMORY", "STATE", "IPS", "NAME")
 	for _, vm := range po.VMs {
 		od := vm.ObjectData.(*vmmd.VMObjectData)
 		size, err := vm.Size()
@@ -36,7 +36,7 @@ func Ps(po *PsOptions) error {
 		}
 
 		// TODO: Clean up this print
-		o.Write(vm.ID, image.Name, kernel.Name, vm.Created, util.ByteCountDecimal(size), od.VCPUs, util.ByteCountDecimal(od.Memory*1000000), od.State, vm.Name)
+		o.Write(vm.ID, image.Name, kernel.Name, vm.Created, util.ByteCountDecimal(size), od.VCPUs, util.ByteCountDecimal(od.Memory*1000000), od.State, od.IPAddrs, vm.Name)
 	}
 
 	return nil

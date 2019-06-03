@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/filter"
 	"github.com/luxas/ignite/pkg/metadata"
+	"net"
 )
 
 type state int
@@ -55,6 +56,7 @@ type VMObjectData struct {
 	State    state
 	VCPUs    int64
 	Memory   int64
+	IPAddrs  []net.IP
 }
 
 func NewVMObjectData(imageID, kernelID string, vCPUs, memory int64) *VMObjectData {

@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
 )
@@ -18,7 +19,7 @@ func Logs(lo *LogsOptions) error {
 
 	dockerArgs := []string{
 		"logs",
-		lo.VM.ID,
+		constants.IGNITE_PREFIX + lo.VM.ID,
 	}
 
 	// Fetch the VM logs from docker
