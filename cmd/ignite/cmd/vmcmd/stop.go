@@ -14,13 +14,13 @@ func NewCmdStop(out io.Writer) *cobra.Command {
 	so := &run.StopOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "stop [vm]",
-		Short: "Stop a running VM",
+		Use:   "stop [vm]...",
+		Short: "Stop running VMs",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if so.VM, err = cmdutil.MatchSingleVM(args[0]); err != nil {
+				if so.VMs, err = cmdutil.MatchSingleVMs(args); err != nil {
 					return err
 				}
 				return run.Stop(so)

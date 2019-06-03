@@ -8,21 +8,24 @@ import (
 )
 
 type RmkOptions struct {
-	Kernel *kernmd.KernelMetadata
-	VMs    []*vmmd.VMMetadata
+	Kernels []*kernmd.KernelMetadata
+	VMs     []*vmmd.VMMetadata
 }
 
 func Rmk(ro *RmkOptions) error {
-	for _, vm := range ro.VMs {
-		if vm.VMOD().KernelID == ro.Kernel.ID {
-			return fmt.Errorf("unable to remove, kernel %q is in use by VM %q", ro.Kernel.ID, vm.ID)
+	for _, kernel := range ro.Kernels {
+		for _, vm := range ro.VMs {
+			if vm.VMOD().KernelID == kernel.ID {
+				return fmt.Errorf("unable to remove, kernel %q is in use by VM %q", kernel.ID, vm.ID)
+			}
 		}
+
+		if err := os.RemoveAll(kernel.ObjectPath()); err != nil {
+			return fmt.Errorf("unable to remove directory for %s %q: %v", kernel.Type, kernel.ID, err)
+		}
+
+		fmt.Println(kernel.ID)
 	}
 
-	if err := os.RemoveAll(ro.Kernel.ObjectPath()); err != nil {
-		return fmt.Errorf("unable to remove directory for %s %q: %v", ro.Kernel.Type, ro.Kernel.ID, err)
-	}
-
-	fmt.Println(ro.Kernel.ID)
 	return nil
 }

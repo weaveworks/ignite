@@ -14,14 +14,14 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 	ro := &run.RmiOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "rm [image]",
-		Short: "Remove a VM base image",
+		Use:   "rm [image]...",
+		Short: "Remove VM base images",
 		Long:  "TODO", // TODO: Long description
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if ro.Image, err = cmdutil.MatchSingleImage(args[0]); err != nil {
+				if ro.Images, err = cmdutil.MatchSingleImages(args); err != nil {
 					return err
 				}
 				if ro.VMs, err = cmdutil.MatchAllVMs(true); err != nil {

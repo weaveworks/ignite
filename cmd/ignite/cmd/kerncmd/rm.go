@@ -14,14 +14,14 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 	ro := &run.RmkOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "rm [kernel]",
-		Short: "Remove a kernel",
+		Use:   "rm [kernel]...",
+		Short: "Remove kernels",
 		Long:  "TODO", // TODO: Long description
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if ro.Kernel, err = cmdutil.MatchSingleKernel(args[0]); err != nil {
+				if ro.Kernels, err = cmdutil.MatchSingleKernels(args); err != nil {
 					return err
 				}
 				if ro.VMs, err = cmdutil.MatchAllVMs(true); err != nil {

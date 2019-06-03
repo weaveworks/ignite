@@ -13,30 +13,33 @@ var (
 )
 
 type StopOptions struct {
-	VM   *vmmd.VMMetadata
+	VMs  []*vmmd.VMMetadata
 	Kill bool
 }
 
 func Stop(so *StopOptions) error {
-	// Check if the VM is running
-	if !so.VM.Running() {
-		return fmt.Errorf("%s is not running", so.VM.ID)
+	for _, vm := range so.VMs {
+		// Check if the VM is running
+		if !vm.Running() {
+			return fmt.Errorf("%s is not running", vm.ID)
+		}
+
+		dockerArgs := stopArgs
+
+		// Change to kill arguments if requested
+		if so.Kill {
+			dockerArgs = killArgs
+		}
+
+		dockerArgs = append(dockerArgs, constants.IGNITE_PREFIX+vm.ID)
+
+		// Stop/Kill the VM in docker
+		if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
+			return fmt.Errorf("failed to stop container for VM %q: %v", vm.ID, err)
+		}
+
+		fmt.Println(vm.ID)
 	}
 
-	dockerArgs := stopArgs
-
-	// Change to kill arguments if requested
-	if so.Kill {
-		dockerArgs = killArgs
-	}
-
-	dockerArgs = append(dockerArgs, constants.IGNITE_PREFIX+so.VM.ID)
-
-	// Stop/Kill the VM in docker
-	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
-		return fmt.Errorf("failed to stop container for VM %q: %v", so.VM.ID, err)
-	}
-
-	fmt.Println(so.VM.ID)
 	return nil
 }

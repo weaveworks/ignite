@@ -7,30 +7,33 @@ import (
 )
 
 type RmOptions struct {
-	VM    *vmmd.VMMetadata
+	VMs   []*vmmd.VMMetadata
 	Force bool
 }
 
 func Rm(ro *RmOptions) error {
-	// Check if the VM is running
-	if ro.VM.Running() {
-		// If force is set, kill the VM
-		if ro.Force {
-			if err := Stop(&StopOptions{
-				VM:   ro.VM,
-				Kill: true,
-			}); err != nil {
-				return err
+	for _, vm := range ro.VMs {
+		// Check if the VM is running
+		if vm.Running() {
+			// If force is set, kill the VM
+			if ro.Force {
+				if err := Stop(&StopOptions{
+					VMs:  []*vmmd.VMMetadata{vm},
+					Kill: true,
+				}); err != nil {
+					return err
+				}
+			} else {
+				return fmt.Errorf("%q is running", vm)
 			}
-		} else {
-			return fmt.Errorf("%q is running", ro.VM.ID)
 		}
+
+		if err := os.RemoveAll(vm.ObjectPath()); err != nil {
+			return fmt.Errorf("unable to remove directory for %s %q: %v", vm.Type, vm.ID, err)
+		}
+
+		fmt.Println(vm.ID)
 	}
 
-	if err := os.RemoveAll(ro.VM.ObjectPath()); err != nil {
-		return fmt.Errorf("unable to remove directory for %s %q: %v", ro.VM.Type, ro.VM.ID, err)
-	}
-
-	fmt.Println(ro.VM.ID)
 	return nil
 }

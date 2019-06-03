@@ -14,13 +14,13 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 	ro := &run.RmOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "rm [vm]",
-		Short: "Remove a VM",
+		Use:   "rm [vm]...",
+		Short: "Remove VMs",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if ro.VM, err = cmdutil.MatchSingleVM(args[0]); err != nil {
+				if ro.VMs, err = cmdutil.MatchSingleVMs(args); err != nil {
 					return err
 				}
 				return run.Rm(ro)
