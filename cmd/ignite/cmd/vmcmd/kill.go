@@ -13,13 +13,13 @@ func NewCmdKill(out io.Writer) *cobra.Command {
 	so := &run.StopOptions{Kill: true}
 
 	cmd := &cobra.Command{
-		Use:   "kill [vm]",
-		Short: "Kill a running VM",
+		Use:   "kill [vm]...",
+		Short: "Kill running VMs",
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if so.VM, err = cmdutil.MatchSingleVM(args[0]); err != nil {
+				if so.VMs, err = cmdutil.MatchSingleVMs(args); err != nil {
 					return err
 				}
 				return run.Stop(so)

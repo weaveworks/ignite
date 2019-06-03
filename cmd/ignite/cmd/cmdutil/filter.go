@@ -31,6 +31,20 @@ func MatchSingleVM(match string) (*vmmd.VMMetadata, error) {
 	return md, nil
 }
 
+func MatchSingleVMs(matches []string) ([]*vmmd.VMMetadata, error) {
+	mds := make([]*vmmd.VMMetadata, 0, len(matches))
+
+	for _, match := range matches {
+		if md, err := MatchSingleVM(match); err == nil {
+			mds = append(mds, md)
+		} else {
+			return nil, err
+		}
+	}
+
+	return mds, nil
+}
+
 func MatchSingleImage(match string) (*imgmd.ImageMetadata, error) {
 	var md *imgmd.ImageMetadata
 
@@ -50,6 +64,20 @@ func MatchSingleImage(match string) (*imgmd.ImageMetadata, error) {
 	return md, nil
 }
 
+func MatchSingleImages(matches []string) ([]*imgmd.ImageMetadata, error) {
+	mds := make([]*imgmd.ImageMetadata, 0, len(matches))
+
+	for _, match := range matches {
+		if md, err := MatchSingleImage(match); err == nil {
+			mds = append(mds, md)
+		} else {
+			return nil, err
+		}
+	}
+
+	return mds, nil
+}
+
 func MatchSingleKernel(match string) (*kernmd.KernelMetadata, error) {
 	var md *kernmd.KernelMetadata
 
@@ -67,6 +95,20 @@ func MatchSingleKernel(match string) (*kernmd.KernelMetadata, error) {
 	}
 
 	return md, nil
+}
+
+func MatchSingleKernels(matches []string) ([]*kernmd.KernelMetadata, error) {
+	mds := make([]*kernmd.KernelMetadata, 0, len(matches))
+
+	for _, match := range matches {
+		if md, err := MatchSingleKernel(match); err == nil {
+			mds = append(mds, md)
+		} else {
+			return nil, err
+		}
+	}
+
+	return mds, nil
 }
 
 func MatchAllVMs(all bool) ([]*vmmd.VMMetadata, error) {
