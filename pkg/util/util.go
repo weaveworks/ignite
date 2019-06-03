@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bytes"
 	"crypto/rand"
 	"fmt"
 	"github.com/goombaio/namegenerator"
@@ -21,8 +22,7 @@ func ExecuteCommand(command string, args ...string) (string, error) {
 		return "", errors.Wrapf(err, "command %q exited with %q", cmdArgs, out)
 	}
 
-	// TODO: strings.Builder?
-	return strings.TrimSpace(string(out)), nil
+	return string(bytes.TrimSpace(out)), nil
 }
 
 func ExecForeground(command string, args ...string) (int, error) {
