@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
 )
@@ -22,7 +23,7 @@ func Attach(ao *AttachOptions) error {
 
 	dockerArgs := []string{
 		"attach",
-		ao.VM.ID,
+		constants.IGNITE_PREFIX + ao.VM.ID,
 	}
 
 	// Attach to the VM in Docker
