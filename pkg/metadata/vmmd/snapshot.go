@@ -9,30 +9,34 @@ import (
 	"strings"
 )
 
-func (md *VMMetadata) SetupSnapshot() (string, error) {
+func (md *VMMetadata) SnapshotDev() string {
+	return path.Join("/dev/mapper", constants.IGNITE_PREFIX+md.ID)
+}
+
+func (md *VMMetadata) SetupSnapshot() error {
 	device := constants.IGNITE_PREFIX + md.ID
-	devicePath := path.Join("/dev/mapper", device)
+	devicePath := md.SnapshotDev()
 
 	// Return if the snapshot is already setup
 	if util.FileExists(devicePath) {
-		return devicePath, nil
+		return nil
 	}
 
 	// Setup loop device for the image
 	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, md.VMOD().ImageID, constants.IMAGE_FS), true)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	// Setup loop device for the VM overlay
 	overlayLoop, err := newLoopDev(path.Join(md.ObjectPath(), constants.OVERLAY_FILE), false)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	imageLoopSize, err := util.ExecuteCommand("blockdev", "--getsz", imageLoop.Path())
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	// dmsetup create newdev --table "0 8388608 snapshot /dev/loop0 /dev/loop1 P 8"
@@ -54,10 +58,33 @@ func (md *VMMetadata) SetupSnapshot() (string, error) {
 	}
 
 	if _, err := util.ExecuteCommand("dmsetup", dmArgs...); err != nil {
-		return "", err
+		return err
 	}
 
-	return devicePath, nil
+	// By detaching the loop devices after setting up the snapshot
+	// they get automatically removed when the snapshot is removed.
+	if err := imageLoop.Detach(); err != nil {
+		return err
+	}
+
+	if err := overlayLoop.Detach(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (md *VMMetadata) RemoveSnapshot() error {
+	dmArgs := []string{
+		"remove",
+		md.SnapshotDev(),
+	}
+
+	if _, err := util.ExecuteCommand("dmsetup", dmArgs...); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func newLoopDev(file string, readOnly bool) (*losetup.Device, error) {

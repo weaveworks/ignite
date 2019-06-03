@@ -21,13 +21,12 @@ func Start(so *StartOptions) error {
 		return fmt.Errorf("%s is already running", so.VM.ID)
 	}
 
-	// TODO: Remove the snapshot devices somewhere
-	rootDev, err := so.VM.SetupSnapshot()
-	if err != nil {
+	// Setup the snapshot overlay filesystem
+	if err := so.VM.SetupSnapshot(); err != nil {
 		return err
 	}
 
-  // Resolve the Ignite binary to be mounted inside the container
+	// Resolve the Ignite binary to be mounted inside the container
 	path, err := exec.LookPath(os.Args[0])
 	if err != nil {
 		return err
@@ -43,10 +42,12 @@ func Start(so *StartOptions) error {
 		fmt.Sprintf("-v=%s:/ignite/ignite", igniteBinary),
 		fmt.Sprintf("-v=%s:%s", constants.DATA_DIR, constants.DATA_DIR),
 		fmt.Sprintf("--stop-timeout=%d", constants.STOP_TIMEOUT+constants.IGNITE_TIMEOUT),
-		"--cap-add=NET_ADMIN",
-		"--device=/dev/net/tun",
-		"--device=/dev/kvm",
-		fmt.Sprintf("--device=%s:%s", rootDev, constants.ROOT_DEV),
+		"--cap-add=SYS_ADMIN",          // Needed to run "dmsetup remove" inside the container
+		"--cap-add=NET_ADMIN",          // Needed for removing the IP from the container's interface
+		"--device=/dev/mapper/control", // This enables containerized Ignite to remove its own dm snapshot
+		"--device=/dev/net/tun",        // Needed for creating TAP adapters
+		"--device=/dev/kvm",            // Pass though virtualization support
+		fmt.Sprintf("--device=%s", so.VM.SnapshotDev()),
 		fmt.Sprintf("weaveworks/ignite:%s", version.GetFirecracker()),
 		so.VM.ID,
 	}
