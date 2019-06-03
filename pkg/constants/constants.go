@@ -1,6 +1,9 @@
 package constants
 
 const (
+	// Common Ignite prefix
+	IGNITE_PREFIX = "ignite-"
+
 	// Ignite data base directory
 	DATA_DIR = "/var/lib/firecracker"
 
@@ -15,6 +18,12 @@ const (
 
 	// Filename for metadata files
 	METADATA = "metadata.json"
+
+	// Filename for VM overlay storage files
+	OVERLAY_FILE = "overlay.dm"
+
+	// In-container path for the mounted VM root overlay
+	ROOT_DEV = "/ignite/rootfs"
 
 	// Directory for hosting VM instances
 	VM_DIR = DATA_DIR + "/vm"

@@ -34,9 +34,8 @@ func Create(co *CreateOptions) error {
 		return err
 	}
 
-	// Perform the image copy
-	// TODO: Replace this with overlayfs
-	if err := co.vm.CopyImage(); err != nil {
+	// Allocate the overlay file
+	if err := co.vm.AllocateOverlay(); err != nil {
 		return err
 	}
 
