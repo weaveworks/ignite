@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/c2h5oh/datasize"
 	"github.com/luxas/ignite/pkg/metadata/imgmd"
 	"github.com/luxas/ignite/pkg/metadata/kernmd"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
@@ -36,7 +37,7 @@ func Ps(po *PsOptions) error {
 		}
 
 		// TODO: Clean up this print
-		o.Write(vm.ID, image.Name, kernel.Name, vm.Created, util.ByteCountDecimal(size), od.VCPUs, util.ByteCountDecimal(od.Memory*1000000), od.State, od.IPAddrs, vm.Name)
+		o.Write(vm.ID, image.Name, kernel.Name, vm.Created, datasize.ByteSize(size).HR(), od.VCPUs, (datasize.ByteSize(od.Memory) * datasize.MB).HR(), od.State, od.IPAddrs, vm.Name)
 	}
 
 	return nil
