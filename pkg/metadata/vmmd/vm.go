@@ -3,6 +3,7 @@ package vmmd
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/util"
 	"net"
 	"os"
 	"path"
@@ -29,6 +30,38 @@ func (md *VMMetadata) AllocateOverlay() error {
 	// TODO: Dynamic size, for now hardcoded 4 GiB
 	if err := overlayFile.Truncate(4294967296); err != nil {
 		return fmt.Errorf("failed to allocate overlay file for VM %q: %v", md.ID, err)
+	}
+
+	return nil
+}
+
+func (md *VMMetadata) CopyToOverlay(fileMappings map[string]string) error {
+	// Skip the mounting process if there are no files
+	if len(fileMappings) == 0 {
+		return nil
+	}
+
+	if err := md.SetupSnapshot(); err != nil {
+		return err
+	}
+	defer md.RemoveSnapshot()
+
+	mp, err := util.Mount(md.SnapshotDev())
+	if err != nil {
+		return err
+	}
+	defer mp.Umount()
+
+	// TODO: File/directory permissions?
+	for hostFile, vmFile := range fileMappings {
+		vmFilePath := path.Join(mp.Path, vmFile)
+		if err := os.MkdirAll(path.Dir(vmFilePath), 0755); err != nil {
+			return err
+		}
+
+		if err := util.CopyFile(hostFile, vmFilePath); err != nil {
+			return err
+		}
 	}
 
 	return nil
