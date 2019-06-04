@@ -139,7 +139,7 @@ func (md *ImageMetadata) AddFiles2(sourcePath string) error {
 	return nil
 }
 
-func (md *ImageMetadata) AddFiles3(sourcePath string) error {
+func (md *ImageMetadata) AddFiles3(sourcePath string, fileMappings map[string]string) error {
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 	tempDir, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -154,6 +154,18 @@ func (md *ImageMetadata) AddFiles3(sourcePath string) error {
 
 	if _, err := util.ExecuteCommand("tar", "-xf", sourcePath, "-C", tempDir); err != nil {
 		return err
+	}
+
+	// Copy files into the VM filesystem.
+	// TODO: the real solution here should use layering at ignite create time.
+	for src, dest := range fileMappings {
+		fullDest := path.Join(tempDir, dest)
+		if err := os.MkdirAll(path.Dir(fullDest), 0755); err != nil {
+			return err
+		}
+		if err := util.CopyFile(src, fullDest); err != nil {
+			return err
+		}
 	}
 
 	return nil
