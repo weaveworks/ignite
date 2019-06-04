@@ -132,13 +132,19 @@ func NewName(s *string) {
 }
 
 func MatchPrefix(prefix string, fields ...string) []string {
-	var matches []string
+	var prefixMatches, exactMatches []string
 
 	for _, str := range fields {
 		if strings.HasPrefix(str, prefix) {
-			matches = append(matches, str)
+			prefixMatches = append(prefixMatches, str)
+		}
+		if str == prefix {
+			exactMatches = append(exactMatches, str)
 		}
 	}
-
-	return matches
+	// If we have exact matches, return them
+	if len(exactMatches) > 0 {
+		return exactMatches
+	}
+	return prefixMatches
 }
