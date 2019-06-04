@@ -16,16 +16,10 @@ type BuildOptions struct {
 	Source     string
 	Name       string
 	KernelName string
-	CopyFiles  []string
 	image      *imgmd.ImageMetadata
 }
 
 func Build(bo *BuildOptions) error {
-	fileMappings, err := parseFileMappings(bo.CopyFiles)
-	if err != nil {
-		return err
-	}
-
 	// Create new image metadata
 	if err := bo.newImage(); err != nil {
 		return err
@@ -91,7 +85,7 @@ func Build(bo *BuildOptions) error {
 	}
 
 	// Add the files to the filesystem
-	if err := bo.image.AddFiles3(tarFilePath, fileMappings); err != nil {
+	if err := bo.image.AddFiles3(tarFilePath); err != nil {
 		return err
 	}
 
