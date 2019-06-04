@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/c2h5oh/datasize"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/metadata/imgmd"
 	"github.com/luxas/ignite/pkg/metadata/kernmd"
@@ -18,6 +19,7 @@ type CreateOptions struct {
 	Name      string
 	CPUs      int64
 	Memory    int64
+	Size      string
 	CopyFiles []string
 }
 
@@ -43,8 +45,14 @@ func Create(co *CreateOptions) error {
 		return err
 	}
 
+	// Parse the given overlay size
+	var size datasize.ByteSize
+	if err := size.UnmarshalText([]byte(co.Size)); err != nil {
+		return err
+	}
+
 	// Allocate the overlay file
-	if err := co.vm.AllocateOverlay(); err != nil {
+	if err := co.vm.AllocateOverlay(size.Bytes()); err != nil {
 		return err
 	}
 

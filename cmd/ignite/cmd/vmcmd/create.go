@@ -41,5 +41,6 @@ func addCreateFlags(fs *pflag.FlagSet, co *run.CreateOptions) {
 	cmdutil.AddNameFlag(fs, &co.Name)
 	fs.Int64Var(&co.CPUs, "cpus", constants.VM_DEFAULT_CPUS, "VM vCPU count, 1 or even numbers between 1 and 32")
 	fs.Int64Var(&co.Memory, "memory", constants.VM_DEFAULT_MEMORY, "VM RAM in MiB")
+	fs.StringVarP(&co.Size, "size", "s", constants.VM_DEFAULT_SIZE, "VM filesystem size, for example 5GB or 2048MB")
 	fs.StringSliceVarP(&co.CopyFiles, "copy-files", "f", nil, "Copy files from the host to the created VM")
 }

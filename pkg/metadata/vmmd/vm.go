@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/util"
+	"math"
 	"net"
 	"os"
 	"path"
@@ -20,15 +21,19 @@ import (
 //	return nil
 //}
 
-func (md *VMMetadata) AllocateOverlay() error {
+func (md *VMMetadata) AllocateOverlay(size uint64) error {
+	// Truncate only accepts an int64
+	if size > math.MaxInt64 {
+		return fmt.Errorf("requested size %d too large, cannot truncate", size)
+	}
+
 	overlayFile, err := os.Create(path.Join(md.ObjectPath(), constants.OVERLAY_FILE))
 	if err != nil {
 		return fmt.Errorf("failed to create overlay file for %q, %v", md.ID, err)
 	}
 	defer overlayFile.Close()
 
-	// TODO: Dynamic size, for now hardcoded 4 GiB
-	if err := overlayFile.Truncate(4294967296); err != nil {
+	if err := overlayFile.Truncate(int64(size)); err != nil {
 		return fmt.Errorf("failed to allocate overlay file for VM %q: %v", md.ID, err)
 	}
 
