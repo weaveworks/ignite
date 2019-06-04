@@ -9,9 +9,9 @@ import (
 )
 
 type ImportKernelOptions struct {
-	Source  string
-	Name    string
-	Kernels []*kernmd.KernelMetadata
+	Source      string
+	Name        string
+	KernelNames []*metadata.Name
 }
 
 func ImportKernel(ao *ImportKernelOptions) error {
@@ -26,7 +26,7 @@ func ImportKernel(ao *ImportKernelOptions) error {
 	}
 
 	// Verify the name
-	name, err := metadata.NewName(ao.Name)
+	name, err := metadata.NewName(ao.Name, &ao.KernelNames)
 	if err != nil {
 		return err
 	}

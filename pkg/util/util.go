@@ -11,6 +11,7 @@ import (
 	"path"
 	"strings"
 	"time"
+	"unicode"
 )
 
 func ExecuteCommand(command string, args ...string) (string, error) {
@@ -127,6 +128,16 @@ func NewMAC(buffer *[]string) error {
 
 func RandomName() string {
 	return namegenerator.NewNameGenerator(time.Now().UTC().UnixNano()).Generate()
+}
+
+func IsASCII(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] > unicode.MaxASCII {
+			return false
+		}
+	}
+
+	return true
 }
 
 func MatchPrefix(prefix string, fields ...string) []string {

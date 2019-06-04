@@ -28,6 +28,9 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 				if co.Kernel, err = cmdutil.MatchSingleKernel(args[1]); err != nil {
 					return err
 				}
+				if co.VMNames, err = cmdutil.MatchAllVMNames(); err != nil {
+					return err
+				}
 				return run.Create(co)
 			}())
 		},

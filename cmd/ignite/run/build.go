@@ -18,6 +18,7 @@ type BuildOptions struct {
 	Name       string
 	KernelName string
 	image      *imgmd.ImageMetadata
+	ImageNames []*metadata.Name
 }
 
 func Build(bo *BuildOptions) error {
@@ -138,7 +139,7 @@ func (bo *BuildOptions) newImage() error {
 	}
 
 	// Verify the name
-	name, err := metadata.NewName(bo.Name)
+	name, err := metadata.NewName(bo.Name, &bo.ImageNames)
 	if err != nil {
 		return err
 	}
