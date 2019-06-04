@@ -20,7 +20,13 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			io.Source = args[0]
-			errutils.Check(run.ImportImage(io))
+			errutils.Check(func() error {
+				var err error
+				if io.ImageNames, err = cmdutil.MatchAllImageNames(); err != nil {
+					return err
+				}
+				return run.ImportImage(io)
+			}())
 		},
 	}
 

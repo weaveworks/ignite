@@ -19,7 +19,13 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			io.Source = args[0]
-			errutils.Check(run.ImportKernel(io))
+			errutils.Check(func() error {
+				var err error
+				if io.KernelNames, err = cmdutil.MatchAllKernelNames(); err != nil {
+					return err
+				}
+				return run.ImportKernel(io)
+			}())
 		},
 	}
 

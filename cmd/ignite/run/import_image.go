@@ -14,6 +14,7 @@ type ImportImageOptions struct {
 	Source     string
 	Name       string
 	KernelName string
+	ImageNames []*metadata.Name
 }
 
 func ImportImage(ao *ImportImageOptions) error {
@@ -28,7 +29,7 @@ func ImportImage(ao *ImportImageOptions) error {
 	}
 
 	// Verify the name
-	name, err := metadata.NewName(ao.Name)
+	name, err := metadata.NewName(ao.Name, &ao.ImageNames)
 	if err != nil {
 		return err
 	}

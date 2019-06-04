@@ -176,3 +176,48 @@ func filterError(err error, object, match string) error {
 
 	return err
 }
+
+func MatchAllVMNames() ([]*metadata.Name, error) {
+	mds, err := MatchAllVMs(true)
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]*metadata.Name, 0, len(mds))
+
+	for _, md := range mds {
+		names = append(names, &md.Name)
+	}
+
+	return names, nil
+}
+
+func MatchAllImageNames() ([]*metadata.Name, error) {
+	mds, err := MatchAllImages()
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]*metadata.Name, 0, len(mds))
+
+	for _, md := range mds {
+		names = append(names, &md.Name)
+	}
+
+	return names, nil
+}
+
+func MatchAllKernelNames() ([]*metadata.Name, error) {
+	mds, err := MatchAllKernels()
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]*metadata.Name, 0, len(mds))
+
+	for _, md := range mds {
+		names = append(names, &md.Name)
+	}
+
+	return names, nil
+}

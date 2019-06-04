@@ -20,7 +20,13 @@ func NewCmdBuild(out io.Writer) *cobra.Command {
 		Args:  cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			bo.Source = args[0]
-			errutils.Check(run.Build(bo))
+			errutils.Check(func() error {
+				var err error
+				if bo.ImageNames, err = cmdutil.MatchAllImageNames(); err != nil {
+					return err
+				}
+				return run.Build(bo)
+			}())
 		},
 	}
 

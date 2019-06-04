@@ -22,6 +22,7 @@ type CreateOptions struct {
 	Memory    int64
 	Size      string
 	CopyFiles []string
+	VMNames   []*metadata.Name
 }
 
 func Create(co *CreateOptions) error {
@@ -38,7 +39,7 @@ func Create(co *CreateOptions) error {
 	}
 
 	// Verify the name
-	name, err := metadata.NewName(co.Name)
+	name, err := metadata.NewName(co.Name, &co.VMNames)
 	if err != nil {
 		return err
 	}

@@ -19,8 +19,21 @@ func (n *Name) randomize() {
 	}
 }
 
-func NewName(input string) (*Name, error) {
-	// TODO: Check if input is valid
+func NewName(input string, matches *[]*Name) (*Name, error) {
+	// Accept only ASCII for now
+	if !util.IsASCII(input) {
+		return nil, fmt.Errorf("invalid name %q: contains non-ASCII characters", input)
+	}
+
+	// Check the given matches for uniqueness
+	if matches != nil {
+		for _, match := range *matches {
+			if input == match.string {
+				return nil, fmt.Errorf("invalid name %q: not unique", input)
+			}
+		}
+	}
+
 	return &Name{
 		input,
 	}, nil
@@ -37,7 +50,7 @@ func (n *Name) String() string {
 }
 
 func (n Name) MarshalJSON() ([]byte, error) {
-	return json.Marshal(n.String())
+	return json.Marshal(n.string)
 }
 
 func (n *Name) UnmarshalJSON(b []byte) error {
@@ -46,7 +59,7 @@ func (n *Name) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	name, err := NewName(s)
+	name, err := NewName(s, nil)
 	if err != nil {
 		return err
 	}
