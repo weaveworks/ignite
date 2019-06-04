@@ -16,7 +16,7 @@ type BuildOptions struct {
 	Source     string
 	Name       string
 	KernelName string
-	CopyFiles []string
+	CopyFiles  []string
 	image      *imgmd.ImageMetadata
 }
 
@@ -140,20 +140,4 @@ func (bo *BuildOptions) newImage() error {
 	bo.image = imgmd.NewImageMetadata(newID, bo.Name)
 
 	return nil
-}
-
-func parseFileMappings(fileMappings []string) (map[string]string, error) {
-	result := map[string]string{}
-	for _, fileMapping := range fileMappings {
-		files := strings.Split(fileMapping, ":")
-		if len(files) != 2 {
-			return nil, fmt.Errorf("--copy-files must be of the hostFile:vmFile form")
-		}
-		src, dest := files[0], files[1]
-		if !path.IsAbs(src) || !path.IsAbs(dest) {
-			return nil, fmt.Errorf("--copy-files path arguments must be absolute")
-		}
-		result[src] = dest
-	}
-	return result, nil
 }
