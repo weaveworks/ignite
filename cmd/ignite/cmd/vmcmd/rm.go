@@ -33,5 +33,5 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 }
 
 func addRmFlags(fs *pflag.FlagSet, ro *run.RmOptions) {
-	fs.BoolVarP(&ro.Force, "force", "f", false, "Kill VM if running before removal")
+	cmdutil.AddForceFlag(fs, &ro.Force)
 }
