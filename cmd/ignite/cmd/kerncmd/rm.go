@@ -5,6 +5,7 @@ import (
 	"github.com/luxas/ignite/cmd/ignite/run"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"io"
 )
 
@@ -32,5 +33,10 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 		},
 	}
 
+	addRmkFlags(cmd.Flags(), ro)
 	return cmd
+}
+
+func addRmkFlags(fs *pflag.FlagSet, ro *run.RmkOptions) {
+	cmdutil.AddForceFlag(fs, &ro.Force)
 }
