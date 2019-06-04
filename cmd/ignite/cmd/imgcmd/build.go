@@ -31,5 +31,4 @@ func NewCmdBuild(out io.Writer) *cobra.Command {
 func addBuildFlags(fs *pflag.FlagSet, bo *run.BuildOptions) {
 	cmdutil.AddNameFlag(fs, &bo.Name)
 	cmdutil.AddImportKernelFlags(fs, &bo.KernelName)
-	fs.StringSliceVarP(&bo.CopyFiles, "copy-files", "f", nil, "Copy files from the host to the VM image")
 }
