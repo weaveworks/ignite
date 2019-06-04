@@ -79,8 +79,13 @@ func Build(bo *BuildOptions) error {
 		}
 	}
 
+	fo, err := os.Stat(tarFilePath)
+	if err != nil {
+		return err
+	}
+
 	// Create new file to host the filesystem and format it
-	if err := bo.image.AllocateAndFormat(); err != nil {
+	if err := bo.image.AllocateAndFormat(fo.Size()); err != nil {
 		return err
 	}
 

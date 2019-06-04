@@ -23,7 +23,7 @@ func (md *ImageMetadata) ImportImage(p string) error {
 	return nil
 }
 
-func (md *ImageMetadata) AllocateAndFormat() error {
+func (md *ImageMetadata) AllocateAndFormat(size int64) error {
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 	imageFile, err := os.Create(p)
 	if err != nil {
@@ -31,8 +31,8 @@ func (md *ImageMetadata) AllocateAndFormat() error {
 	}
 	defer imageFile.Close()
 
-	// TODO: Dynamic size, for now hardcoded 4 GiB
-	if err := imageFile.Truncate(4294967296); err != nil {
+	// The base image is the size of the tar file, plus 100MB
+	if err := imageFile.Truncate(size + 100 * 1024 * 1024); err != nil {
 		return errors.Wrapf(err, "failed to allocate space for image %s", md.ID)
 	}
 
