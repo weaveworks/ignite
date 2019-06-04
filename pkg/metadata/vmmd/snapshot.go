@@ -5,6 +5,7 @@ import (
 	"github.com/freddierice/go-losetup"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/util"
+	"io/ioutil"
 	"path"
 	"strings"
 )
@@ -34,7 +35,7 @@ func (md *VMMetadata) SetupSnapshot() error {
 		return err
 	}
 
-	imageLoopSize, err := util.ExecuteCommand("blockdev", "--getsz", imageLoop.Path())
+	imageLoopSize, err := imageLoop.Size512K()
 	if err != nil {
 		return err
 	}
@@ -87,11 +88,25 @@ func (md *VMMetadata) RemoveSnapshot() error {
 	return nil
 }
 
-func newLoopDev(file string, readOnly bool) (*losetup.Device, error) {
+type loopDevice struct {
+	losetup.Device
+}
+
+func newLoopDev(file string, readOnly bool) (*loopDevice, error) {
 	dev, err := losetup.Attach(file, 0, readOnly)
 	if err != nil {
 		return nil, fmt.Errorf("failed to setup loop device for %q: %v", file, err)
 	}
 
-	return &dev, nil
+	return &loopDevice{dev}, nil
+}
+
+func (ld *loopDevice) Size512K() (string, error) {
+	data, err := ioutil.ReadFile(path.Join("/sys/class/block", path.Base(ld.Device.Path()), "size"))
+	if err != nil {
+		return "", err
+	}
+
+	// Remove the trailing newline
+	return string(data[:len(data)-1]), nil
 }

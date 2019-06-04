@@ -142,9 +142,11 @@ func MatchPrefix(prefix string, fields ...string) []string {
 			exactMatches = append(exactMatches, str)
 		}
 	}
+
 	// If we have exact matches, return them
 	if len(exactMatches) > 0 {
 		return exactMatches
 	}
+
 	return prefixMatches
 }
