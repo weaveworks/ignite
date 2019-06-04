@@ -32,6 +32,7 @@ func Build(bo *BuildOptions) error {
 	}
 
 	// If the source is a file, import it as a file, otherwise check if it's a docker image
+	tarFilePath := path.Join(bo.image.ObjectPath(), constants.IMAGE_TAR)
 	if !util.FileExists(bo.Source) {
 		// Query docker for the image
 		out, err := util.ExecuteCommand("docker", "images", "-q", bo.Source)
@@ -61,7 +62,7 @@ func Build(bo *BuildOptions) error {
 		}
 
 		// Export the created container to a tar archive that will be later extracted into the VM disk image
-		_, err = util.ExecuteCommand("docker", "export", "-o", path.Join(bo.image.ObjectPath(), constants.IMAGE_TAR), containerID)
+		_, err = util.ExecuteCommand("docker", "export", "-o", tarFilePath, containerID)
 		if err != nil {
 			return errors.Wrapf(err, "failed to export created container %s:", containerID)
 		}
@@ -79,7 +80,7 @@ func Build(bo *BuildOptions) error {
 			Decompressor: archiver.NewGz(),
 		}
 
-		if err := decompressor.DecompressFile(bo.Source, path.Join(bo.image.ObjectPath(), constants.IMAGE_TAR)); err != nil {
+		if err := decompressor.DecompressFile(bo.Source, tarFilePath); err != nil {
 			return err
 		}
 	}
@@ -90,16 +91,8 @@ func Build(bo *BuildOptions) error {
 	}
 
 	// Add the files to the filesystem
-	if err := bo.image.AddFiles3(path.Join(bo.image.ObjectPath(), constants.IMAGE_TAR)); err != nil {
+	if err := bo.image.AddFiles3(tarFilePath, fileMappings); err != nil {
 		return err
-	}
-
-	// Copy files into the VM filesystem.
-	// TODO: the real solution here should use layering at ignite create time.
-	for src, dest := range fileMappings {
-		if err := util.CopyFile(src, dest); err != nil {
-			return err
-		}
 	}
 
 	if err := bo.image.Save(); err != nil {
@@ -157,7 +150,7 @@ func parseFileMappings(fileMappings []string) (map[string]string, error) {
 			return nil, fmt.Errorf("--copy-files must be of the hostFile:vmFile form")
 		}
 		src, dest := files[0], files[1]
-		if path.IsAbs(src) || path.IsAbs(dest) {
+		if !path.IsAbs(src) || !path.IsAbs(dest) {
 			return nil, fmt.Errorf("--copy-files path arguments must be absolute")
 		}
 		result[src] = dest
