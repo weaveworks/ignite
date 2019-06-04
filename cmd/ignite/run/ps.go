@@ -37,7 +37,8 @@ func Ps(po *PsOptions) error {
 		}
 
 		// TODO: Clean up this print
-		o.Write(vm.ID, image.Name, kernel.Name, vm.Created, datasize.ByteSize(size).HR(), od.VCPUs, (datasize.ByteSize(od.Memory) * datasize.MB).HR(), od.State, od.IPAddrs, vm.Name)
+		o.Write(vm.ID, image.Name.String(), kernel.Name.String(), vm.Created, datasize.ByteSize(size).HR(), od.VCPUs,
+			(datasize.ByteSize(od.Memory) * datasize.MB).HR(), od.State, od.IPAddrs, vm.Name.String())
 	}
 
 	return nil

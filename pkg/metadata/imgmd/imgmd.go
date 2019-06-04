@@ -14,7 +14,7 @@ type ImageObjectData struct {
 	// TODO: Placeholder
 }
 
-func NewImageMetadata(id, name string) *ImageMetadata {
+func NewImageMetadata(id string, name *metadata.Name) *ImageMetadata {
 	return &ImageMetadata{
 		Metadata: metadata.NewMetadata(
 			id,

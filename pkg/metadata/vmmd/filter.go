@@ -37,11 +37,11 @@ func (n *VMFilter) Filter(f filter.Filterable) ([]string, error) {
 		}
 	}
 
-	return util.MatchPrefix(n.prefix, md.ID, md.Name), nil
+	return util.MatchPrefix(n.prefix, md.ID, md.Name.String()), nil
 }
 
 func LoadVMMetadata(id string) (*VMMetadata, error) {
-	md := NewVMMetadata(id, "-", &VMObjectData{}) // A blank name triggers an unnecessary name generation
+	md := NewVMMetadata(id, nil, &VMObjectData{}) // A blank name triggers an unnecessary name generation
 	err := md.Load()
 	return md, err
 }

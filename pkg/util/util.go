@@ -125,10 +125,8 @@ func NewMAC(buffer *[]string) error {
 	return nil
 }
 
-func NewName(s *string) {
-	if *s == "" {
-		*s = namegenerator.NewNameGenerator(time.Now().UTC().UnixNano()).Generate()
-	}
+func RandomName() string {
+	return namegenerator.NewNameGenerator(time.Now().UTC().UnixNano()).Generate()
 }
 
 func MatchPrefix(prefix string, fields ...string) []string {

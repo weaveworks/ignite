@@ -69,7 +69,7 @@ func NewVMObjectData(imageID, kernelID string, vCPUs, memory int64) *VMObjectDat
 	}
 }
 
-func NewVMMetadata(id, name string, od *VMObjectData) *VMMetadata {
+func NewVMMetadata(id string, name *metadata.Name, od *VMObjectData) *VMMetadata {
 	return &VMMetadata{
 		Metadata: metadata.NewMetadata(
 			id,

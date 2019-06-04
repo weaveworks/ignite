@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c2h5oh/datasize"
 	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/metadata/imgmd"
 	"github.com/luxas/ignite/pkg/metadata/kernmd"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
@@ -36,9 +37,15 @@ func Create(co *CreateOptions) error {
 		return err
 	}
 
+	// Verify the name
+	name, err := metadata.NewName(co.Name)
+	if err != nil {
+		return err
+	}
+
 	// Create new metadata for the VM and add to createOptions for further processing
 	// This enables the generated VM metadata to pass straight to start and attach via run
-	co.vm = vmmd.NewVMMetadata(vmID, co.Name, vmmd.NewVMObjectData(co.Image.ID, co.Kernel.ID, co.CPUs, co.Memory))
+	co.vm = vmmd.NewVMMetadata(vmID, name, vmmd.NewVMObjectData(co.Image.ID, co.Kernel.ID, co.CPUs, co.Memory))
 
 	// Save the metadata
 	if err := co.vm.Save(); err != nil {

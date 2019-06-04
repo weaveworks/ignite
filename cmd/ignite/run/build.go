@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/metadata/imgmd"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/mholt/archiver"
@@ -131,7 +132,13 @@ func (bo *BuildOptions) newImage() error {
 		return err
 	}
 
-	bo.image = imgmd.NewImageMetadata(newID, bo.Name)
+	// Verify the name
+	name, err := metadata.NewName(bo.Name)
+	if err != nil {
+		return err
+	}
+
+	bo.image = imgmd.NewImageMetadata(newID, name)
 
 	return nil
 }
