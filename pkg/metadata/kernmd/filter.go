@@ -24,11 +24,11 @@ func (n *KernelFilter) Filter(f filter.Filterable) ([]string, error) {
 		return nil, err
 	}
 
-	return util.MatchPrefix(n.prefix, md.ID, md.Name), nil
+	return util.MatchPrefix(n.prefix, md.ID, md.Name.String()), nil
 }
 
 func LoadKernelMetadata(id string) (*KernelMetadata, error) {
-	md := NewKernelMetadata(id, "-") // A blank name triggers an unnecessary name generation
+	md := NewKernelMetadata(id, nil)
 	err := md.Load()
 	return md, err
 }

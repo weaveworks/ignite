@@ -22,7 +22,7 @@ func Kernels(ko *KernelsOptions) error {
 			return fmt.Errorf("failed to get size for %s %q: %v", md.Type, md.ID, err)
 		}
 
-		o.Write(md.ID, md.Created, datasize.ByteSize(size).HR(), md.Name)
+		o.Write(md.ID, md.Created, datasize.ByteSize(size).HR(), md.Name.String())
 	}
 
 	return nil

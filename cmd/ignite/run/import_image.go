@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/metadata/imgmd"
 	"github.com/luxas/ignite/pkg/util"
 	"os"
@@ -26,7 +27,13 @@ func ImportImage(ao *ImportImageOptions) error {
 		return err
 	}
 
-	md := imgmd.NewImageMetadata(imageID, ao.Name)
+	// Verify the name
+	name, err := metadata.NewName(ao.Name)
+	if err != nil {
+		return err
+	}
+
+	md := imgmd.NewImageMetadata(imageID, name)
 
 	// Save the metadata
 	if err := md.Save(); err != nil {

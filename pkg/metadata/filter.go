@@ -25,5 +25,5 @@ func (n *IDNameFilter) Filter(f filter.Filterable) ([]string, error) {
 		return nil, fmt.Errorf("failed to assert Filterable %v to Metadata", f)
 	}
 
-	return util.MatchPrefix(n.prefix, md.ID, md.Name), nil
+	return util.MatchPrefix(n.prefix, md.ID, md.Name.String()), nil
 }

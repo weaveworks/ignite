@@ -67,17 +67,22 @@ type ObjectData interface{}
 
 type Metadata struct {
 	ID         string      `json:"ID"`
-	Name       string      `json:"Name"`
+	Name       Name        `json:"Name"`
 	Type       ObjectType  `json:"Type"`
 	Created    metav1.Time `json:"Created"`
 	ObjectData `json:"ObjectData"`
 }
 
-func NewMetadata(id, name string, t ObjectType, data ObjectData) *Metadata {
-	util.NewName(&name) // If the name is unset, create a new random one
+func NewMetadata(id string, name *Name, t ObjectType, data ObjectData) *Metadata {
+	if name == nil { // If the name is nil (for loading purposes), create a temporary unset one
+		name = newUnsetName()
+	} else {
+		name.randomize() // Otherwise if the name is unset, create a new random one
+	}
+
 	return &Metadata{
 		ID:         id,
-		Name:       name,
+		Name:       *name,
 		Type:       t,
 		Created:    metav1.Now(),
 		ObjectData: data,

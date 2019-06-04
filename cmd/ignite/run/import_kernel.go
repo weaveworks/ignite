@@ -3,13 +3,15 @@ package run
 import (
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/metadata/kernmd"
 	"github.com/luxas/ignite/pkg/util"
 )
 
 type ImportKernelOptions struct {
-	Source string
-	Name   string
+	Source  string
+	Name    string
+	Kernels []*kernmd.KernelMetadata
 }
 
 func ImportKernel(ao *ImportKernelOptions) error {
@@ -23,7 +25,13 @@ func ImportKernel(ao *ImportKernelOptions) error {
 		return err
 	}
 
-	md := kernmd.NewKernelMetadata(kernelID, ao.Name)
+	// Verify the name
+	name, err := metadata.NewName(ao.Name)
+	if err != nil {
+		return err
+	}
+
+	md := kernmd.NewKernelMetadata(kernelID, name)
 
 	// Save the metadata
 	if err := md.Save(); err != nil {

@@ -14,7 +14,7 @@ type KernelObjectData struct {
 	// TODO: Placeholder
 }
 
-func NewKernelMetadata(id, name string) *KernelMetadata {
+func NewKernelMetadata(id string, name *metadata.Name) *KernelMetadata {
 	return &KernelMetadata{
 		Metadata: metadata.NewMetadata(id,
 			name,
@@ -44,6 +44,12 @@ func ToKernelMetadataAll(a []filter.Filterable) ([]*KernelMetadata, error) {
 	}
 
 	return mds, nil
+}
+
+var _ metadata.AnyMetadata = &KernelMetadata{}
+
+func (md *KernelMetadata) GetMD() *metadata.Metadata {
+	return md.Metadata
 }
 
 // The md.ObjectData.(*KernelObjectData) assert won't panic as this method can only receive *KernelMetadata objects

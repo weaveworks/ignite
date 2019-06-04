@@ -24,11 +24,11 @@ func (n *ImageFilter) Filter(f filter.Filterable) ([]string, error) {
 		return nil, err
 	}
 
-	return util.MatchPrefix(n.prefix, md.ID, md.Name), nil
+	return util.MatchPrefix(n.prefix, md.ID, md.Name.String()), nil
 }
 
 func LoadImageMetadata(id string) (*ImageMetadata, error) {
-	md := NewImageMetadata(id, "-") // A blank name triggers an unnecessary name generation
+	md := NewImageMetadata(id, nil)
 	err := md.Load()
 	return md, err
 }
