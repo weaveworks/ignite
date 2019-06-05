@@ -1,99 +1,59 @@
 package filter
 
 import (
-	"io/ioutil"
+	"github.com/luxas/ignite/pkg/metadata"
 )
 
-type LoadFunc func(string) (Filterable, error)
-
-type Filter interface {
-	Filter(Filterable) ([]string, error)
-}
-
-type Filterable interface{}
-
-type match struct {
-	object  Filterable
-	strings []string
-}
-
 type filterer struct {
-	filter  Filter
-	sources []Filterable
+	filter  metadata.Filter
+	sources []metadata.AnyMetadata
 }
 
-func NewFilterer(filter Filter, path string, loadFunc LoadFunc) (*filterer, error) {
-	var sources []Filterable
-
-	entries, err := ioutil.ReadDir(path)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			filterable, err := loadFunc(entry.Name())
-			if err != nil {
-				return nil, err
-			}
-
-			sources = append(sources, filterable)
-		}
-	}
-
+func NewFilterer(filter metadata.Filter, sources []metadata.AnyMetadata) (*filterer, error) {
 	return &filterer{
 		filter:  filter,
 		sources: sources,
 	}, nil
 }
 
-func (f *filterer) match() ([]*match, error) {
-	var matches []*match
+func (f *filterer) match() []*metadata.Match {
+	var matches []*metadata.Match
 
 	for _, object := range f.sources {
-		strings, err := f.filter.Filter(object)
-		if err != nil {
-			return nil, err
-		}
+		strings := f.filter.Filter(object)
 
 		if len(strings) > 0 {
-			matches = append(matches, &match{
-				object:  object,
-				strings: strings,
+			matches = append(matches, &metadata.Match{
+				Object:  object,
+				Strings: strings,
 			})
 		}
 	}
 
-	return matches, nil
+	return matches
 }
 
-func (f *filterer) Single() (Filterable, error) {
-	matches, err := f.match()
-	if err != nil {
-		return nil, err
-	}
+func (f *filterer) Single() (metadata.AnyMetadata, error) {
+	matches := f.match()
 
 	if len(matches) == 0 {
-		return nil, NewErrNonexistent()
+		return nil, f.filter.ErrNonexistent()
 	}
 
 	if len(matches) > 1 {
-		return nil, NewErrAmbiguous(matches)
+		return nil, f.filter.ErrAmbiguous(matches)
 	}
 
-	return matches[0].object, nil
+	return matches[0].Object, nil
 }
 
-func (f *filterer) All() ([]Filterable, error) {
-	matches, err := f.match()
-	if err != nil {
-		return nil, err
-	}
+func (f *filterer) All() []metadata.AnyMetadata {
+	matches := f.match()
 
-	objects := make([]Filterable, 0, len(matches))
+	objects := make([]metadata.AnyMetadata, 0, len(matches))
 	for _, match := range matches {
-		objects = append(objects, match.object)
+		objects = append(objects, match.Object)
 	}
 
-	return objects, nil
+	return objects
 }

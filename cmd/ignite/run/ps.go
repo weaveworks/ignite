@@ -26,15 +26,18 @@ func Ps(po *PsOptions) error {
 			return fmt.Errorf("failed to get size for %s %q: %v", vm.Type, vm.ID, err)
 		}
 
-		image, err := imgmd.LoadImageMetadata(od.ImageID)
+		imageAny, err := imgmd.LoadImageMetadata(od.ImageID)
 		if err != nil {
 			return fmt.Errorf("failed to load image metadata for %s %q: %v", vm.Type, vm.ID, err)
 		}
 
-		kernel, err := kernmd.LoadKernelMetadata(od.KernelID)
+		kernelAny, err := kernmd.LoadKernelMetadata(od.KernelID)
 		if err != nil {
 			return fmt.Errorf("failed to load kernel metadata for %s %q: %v", vm.Type, vm.ID, err)
 		}
+
+		image := imgmd.ToImageMetadata(imageAny)
+		kernel := kernmd.ToKernelMetadata(kernelAny)
 
 		// TODO: Clean up this print
 		o.Write(vm.ID, image.Name.String(), kernel.Name.String(), vm.Created, datasize.ByteSize(size).HR(), od.VCPUs,
