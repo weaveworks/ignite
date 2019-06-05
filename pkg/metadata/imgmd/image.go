@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"io/ioutil"
 	"path/filepath"
-	//"archive/tar"
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/util"
@@ -36,23 +35,18 @@ func (md *ImageMetadata) AllocateAndFormat(size int64) error {
 		return errors.Wrapf(err, "failed to allocate space for image %s", md.ID)
 	}
 
-	//blank := make([]byte, 1024*1024)
-	//for i := 0; i < 4096; i++ {
-	//	_, _ = imageFile.Write(blank)
-	//}
-	//_ = imageFile.Close()
-
-	// Use mkfs.ext4 to create the new image with an inode size of 128 (gexto doesn't support the default of 256)
-	if _, err := util.ExecuteCommand("mkfs.ext4", "-I", "128", "-E", "lazy_itable_init=0,lazy_journal_init=0", p); err != nil {
+	// Use mkfs.ext4 to create the new image with an inode size of 256
+	// (gexto doesn't support anything but 128, but as long as we're not using that it's fine)
+	if _, err := util.ExecuteCommand("mkfs.ext4", "-I", "256", "-E", "lazy_itable_init=0,lazy_journal_init=0", p); err != nil {
 		return errors.Wrapf(err, "failed to format image %s", md.ID)
 	}
 
 	return nil
 }
 
-// Adds all the files from the given rootfs tar to the image
+// AddFilesWithGexto adds all the files from the given rootfs tar to the image
 // TODO: Fix the "corrupt direntry" error from gexto
-func (md *ImageMetadata) AddFiles(sourcePath string) error {
+func (md *ImageMetadata) AddFilesWithGexto(sourcePath string) error {
 	// TODO: This
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 	filesystem, err := gexto.NewFileSystem(p)
@@ -111,35 +105,11 @@ func (md *ImageMetadata) AddFiles(sourcePath string) error {
 	}
 
 	filesystem.Close()
-
-	fmt.Println("Open success!")
-
-	return nil
-	// We need to open each file in the rootfs.tar and write it into fs
-}
-
-// mount-based file adder (temporary, requires root)
-func (md *ImageMetadata) AddFiles2(sourcePath string) error {
-	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
-	tempDir, err := ioutil.TempDir("", "")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(tempDir)
-
-	if _, err := util.ExecuteCommand("sudo", "mount", "-o", "loop", p, tempDir); err != nil {
-		return errors.Wrapf(err, "failed to mount image %s", p)
-	}
-	defer util.ExecuteCommand("sudo", "umount", tempDir)
-
-	if err := archiver.Unarchive(sourcePath, tempDir); err != nil {
-		return err
-	}
-
 	return nil
 }
 
-func (md *ImageMetadata) AddFiles3(sourcePath string) error {
+// AddFiles copies the contents of the tar file into the ext4 filesystem
+func (md *ImageMetadata) AddFiles(sourcePath string) error {
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 	tempDir, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -155,8 +125,33 @@ func (md *ImageMetadata) AddFiles3(sourcePath string) error {
 	if _, err := util.ExecuteCommand("tar", "-xf", sourcePath, "-C", tempDir); err != nil {
 		return err
 	}
+	return md.SetupResolvConf(tempDir)
+}
 
-	return nil
+// SetupResolvConf makes sure there is a resolv.conf file, otherwise
+// name resolution won't work. The kernel uses DHCP by default, and
+// puts the nameservers in /proc/net/pnp at runtime. Hence, as a default,
+// if /etc/resolv.conf doesn't exist, we can use /proc/net/pnp as /etc/resolv.conf
+func (md *ImageMetadata) SetupResolvConf(tempDir string) error {
+	resolvConf := filepath.Join(tempDir, "/etc/resolv.conf")
+	fileInfo, err := os.Stat(resolvConf)
+	// Check if there was an unexpected error
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	// The file exists, and has content. Proceed as usual
+	if err == nil && fileInfo.Size() > 0 {
+		return nil
+	}
+	// The file exists, but has no content. Remove the file to allow the symlink
+	if err == nil && fileInfo.Size() == 0 {
+		fmt.Println("Removing empty /etc/resolv.conf")
+		if err := os.Remove(resolvConf); err != nil {
+			return err
+		}
+	}
+	fmt.Println("Symlinking /etc/resolv.conf to /proc/net/pnp")
+	return os.Symlink("../proc/net/pnp", resolvConf)
 }
 
 func (md *ImageMetadata) ExportKernel() (string, error) {
