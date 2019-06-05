@@ -57,15 +57,17 @@ type VMObjectData struct {
 	VCPUs    int64
 	Memory   int64
 	IPAddrs  []net.IP
+	KernelCmd string
 }
 
-func NewVMObjectData(imageID, kernelID string, vCPUs, memory int64) *VMObjectData {
+func NewVMObjectData(imageID, kernelID string, vCPUs, memory int64, kernelCmd string) *VMObjectData {
 	return &VMObjectData{
 		KernelID: kernelID,
 		ImageID:  imageID,
 		State:    Created,
 		VCPUs:    vCPUs,
 		Memory:   memory,
+		KernelCmd: kernelCmd,
 	}
 }
 

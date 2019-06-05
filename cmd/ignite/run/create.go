@@ -22,6 +22,7 @@ type CreateOptions struct {
 	Memory    int64
 	Size      string
 	CopyFiles []string
+	KernelCmd string 
 	VMNames   []*metadata.Name
 }
 
@@ -46,7 +47,7 @@ func Create(co *CreateOptions) error {
 
 	// Create new metadata for the VM and add to createOptions for further processing
 	// This enables the generated VM metadata to pass straight to start and attach via run
-	co.vm = vmmd.NewVMMetadata(vmID, name, vmmd.NewVMObjectData(co.Image.ID, co.Kernel.ID, co.CPUs, co.Memory))
+	co.vm = vmmd.NewVMMetadata(vmID, name, vmmd.NewVMObjectData(co.Image.ID, co.Kernel.ID, co.CPUs, co.Memory, co.KernelCmd))
 
 	// Save the metadata
 	if err := co.vm.Save(); err != nil {

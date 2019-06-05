@@ -180,10 +180,15 @@ func RunVM(md *vmmd.VMMetadata, dhcpIfaces *[]DHCPInterface) error {
 		})
 	}
 
+	kernelCmd := od.KernelCmd
+	if len(kernelCmd) == 0 {
+		kernelCmd = constants.VM_KERNEL_ARGS
+	}
+
 	cfg := firecracker.Config{
 		SocketPath:      constants.SOCKET_PATH,
 		KernelImagePath: path.Join(constants.KERNEL_DIR, od.KernelID, constants.KERNEL_FILE),
-		KernelArgs:      constants.VM_KERNEL_ARGS,
+		KernelArgs:      kernelCmd,
 		Drives: []models.Drive{{
 			DriveID:      firecracker.String("1"),
 			PathOnHost:   &drivePath,
