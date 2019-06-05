@@ -26,6 +26,33 @@ func ExecuteCommand(command string, args ...string) (string, error) {
 	return string(bytes.TrimSpace(out)), nil
 }
 
+func ExecuteCommandStdin(command string, input []byte, args ...string) (string, error) {
+	cmd := exec.Command(command, args...)
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return "", err
+	}
+
+	fmt.Printf("Writing: %q\n", input)
+
+	if _, err := stdin.Write(input); err != nil {
+		return "", err
+	}
+
+	if err := stdin.Close(); err != nil {
+		return "", err
+	}
+
+	out, err := cmd.CombinedOutput()
+	cmdArgs := strings.Join(cmd.Args, " ")
+	//log.Debugf("Command %q returned %q\n", cmdArgs, out)
+	if err != nil {
+		return "", errors.Wrapf(err, "command %q exited with %q", cmdArgs, out)
+	}
+
+	return string(bytes.TrimSpace(out)), nil
+}
+
 func ExecForeground(command string, args ...string) (int, error) {
 	cmd := exec.Command(command, args...)
 	cmd.Stdin = os.Stdin
