@@ -14,7 +14,7 @@ import (
 
 const (
 	hostsFileTmpl = `127.0.0.1	localhost
-127.0.1.1	%s
+%s	%s
 # The following lines are desirable for IPv6 capable hosts
 ::1     ip6-localhost ip6-loopback
 fe00::0 ip6-localnet
@@ -72,12 +72,16 @@ func (md *VMMetadata) CopyToOverlay(fileMappings map[string]string) error {
 		}
 	}
 
-	return md.WriteEtcHosts(mp.Path, md.ID)
+	ip := net.IP{127, 0, 0, 1}
+	if len(md.VMOD().IPAddrs) > 0 {
+		ip = md.VMOD().IPAddrs[0]
+	}
+	return md.WriteEtcHosts(mp.Path, md.ID, ip)
 }
 
 // WriteEtcHosts populates the /etc/hosts file to avoid errors like
 // sudo: unable to resolve host 4462576f8bf5b689
-func (md *VMMetadata) WriteEtcHosts(tmpDir, hostname string) error {
+func (md *VMMetadata) WriteEtcHosts(tmpDir, hostname string, primaryIP net.IP) error {
 	hostFilePath := filepath.Join(tmpDir, "/etc/hosts")
 	empty, err := util.FileIsEmpty(hostFilePath)
 	if err != nil {
@@ -86,7 +90,7 @@ func (md *VMMetadata) WriteEtcHosts(tmpDir, hostname string) error {
 	if !empty {
 		return nil
 	}
-	content := []byte(fmt.Sprintf(hostsFileTmpl, hostname))
+	content := []byte(fmt.Sprintf(hostsFileTmpl, primaryIP.String(), hostname))
 	return ioutil.WriteFile(hostFilePath, content, 0644)
 }
 
