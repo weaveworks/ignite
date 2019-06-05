@@ -39,7 +39,7 @@ func Start(so *StartOptions) error {
 	dockerArgs := []string{
 		"run",
 		"-itd",
-		"--rm",
+		//"--rm",
 		fmt.Sprintf("--label=ignite.name=%s", so.VM.Name),
 		fmt.Sprintf("--name=%s", constants.IGNITE_PREFIX + so.VM.ID),
 		fmt.Sprintf("-v=%s:/ignite/ignite", igniteBinary),
