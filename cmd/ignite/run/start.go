@@ -40,7 +40,7 @@ func Start(so *StartOptions) error {
 		"run",
 		"-itd",
 		//"--rm",
-		fmt.Sprintf("--label=ignite.name=%s", so.VM.Name),
+		fmt.Sprintf("--label=ignite.name=%s", so.VM.Name.String()),
 		fmt.Sprintf("--name=%s", constants.IGNITE_PREFIX + so.VM.ID),
 		fmt.Sprintf("-v=%s:/ignite/ignite", igniteBinary),
 		fmt.Sprintf("-v=%s:%s", constants.DATA_DIR, constants.DATA_DIR),
