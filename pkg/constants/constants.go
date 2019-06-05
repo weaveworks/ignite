@@ -50,7 +50,7 @@ const (
 	SOCKET_PATH = "/tmp/firecracker.sock"
 
 	// Common VM kernel parameters
-	VM_KERNEL_ARGS = "console=ttyS0 reboot=k panic=1 pci=off"
+	VM_KERNEL_ARGS = "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp"
 
 	// In-container path for the firecracker log FIFO
 	LOG_FIFO = "/tmp/firecracker_log.fifo"
