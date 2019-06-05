@@ -1,16 +1,15 @@
 package vmmd
 
 import (
-	"github.com/luxas/ignite/pkg/filter"
-	"github.com/luxas/ignite/pkg/util"
+	"github.com/luxas/ignite/pkg/metadata"
 )
 
 // Compile-time assert to verify interface compatibility
-var _ filter.Filter = &VMFilter{}
+var _ metadata.Filter = &VMFilter{}
 
 type VMFilter struct {
-	prefix string
-	all    bool
+	*metadata.IDNameFilter
+	all bool
 }
 
 func NewVMFilter(p string) *VMFilter {
@@ -19,33 +18,18 @@ func NewVMFilter(p string) *VMFilter {
 
 func NewVMFilterAll(p string, all bool) *VMFilter {
 	return &VMFilter{
-		prefix: p,
-		all:    all,
+		IDNameFilter: metadata.NewIDNameFilter(p, metadata.VM),
+		all:          all,
 	}
 }
 
-func (n *VMFilter) Filter(f filter.Filterable) ([]string, error) {
-	md, err := ToVMMetadata(f)
-	if err != nil {
-		return nil, err
-	}
-
+func (n *VMFilter) Filter(any metadata.AnyMetadata) []string {
 	// Option to list just running VMs
 	if !n.all {
-		if md.VMOD().State != Running {
-			return nil, nil
+		if ToVMMetadata(any).VMOD().State != Running {
+			return nil
 		}
 	}
 
-	return util.MatchPrefix(n.prefix, md.ID, md.Name.String()), nil
-}
-
-func LoadVMMetadata(id string) (*VMMetadata, error) {
-	md := NewVMMetadata(id, nil, &VMObjectData{}) // A blank name triggers an unnecessary name generation
-	err := md.Load()
-	return md, err
-}
-
-func LoadVMMetadataFilterable(id string) (filter.Filterable, error) {
-	return LoadVMMetadata(id)
+	return n.IDNameFilter.Filter(any)
 }

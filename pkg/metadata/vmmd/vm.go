@@ -10,17 +10,6 @@ import (
 	"path"
 )
 
-//func (md *VMMetadata) CopyImage() error {
-//	od := md.VMOD()
-//
-//	if err := util.CopyFile(path.Join(constants.IMAGE_DIR, od.ImageID, constants.IMAGE_FS),
-//		path.Join(md.ObjectPath(), constants.IMAGE_FS)); err != nil {
-//		return fmt.Errorf("failed to copy image %q to VM %q: %v", od.ImageID, md.ID, err)
-//	}
-//
-//	return nil
-//}
-
 func (md *VMMetadata) AllocateOverlay(size uint64) error {
 	// Truncate only accepts an int64
 	if size > math.MaxInt64 {
