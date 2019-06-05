@@ -92,7 +92,7 @@ func Build(bo *BuildOptions) error {
 	}
 
 	// Add the files to the filesystem
-	if err := bo.image.AddFiles3(tarFilePath); err != nil {
+	if err := bo.image.AddFiles(tarFilePath); err != nil {
 		return err
 	}
 
