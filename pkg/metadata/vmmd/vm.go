@@ -1,6 +1,8 @@
 package vmmd
 
 import (
+	"io/ioutil"
+	"path/filepath"
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/util"
@@ -8,6 +10,18 @@ import (
 	"net"
 	"os"
 	"path"
+)
+
+const (
+	hostsFileTmpl = `127.0.0.1	localhost
+127.0.1.1	%s
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+`
 )
 
 func (md *VMMetadata) AllocateOverlay(size uint64) error {
@@ -58,7 +72,22 @@ func (md *VMMetadata) CopyToOverlay(fileMappings map[string]string) error {
 		}
 	}
 
-	return nil
+	return md.WriteEtcHosts(mp.Path, md.ID)
+}
+
+// WriteEtcHosts populates the /etc/hosts file to avoid errors like
+// sudo: unable to resolve host 4462576f8bf5b689
+func (md *VMMetadata) WriteEtcHosts(tmpDir, hostname string) error {
+	hostFilePath := filepath.Join(tmpDir, "/etc/hosts")
+	empty, err := util.FileIsEmpty(hostFilePath)
+	if err != nil {
+		return err
+	}
+	if !empty {
+		return nil
+	}
+	content := []byte(fmt.Sprintf(hostsFileTmpl, hostname))
+	return ioutil.WriteFile(hostFilePath, content, 0644)
 }
 
 func (md *VMMetadata) SetState(s state) error {

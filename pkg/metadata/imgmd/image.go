@@ -134,23 +134,14 @@ func (md *ImageMetadata) AddFiles(sourcePath string) error {
 // if /etc/resolv.conf doesn't exist, we can use /proc/net/pnp as /etc/resolv.conf
 func (md *ImageMetadata) SetupResolvConf(tempDir string) error {
 	resolvConf := filepath.Join(tempDir, "/etc/resolv.conf")
-	fileInfo, err := os.Stat(resolvConf)
-	// Check if there was an unexpected error
-	if err != nil && !os.IsNotExist(err) {
+	empty, err := util.FileIsEmpty(resolvConf)
+	if err != nil {
 		return err
 	}
-	// The file exists, and has content. Proceed as usual
-	if err == nil && fileInfo.Size() > 0 {
+	if !empty {
 		return nil
 	}
-	// The file exists, but has no content. Remove the file to allow the symlink
-	if err == nil && fileInfo.Size() == 0 {
-		fmt.Println("Removing empty /etc/resolv.conf")
-		if err := os.Remove(resolvConf); err != nil {
-			return err
-		}
-	}
-	fmt.Println("Symlinking /etc/resolv.conf to /proc/net/pnp")
+	//fmt.Println("Symlinking /etc/resolv.conf to /proc/net/pnp")
 	return os.Symlink("../proc/net/pnp", resolvConf)
 }
 
