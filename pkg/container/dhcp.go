@@ -9,15 +9,6 @@ import (
 	"github.com/krolaw/dhcp4/conn"
 )
 
-//var (
-//	sourceIPFlag   = flag.String("source-ip", "", "The source IP by the DHCP server")
-//	gatewayIPFlag  = flag.String("gateway-ip", "", "The IP of the default gateway")
-//	clientIPFlag   = flag.String("client-ip", "", "The IP for the one lease this DHCP server serves for the MAC address specified")
-//	clientMACFlag  = flag.String("client-mac", "", "The MAC address that should be recognized and get the IP specified")
-//	ifaceFlag      = flag.String("iface", "br0", "The bridge to listen on")
-//	subnetMaskFlag = flag.String("subnet-mask", "255.255.0.0", "The subnet for network")
-//)
-
 var leaseDuration, _ = time.ParseDuration(constants.DHCP_INFINITE_LEASE) // Infinite lease time
 
 type DHCPInterface struct {
