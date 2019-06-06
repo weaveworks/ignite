@@ -73,6 +73,11 @@ func (md *VMMetadata) SetupSnapshot() error {
 		return err
 	}
 
+	// Repair the filesystem in case it has errors
+	if _, err := util.ExecuteCommand("e2fsck", "-p", devicePath); err != nil {
+		return err
+	}
+
 	// If the overlay is larger than the image, call resize2fs to make the filesystem fill the overlay
 	if overlayLoopSize > imageLoopSize {
 		if _, err := util.ExecuteCommand("resize2fs", devicePath); err != nil {
