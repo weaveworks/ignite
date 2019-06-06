@@ -1,6 +1,7 @@
 UID_GID?=$(shell id -u):$(shell id -g)
 FIRECRACKER_VERSION:=$(shell cat hack/FIRECRACKER_VERSION)
 GO_VERSION=1.12
+DOCKER_USER=weaveworks
 
 all: binary
 binary:
@@ -18,13 +19,15 @@ bin/ignite:
 	CGO_ENABLED=0 go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/ignite ./cmd/ignite
 
 image:
-	docker build -t weaveworks/ignite:${FIRECRACKER_VERSION} \
+	docker build -t ${DOCKER_USER}/ignite:${FIRECRACKER_VERSION} \
 		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} .
 
-image-push:
-	docker push weaveworks/ignite:${FIRECRACKER_VERSION}
+image-push: image
+	docker push ${DOCKER_USER}/ignite:${FIRECRACKER_VERSION}
 
 tidy:
+	go mod tidy
+	go mod vendor
 	gofmt -s -w pkg cmd
 	goimports -w pkg cmd
 	go run hack/cobra.go
