@@ -20,3 +20,6 @@ bin/ignite:
 image:
 	docker build -t weaveworks/ignite:${FIRECRACKER_VERSION} \
 		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} .
+
+image-push:
+	docker push weaveworks/ignite:${FIRECRACKER_VERSION}
