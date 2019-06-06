@@ -14,7 +14,7 @@ type Name struct {
 }
 
 const (
-	nameRegex = "^[a-z-_]*$"
+	nameRegex = `^[a-z-_0-9.]*$`
 )
 
 // Compile-time assert to verify interface compatibility
