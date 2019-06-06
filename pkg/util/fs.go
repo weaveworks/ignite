@@ -100,7 +100,7 @@ func (mp *MountPoint) Umount() error {
 	return nil
 }
 
-// FileIsEmpty returns true if the file is empty 
+// FileIsEmpty returns true if the file is empty
 func FileIsEmpty(file string) (bool, error) {
 	fileInfo, err := os.Stat(file)
 	// Check if there was an unexpected error

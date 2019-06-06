@@ -6,12 +6,12 @@ import (
 )
 
 var (
-	gitMajor = ""
-	gitMinor = ""
-	gitVersion = ""
-	gitCommit = ""
-	gitTreeState = ""
-	buildDate = ""
+	gitMajor           = ""
+	gitMinor           = ""
+	gitVersion         = ""
+	gitCommit          = ""
+	gitTreeState       = ""
+	buildDate          = ""
 	firecrackerVersion = ""
 )
 
@@ -36,12 +36,12 @@ func (info Info) String() string {
 // GetIgnite gets ignite's version
 func GetIgnite() Info {
 	return Info{
-		Major: gitMajor,
-		Minor: gitMinor,
-		GitVersion: gitVersion,
-		GitCommit: gitCommit,
+		Major:        gitMajor,
+		Minor:        gitMinor,
+		GitVersion:   gitVersion,
+		GitCommit:    gitCommit,
 		GitTreeState: gitTreeState,
-		BuildDate: buildDate,
+		BuildDate:    buildDate,
 		GoVersion:    runtime.Version(),
 		Compiler:     runtime.Compiler,
 		Platform:     fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
