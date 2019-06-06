@@ -11,9 +11,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/util"
-	"github.com/pkg/errors"
 )
 
 type ImageSource struct {

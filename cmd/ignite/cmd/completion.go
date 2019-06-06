@@ -4,8 +4,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/weaveworks/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // completionCmd represents the completion command

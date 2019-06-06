@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
-	"github.com/goombaio/namegenerator"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/goombaio/namegenerator"
 )
 
 func ExecuteCommand(command string, args ...string) (string, error) {

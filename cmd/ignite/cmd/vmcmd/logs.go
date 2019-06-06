@@ -6,8 +6,8 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 
-	"github.com/weaveworks/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdLogs gets the logs for a Firecracker VM

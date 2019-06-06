@@ -3,8 +3,8 @@ package cmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
 )
 
 // NewCmdCreate is an alias for vmcmd.NewCmdCreate

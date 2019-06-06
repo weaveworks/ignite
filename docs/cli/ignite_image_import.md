@@ -4,7 +4,10 @@ Import a VM base image
 
 ### Synopsis
 
-TODO
+
+Import a new base image for VMs. This command takes in an existing ext4 block
+device file. Used in conjunction with "export" (not yet implemented).
+
 
 ```
 ignite image import [path] [flags]
