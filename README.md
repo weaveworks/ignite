@@ -4,6 +4,11 @@ Ignite is a containerized Firecracker microVM administration tool.
 It can build VM images, spin VMs up/down and manage multiple VMs efficiently.
 Integrates well with cloud-native projects like CNI, containerd and Docker.
 
+The idea is that Ignite makes Firecracker VMs look like Docker containers.
+So we can deploy and manage workloads just like K8s workloads.  The images
+are Docker images and have the same API but they are as fast and secure as 
+Firecracker VMs.
+
 ### How to use
 
 ```console
