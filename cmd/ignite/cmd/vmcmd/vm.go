@@ -3,15 +3,19 @@ package vmcmd
 import (
 	"io"
 
+	"github.com/lithammer/dedent"
+
 	"github.com/spf13/cobra"
 )
 
 // NewCmdVM handles VM-related functionality via its subcommands
 func NewCmdVM(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "vm",
-		Short:   "Manage VMs",
-		Long:    "TODO", // TODO: Long descriptions for this and subcommands
+		Use:   "vm",
+		Short: "Manage VMs",
+		Long: dedent.Dedent(`
+			Groups together functionality for managing VMs.
+		`),
 		Aliases: []string{"vms"},
 	}
 

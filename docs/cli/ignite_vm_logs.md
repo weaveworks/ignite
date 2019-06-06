@@ -4,7 +4,10 @@ Get the logs for a running VM
 
 ### Synopsis
 
-Get the logs for a running VM
+
+Show the logs for the given VM. The VM needs to be running (its backing
+container needs to exist). The VM is matched by prefix based on its ID and name.
+
 
 ```
 ignite vm logs [vm] [flags]

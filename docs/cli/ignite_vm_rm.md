@@ -4,7 +4,12 @@ Remove VMs
 
 ### Synopsis
 
-Remove VMs
+
+Remove one or multiple VMs. The VMs are matched by prefix based
+on their ID and name. To remove multiple VMs, chain the matches
+separated by spaces. The force flag (-f, --force) kills running
+VMs before removal instead of throwing an error.
+
 
 ```
 ignite vm rm [vm]... [flags]

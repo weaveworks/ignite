@@ -4,7 +4,10 @@ List running VMs
 
 ### Synopsis
 
-List running VMs
+
+List all running VMs. By specifying the all flag (-a, --all),
+also list VMs that are not currently running.
+
 
 ```
 ignite vm ps [flags]

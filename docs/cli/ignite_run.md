@@ -4,7 +4,20 @@ Create a new VM and start it
 
 ### Synopsis
 
-Create a new VM and start it
+
+Create and start a new VM immediately. The image and kernel are matched by
+prefix based on their ID and name. This command accepts all flags used to
+create and start a VM. The interactive flag (-i, --interactive) can be
+specified to immediately attach to the started VM after creation.
+
+Example usage:
+	$ ignite run my-image my-kernel \
+		--interactive \
+		--name my-vm \
+		--cpus 2 \
+		--memory 2048 \
+		--size 10G
+
 
 ```
 ignite run [image] [kernel] [flags]

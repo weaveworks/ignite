@@ -3,6 +3,8 @@ package vmcmd
 import (
 	"io"
 
+	"github.com/lithammer/dedent"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
@@ -18,6 +20,10 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 		Use:     "ps",
 		Short:   "List running VMs",
 		Aliases: []string{"ls", "list"},
+		Long: dedent.Dedent(`
+			List all running VMs. By specifying the all flag (-a, --all),
+			also list VMs that are not currently running.
+		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error

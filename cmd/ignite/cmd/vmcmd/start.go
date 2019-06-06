@@ -3,6 +3,8 @@ package vmcmd
 import (
 	"io"
 
+	"github.com/lithammer/dedent"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
@@ -17,7 +19,12 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start [vm]",
 		Short: "Start a VM",
-		Args:  cobra.MinimumNArgs(1),
+		Long: dedent.Dedent(`
+			Start the given VM. The VM is matched by prefix based on its ID and name.
+			If the interactive flag (-i, --interactive) is specified, attach to the
+			VM after starting.
+		`),
+		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error

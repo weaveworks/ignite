@@ -3,6 +3,8 @@ package vmcmd
 import (
 	"io"
 
+	"github.com/lithammer/dedent"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
@@ -16,10 +18,27 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 	co := &run.CreateOptions{}
 
 	cmd := &cobra.Command{
-		// TODO: ValidArgs and different metadata loading setup?
 		Use:   "create [image] [kernel]",
 		Short: "Create a new VM without starting it",
-		Args:  cobra.MinimumNArgs(2),
+		Long: dedent.Dedent(`
+			Create a new VM by combining the given image and kernel.
+			Various VM tunables can be set during creation by using
+			the flags for this command. The image and kernel are
+			matched by prefix based on their ID and name.
+			
+			If the name flag (-n, --name) is not specified,
+			the VM is given a random name. Using the copy files
+			flag (-f, --copy-files), additional files can be added to
+			the VM during creation with the syntax /host/path:/vm/path.
+
+			Example usage:
+				$ ignite create my-image my-kernel \
+					--name my-vm \
+					--cpus 2 \
+					--memory 2048 \
+					--size 6GB
+		`),
+		Args: cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error

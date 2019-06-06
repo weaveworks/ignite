@@ -5,7 +5,7 @@ Manage VM base images
 ### Synopsis
 
 
-"image" groups together functionality for managing VM base images.
+Groups together functionality for managing VM base images.
 Calling this command alone lists all available images.
 
 

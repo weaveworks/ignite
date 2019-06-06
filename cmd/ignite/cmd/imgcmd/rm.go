@@ -20,9 +20,9 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 		Use:   "rm [image]...",
 		Short: "Remove VM base images",
 		Long: dedent.Dedent(`
-			Remove one or multiple VM base images. Images are matched by prefix based
-			on their ID and name. To remove multiple images, chain the matches separated
-			by spaces. The "--force" flag kills and removes any running VMs using the image.
+			Remove one or multiple VM base images. Images are matched by prefix based on
+			their ID and name. To remove multiple images, chain the matches separated by spaces.
+			The force flag (-f, --force) kills and removes any running VMs using the image.
 		`),
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {

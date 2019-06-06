@@ -8,9 +8,15 @@ ignite: easily run Firecracker VMs
 Ignite is a containerized Firecracker microVM administration tool.
 It can build VM images, spin VMs up/down and manage multiple VMs efficiently.
 
-Example usage:
+Administration is divided into three subcommands:
+  image       Manage VM base images
+  kernel      Manage VM kernels
+  vm          Manage VMs
 
-    $ ignite build luxas/ubuntu-base:18.04 \
+Image + Kernel = VM
+
+Example usage:
+	$ ignite build luxas/ubuntu-base:18.04 \
 		--name my-image \
 		--import-kernel my-kernel
 	$ ignite images
