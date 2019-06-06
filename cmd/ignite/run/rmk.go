@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/luxas/ignite/pkg/metadata/kernmd"
-	"github.com/luxas/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
+	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
 type RmkOptions struct {

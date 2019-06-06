@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"github.com/c2h5oh/datasize"
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/metadata"
-	"github.com/luxas/ignite/pkg/metadata/imgmd"
-	"github.com/luxas/ignite/pkg/metadata/kernmd"
-	"github.com/luxas/ignite/pkg/metadata/vmmd"
-	"github.com/luxas/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/metadata"
+	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
+	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
+	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type CreateOptions struct {

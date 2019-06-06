@@ -1,7 +1,7 @@
 package kernmd
 
 import (
-	"github.com/luxas/ignite/pkg/metadata"
+	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
 // Verify that VMMetadata implements AnyMetadata

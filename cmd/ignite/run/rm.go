@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/luxas/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
 type RmOptions struct {

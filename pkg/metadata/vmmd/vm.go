@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 
 	"github.com/c2h5oh/datasize"
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 const (

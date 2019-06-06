@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/luxas/ignite/cmd/ignite/cmd"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd"
 )
 
 func main() {

@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/luxas/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/constants"
 
 	dhcp "github.com/krolaw/dhcp4"
 	"github.com/krolaw/dhcp4/conn"

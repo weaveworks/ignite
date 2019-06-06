@@ -4,10 +4,10 @@ import (
 	"io"
 	"os"
 
-	"github.com/luxas/ignite/cmd/ignite/cmd/imgcmd"
-	"github.com/luxas/ignite/cmd/ignite/cmd/kerncmd"
-	"github.com/luxas/ignite/cmd/ignite/cmd/vmcmd"
-	"github.com/luxas/ignite/pkg/util"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/imgcmd"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/kerncmd"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
+	"github.com/weaveworks/ignite/pkg/util"
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"

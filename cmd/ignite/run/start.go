@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/util"
-	"github.com/luxas/ignite/pkg/version"
+	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/version"
 )
 
 type StartOptions struct {

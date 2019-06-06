@@ -3,7 +3,7 @@ package cmd
 import (
 	"io"
 
-	"github.com/luxas/ignite/cmd/ignite/cmd/kerncmd"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/kerncmd"
 	"github.com/spf13/cobra"
 )
 

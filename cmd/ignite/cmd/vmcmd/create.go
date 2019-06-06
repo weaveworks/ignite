@@ -3,10 +3,10 @@ package vmcmd
 import (
 	"io"
 
-	"github.com/luxas/ignite/cmd/ignite/cmd/cmdutil"
-	"github.com/luxas/ignite/cmd/ignite/run"
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/errutils"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
+	"github.com/weaveworks/ignite/cmd/ignite/run"
+	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )

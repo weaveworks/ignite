@@ -4,7 +4,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/luxas/ignite/pkg/errutils"
+	"github.com/weaveworks/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
 )
 

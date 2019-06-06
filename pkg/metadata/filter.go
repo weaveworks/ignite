@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/luxas/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type Match struct {

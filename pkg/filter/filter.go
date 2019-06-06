@@ -1,7 +1,7 @@
 package filter
 
 import (
-	"github.com/luxas/ignite/pkg/metadata"
+	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
 type filterer struct {

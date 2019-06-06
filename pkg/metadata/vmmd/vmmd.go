@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net"
 
-	"github.com/luxas/ignite/pkg/metadata"
+	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
 type state int
