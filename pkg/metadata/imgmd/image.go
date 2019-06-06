@@ -31,7 +31,8 @@ func (md *ImageMetadata) AllocateAndFormat(size int64) error {
 	defer imageFile.Close()
 
 	// The base image is the size of the tar file, plus 100MB
-	if err := imageFile.Truncate(size + 100 * 1024 * 1024); err != nil {
+	// TODO: This is temporary only, until we make DM snapshot overlays work.
+	if err := imageFile.Truncate(size + 4000 * 1024 * 1024); err != nil {
 		return errors.Wrapf(err, "failed to allocate space for image %s", md.ID)
 	}
 

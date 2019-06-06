@@ -49,7 +49,8 @@ func (md *VMMetadata) SetupSnapshot() error {
 	basePath := imageLoop.Path()
 
 	// TODO: Fix support for overlays smaller than the image
-	if overlayLoopSize > imageLoopSize {
+	// TODO: Make this code work in all cases
+	if overlayLoopSize > imageLoopSize && false {
 		fmt.Println("Overlay larger than image!")
 
 		dmBaseTable := []byte(fmt.Sprintf("0 %d linear %s 0\n%d %d zero", imageLoopSize, imageLoop.Path(), imageLoopSize, overlayLoopSize))
@@ -70,7 +71,7 @@ func (md *VMMetadata) SetupSnapshot() error {
 	// dmsetup create newdev --table "0 8388608 snapshot /dev/loop0 /dev/loop1 P 8"
 	dmTable := []string{
 		"0",
-		strconv.FormatUint(overlayLoopSize, 10),
+		strconv.FormatUint(imageLoopSize, 10),  // strconv.FormatUint(overlayLoopSize, 10),
 		"snapshot",
 		basePath,
 		overlayLoop.Path(),
@@ -90,6 +91,9 @@ func (md *VMMetadata) SetupSnapshot() error {
 	}
 
 	// Call resize2fs to make the filesystem fill the overlay
+	if _, err := util.ExecuteCommand("e2fsck", "-f", "-y", devicePath); err != nil {
+		return err
+	}
 	if _, err := util.ExecuteCommand("resize2fs", devicePath); err != nil {
 		return err
 	}
