@@ -2,16 +2,16 @@ package imgmd
 
 import (
 	"archive/tar"
-	"io/ioutil"
-	"path/filepath"
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/mholt/archiver"
 	"github.com/nerd2/gexto"
 	"github.com/pkg/errors"
+	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 )
 
 func (md *ImageMetadata) ImportImage(p string) error {
@@ -31,8 +31,7 @@ func (md *ImageMetadata) AllocateAndFormat(size int64) error {
 	defer imageFile.Close()
 
 	// The base image is the size of the tar file, plus 100MB
-	// TODO: This is temporary only, until we make DM snapshot overlays work.
-	if err := imageFile.Truncate(size + 4000 * 1024 * 1024); err != nil {
+	if err := imageFile.Truncate(size + 100*1024*1024); err != nil {
 		return errors.Wrapf(err, "failed to allocate space for image %s", md.ID)
 	}
 
