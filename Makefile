@@ -23,3 +23,7 @@ image:
 
 image-push:
 	docker push weaveworks/ignite:${FIRECRACKER_VERSION}
+
+tidy:
+	gofmt -s -w pkg cmd
+	goimports -w pkg cmd
