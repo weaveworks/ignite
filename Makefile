@@ -27,3 +27,4 @@ image-push:
 tidy:
 	gofmt -s -w pkg cmd
 	goimports -w pkg cmd
+	go run hack/cobra.go
