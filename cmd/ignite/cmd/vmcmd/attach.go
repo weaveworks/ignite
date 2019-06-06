@@ -1,11 +1,12 @@
 package vmcmd
 
 import (
+	"io"
+
 	"github.com/luxas/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/luxas/ignite/cmd/ignite/run"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
-	"io"
 )
 
 // NewCmdAttach attaches to a running VM

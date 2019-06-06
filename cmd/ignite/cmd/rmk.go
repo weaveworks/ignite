@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"io"
+
 	"github.com/luxas/ignite/cmd/ignite/cmd/kerncmd"
 	"github.com/spf13/cobra"
-	"io"
 )
 
 // NewCmdRmk is an alias for kerncmd.NewCmdRm

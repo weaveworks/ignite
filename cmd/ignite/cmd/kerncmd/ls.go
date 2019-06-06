@@ -1,8 +1,9 @@
 package kerncmd
 
 import (
-	"github.com/spf13/cobra"
 	"io"
+
+	"github.com/spf13/cobra"
 )
 
 // NewCmdLs lists available kernels

@@ -2,9 +2,10 @@ package run
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/luxas/ignite/pkg/metadata/kernmd"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
-	"os"
 )
 
 type RmkOptions struct {

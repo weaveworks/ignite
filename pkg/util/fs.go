@@ -2,10 +2,11 @@ package util
 
 import (
 	"fmt"
-	"github.com/luxas/ignite/pkg/constants"
 	"io"
 	"io/ioutil"
 	"os"
+
+	"github.com/luxas/ignite/pkg/constants"
 )
 
 // Creates the /var/lib/firecracker/{vm,image,kernel} directories

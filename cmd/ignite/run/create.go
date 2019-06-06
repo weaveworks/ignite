@@ -2,6 +2,9 @@ package run
 
 import (
 	"fmt"
+	"path"
+	"strings"
+
 	"github.com/c2h5oh/datasize"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/metadata"
@@ -9,8 +12,6 @@ import (
 	"github.com/luxas/ignite/pkg/metadata/kernmd"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
-	"path"
-	"strings"
 )
 
 type CreateOptions struct {

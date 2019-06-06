@@ -3,18 +3,19 @@ package container
 import (
 	"context"
 	"fmt"
-	"github.com/firecracker-microvm/firecracker-go-sdk"
-	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/metadata/vmmd"
-	"github.com/luxas/ignite/pkg/util"
-	"github.com/pkg/errors"
 	"net"
 	"os"
 	"os/signal"
 	"path"
 	"syscall"
 	"time"
+
+	"github.com/firecracker-microvm/firecracker-go-sdk"
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/metadata/vmmd"
+	"github.com/luxas/ignite/pkg/util"
+	"github.com/pkg/errors"
 )
 
 /*

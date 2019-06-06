@@ -1,12 +1,13 @@
 package imgcmd
 
 import (
+	"io"
+
 	"github.com/luxas/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/luxas/ignite/cmd/ignite/run"
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"io"
 )
 
 // NewCmdBuild builds a new VM image

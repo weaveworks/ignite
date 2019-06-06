@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/luxas/ignite/cmd/ignite/cmd/vmcmd"
 	"io"
+
+	"github.com/luxas/ignite/cmd/ignite/cmd/vmcmd"
 
 	"github.com/spf13/cobra"
 )

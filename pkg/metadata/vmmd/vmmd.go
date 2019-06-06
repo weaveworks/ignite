@@ -2,8 +2,9 @@ package vmmd
 
 import (
 	"encoding/json"
-	"github.com/luxas/ignite/pkg/metadata"
 	"net"
+
+	"github.com/luxas/ignite/pkg/metadata"
 )
 
 type state int

@@ -2,14 +2,15 @@ package run
 
 import (
 	"fmt"
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/util"
-	"github.com/luxas/ignite/pkg/version"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/util"
+	"github.com/luxas/ignite/pkg/version"
 )
 
 type StartOptions struct {

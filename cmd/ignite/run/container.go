@@ -2,11 +2,12 @@ package run
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/luxas/ignite/pkg/container"
 	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/miekg/dns"
-	"os"
 )
 
 type ContainerOptions struct {

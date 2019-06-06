@@ -1,12 +1,13 @@
 package cmd
 
 import (
+	"io"
+	"os"
+
 	"github.com/luxas/ignite/cmd/ignite/cmd/imgcmd"
 	"github.com/luxas/ignite/cmd/ignite/cmd/kerncmd"
 	"github.com/luxas/ignite/cmd/ignite/cmd/vmcmd"
 	"github.com/luxas/ignite/pkg/util"
-	"io"
-	"os"
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"

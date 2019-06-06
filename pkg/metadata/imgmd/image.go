@@ -2,9 +2,6 @@ package imgmd
 
 import (
 	"fmt"
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/util"
-	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"os"
@@ -13,6 +10,10 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/util"
+	"github.com/pkg/errors"
 )
 
 type ImageSource struct {
