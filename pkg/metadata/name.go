@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/weaveworks/ignite/pkg/util"
 	"regexp"
+
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type Name struct {

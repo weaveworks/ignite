@@ -3,8 +3,8 @@ package cmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/imgcmd"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/imgcmd"
 )
 
 // NewCmdRmi is an alias for imgcmd.NewCmdRm

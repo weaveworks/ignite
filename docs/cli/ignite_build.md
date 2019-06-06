@@ -1,10 +1,26 @@
 ## ignite build
 
-Build a VM base image
+Build a new base image for VMs
 
 ### Synopsis
 
-TODO
+
+Build a new base image for VMs. The base image is an ext4
+block device file, which contains a root filesystem.
+
+"build" can take in either a tarfile or a Docker image as the source.
+The Docker image needs to exist on the host system (pulled locally).
+
+If the import kernel flag (-k, --import-kernel) is specified,
+/boot/vmlinux is extracted from the image and added to a new
+VM kernel object named after the flag.
+
+Example usage:
+	$ ignite build my-image.tar
+    $ ignite build luxas/ubuntu-base:18.04 \
+		--name my-image \
+		--import-kernel my-kernel
+
 
 ```
 ignite build [source] [flags]

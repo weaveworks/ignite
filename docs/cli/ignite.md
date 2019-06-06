@@ -30,7 +30,7 @@ Example usage:
 ### SEE ALSO
 
 * [ignite attach](ignite_attach.md)	 - Attach to a running VM
-* [ignite build](ignite_build.md)	 - Build a VM base image
+* [ignite build](ignite_build.md)	 - Build a new base image for VMs
 * [ignite completion](ignite_completion.md)	 - Output bash completion for ignite to stdout
 * [ignite create](ignite_create.md)	 - Create a new VM without starting it
 * [ignite image](ignite_image.md)	 - Manage VM base images

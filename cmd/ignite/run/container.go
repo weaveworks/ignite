@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/miekg/dns"
 	"github.com/weaveworks/ignite/pkg/container"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
-	"github.com/miekg/dns"
 )
 
 type ContainerOptions struct {

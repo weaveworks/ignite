@@ -4,7 +4,9 @@ List available VM base images
 
 ### Synopsis
 
-TODO
+
+List all available VM base images. Outputs the same as the parent command.
+
 
 ```
 ignite image ls [flags]

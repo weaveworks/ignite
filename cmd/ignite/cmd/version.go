@@ -5,8 +5,8 @@ import (
 
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 
-	"github.com/weaveworks/ignite/pkg/errutils"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdVersion provides the version information of ignite

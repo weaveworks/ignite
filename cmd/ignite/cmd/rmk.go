@@ -3,8 +3,8 @@ package cmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/kerncmd"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/kerncmd"
 )
 
 // NewCmdRmk is an alias for kerncmd.NewCmdRm

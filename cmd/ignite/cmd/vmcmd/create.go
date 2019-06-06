@@ -3,12 +3,12 @@ package vmcmd
 import (
 	"io"
 
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/errutils"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 // NewCmdCreate creates a new VM given an image and a kernel

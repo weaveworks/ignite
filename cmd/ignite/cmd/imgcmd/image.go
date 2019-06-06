@@ -1,8 +1,9 @@
 package imgcmd
 
 import (
-	"github.com/lithammer/dedent"
 	"io"
+
+	"github.com/lithammer/dedent"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"

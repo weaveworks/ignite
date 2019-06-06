@@ -4,7 +4,11 @@ Remove VM base images
 
 ### Synopsis
 
-TODO
+
+Remove one or multiple VM base images. Images are matched by prefix based
+on their name and ID. To remove multiple images, chain the matches separated
+by spaces. The "--force" flag kills and removes any running VMs using the image.
+
 
 ```
 ignite rmi [image] [flags]
