@@ -5,9 +5,9 @@ Remove VM base images
 ### Synopsis
 
 
-Remove one or multiple VM base images. Images are matched by prefix based
-on their name and ID. To remove multiple images, chain the matches separated
-by spaces. The "--force" flag kills and removes any running VMs using the image.
+Remove one or multiple VM base images. Images are matched by prefix based on
+their ID and name. To remove multiple images, chain the matches separated by spaces.
+The force flag (-f, --force) kills and removes any running VMs using the image.
 
 
 ```

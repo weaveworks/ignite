@@ -4,7 +4,9 @@ Manage VMs
 
 ### Synopsis
 
-TODO
+
+Groups together functionality for managing VMs.
+
 
 ### Options
 

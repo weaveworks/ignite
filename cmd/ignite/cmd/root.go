@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"io"
 	"os"
 
@@ -15,6 +16,10 @@ import (
 
 // NewIgniteCommand returns the root command for ignite
 func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
+	imageCmd := imgcmd.NewCmdImage(os.Stdout)
+	kernelCmd := kerncmd.NewCmdKernel(os.Stdout)
+	vmCmd := vmcmd.NewCmdVM(os.Stdout)
+
 	root := &cobra.Command{
 		Use:   "ignite",
 		Short: "ignite: easily run Firecracker VMs",
@@ -24,13 +29,19 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 				panic(err)
 			}
 		},
-		Long: dedent.Dedent(`
+		Long: dedent.Dedent(fmt.Sprintf(`
 			Ignite is a containerized Firecracker microVM administration tool.
 			It can build VM images, spin VMs up/down and manage multiple VMs efficiently.
 
-			Example usage:
+			Administration is divided into three subcommands:
+			  image       %s
+			  kernel      %s
+			  vm          %s
 
-			    $ ignite build luxas/ubuntu-base:18.04 \
+			Image + Kernel = VM
+
+			Example usage:
+				$ ignite build luxas/ubuntu-base:18.04 \
 					--name my-image \
 					--import-kernel my-kernel
 				$ ignite images
@@ -39,12 +50,12 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 				$ ignite ps
 				$ ignite attach my-vm
 				Login with user "root" and password "root".
-		`),
+		`, imageCmd.Short, kernelCmd.Short, vmCmd.Short)),
 	}
 
-	root.AddCommand(imgcmd.NewCmdImage(os.Stdout))
-	root.AddCommand(kerncmd.NewCmdKernel(os.Stdout))
-	root.AddCommand(vmcmd.NewCmdVM(os.Stdout))
+	root.AddCommand(imageCmd)
+	root.AddCommand(kernelCmd)
+	root.AddCommand(vmCmd)
 
 	root.AddCommand(NewCmdAttach(os.Stdout))
 	root.AddCommand(NewCmdBuild(os.Stdout))

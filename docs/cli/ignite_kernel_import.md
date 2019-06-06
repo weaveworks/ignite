@@ -4,7 +4,10 @@ Import an uncompressed kernel image for VM use
 
 ### Synopsis
 
-Import an uncompressed kernel image for VM use
+
+Import a new kernel for VMs. This command takes in an existing uncompressed
+kernel (vmlinux) file. Used in conjunction with "export" (not yet implemented).
+
 
 ```
 ignite kernel import [path] [flags]

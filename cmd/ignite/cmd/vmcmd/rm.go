@@ -3,6 +3,8 @@ package vmcmd
 import (
 	"io"
 
+	"github.com/lithammer/dedent"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
@@ -17,7 +19,13 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "rm [vm]...",
 		Short: "Remove VMs",
-		Args:  cobra.MinimumNArgs(1),
+		Long: dedent.Dedent(`
+			Remove one or multiple VMs. The VMs are matched by prefix based
+			on their ID and name. To remove multiple VMs, chain the matches
+			separated by spaces. The force flag (-f, --force) kills running
+			VMs before removal instead of throwing an error.
+		`),
+		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error

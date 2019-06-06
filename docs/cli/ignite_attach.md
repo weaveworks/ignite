@@ -4,7 +4,11 @@ Attach to a running VM
 
 ### Synopsis
 
-Attach to a running VM
+
+Connect the current terminal to the running VM's TTY.
+To detach from the VM's TTY, type ^P^Q (Ctrl + P + Q).
+The given VM is matched by prefix based on its ID and name.
+
 
 ```
 ignite attach [vm] [flags]

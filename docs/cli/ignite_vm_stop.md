@@ -4,7 +4,12 @@ Stop running VMs
 
 ### Synopsis
 
-Stop running VMs
+
+Stop one or multiple VMs. The VMs are matched by prefix based on their
+ID and name. To stop multiple VMs, chain the matches separated by spaces.
+
+The VMs are given 20 seconds to shut down before they will be forcibly killed.
+
 
 ```
 ignite vm stop [vm]... [flags]

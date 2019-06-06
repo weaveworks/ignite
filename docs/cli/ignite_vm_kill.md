@@ -4,7 +4,11 @@ Kill running VMs
 
 ### Synopsis
 
-Kill running VMs
+
+Kill (force stop) one or multiple VMs. The VMs are matched by prefix based
+on their ID and name. To kill multiple VMs, chain the matches separated
+by spaces.
+
 
 ```
 ignite vm kill [vm]... [flags]

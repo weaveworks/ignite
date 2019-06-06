@@ -4,7 +4,24 @@ Create a new VM without starting it
 
 ### Synopsis
 
-Create a new VM without starting it
+
+Create a new VM by combining the given image and kernel.
+Various VM tunables can be set during creation by using
+the flags for this command. The image and kernel are
+matched by prefix based on their ID and name.
+
+If the name flag (-n, --name) is not specified,
+the VM is given a random name. Using the copy files
+flag (-f, --copy-files), additional files can be added to
+the VM during creation with the syntax /host/path:/vm/path.
+
+Example usage:
+	$ ignite create my-image my-kernel \
+		--name my-vm \
+		--cpus 2 \
+		--memory 2048 \
+		--size 6GB
+
 
 ```
 ignite vm create [image] [kernel] [flags]

@@ -4,7 +4,10 @@ Manage VM kernels
 
 ### Synopsis
 
-TODO
+
+Groups together functionality for managing VM kernels.
+Calling this command alone lists all available kernels.
+
 
 ```
 ignite kernel [flags]

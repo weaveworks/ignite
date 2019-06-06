@@ -4,7 +4,11 @@ Remove kernels
 
 ### Synopsis
 
-TODO
+
+Remove one or multiple VM kernels. Kernels are matched by prefix based on their
+ID and name. To remove multiple kernels, chain the matches separated by spaces.
+The force flag (-f, --force) kills and removes any running VMs using the kernel.
+
 
 ```
 ignite rmk [kernel] [flags]

@@ -1,7 +1,11 @@
 package vmcmd
 
 import (
+	"fmt"
 	"io"
+
+	"github.com/lithammer/dedent"
+	"github.com/weaveworks/ignite/pkg/constants"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -17,7 +21,16 @@ func NewCmdStop(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "stop [vm]...",
 		Short: "Stop running VMs",
-		Args:  cobra.MinimumNArgs(1),
+		Long: dedent.Dedent(fmt.Sprintf(`
+			Stop one or multiple VMs. The VMs are matched by prefix based on their
+			ID and name. To stop multiple VMs, chain the matches separated by spaces.
+			The force flag (-f, --force) kills VMs instead of trying to stop them
+			gracefully.
+
+			The VMs are given a %d second grace period to shut down before they
+			will be forcibly killed.
+		`, constants.STOP_TIMEOUT)),
+		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error

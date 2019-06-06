@@ -4,7 +4,9 @@ List available VM kernels
 
 ### Synopsis
 
-TODO
+
+List all available VM kernels. Outputs the same as the parent command.
+
 
 ```
 ignite kernel ls [flags]
