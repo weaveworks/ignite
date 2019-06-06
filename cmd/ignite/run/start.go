@@ -1,8 +1,6 @@
 package run
 
 import (
-	"strconv"
-	"strings"
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/util"
@@ -10,12 +8,15 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 type StartOptions struct {
 	AttachOptions
 	PortMappings []string
-	Interactive bool
+	Interactive  bool
+	Debug        bool
 }
 
 func Start(so *StartOptions) error {
@@ -37,11 +38,9 @@ func Start(so *StartOptions) error {
 	igniteBinary, _ := filepath.Abs(path)
 
 	dockerArgs := []string{
-		"run",
 		"-itd",
-		//"--rm",
 		fmt.Sprintf("--label=ignite.name=%s", so.VM.Name.String()),
-		fmt.Sprintf("--name=%s", constants.IGNITE_PREFIX + so.VM.ID),
+		fmt.Sprintf("--name=%s", constants.IGNITE_PREFIX+so.VM.ID),
 		fmt.Sprintf("-v=%s:/ignite/ignite", igniteBinary),
 		fmt.Sprintf("-v=%s:%s", constants.DATA_DIR, constants.DATA_DIR),
 		fmt.Sprintf("--stop-timeout=%d", constants.STOP_TIMEOUT+constants.IGNITE_TIMEOUT),
@@ -51,6 +50,13 @@ func Start(so *StartOptions) error {
 		"--device=/dev/net/tun",        // Needed for creating TAP adapters
 		"--device=/dev/kvm",            // Pass though virtualization support
 		fmt.Sprintf("--device=%s", so.VM.SnapshotDev()),
+	}
+
+	dockerCmd := append(make([]string, 0, len(dockerArgs)+2), "run")
+
+	// If we're not debugging, remove the container post-run
+	if !so.Debug {
+		dockerCmd = append(dockerCmd, "--rm")
 	}
 
 	ports, err := parsePortMappings(so.PortMappings)
@@ -66,7 +72,7 @@ func Start(so *StartOptions) error {
 	dockerArgs = append(dockerArgs, so.VM.ID)
 
 	// Start the VM in docker
-	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
+	if _, err := util.ExecuteCommand("docker", append(dockerCmd, dockerArgs...)...); err != nil {
 		return fmt.Errorf("failed to start container for VM %q: %v", so.VM.ID, err)
 	}
 
