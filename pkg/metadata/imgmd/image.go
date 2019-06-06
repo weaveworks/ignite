@@ -5,12 +5,9 @@ import (
 	"os/exec"
 	"io"
 	"strings"
-	"archive/tar"
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/util"
-	"github.com/mholt/archiver"
-	"github.com/nerd2/gexto"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
@@ -141,70 +138,6 @@ func (md *ImageMetadata) AllocateAndFormat(size int64) error {
 		return errors.Wrapf(err, "failed to format image %s", md.ID)
 	}
 
-	return nil
-}
-
-// AddFilesWithGexto adds all the files from the given rootfs tar to the image
-// TODO: Fix the "corrupt direntry" error from gexto
-func (md *ImageMetadata) AddFilesWithGexto(sourcePath string) error {
-	// TODO: This
-	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
-	filesystem, err := gexto.NewFileSystem(p)
-	if err != nil {
-		return err
-	}
-	//defer filesystem.Close()
-
-	if err := archiver.Walk(sourcePath, func(f archiver.File) error {
-		th, ok := f.Header.(*tar.Header)
-
-		if !ok {
-			return fmt.Errorf("expected header to be *tar.Header but was %T", f.Header)
-		}
-
-		//f.FileInfo
-		//data, err := os.Stat(f.Name())
-		//if err != nil {
-		//	return err
-		//}
-
-		relativePath, _ := filepath.Rel(".", th.Name)
-		filePath := filepath.Join("/", relativePath)
-
-		if f.IsDir() {
-			fmt.Printf("Directory: %s\n", filePath)
-			if err := filesystem.Mkdir(filePath, 0777); err != nil {
-				return fmt.Errorf("unable to create directory in filesystem: %s", filePath)
-			}
-		} else {
-			file, err := filesystem.Create(filePath)
-			if err != nil {
-				return fmt.Errorf("unable to create file in filesystem: %s", filePath)
-			}
-			//
-			//contents, err := ioutil.ReadAll(f)
-			//if err != nil {
-			//	return fmt.Errorf("unable to read file contents: %s", filePath)
-			//}
-			file.Write([]byte("Hello, world!"))
-			f.Close()
-		}
-
-		//if ok {
-		//	fmt.Println("Filename:", zfh.Name)
-		//}
-
-		//if f.IsDir() {
-		//	fmt.Println("Directory:", f.Name())
-		//} else {
-		//	fmt.Println("Filename:", f.Name())
-		//}
-		return nil
-	}); err != nil {
-		return err
-	}
-
-	filesystem.Close()
 	return nil
 }
 
