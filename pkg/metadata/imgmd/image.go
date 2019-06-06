@@ -1,27 +1,27 @@
 package imgmd
 
 import (
-	"strconv"
-	"os/exec"
-	"io"
-	"strings"
 	"fmt"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/util"
 	"github.com/pkg/errors"
+	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 type ImageSource struct {
-	size int64
+	size        int64
 	dockerImage string
-	imageID string
+	imageID     string
 	containerID string
-	dockerCmd *exec.Cmd
-	tarFile string
+	dockerCmd   *exec.Cmd
+	tarFile     string
 }
 
 func NewSource(src string) (*ImageSource, error) {
@@ -36,7 +36,7 @@ func NewSource(src string) (*ImageSource, error) {
 		}
 		return &ImageSource{
 			tarFile: src,
-			size: fo.Size(),
+			size:    fo.Size(),
 		}, nil
 	}
 	// Treat this as a docker image
@@ -71,8 +71,8 @@ func NewSource(src string) (*ImageSource, error) {
 	}
 	return &ImageSource{
 		dockerImage: src,
-		imageID: dockerID,
-		size: int64(size),
+		imageID:     dockerID,
+		size:        int64(size),
 	}, nil
 }
 
