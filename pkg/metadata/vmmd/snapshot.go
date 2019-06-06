@@ -99,10 +99,11 @@ func (md *VMMetadata) RemoveSnapshot() error {
 		md.SnapshotDev(),
 	}
 
-	// TODO: The base device is not visible inside docker,
-	// query "dmsetup" for the base device, as it should still remove it
-	baseDev := fmt.Sprintf("%s-base", md.SnapshotDev())
-	if util.FileExists(path.Join("/dev/mapper", baseDev)) {
+	// If the base device is visible in "dmsetup", we should remove it
+	// The device itself is not forwarded to docker, so we can't query its path
+	// TODO: Improve this detection
+	baseDev := fmt.Sprintf("%s-base", constants.IGNITE_PREFIX+md.ID)
+	if _, err := util.ExecuteCommand("dmsetup", "info", baseDev); err == nil {
 		dmArgs = append(dmArgs, baseDev)
 	}
 
