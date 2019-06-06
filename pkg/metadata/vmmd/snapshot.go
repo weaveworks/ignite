@@ -75,7 +75,7 @@ func (md *VMMetadata) SetupSnapshot() error {
 	}
 
 	// Repair the filesystem in case it has errors
-	if _, err := util.ExecuteCommand("e2fsck", "-p", devicePath); err != nil {
+	if _, err := util.ExecuteCommand("e2fsck", "-p", "-f", devicePath); err != nil {
 		return err
 	}
 
