@@ -9,4 +9,4 @@ ifeq ($(WHAT),)
 $(error WHAT is a required argument)
 endif
 	@ls ${WHAT} >/dev/null
-	docker build -t ${DOCKER_USER}/ignite-${WHAT} ${WHAT}
+	docker build -t ${DOCKER_USER}/ignite-${WHAT}:${VERSION} ${WHAT}
