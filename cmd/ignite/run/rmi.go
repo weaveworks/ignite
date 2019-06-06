@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/luxas/ignite/pkg/metadata/imgmd"
-	"github.com/luxas/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
+	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
 type RmiOptions struct {

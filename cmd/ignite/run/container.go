@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/luxas/ignite/pkg/container"
-	"github.com/luxas/ignite/pkg/metadata/vmmd"
-	"github.com/luxas/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/container"
+	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/util"
 	"github.com/miekg/dns"
 )
 

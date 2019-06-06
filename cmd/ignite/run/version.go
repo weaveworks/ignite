@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/luxas/ignite/pkg/version"
+	"github.com/weaveworks/ignite/pkg/version"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 )

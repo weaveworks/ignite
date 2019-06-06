@@ -1,4 +1,4 @@
-module github.com/luxas/ignite
+module github.com/weaveworks/ignite
 
 go 1.12
 

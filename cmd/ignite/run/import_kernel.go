@@ -3,10 +3,10 @@ package run
 import (
 	"fmt"
 
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/metadata"
-	"github.com/luxas/ignite/pkg/metadata/kernmd"
-	"github.com/luxas/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/metadata"
+	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type ImportKernelOptions struct {

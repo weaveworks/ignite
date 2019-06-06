@@ -12,10 +12,10 @@ import (
 
 	"github.com/firecracker-microvm/firecracker-go-sdk"
 	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/metadata/vmmd"
-	"github.com/luxas/ignite/pkg/util"
 	"github.com/pkg/errors"
+	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 /*
