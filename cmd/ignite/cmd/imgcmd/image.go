@@ -1,12 +1,13 @@
 package imgcmd
 
 import (
+	"github.com/lithammer/dedent"
 	"io"
 
+	"github.com/spf13/cobra"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
-	"github.com/spf13/cobra"
 )
 
 // NewCmdImage handles image-related functionality via its subcommands
@@ -15,9 +16,12 @@ func NewCmdImage(out io.Writer) *cobra.Command {
 	io := &run.ImagesOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "image",
-		Short:   "Manage VM base images",
-		Long:    "TODO", // TODO: Long description
+		Use:   "image",
+		Short: "Manage VM base images",
+		Long: dedent.Dedent(`
+			"image" groups together functionality for managing VM base images.
+			Calling this command alone lists all available images.
+		`),
 		Aliases: []string{"images"},
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {

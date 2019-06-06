@@ -1,13 +1,14 @@
 package imgcmd
 
 import (
+	"github.com/lithammer/dedent"
 	"io"
 
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 // NewCmdImport imports an image from an ext4 block device file
@@ -17,8 +18,11 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "import [path]",
 		Short: "Import a VM base image",
-		Long:  "TODO", // TODO: Long description
-		Args:  cobra.MinimumNArgs(1),
+		Long: dedent.Dedent(`
+			Import a new base image for VMs. This command takes in an existing ext4 block
+			device file. Used in conjunction with "export" (not yet implemented).
+		`), // TODO export
+		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			io.Source = args[0]
 			errutils.Check(func() error {
