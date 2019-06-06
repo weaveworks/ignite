@@ -20,7 +20,7 @@ func NewCmdImage(out io.Writer) *cobra.Command {
 		Use:   "image",
 		Short: "Manage VM base images",
 		Long: dedent.Dedent(`
-			"image" groups together functionality for managing VM base images.
+			Groups together functionality for managing VM base images.
 			Calling this command alone lists all available images.
 		`),
 		Aliases: []string{"images"},

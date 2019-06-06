@@ -1,6 +1,7 @@
 package kerncmd
 
 import (
+	"github.com/lithammer/dedent"
 	"io"
 
 	"github.com/spf13/cobra"
@@ -18,6 +19,10 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 		Use:   "import [path]",
 		Short: "Import an uncompressed kernel image for VM use",
 		Args:  cobra.MinimumNArgs(1),
+		Long: dedent.Dedent(`
+			Import a new kernel for VMs. This command takes in an existing uncompressed
+			kernel (vmlinux) file. Used in conjunction with "export" (not yet implemented).
+		`), // TODO export
 		Run: func(cmd *cobra.Command, args []string) {
 			io.Source = args[0]
 			errutils.Check(func() error {
