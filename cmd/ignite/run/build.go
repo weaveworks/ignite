@@ -19,10 +19,21 @@ type BuildOptions struct {
 }
 
 func Build(bo *BuildOptions) error {
-	// Create new image metadata
-	if err := bo.newImage(); err != nil {
+	// Create a new ID and directory for the image
+	idHandler, err := util.NewID(constants.IMAGE_DIR)
+	if err != nil {
 		return err
 	}
+	defer idHandler.Remove()
+
+	// Verify the name
+	name, err := metadata.NewName(bo.Name, &bo.ImageNames)
+	if err != nil {
+		return err
+	}
+
+	// Create new image metadata
+	bo.image = imgmd.NewImageMetadata(idHandler.ID, name)
 
 	imageSrc, err := imgmd.NewSource(bo.Source)
 	if err != nil {
@@ -71,23 +82,6 @@ func Build(bo *BuildOptions) error {
 	// Print the ID of the newly generated image
 	fmt.Println(bo.image.ID)
 
-	return nil
-}
-
-// newImage creates the new image metadata
-func (bo *BuildOptions) newImage() error {
-	newID, err := util.NewID(constants.IMAGE_DIR)
-	if err != nil {
-		return err
-	}
-
-	// Verify the name
-	name, err := metadata.NewName(bo.Name, &bo.ImageNames)
-	if err != nil {
-		return err
-	}
-
-	bo.image = imgmd.NewImageMetadata(newID, name)
-
+	idHandler.Success()
 	return nil
 }

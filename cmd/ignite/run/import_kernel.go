@@ -19,11 +19,12 @@ func ImportKernel(ao *ImportKernelOptions) error {
 		return fmt.Errorf("not a kernel image: %s", ao.Source)
 	}
 
-	// Create a new ID for the kernel
-	kernelID, err := util.NewID(constants.KERNEL_DIR)
+	// Create a new ID and directory for the kernel
+	idHandler, err := util.NewID(constants.KERNEL_DIR)
 	if err != nil {
 		return err
 	}
+	defer idHandler.Remove()
 
 	// Verify the name
 	name, err := metadata.NewName(ao.Name, &ao.KernelNames)
@@ -31,7 +32,7 @@ func ImportKernel(ao *ImportKernelOptions) error {
 		return err
 	}
 
-	md := kernmd.NewKernelMetadata(kernelID, name)
+	md := kernmd.NewKernelMetadata(idHandler.ID, name)
 
 	// Save the metadata
 	if err := md.Save(); err != nil {
@@ -45,5 +46,6 @@ func ImportKernel(ao *ImportKernelOptions) error {
 
 	fmt.Println(md.ID)
 
+	idHandler.Success()
 	return nil
 }

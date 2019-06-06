@@ -22,7 +22,7 @@ type CreateOptions struct {
 	Memory    int64
 	Size      string
 	CopyFiles []string
-	KernelCmd string 
+	KernelCmd string
 	VMNames   []*metadata.Name
 }
 
@@ -33,11 +33,12 @@ func Create(co *CreateOptions) error {
 		return err
 	}
 
-	// Create a new ID for the VM
-	vmID, err := util.NewID(constants.VM_DIR)
+	// Create a new ID and directory for the VM
+	idHandler, err := util.NewID(constants.VM_DIR)
 	if err != nil {
 		return err
 	}
+	defer idHandler.Remove()
 
 	// Verify the name
 	name, err := metadata.NewName(co.Name, &co.VMNames)
@@ -47,7 +48,7 @@ func Create(co *CreateOptions) error {
 
 	// Create new metadata for the VM and add to createOptions for further processing
 	// This enables the generated VM metadata to pass straight to start and attach via run
-	co.vm = vmmd.NewVMMetadata(vmID, name, vmmd.NewVMObjectData(co.Image.ID, co.Kernel.ID, co.CPUs, co.Memory, co.KernelCmd))
+	co.vm = vmmd.NewVMMetadata(idHandler.ID, name, vmmd.NewVMObjectData(co.Image.ID, co.Kernel.ID, co.CPUs, co.Memory, co.KernelCmd))
 
 	// Save the metadata
 	if err := co.vm.Save(); err != nil {
@@ -73,6 +74,7 @@ func Create(co *CreateOptions) error {
 	// Print the ID of the created VM
 	fmt.Println(co.vm.ID)
 
+	idHandler.Success()
 	return nil
 }
 

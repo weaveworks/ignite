@@ -22,11 +22,12 @@ func ImportImage(ao *ImportImageOptions) error {
 		return fmt.Errorf("not an image file: %s", ao.Source)
 	}
 
-	// Create a new ID for the image
-	imageID, err := util.NewID(constants.IMAGE_DIR)
+	// Create a new ID and directory for the image
+	idHandler, err := util.NewID(constants.IMAGE_DIR)
 	if err != nil {
 		return err
 	}
+	defer idHandler.Remove()
 
 	// Verify the name
 	name, err := metadata.NewName(ao.Name, &ao.ImageNames)
@@ -34,7 +35,7 @@ func ImportImage(ao *ImportImageOptions) error {
 		return err
 	}
 
-	md := imgmd.NewImageMetadata(imageID, name)
+	md := imgmd.NewImageMetadata(idHandler.ID, name)
 
 	// Save the metadata
 	if err := md.Save(); err != nil {
@@ -69,5 +70,6 @@ func ImportImage(ao *ImportImageOptions) error {
 
 	fmt.Println(md.ID)
 
+	idHandler.Success()
 	return nil
 }

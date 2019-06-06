@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"github.com/goombaio/namegenerator"
-	"github.com/pkg/errors"
 	"os"
 	"os/exec"
 	"path"
@@ -53,8 +52,14 @@ func IsEmptyString(input string) bool {
 	return len(strings.TrimSpace(input)) == 0
 }
 
-// Creates a new 8-byte ID and return it as a string
-func NewID(baseDir string) (string, error) {
+type IDHandler struct {
+	ID      string
+	baseDir string
+	success bool
+}
+
+// Creates a new 8-byte ID and handles directory creation/deletion
+func NewID(baseDir string) (*IDHandler, error) {
 	var id string
 	var idPath string
 	var idBytes []byte
@@ -62,7 +67,7 @@ func NewID(baseDir string) (string, error) {
 	for {
 		idBytes = make([]byte, 8)
 		if _, err := rand.Read(idBytes); err != nil {
-			return "", fmt.Errorf("failed to generate ID: %v", err)
+			return nil, fmt.Errorf("failed to generate ID: %v", err)
 		}
 
 		// Convert the byte slice to a string literally
@@ -77,11 +82,26 @@ func NewID(baseDir string) (string, error) {
 
 	// Create the directory for the ID
 	if err := os.MkdirAll(idPath, os.ModePerm); err != nil {
-		return "", errors.Wrapf(err, "failed to create directory for ID: %s", id)
+		return nil, fmt.Errorf("failed to create directory for ID %q: %v", id, err)
 	}
 
 	// Return the generated ID
-	return id, nil
+	return &IDHandler{id, baseDir, false}, nil
+}
+
+func (i *IDHandler) Remove() error {
+	// If success has not been confirmed, remove the generated directory
+	if !i.success {
+		if err := os.RemoveAll(path.Join(i.baseDir, i.ID)); err != nil {
+			return fmt.Errorf("failed to remove directory for ID %q: %v", i.ID, err)
+		}
+	}
+
+	return nil
+}
+
+func (i *IDHandler) Success() {
+	i.success = true
 }
 
 // Fills the given string slice with unique MAC addresses
