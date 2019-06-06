@@ -1,9 +1,10 @@
 package cmd
 
 import (
+	"io"
+
 	"github.com/luxas/ignite/cmd/ignite/cmd/imgcmd"
 	"github.com/spf13/cobra"
-	"io"
 )
 
 // NewCmdRmi is an alias for imgcmd.NewCmdRm

@@ -3,9 +3,10 @@ package run
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+
 	"github.com/luxas/ignite/pkg/version"
 	"github.com/spf13/cobra"
-	"io"
 	"sigs.k8s.io/yaml"
 )
 

@@ -2,10 +2,11 @@ package kernmd
 
 import (
 	"fmt"
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/util"
 	"os"
 	"path"
+
+	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/util"
 )
 
 func (md *KernelMetadata) ImportKernel(p string) error {

@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/util"
 	"io/ioutil"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"os"
 	"path"
+
+	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/util"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ObjectType int

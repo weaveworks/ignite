@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/luxas/ignite/cmd/ignite/run"
 	"io"
+
+	"github.com/luxas/ignite/cmd/ignite/run"
 
 	"github.com/luxas/ignite/pkg/errutils"
 	"github.com/spf13/cobra"

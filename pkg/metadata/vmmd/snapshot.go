@@ -2,13 +2,14 @@ package vmmd
 
 import (
 	"fmt"
-	"github.com/freddierice/go-losetup"
-	"github.com/luxas/ignite/pkg/constants"
-	"github.com/luxas/ignite/pkg/util"
 	"io/ioutil"
 	"os/exec"
 	"path"
 	"strconv"
+
+	"github.com/freddierice/go-losetup"
+	"github.com/luxas/ignite/pkg/constants"
+	"github.com/luxas/ignite/pkg/util"
 )
 
 func (md *VMMetadata) SnapshotDev() string {

@@ -3,6 +3,7 @@ package metadata
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/luxas/ignite/pkg/util"
 )
 

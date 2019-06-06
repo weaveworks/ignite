@@ -2,12 +2,13 @@ package run
 
 import (
 	"fmt"
+	"os"
+	"path"
+
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/metadata"
 	"github.com/luxas/ignite/pkg/metadata/imgmd"
 	"github.com/luxas/ignite/pkg/util"
-	"os"
-	"path"
 )
 
 type ImportImageOptions struct {

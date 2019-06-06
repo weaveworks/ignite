@@ -2,8 +2,9 @@ package run
 
 import (
 	"fmt"
-	"github.com/luxas/ignite/pkg/metadata/vmmd"
 	"os"
+
+	"github.com/luxas/ignite/pkg/metadata/vmmd"
 )
 
 type RmOptions struct {

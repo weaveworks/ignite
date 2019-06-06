@@ -1,9 +1,10 @@
 package container
 
 import (
-	"github.com/luxas/ignite/pkg/constants"
 	"net"
 	"time"
+
+	"github.com/luxas/ignite/pkg/constants"
 
 	dhcp "github.com/krolaw/dhcp4"
 	"github.com/krolaw/dhcp4/conn"

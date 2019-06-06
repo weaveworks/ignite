@@ -1,10 +1,11 @@
 package cmd
 
 import (
-	"github.com/luxas/ignite/pkg/errutils"
-	"github.com/spf13/cobra"
 	"io"
 	"os"
+
+	"github.com/luxas/ignite/pkg/errutils"
+	"github.com/spf13/cobra"
 )
 
 // completionCmd represents the completion command

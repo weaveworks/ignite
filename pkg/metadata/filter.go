@@ -2,8 +2,9 @@ package metadata
 
 import (
 	"fmt"
-	"github.com/luxas/ignite/pkg/util"
 	"strings"
+
+	"github.com/luxas/ignite/pkg/util"
 )
 
 type Match struct {

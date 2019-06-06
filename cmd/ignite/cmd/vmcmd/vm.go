@@ -1,8 +1,9 @@
 package vmcmd
 
 import (
-	"github.com/spf13/cobra"
 	"io"
+
+	"github.com/spf13/cobra"
 )
 
 // NewCmdVM handles VM-related functionality via its subcommands
