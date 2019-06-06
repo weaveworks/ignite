@@ -5,11 +5,16 @@ import (
 	"fmt"
 
 	"github.com/luxas/ignite/pkg/util"
+	"regexp"
 )
 
 type Name struct {
 	string
 }
+
+const (
+	nameRegex = "^[a-z-_]*$"
+)
 
 // Compile-time assert to verify interface compatibility
 var _ fmt.Stringer = &Name{}
@@ -21,9 +26,13 @@ func (n *Name) randomize() {
 }
 
 func NewName(input string, matches *[]*Name) (*Name, error) {
-	// Accept only ASCII for now
-	if !util.IsASCII(input) {
-		return nil, fmt.Errorf("invalid name %q: contains non-ASCII characters", input)
+	matched, err := regexp.MatchString(nameRegex, input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate name input %q: %v", input, err)
+	}
+
+	if !matched {
+		return nil, fmt.Errorf("invalid name %q: does not match required format %s", input, nameRegex)
 	}
 
 	// Check the given matches for uniqueness
