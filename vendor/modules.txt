@@ -6,13 +6,6 @@ github.com/PuerkitoBio/urlesc
 github.com/asaskevich/govalidator
 # github.com/c2h5oh/datasize v0.0.0-20171227191756-4eba002a5eae
 github.com/c2h5oh/datasize
-# github.com/dsnet/compress v0.0.1
-github.com/dsnet/compress/bzip2
-github.com/dsnet/compress/bzip2/internal/sais
-github.com/dsnet/compress/internal
-github.com/dsnet/compress/internal/errors
-github.com/dsnet/compress/internal/prefix
-github.com/dsnet/compress
 # github.com/firecracker-microvm/firecracker-go-sdk v0.15.1
 github.com/firecracker-microvm/firecracker-go-sdk
 github.com/firecracker-microvm/firecracker-go-sdk/client/models
@@ -54,8 +47,6 @@ github.com/go-openapi/validate
 # github.com/gogo/protobuf v1.2.1
 github.com/gogo/protobuf/proto
 github.com/gogo/protobuf/sortkeys
-# github.com/golang/snappy v0.0.1
-github.com/golang/snappy
 # github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf
 github.com/google/gofuzz
 # github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
@@ -69,25 +60,14 @@ github.com/krolaw/dhcp4
 github.com/krolaw/dhcp4/conn
 # github.com/lithammer/dedent v1.1.0
 github.com/lithammer/dedent
-# github.com/lunixbochs/struc v0.0.0-20190326164542-a9e4041416c2
-github.com/lunixbochs/struc
 # github.com/mailru/easyjson v0.0.0-20180823135443-60711f1a8329
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
 github.com/mailru/easyjson/buffer
-# github.com/mholt/archiver v3.1.1+incompatible
-github.com/mholt/archiver
 # github.com/miekg/dns v1.1.10
 github.com/miekg/dns
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
-# github.com/nerd2/gexto v0.0.0-20180530205145-da6bfa566d33
-github.com/nerd2/gexto
-# github.com/nwaples/rardecode v1.0.0
-github.com/nwaples/rardecode
-# github.com/pierrec/lz4 v2.0.5+incompatible
-github.com/pierrec/lz4
-github.com/pierrec/lz4/internal/xxh32
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
 # github.com/sirupsen/logrus v1.1.1
@@ -96,13 +76,6 @@ github.com/sirupsen/logrus
 github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
-# github.com/ulikunitz/xz v0.5.6
-github.com/ulikunitz/xz
-github.com/ulikunitz/xz/internal/xlog
-github.com/ulikunitz/xz/lzma
-github.com/ulikunitz/xz/internal/hash
-# github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8
-github.com/xi2/xz
 # golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
