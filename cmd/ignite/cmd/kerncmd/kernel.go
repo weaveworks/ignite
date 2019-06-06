@@ -1,6 +1,7 @@
 package kerncmd
 
 import (
+	"github.com/lithammer/dedent"
 	"io"
 
 	"github.com/spf13/cobra"
@@ -15,9 +16,12 @@ func NewCmdKernel(out io.Writer) *cobra.Command {
 	ko := &run.KernelsOptions{}
 
 	cmd := &cobra.Command{
-		Use:     "kernel",
-		Short:   "Manage VM kernels",
-		Long:    "TODO", // TODO: Long description
+		Use:   "kernel",
+		Short: "Manage VM kernels",
+		Long: dedent.Dedent(`
+			Groups together functionality for managing VM kernels.
+			Calling this command alone lists all available kernels.
+		`),
 		Aliases: []string{"kernels"},
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {

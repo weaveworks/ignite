@@ -1,6 +1,7 @@
 package kerncmd
 
 import (
+	"github.com/lithammer/dedent"
 	"io"
 
 	"github.com/spf13/cobra"
@@ -11,15 +12,18 @@ import (
 )
 
 // NewCmdRm removes a kernel
-// TODO: Support removing multiple kernels at once
 func NewCmdRm(out io.Writer) *cobra.Command {
 	ro := &run.RmkOptions{}
 
 	cmd := &cobra.Command{
 		Use:   "rm [kernel]...",
 		Short: "Remove kernels",
-		Long:  "TODO", // TODO: Long description
-		Args:  cobra.MinimumNArgs(1),
+		Long: dedent.Dedent(`
+			Remove one or multiple VM kernels. Kernels are matched by prefix based
+			on their ID and name. To remove multiple kernels, chain the matches separated
+			by spaces. The "--force" flag kills and removes any running VMs using the kernel.
+		`),
+		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
