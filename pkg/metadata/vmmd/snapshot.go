@@ -6,9 +6,9 @@ import (
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/util"
 	"io/ioutil"
+	"os/exec"
 	"path"
 	"strconv"
-	"strings"
 )
 
 func (md *VMMetadata) SnapshotDev() string {
@@ -46,56 +46,38 @@ func (md *VMMetadata) SetupSnapshot() error {
 		return err
 	}
 
+	// If the overlay is larger than the base image, we need to set up an additional dm device
+	// which will contain the image and additional zero space (which reads zeros and discards writes).
+	// This is fine, because all writes will target the overlay snapshot and not the read-only image.
+	// The newly generated larger device will then be used for creating the snapshot (which is always
+	// as large as the device backing it).
+
 	basePath := imageLoop.Path()
-
-	// TODO: Fix support for overlays smaller than the image
-	// TODO: Make this code work in all cases
-	if overlayLoopSize > imageLoopSize && false {
-		fmt.Println("Overlay larger than image!")
-
+	if overlayLoopSize > imageLoopSize {
+		// "0 8388608 linear /dev/loop0 0"
+		// "8388608 12582912 zero"
 		dmBaseTable := []byte(fmt.Sprintf("0 %d linear %s 0\n%d %d zero", imageLoopSize, imageLoop.Path(), imageLoopSize, overlayLoopSize))
 
-		dmBaseArgs := []string{
-			"create",
-			device + "-base",
-		}
-
-		if _, err := util.ExecuteCommandStdin("dmsetup", dmBaseTable, dmBaseArgs...); err != nil {
+		baseDevice := fmt.Sprintf("%s-base", device)
+		if err := runDMSetup(baseDevice, dmBaseTable); err != nil {
 			return err
 		}
 
-		basePath = fmt.Sprintf("/dev/mapper/%s-base", device)
-		fmt.Println("Success!")
+		basePath = fmt.Sprintf("/dev/mapper/%s", baseDevice)
 	}
 
-	// dmsetup create newdev --table "0 8388608 snapshot /dev/loop0 /dev/loop1 P 8"
-	dmTable := []string{
-		"0",
-		strconv.FormatUint(imageLoopSize, 10),  // strconv.FormatUint(overlayLoopSize, 10),
-		"snapshot",
-		basePath,
-		overlayLoop.Path(),
-		"P",
-		"8",
-	}
+	// "0 8388608 snapshot /dev/{loop0,mapper/ignite-<uid>-base} /dev/loop1 P 8"
+	dmTable := []byte(fmt.Sprintf("0 %d snapshot %s %s P 8", overlayLoopSize, basePath, overlayLoop.Path()))
 
-	dmArgs := []string{
-		"create",
-		device,
-		"--table",
-		strings.Join(dmTable, " "),
-	}
-
-	if _, err := util.ExecuteCommand("dmsetup", dmArgs...); err != nil {
+	if err := runDMSetup(device, dmTable); err != nil {
 		return err
 	}
 
-	// Call resize2fs to make the filesystem fill the overlay
-	if _, err := util.ExecuteCommand("e2fsck", "-f", "-y", devicePath); err != nil {
-		return err
-	}
-	if _, err := util.ExecuteCommand("resize2fs", devicePath); err != nil {
-		return err
+	// If the overlay is larger than the image, call resize2fs to make the filesystem fill the overlay
+	if overlayLoopSize > imageLoopSize {
+		if _, err := util.ExecuteCommand("resize2fs", devicePath); err != nil {
+			return err
+		}
 	}
 
 	// By detaching the loop devices after setting up the snapshot
@@ -115,6 +97,13 @@ func (md *VMMetadata) RemoveSnapshot() error {
 	dmArgs := []string{
 		"remove",
 		md.SnapshotDev(),
+	}
+
+	// TODO: The base device is not visible inside docker,
+	// query "dmsetup" for the base device, as it should still remove it
+	baseDev := fmt.Sprintf("%s-base", md.SnapshotDev())
+	if util.FileExists(path.Join("/dev/mapper", baseDev)) {
+		dmArgs = append(dmArgs, baseDev)
 	}
 
 	if _, err := util.ExecuteCommand("dmsetup", dmArgs...); err != nil {
@@ -145,4 +134,28 @@ func (ld *loopDevice) Size512K() (uint64, error) {
 
 	// Remove the trailing newline and parse to uint64
 	return strconv.ParseUint(string(data[:len(data)-1]), 10, 64)
+}
+
+// dmsetup uses stdin to read multiline tables, this is a helper function for that
+func runDMSetup(name string, table []byte) error {
+	cmd := exec.Command("dmsetup", "create", name)
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
+
+	if _, err := stdin.Write(table); err != nil {
+		return err
+	}
+
+	if err := stdin.Close(); err != nil {
+		return err
+	}
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("command %q exited with %q: %v", cmd.Args, out, err)
+	}
+
+	return nil
 }

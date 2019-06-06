@@ -1,15 +1,16 @@
 package vmmd
 
 import (
-	"io/ioutil"
-	"path/filepath"
 	"fmt"
+	"github.com/c2h5oh/datasize"
 	"github.com/luxas/ignite/pkg/constants"
 	"github.com/luxas/ignite/pkg/util"
+	"io/ioutil"
 	"math"
 	"net"
 	"os"
 	"path"
+	"path/filepath"
 )
 
 const (
@@ -24,10 +25,25 @@ ff02::2 ip6-allrouters
 `
 )
 
-func (md *VMMetadata) AllocateOverlay(size uint64) error {
+func (md *VMMetadata) AllocateOverlay(requestedSize uint64) error {
 	// Truncate only accepts an int64
-	if size > math.MaxInt64 {
-		return fmt.Errorf("requested size %d too large, cannot truncate", size)
+	if requestedSize > math.MaxInt64 {
+		return fmt.Errorf("requested size %d too large, cannot truncate", requestedSize)
+	}
+
+	size := int64(requestedSize)
+
+	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, md.VMOD().ImageID, constants.IMAGE_FS))
+	if err != nil {
+		return err
+	}
+
+	// The overlay needs to be at least as large as the image
+	if size < fi.Size() {
+		size = fi.Size()
+		// TODO: Logging
+		fmt.Printf("warning: requested overlay size (%s) < image size (%s), using image size for overlay\n",
+			datasize.ByteSize(requestedSize).HR(), datasize.ByteSize(size).HR())
 	}
 
 	overlayFile, err := os.Create(path.Join(md.ObjectPath(), constants.OVERLAY_FILE))
@@ -36,7 +52,7 @@ func (md *VMMetadata) AllocateOverlay(size uint64) error {
 	}
 	defer overlayFile.Close()
 
-	if err := overlayFile.Truncate(int64(size)); err != nil {
+	if err := overlayFile.Truncate(size); err != nil {
 		return fmt.Errorf("failed to allocate overlay file for VM %q: %v", md.ID, err)
 	}
 
