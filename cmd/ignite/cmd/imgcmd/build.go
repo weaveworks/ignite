@@ -36,7 +36,7 @@ func NewCmdBuild(out io.Writer) *cobra.Command {
 					--name my-image \
 					--import-kernel my-kernel
 		`),
-		Args: cobra.MinimumNArgs(1),
+		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			bo.Source = args[0]
 			errutils.Check(func() error {

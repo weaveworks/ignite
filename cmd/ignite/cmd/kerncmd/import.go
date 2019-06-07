@@ -19,7 +19,7 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "import [path]",
 		Short: "Import an uncompressed kernel image for VM use",
-		Args:  cobra.MinimumNArgs(1),
+		Args:  cobra.ExactArgs(1),
 		Long: dedent.Dedent(`
 			Import a new kernel for VMs. This command takes in an existing uncompressed
 			kernel (vmlinux) file. Used in conjunction with "export" (not yet implemented).

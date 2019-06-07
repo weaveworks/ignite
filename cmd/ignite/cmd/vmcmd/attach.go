@@ -25,7 +25,7 @@ func NewCmdAttach(out io.Writer) *cobra.Command {
 			To detach from the VM's TTY, type ^P^Q (Ctrl + P + Q).
 			The given VM is matched by prefix based on its ID and name.
 		`),
-		Args: cobra.MinimumNArgs(1),
+		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error

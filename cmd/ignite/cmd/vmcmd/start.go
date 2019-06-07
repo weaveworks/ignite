@@ -24,7 +24,7 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 			If the interactive flag (-i, --interactive) is specified, attach to the
 			VM after starting.
 		`),
-		Args: cobra.MinimumNArgs(1),
+		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
