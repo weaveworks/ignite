@@ -39,13 +39,9 @@ func SSH(so *SSHOptions) error {
 		sshArgs = append(sshArgs, privKeyFile)
 	}
 
-	// Print the ID before calling SSH
-	fmt.Println(so.VM.ID)
-
 	// SSH into the VM
 	if _, err := util.ExecForeground("ssh", sshArgs...); err != nil {
 		return fmt.Errorf("SSH into VM %q failed: %v", so.VM.ID, err)
 	}
-
 	return nil
 }

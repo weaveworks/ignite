@@ -31,7 +31,7 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 				if io.KernelNames, err = cmdutil.MatchAllKernelNames(); err != nil {
 					return err
 				}
-				return run.ImportKernel(io)
+				return cmdutil.PrintMachineReadableID(run.ImportKernel(io))
 			}())
 		},
 	}

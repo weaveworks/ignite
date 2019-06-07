@@ -20,21 +20,21 @@ type StartOptions struct {
 	Debug        bool
 }
 
-func Start(so *StartOptions) error {
+func Start(so *StartOptions) (string, error) {
 	// Check if the given VM is already running
 	if so.VM.Running() {
-		return fmt.Errorf("VM %q is already running", so.VM.ID)
+		return "", fmt.Errorf("VM %q is already running", so.VM.ID)
 	}
 
 	// Setup the snapshot overlay filesystem
 	if err := so.VM.SetupSnapshot(); err != nil {
-		return err
+		return "", err
 	}
 
 	// Resolve the Ignite binary to be mounted inside the container
 	path, err := exec.LookPath(os.Args[0])
 	if err != nil {
-		return err
+		return "", err
 	}
 	igniteBinary, _ := filepath.Abs(path)
 
@@ -62,7 +62,7 @@ func Start(so *StartOptions) error {
 
 	ports, err := parsePortMappings(so.PortMappings)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	for hostPort, vmPort := range ports {
@@ -74,20 +74,14 @@ func Start(so *StartOptions) error {
 
 	// Start the VM in docker
 	if _, err := util.ExecuteCommand("docker", append(dockerCmd, dockerArgs...)...); err != nil {
-		return fmt.Errorf("failed to start container for VM %q: %v", so.VM.ID, err)
+		return "", fmt.Errorf("failed to start container for VM %q: %v", so.VM.ID, err)
 	}
 
 	// If starting interactively, attach after starting
 	if so.Interactive {
-		if err := Attach(&so.AttachOptions); err != nil {
-			return err
-		}
-	} else {
-		// Print the ID of the started VM
-		fmt.Println(so.VM.ID)
+		return "", Attach(&so.AttachOptions)
 	}
-
-	return nil
+	return so.VM.ID, nil
 }
 
 func parsePortMappings(portMappings []string) (map[uint64]uint64, error) {

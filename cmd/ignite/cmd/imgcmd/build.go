@@ -44,7 +44,7 @@ func NewCmdBuild(out io.Writer) *cobra.Command {
 				if bo.ImageNames, err = cmdutil.MatchAllImageNames(); err != nil {
 					return err
 				}
-				return run.Build(bo)
+				return cmdutil.PrintMachineReadableID(run.Build(bo))
 			}())
 		},
 	}

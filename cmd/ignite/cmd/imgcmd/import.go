@@ -31,7 +31,7 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 				if io.ImageNames, err = cmdutil.MatchAllImageNames(); err != nil {
 					return err
 				}
-				return run.ImportImage(io)
+				return cmdutil.PrintMachineReadableID(run.ImportImage(io))
 			}())
 		},
 	}
