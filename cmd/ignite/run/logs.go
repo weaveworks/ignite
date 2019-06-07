@@ -15,7 +15,7 @@ type LogsOptions struct {
 func Logs(lo *LogsOptions) error {
 	// Check if the VM is running
 	if !lo.VM.Running() {
-		return fmt.Errorf("%s is not running", lo.VM.ID)
+		return fmt.Errorf("VM %q is not running", lo.VM.ID)
 	}
 
 	dockerArgs := []string{

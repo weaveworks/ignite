@@ -17,7 +17,7 @@ type SSHOptions struct {
 func SSH(so *SSHOptions) error {
 	// Check if the VM is running
 	if !so.VM.Running() {
-		return fmt.Errorf("%s is not running", so.VM.ID)
+		return fmt.Errorf("VM %q is not running", so.VM.ID)
 	}
 
 	ipAddrs := so.VM.VMOD().IPAddrs

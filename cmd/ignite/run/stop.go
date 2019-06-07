@@ -22,7 +22,7 @@ func Stop(so *StopOptions) error {
 	for _, vm := range so.VMs {
 		// Check if the VM is running
 		if !vm.Running() {
-			return fmt.Errorf("%s is not running", vm.ID)
+			return fmt.Errorf("VM %q is not running", vm.ID)
 		}
 
 		dockerArgs := stopArgs
