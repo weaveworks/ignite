@@ -60,6 +60,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 	}
 
 	addCreateFlags(cmd.Flags(), co)
+	//cmd.Flag("test").
 	return cmd
 }
 
@@ -71,7 +72,11 @@ func addCreateFlags(fs *pflag.FlagSet, co *run.CreateOptions) {
 	fs.StringSliceVarP(&co.CopyFiles, "copy-files", "f", nil, "Copy files from the host to the created VM")
 	fs.StringVarP(&co.KernelName, "kernel", "k", "", "Specify a kernel to use. By default this equals the image name")
 	fs.StringVar(&co.KernelCmd, "kernel-args", constants.VM_KERNEL_ARGS, "Set the command line for the kernel")
+
 	co.SSH = &run.SSHFlag{}
-	fs.Var(co.SSH, "ssh", "Set the command line for the kernel")
-	fs.Lookup("ssh").NoOptDefVal = "generate"
+	fs.Var(co.SSH, "ssh", "Enable SSH for the VM. If <path> is given, it will be imported as the public key. If just '--ssh' is specified, a new keypair will be generated.")
+
+	sshFlag := fs.Lookup("ssh")
+	sshFlag.NoOptDefVal = "<path>"
+	sshFlag.DefValue = "is unset, which disables SSH access to the VM"
 }
