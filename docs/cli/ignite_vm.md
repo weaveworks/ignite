@@ -8,9 +8,14 @@ Manage VMs
 Groups together functionality for managing VMs.
 
 
+```
+ignite vm [flags]
+```
+
 ### Options
 
 ```
+  -a, --all    Show all VMs, not just running ones
   -h, --help   help for vm
 ```
 
