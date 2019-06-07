@@ -50,7 +50,7 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 						return err
 					}
 					// If the image doesn't exist, build it
-					if err := run.Build(&run.BuildOptions{
+					if _, err := run.Build(&run.BuildOptions{
 						Source:     args[0],
 						ImageNames: allImages,
 					}); err != nil {
@@ -68,7 +68,7 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 				if ro.VMNames, err = cmdutil.MatchAllVMNames(); err != nil {
 					return err
 				}
-				return run.Run(ro)
+				return cmdutil.PrintMachineReadableID(run.Run(ro))
 			}())
 		},
 	}

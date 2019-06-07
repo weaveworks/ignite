@@ -70,24 +70,24 @@ type CreateOptions struct {
 	VMNames    []*metadata.Name
 }
 
-func Create(co *CreateOptions) error {
+func Create(co *CreateOptions) (string, error) {
 	// Parse the --copy-files flag
 	fileMappings, err := parseFileMappings(co.CopyFiles)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Create a new ID and directory for the VM
 	idHandler, err := util.NewID(constants.VM_DIR)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer idHandler.Remove()
 
 	// Verify the name
 	name, err := metadata.NewName(co.Name, &co.VMNames)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Create new metadata for the VM and add to createOptions for further processing
@@ -96,35 +96,30 @@ func Create(co *CreateOptions) error {
 
 	// Save the metadata
 	if err := co.vm.Save(); err != nil {
-		return err
+		return "", err
 	}
 
 	// Parse the given overlay size
 	var size datasize.ByteSize
 	if err := size.UnmarshalText([]byte(co.Size)); err != nil {
-		return err
+		return "", err
 	}
 
 	// Allocate the overlay file
 	if err := co.vm.AllocateOverlay(size.Bytes()); err != nil {
-		return err
+		return "", err
 	}
 
 	// Parse SSH key importing
 	if err := co.parseSSH(&fileMappings); err != nil {
-		return err
+		return "", err
 	}
 
 	// Copy the additional files to the overlay
 	if err := co.vm.CopyToOverlay(fileMappings); err != nil {
-		return err
+		return "", err
 	}
-
-	// Print the ID of the created VM
-	fmt.Println(co.vm.ID)
-
-	idHandler.Success()
-	return nil
+	return idHandler.Success()
 }
 
 func parseFileMappings(fileMappings []string) (map[string]string, error) {

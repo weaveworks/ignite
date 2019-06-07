@@ -18,59 +18,55 @@ type ImportImageOptions struct {
 	ImageNames []*metadata.Name
 }
 
-func ImportImage(ao *ImportImageOptions) error {
+func ImportImage(ao *ImportImageOptions) (string, error) {
 	if !util.FileExists(ao.Source) {
-		return fmt.Errorf("not an image file: %s", ao.Source)
+		return "", fmt.Errorf("not an image file: %s", ao.Source)
 	}
 
 	// Create a new ID and directory for the image
 	idHandler, err := util.NewID(constants.IMAGE_DIR)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer idHandler.Remove()
 
 	// Verify the name
 	name, err := metadata.NewNameWithLatest(ao.Name, &ao.ImageNames)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	md := imgmd.NewImageMetadata(idHandler.ID, name)
 
 	// Save the metadata
 	if err := md.Save(); err != nil {
-		return err
+		return "", err
 	}
 
 	// Perform the copy
 	if err := md.ImportImage(ao.Source); err != nil {
-		return err
+		return "", err
 	}
 
 	// Import a new kernel from the image if specified
 	if ao.KernelName != "" {
 		dir, err := md.ExportKernel()
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		if dir != "" {
-			if err := ImportKernel(&ImportKernelOptions{
+			if _, err := ImportKernel(&ImportKernelOptions{
 				Source: path.Join(dir, constants.KERNEL_FILE),
 				Name:   ao.KernelName,
 			}); err != nil {
-				return err
+				return "", err
 			}
 
 			if err := os.RemoveAll(dir); err != nil {
-				return err
+				return "", err
 			}
 		}
 	}
-
-	fmt.Println(md.ID)
-
-	idHandler.Success()
-	return nil
+	return idHandler.Success()
 }

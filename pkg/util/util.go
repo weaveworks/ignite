@@ -100,8 +100,9 @@ func (i *IDHandler) Remove() error {
 	return nil
 }
 
-func (i *IDHandler) Success() {
+func (i *IDHandler) Success() (string, error) {
 	i.success = true
+	return i.ID, nil
 }
 
 // Fills the given string slice with unique MAC addresses

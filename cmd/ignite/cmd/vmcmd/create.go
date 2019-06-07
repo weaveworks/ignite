@@ -54,7 +54,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 				if co.VMNames, err = cmdutil.MatchAllVMNames(); err != nil {
 					return err
 				}
-				return run.Create(co)
+				return cmdutil.PrintMachineReadableID(run.Create(co))
 			}())
 		},
 	}

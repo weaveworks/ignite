@@ -31,7 +31,7 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 				if so.VM, err = cmdutil.MatchSingleVM(args[0]); err != nil {
 					return err
 				}
-				return run.Start(so)
+				return cmdutil.PrintMachineReadableID(run.Start(so))
 			}())
 		},
 	}
