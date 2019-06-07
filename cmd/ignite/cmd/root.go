@@ -42,16 +42,16 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 			Combining an Image and a Kernel gives you a runnable VM.
 
 			Example usage:
-				$ ignite build weaveworks/ignite-ubuntu:latest \
-					--name ubuntu-image \
-					--import-kernel ubuntu-kernel
+				$ ignite run weaveworks/ignite-ubuntu \
+					--cpus 2 \
+					--memory 1024 \
+					--ssh \
+					--name my-vm
 				$ ignite images
 				$ ignite kernels
-				$ ignite run ubuntu-image ubuntu-kernel --name my-vm
 				$ ignite ps
-				$ ignite attach my-vm
-
-			Press enter and login with user "root" and password "root".
+				$ ignite logs my-vm
+				$ ignite ssh my-vm
 		`, imageCmd.Short, kernelCmd.Short, vmCmd.Short)),
 	}
 
