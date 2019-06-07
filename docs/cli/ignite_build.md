@@ -23,7 +23,7 @@ Example usage:
 
 
 ```
-ignite build [source] [flags]
+ignite build <source> [flags]
 ```
 
 ### Options

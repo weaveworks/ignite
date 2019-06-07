@@ -1,8 +1,9 @@
 package vmcmd
 
 import (
-	"github.com/spf13/pflag"
 	"io"
+
+	"github.com/spf13/pflag"
 
 	"github.com/lithammer/dedent"
 

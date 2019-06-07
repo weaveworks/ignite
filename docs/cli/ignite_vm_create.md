@@ -24,7 +24,7 @@ Example usage:
 
 
 ```
-ignite vm create [image] [flags]
+ignite vm create <image> [flags]
 ```
 
 ### Options
@@ -38,6 +38,7 @@ ignite vm create [image] [flags]
       --memory int           VM RAM in MiB (default 512)
   -n, --name string          Specify the name
   -s, --size string          VM filesystem size, for example 5GB or 2048MB (default "4GB")
+      --ssh[=<path>]         Enable SSH for the VM. If <path> is given, it will be imported as the public key. If just '--ssh' is specified, a new keypair will be generated. (default is unset, which disables SSH access to the VM)
 ```
 
 ### SEE ALSO

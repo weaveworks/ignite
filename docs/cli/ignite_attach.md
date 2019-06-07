@@ -11,7 +11,7 @@ The given VM is matched by prefix based on its ID and name.
 
 
 ```
-ignite attach [vm] [flags]
+ignite attach <vm> [flags]
 ```
 
 ### Options

@@ -10,7 +10,7 @@ device file. Used in conjunction with "export" (not yet implemented).
 
 
 ```
-ignite image import [path] [flags]
+ignite image import <path> [flags]
 ```
 
 ### Options

@@ -11,7 +11,7 @@ VM after starting.
 
 
 ```
-ignite vm start [vm] [flags]
+ignite vm start <vm> [flags]
 ```
 
 ### Options

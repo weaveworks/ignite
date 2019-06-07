@@ -11,7 +11,7 @@ The force flag (-f, --force) kills and removes any running VMs using the kernel.
 
 
 ```
-ignite rmk [kernel] [flags]
+ignite rmk <kernel> [flags]
 ```
 
 ### Options

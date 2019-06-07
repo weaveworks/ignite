@@ -13,20 +13,20 @@ Administration is divided into three subcommands:
   kernel      Manage VM kernels
   vm          Manage VMs
 
-Ignite also supports the same commands as the docker CLI.
+Ignite also supports the same commands as the Docker CLI.
 Combining an Image and a Kernel gives you a runnable VM.
 
 Example usage:
-	$ ignite build weaveworks/ignite-ubuntu:latest \
-		--name ubuntu-image \
-		--import-kernel ubuntu-kernel
+	$ ignite run weaveworks/ignite-ubuntu \
+		--cpus 2 \
+		--memory 1024 \
+		--ssh \
+		--name my-vm
 	$ ignite images
 	$ ignite kernels
-	$ ignite run ubuntu-image ubuntu-kernel --name my-vm
 	$ ignite ps
-	$ ignite attach my-vm
-
-Press enter and login with user "root" and password "root".
+	$ ignite logs my-vm
+	$ ignite ssh my-vm
 
 
 ### Options
@@ -50,6 +50,7 @@ Press enter and login with user "root" and password "root".
 * [ignite rmi](ignite_rmi.md)	 - Remove VM base images
 * [ignite rmk](ignite_rmk.md)	 - Remove kernels
 * [ignite run](ignite_run.md)	 - Create a new VM and start it
+* [ignite ssh](ignite_ssh.md)	 - SSH into a running VM
 * [ignite start](ignite_start.md)	 - Start a VM
 * [ignite stop](ignite_stop.md)	 - Stop running VMs
 * [ignite version](ignite_version.md)	 - Print the version of ignite

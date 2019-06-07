@@ -10,7 +10,7 @@ container needs to exist). The VM is matched by prefix based on its ID and name.
 
 
 ```
-ignite vm logs [vm] [flags]
+ignite vm logs <vm> [flags]
 ```
 
 ### Options
