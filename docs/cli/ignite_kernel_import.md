@@ -10,7 +10,7 @@ kernel (vmlinux) file. Used in conjunction with "export" (not yet implemented).
 
 
 ```
-ignite kernel import [path] [flags]
+ignite kernel import <path> [flags]
 ```
 
 ### Options

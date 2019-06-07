@@ -24,6 +24,7 @@ Groups together functionality for managing VMs.
 * [ignite vm ps](ignite_vm_ps.md)	 - List running VMs
 * [ignite vm rm](ignite_vm_rm.md)	 - Remove VMs
 * [ignite vm run](ignite_vm_run.md)	 - Create a new VM and start it
+* [ignite vm ssh](ignite_vm_ssh.md)	 - SSH into a running VM
 * [ignite vm start](ignite_vm_start.md)	 - Start a VM
 * [ignite vm stop](ignite_vm_stop.md)	 - Stop running VMs
 

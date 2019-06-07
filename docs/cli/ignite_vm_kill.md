@@ -11,7 +11,7 @@ by spaces.
 
 
 ```
-ignite vm kill [vm]... [flags]
+ignite vm kill <vm>... [flags]
 ```
 
 ### Options

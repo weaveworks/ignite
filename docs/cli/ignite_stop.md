@@ -15,7 +15,7 @@ will be forcibly killed.
 
 
 ```
-ignite stop [vm]... [flags]
+ignite stop <vm>... [flags]
 ```
 
 ### Options

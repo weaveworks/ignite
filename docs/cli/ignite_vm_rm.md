@@ -12,7 +12,7 @@ VMs before removal instead of throwing an error.
 
 
 ```
-ignite vm rm [vm]... [flags]
+ignite vm rm <vm>... [flags]
 ```
 
 ### Options

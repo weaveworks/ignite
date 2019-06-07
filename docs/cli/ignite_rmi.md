@@ -11,7 +11,7 @@ The force flag (-f, --force) kills and removes any running VMs using the image.
 
 
 ```
-ignite rmi [image] [flags]
+ignite rmi <image> [flags]
 ```
 
 ### Options
