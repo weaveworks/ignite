@@ -17,7 +17,7 @@ func NewCmdBuild(out io.Writer) *cobra.Command {
 	bo := &run.BuildOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "build [source]",
+		Use:   "build <source>",
 		Short: "Build a new base image for VMs",
 		Long: dedent.Dedent(`
 			Build a new base image for VMs. The base image is an ext4

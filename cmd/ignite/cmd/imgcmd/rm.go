@@ -17,7 +17,7 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 	ro := &run.RmiOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "rm [image]...",
+		Use:   "rm <image>...",
 		Short: "Remove VM base images",
 		Long: dedent.Dedent(`
 			Remove one or multiple VM base images. Images are matched by prefix based on

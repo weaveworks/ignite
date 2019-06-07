@@ -17,7 +17,7 @@ func NewCmdSSH(out io.Writer) *cobra.Command {
 	so := &run.SSHOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "ssh [vm]",
+		Use:   "ssh <vm>",
 		Short: "SSH into a running VM",
 		Long: dedent.Dedent(`
 			SSH into the running VM using the private key created for it during generation.

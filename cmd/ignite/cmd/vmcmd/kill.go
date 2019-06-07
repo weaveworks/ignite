@@ -16,7 +16,7 @@ func NewCmdKill(out io.Writer) *cobra.Command {
 	so := &run.StopOptions{Kill: true}
 
 	cmd := &cobra.Command{
-		Use:   "kill [vm]...",
+		Use:   "kill <vm>...",
 		Short: "Kill running VMs",
 		Long: dedent.Dedent(`
 			Kill (force stop) one or multiple VMs. The VMs are matched by prefix based

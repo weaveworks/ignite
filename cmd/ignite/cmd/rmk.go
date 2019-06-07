@@ -10,7 +10,7 @@ import (
 // NewCmdRmk is an alias for kerncmd.NewCmdRm
 func NewCmdRmk(out io.Writer) *cobra.Command {
 	cmd := kerncmd.NewCmdRm(out)
-	cmd.Use = "rmk [kernel]"
+	cmd.Use = "rmk <kernel>"
 
 	return cmd
 }

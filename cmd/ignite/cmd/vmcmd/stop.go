@@ -19,7 +19,7 @@ func NewCmdStop(out io.Writer) *cobra.Command {
 	so := &run.StopOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "stop [vm]...",
+		Use:   "stop <vm>...",
 		Short: "Stop running VMs",
 		Long: dedent.Dedent(fmt.Sprintf(`
 			Stop one or multiple VMs. The VMs are matched by prefix based on their

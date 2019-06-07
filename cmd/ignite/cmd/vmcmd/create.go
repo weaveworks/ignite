@@ -18,7 +18,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 	co := &run.CreateOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "create [image]",
+		Use:   "create <image>",
 		Short: "Create a new VM without starting it",
 		Long: dedent.Dedent(`
 			Create a new VM by combining the given image and kernel.

@@ -17,7 +17,7 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 	io := &run.ImportImageOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "import [path]",
+		Use:   "import <path>",
 		Short: "Import a VM base image",
 		Long: dedent.Dedent(`
 			Import a new base image for VMs. This command takes in an existing ext4 block
