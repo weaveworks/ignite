@@ -25,18 +25,20 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 			also list VMs that are not currently running.
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
-			errutils.Check(func() error {
-				var err error
-				if po.VMs, err = cmdutil.MatchAllVMs(po.All); err != nil {
-					return err
-				}
-				return run.Ps(po)
-			}())
+			errutils.Check(ExecutePs(po))
 		},
 	}
 
 	addPsFlags(cmd.Flags(), po)
 	return cmd
+}
+
+func ExecutePs(po *run.PsOptions) error {
+	var err error
+	if po.VMs, err = cmdutil.MatchAllVMs(po.All); err != nil {
+		return err
+	}
+	return run.Ps(po)
 }
 
 func addPsFlags(fs *pflag.FlagSet, po *run.PsOptions) {
