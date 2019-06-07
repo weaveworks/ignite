@@ -26,6 +26,7 @@ func NewCmdVM(out io.Writer) *cobra.Command {
 	cmd.AddCommand(NewCmdPs(out))
 	cmd.AddCommand(NewCmdRm(out))
 	cmd.AddCommand(NewCmdRun(out))
+	cmd.AddCommand(NewCmdSSH(out))
 	cmd.AddCommand(NewCmdStart(out))
 	cmd.AddCommand(NewCmdStop(out))
 	return cmd
