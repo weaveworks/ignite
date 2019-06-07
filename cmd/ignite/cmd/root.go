@@ -38,18 +38,20 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 			  kernel      %s
 			  vm          %s
 
-			Image + Kernel = VM
+			Ignite also supports the same commands as the docker CLI.
+			Combining an Image and a Kernel gives you a runnable VM.
 
 			Example usage:
-				$ ignite build luxas/ubuntu-base:18.04 \
-					--name my-image \
-					--import-kernel my-kernel
+				$ ignite build weaveworks/ignite-ubuntu:latest \
+					--name ubuntu-image \
+					--import-kernel ubuntu-kernel
 				$ ignite images
 				$ ignite kernels
-				$ ignite run my-image my-kernel --name my-vm
+				$ ignite run ubuntu-image ubuntu-kernel --name my-vm
 				$ ignite ps
 				$ ignite attach my-vm
-				Login with user "root" and password "root".
+
+			Press enter and login with user "root" and password "root".
 		`, imageCmd.Short, kernelCmd.Short, vmCmd.Short)),
 	}
 
