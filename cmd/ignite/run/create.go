@@ -15,16 +15,17 @@ import (
 )
 
 type CreateOptions struct {
-	Image     *imgmd.ImageMetadata
-	Kernel    *kernmd.KernelMetadata
-	vm        *vmmd.VMMetadata
-	Name      string
-	CPUs      int64
-	Memory    int64
-	Size      string
-	CopyFiles []string
-	KernelCmd string
-	VMNames   []*metadata.Name
+	Image      *imgmd.ImageMetadata
+	Kernel     *kernmd.KernelMetadata
+	vm         *vmmd.VMMetadata
+	Name       string
+	CPUs       int64
+	Memory     int64
+	Size       string
+	CopyFiles  []string
+	KernelName string
+	KernelCmd  string
+	VMNames    []*metadata.Name
 }
 
 func Create(co *CreateOptions) error {

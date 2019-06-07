@@ -27,19 +27,25 @@ func Build(bo *BuildOptions) error {
 	}
 	defer idHandler.Remove()
 
+	// Parse the source
+	imageSrc, err := imgmd.NewSource(bo.Source)
+	if err != nil {
+		return err
+	}
+
+	nameStr := bo.Name
+	if len(imageSrc.DockerImage()) > 0 {
+		nameStr = imageSrc.DockerImage()
+	}
+
 	// Verify the name
-	name, err := metadata.NewName(bo.Name, &bo.ImageNames)
+	name, err := metadata.NewNameWithLatest(nameStr, &bo.ImageNames)
 	if err != nil {
 		return err
 	}
 
 	// Create new image metadata
 	bo.image = imgmd.NewImageMetadata(idHandler.ID, name)
-
-	imageSrc, err := imgmd.NewSource(bo.Source)
-	if err != nil {
-		return err
-	}
 
 	// Create new file to host the filesystem and format it
 	if err := bo.image.AllocateAndFormat(imageSrc.Size()); err != nil {
@@ -56,16 +62,12 @@ func Build(bo *BuildOptions) error {
 	}
 
 	// Import a new kernel from the image if specified
-	if bo.KernelName != "" {
-		dir, err := bo.image.ExportKernel()
-		if err != nil {
-			return err
-		}
-
+	dir, err := bo.image.ExportKernel()
+	if err == nil {
 		if dir != "" {
 			if err := ImportKernel(&ImportKernelOptions{
 				Source: path.Join(dir, constants.KERNEL_FILE),
-				Name:   bo.KernelName,
+				Name:   name.String(),
 			}); err != nil {
 				return err
 			}
@@ -74,11 +76,12 @@ func Build(bo *BuildOptions) error {
 				return err
 			}
 		}
+	} else {
+		// Tolerate the kernel to not be found
+		if _, ok := err.(*imgmd.KernelNotFoundError); !ok {
+			return err
+		}
 	}
-
-	//if err := container.ExportToDocker(image); err != nil {
-	//	return err
-	//}
 
 	// Print the ID of the newly generated image
 	fmt.Println(bo.image.ID)

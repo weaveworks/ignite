@@ -3,6 +3,7 @@ package metadata
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"regexp"
 
@@ -14,7 +15,7 @@ type Name struct {
 }
 
 const (
-	nameRegex = `^[a-z-_0-9.]*$`
+	nameRegex = `^[a-z-_0-9.:/]*$`
 )
 
 // Compile-time assert to verify interface compatibility
@@ -24,6 +25,14 @@ func (n *Name) randomize() {
 	if n.string == "" {
 		n.string = util.RandomName()
 	}
+}
+
+func NewNameWithLatest(input string, matches *[]*Name) (*Name, error) {
+	// Enforce a latest tag for images and kernels
+	if !strings.Contains(input, ":") {
+		input += ":latest"
+	}
+	return NewName(input, matches)
 }
 
 func NewName(input string, matches *[]*Name) (*Name, error) {
@@ -40,7 +49,7 @@ func NewName(input string, matches *[]*Name) (*Name, error) {
 	if matches != nil {
 		for _, match := range *matches {
 			if input == match.string {
-				return nil, fmt.Errorf("invalid name %q: not unique", input)
+				return nil, fmt.Errorf("invalid name %q: already exists", input)
 			}
 		}
 	}
