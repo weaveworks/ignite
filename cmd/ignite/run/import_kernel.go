@@ -28,7 +28,7 @@ func ImportKernel(ao *ImportKernelOptions) error {
 	defer idHandler.Remove()
 
 	// Verify the name
-	name, err := metadata.NewName(ao.Name, &ao.KernelNames)
+	name, err := metadata.NewNameWithLatest(ao.Name, &ao.KernelNames)
 	if err != nil {
 		return err
 	}

@@ -18,7 +18,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 	co := &run.CreateOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "create [image] [kernel]",
+		Use:   "create [image]",
 		Short: "Create a new VM without starting it",
 		Long: dedent.Dedent(`
 			Create a new VM by combining the given image and kernel.
@@ -38,14 +38,17 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 					--memory 2048 \
 					--size 6GB
 		`),
-		Args: cobra.MinimumNArgs(2),
+		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
 				if co.Image, err = cmdutil.MatchSingleImage(args[0]); err != nil {
 					return err
 				}
-				if co.Kernel, err = cmdutil.MatchSingleKernel(args[1]); err != nil {
+				if len(co.KernelName) == 0 {
+					co.KernelName = args[0]
+				}
+				if co.Kernel, err = cmdutil.MatchSingleKernel(co.KernelName); err != nil {
 					return err
 				}
 				if co.VMNames, err = cmdutil.MatchAllVMNames(); err != nil {
@@ -66,5 +69,6 @@ func addCreateFlags(fs *pflag.FlagSet, co *run.CreateOptions) {
 	fs.Int64Var(&co.Memory, "memory", constants.VM_DEFAULT_MEMORY, "VM RAM in MiB")
 	fs.StringVarP(&co.Size, "size", "s", constants.VM_DEFAULT_SIZE, "VM filesystem size, for example 5GB or 2048MB")
 	fs.StringSliceVarP(&co.CopyFiles, "copy-files", "f", nil, "Copy files from the host to the created VM")
+	fs.StringVarP(&co.KernelName, "kernel", "k", "", "Specify a kernel to use. By default this equals the image name")
 	fs.StringVar(&co.KernelCmd, "kernel-args", constants.VM_KERNEL_ARGS, "Set the command line for the kernel")
 }

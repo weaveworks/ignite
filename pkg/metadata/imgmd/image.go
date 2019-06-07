@@ -40,12 +40,17 @@ func NewSource(src string) (*ImageSource, error) {
 			size:    fo.Size(),
 		}, nil
 	}
-	// Treat this as a docker image
+	// Treat the source as a docker image
+	// If it doesn't have a tag, assume it's latest
+	if !strings.Contains(src, ":") {
+		src += ":latest"
+	}
 	// Query docker for the image
 	out, err := util.ExecuteCommand("docker", "images", "-q", src)
 	if err != nil {
 		return nil, err
 	}
+	// TODO: docker pull if it's not found
 	if util.IsEmptyString(out) {
 		return nil, fmt.Errorf("docker image %s not found", src)
 	}
@@ -97,6 +102,10 @@ func (is *ImageSource) GetReader() (io.ReadCloser, error) {
 		return reader, nil
 	}
 	return os.Open(is.tarFile)
+}
+
+func (is *ImageSource) DockerImage() string {
+	return is.dockerImage
 }
 
 func (is *ImageSource) Size() int64 {
@@ -191,6 +200,10 @@ func (md *ImageMetadata) SetupResolvConf(tempDir string) error {
 	return os.Symlink("../proc/net/pnp", resolvConf)
 }
 
+type KernelNotFoundError struct {
+	error
+}
+
 func (md *ImageMetadata) ExportKernel() (string, error) {
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 	tempDir, err := ioutil.TempDir("", "")
@@ -211,7 +224,7 @@ func (md *ImageMetadata) ExportKernel() (string, error) {
 	kernelDest := path.Join(kernelDir, constants.KERNEL_FILE)
 	kernelSrc, err := findKernel(tempDir)
 	if err != nil {
-		return "", err
+		return "", &KernelNotFoundError{err}
 	}
 
 	if util.FileExists(kernelSrc) {
@@ -219,7 +232,7 @@ func (md *ImageMetadata) ExportKernel() (string, error) {
 			return "", fmt.Errorf("failed to copy kernel file from %q to %q: %v", kernelSrc, kernelDest, err)
 		}
 	} else {
-		return "", fmt.Errorf("no kernel found in image %q", md.ID)
+		return "", &KernelNotFoundError{fmt.Errorf("no kernel found in image %q", md.ID)}
 	}
 
 	return kernelDir, nil

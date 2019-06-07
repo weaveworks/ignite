@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
+	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
 // NewCmdRun creates, starts (and attaches to) a VM
@@ -17,7 +18,7 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 	ro := &run.RunOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "run [image] [kernel]",
+		Use:   "run [image]",
 		Short: "Create a new VM and start it",
 		Long: dedent.Dedent(`
 			Create and start a new VM immediately. The image and kernel are matched by
@@ -26,21 +27,42 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 			specified to immediately attach to the started VM after creation.
 
 			Example usage:
-				$ ignite run my-image my-kernel \
+				$ ignite run weaveworks/ignite-ubuntu \
+					--kernel weaveworks/ignite-ubuntu \
 					--interactive \
 					--name my-vm \
 					--cpus 2 \
 					--memory 2048 \
 					--size 10G
 		`),
-		Args: cobra.MinimumNArgs(2),
+		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if ro.Image, err = cmdutil.MatchSingleImage(args[0]); err != nil {
-					return err
+				ro.Image, err = cmdutil.MatchSingleImage(args[0])
+				if err != nil {
+					// Tolerate a nonexistent error, but return the error otherwise
+					if _, ok := err.(*metadata.NonexistentError); !ok {
+						return err
+					}
+					allImages, err := cmdutil.MatchAllImageNames()
+					if err != nil {
+						return err
+					}
+					// If the image doesn't exist, build it
+					if err := run.Build(&run.BuildOptions{
+						Source:     args[0],
+						ImageNames: allImages,
+					}); err != nil {
+						return err
+					}
+					ro.Image, _ = cmdutil.MatchSingleImage(args[0])
 				}
-				if ro.Kernel, err = cmdutil.MatchSingleKernel(args[1]); err != nil {
+				// TODO: deduplicate this from create.go code
+				if len(ro.KernelName) == 0 {
+					ro.KernelName = args[0]
+				}
+				if ro.Kernel, err = cmdutil.MatchSingleKernel(ro.KernelName); err != nil {
 					return err
 				}
 				if ro.VMNames, err = cmdutil.MatchAllVMNames(); err != nil {

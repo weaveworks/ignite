@@ -19,6 +19,14 @@ func (m *Match) String() string {
 	return strings.Join(m.Strings, " ")
 }
 
+type NonexistentError struct {
+	error
+}
+
+type AmbiguousError struct {
+	error
+}
+
 type Filter interface {
 	Filter(AnyMetadata) []string
 	ErrNonexistent() error
@@ -46,11 +54,11 @@ func (f *IDNameFilter) Filter(any AnyMetadata) []string {
 }
 
 func (f *IDNameFilter) ErrNonexistent() error {
-	return fmt.Errorf("can't find %s: no ID/name matches for %q", f.filterType, f.prefix)
+	return &NonexistentError{fmt.Errorf("can't find %s: no ID/name matches for %q", f.filterType, f.prefix)}
 }
 
 func (f *IDNameFilter) ErrAmbiguous(matches []*Match) error {
-	return fmt.Errorf("ambiguous %s query: %q matched the following IDs/names: %s", f.filterType, f.prefix, formatMatches(matches))
+	return &AmbiguousError{fmt.Errorf("ambiguous %s query: %q matched the following IDs/names: %s", f.filterType, f.prefix, formatMatches(matches))}
 }
 
 func formatMatches(matches []*Match) string {

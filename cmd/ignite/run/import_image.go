@@ -31,7 +31,7 @@ func ImportImage(ao *ImportImageOptions) error {
 	defer idHandler.Remove()
 
 	// Verify the name
-	name, err := metadata.NewName(ao.Name, &ao.ImageNames)
+	name, err := metadata.NewNameWithLatest(ao.Name, &ao.ImageNames)
 	if err != nil {
 		return err
 	}
