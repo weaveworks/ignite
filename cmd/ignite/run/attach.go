@@ -16,7 +16,7 @@ type AttachOptions struct {
 func Attach(ao *AttachOptions) error {
 	// Check if the VM is running
 	if ao.CheckRunning && !ao.VM.Running() {
-		return fmt.Errorf("%s is not running", ao.VM.ID)
+		return fmt.Errorf("VM %q is not running", ao.VM.ID)
 	}
 
 	// Print the ID before attaching

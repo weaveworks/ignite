@@ -23,7 +23,7 @@ type StartOptions struct {
 func Start(so *StartOptions) error {
 	// Check if the given VM is already running
 	if so.VM.Running() {
-		return fmt.Errorf("%s is already running", so.VM.ID)
+		return fmt.Errorf("VM %q is already running", so.VM.ID)
 	}
 
 	// Setup the snapshot overlay filesystem
