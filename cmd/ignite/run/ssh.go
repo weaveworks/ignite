@@ -20,7 +20,12 @@ func SSH(so *SSHOptions) error {
 		return fmt.Errorf("%s is not running", so.VM.ID)
 	}
 
-	sshArgs := append(make([]string, 0, 2), "-i")
+	ipAddrs := so.VM.VMOD().IPAddrs
+	if len(ipAddrs) == 0 {
+		return fmt.Errorf("VM %q has no usable IP addresses", so.VM.ID)
+	}
+
+	sshArgs := append(make([]string, 0, 3), fmt.Sprintf("root@%s", ipAddrs[0]), "-i")
 
 	// If an external identity file is specified, use it instead of the internal one
 	if len(so.IdentityFile) > 0 {
@@ -39,7 +44,7 @@ func SSH(so *SSHOptions) error {
 
 	// SSH into the VM
 	if _, err := util.ExecForeground("ssh", sshArgs...); err != nil {
-		return fmt.Errorf("failed to SSH into VM %q: %v", so.VM.ID, err)
+		return fmt.Errorf("SSH into VM %q failed: %v", so.VM.ID, err)
 	}
 
 	return nil
