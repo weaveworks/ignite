@@ -38,7 +38,7 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 			  kernel      %s
 			  vm          %s
 
-			Ignite also supports the same commands as the docker CLI.
+			Ignite also supports the same commands as the Docker CLI.
 			Combining an Image and a Kernel gives you a runnable VM.
 
 			Example usage:

@@ -146,3 +146,16 @@ func (md *VMMetadata) AddIPAddress(address net.IP) {
 func (md *VMMetadata) ClearIPAddresses() {
 	md.VMOD().IPAddrs = nil
 }
+
+// Generate a new SSH keypair for the VM
+func (md *VMMetadata) NewSSHKeypair() (string, error) {
+	privKeyPath := path.Join(md.ObjectPath(), fmt.Sprintf(constants.VM_SSH_KEY_TEMPLATE, md.ID))
+
+	// Use ED25519 instead of RSA for performance (it's equally secure, but a lot faster to generate/authenticate)
+	_, err := util.ExecuteCommand("ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", privKeyPath)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s.pub", privKeyPath), nil
+}

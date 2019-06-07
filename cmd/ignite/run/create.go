@@ -17,18 +17,17 @@ import (
 )
 
 type SSHFlag struct {
-	value *string
+	value    *string
+	generate bool
 }
 
 func (sf *SSHFlag) Set(x string) error {
-	if x != "unset" {
-		if x == "" {
-			s := "generate"
-			sf.value = &s
-		} else {
-			sf.value = &x
-		}
+	if x != "<path>" {
+		sf.value = &x
+	} else {
+		sf.generate = true
 	}
+
 	return nil
 }
 
@@ -36,11 +35,16 @@ func (sf *SSHFlag) String() string {
 	if sf.value == nil {
 		return ""
 	}
+
 	return *sf.value
 }
 
+func (sf *SSHFlag) Generate() bool {
+	return sf.generate
+}
+
 func (sf *SSHFlag) Type() string {
-	return "ssh"
+	return ""
 }
 
 func (sf *SSHFlag) IsBoolFlag() bool {
@@ -48,6 +52,8 @@ func (sf *SSHFlag) IsBoolFlag() bool {
 }
 
 var _ pflag.Value = &SSHFlag{}
+
+const vmAuthorizedKeys = "/root/.ssh/authorized_keys"
 
 type CreateOptions struct {
 	Image      *imgmd.ImageMetadata
@@ -70,8 +76,6 @@ func Create(co *CreateOptions) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("SSH", co.SSH.String())
 
 	// Create a new ID and directory for the VM
 	idHandler, err := util.NewID(constants.VM_DIR)
@@ -106,6 +110,11 @@ func Create(co *CreateOptions) error {
 		return err
 	}
 
+	// Parse SSH key importing
+	if err := co.parseSSH(&fileMappings); err != nil {
+		return err
+	}
+
 	// Copy the additional files to the overlay
 	if err := co.vm.CopyToOverlay(fileMappings); err != nil {
 		return err
@@ -136,4 +145,31 @@ func parseFileMappings(fileMappings []string) (map[string]string, error) {
 	}
 
 	return result, nil
+}
+
+// If we're requested to import/generate an SSH key, add that to fileMappings
+func (co *CreateOptions) parseSSH(fileMappings *map[string]string) error {
+	importKey := co.SSH.String()
+
+	if co.SSH.Generate() {
+		pubKeyPath, err := co.vm.NewSSHKeypair()
+		if err != nil {
+			return err
+		}
+
+		(*fileMappings)[pubKeyPath] = vmAuthorizedKeys
+	} else if len(importKey) > 0 {
+		// Always digest the public key
+		if !strings.HasSuffix(importKey, ".pub") {
+			importKey = fmt.Sprintf("%s.pub", importKey)
+		}
+
+		if !util.FileExists(importKey) {
+			return fmt.Errorf("invalid SSH key: %s", importKey)
+		}
+
+		(*fileMappings)[importKey] = vmAuthorizedKeys
+	}
+
+	return nil
 }
