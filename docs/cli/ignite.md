@@ -16,6 +16,7 @@ Administration is divided into three subcommands:
 Image + Kernel = VM
 
 Example usage:
+
 	$ ignite build luxas/ubuntu-base:18.04 \
 		--name my-image \
 		--import-kernel my-kernel
