@@ -46,6 +46,11 @@ as the primary unit, but whole yet lightweight VMs that integrate with the conta
 
 ### How to use
 
+[![asciicast](https://asciinema.org/a/la4p00rcJOBLfW4HPvS8z7riy.svg)](https://asciinema.org/a/la4p00rcJOBLfW4HPvS8z7riy)
+
+Note: At the moment `ignite` needs root privileges on the host to operate,
+for certain specific operations (e.g. `mount`). This will change in the future.
+
 ```console
 $ ignite build weaveworks/ignite-ubuntu:v0.2.0 \
     --name ubuntu-image \
@@ -83,26 +88,7 @@ reference base images and a sample kernel image to get started quickly.
 
 ### Known limitations
 
-Firecracker by design only supports 4 devices:
- - `virtio-block`
- - `virtio-net`
- - a serial console
- - a 1-button keyboard used only to stop the microVM (invoked with `reboot`)
-
-Everything apart from above, is not supported, and out of scope.
-
-Host Requirements:
- - A computer running Linux 4.14 or newer
- - `sysctl net.bridge.bridge-nf-call-iptables=0`
- - `sysctl net.ipv4.ip_forward=1`
-
-Guest Requirements:
- - A linux kernel 4.14 or newer
- - Kernel config:
-   - `CONFIG_VIRTIO_BLK=y` (mandatory)
-   - `CONFIG_VIRTIO_NET=y` (mandatory)
-   - `CONFIG_KEYBOARD_ATKBD=y` (recommended)
-   - `CONFIG_SERIO_I8042=y` (recommended)
+See [REQUIREMENTS.md](REQUIREMENTS.md)
 
 ### Maintainers
 
