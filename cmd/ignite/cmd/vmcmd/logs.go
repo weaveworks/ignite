@@ -23,7 +23,7 @@ func NewCmdLogs(out io.Writer) *cobra.Command {
 			Show the logs for the given VM. The VM needs to be running (its backing
 			container needs to exist). The VM is matched by prefix based on its ID and name.
 		`),
-		Args: cobra.MinimumNArgs(1),
+		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error

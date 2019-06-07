@@ -23,7 +23,7 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 			Import a new base image for VMs. This command takes in an existing ext4 block
 			device file. Used in conjunction with "export" (not yet implemented).
 		`), // TODO export
-		Args: cobra.MinimumNArgs(1),
+		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			io.Source = args[0]
 			errutils.Check(func() error {
