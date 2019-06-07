@@ -35,7 +35,7 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 					--memory 2048 \
 					--size 10G
 		`),
-		Args: cobra.MinimumNArgs(1),
+		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error

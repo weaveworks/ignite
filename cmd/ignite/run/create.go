@@ -5,6 +5,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/spf13/pflag"
+
 	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
@@ -13,6 +15,39 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
+
+type SSHFlag struct {
+	value *string
+}
+
+func (sf *SSHFlag) Set(x string) error {
+	if x != "unset" {
+		if x == "" {
+			s := "generate"
+			sf.value = &s
+		} else {
+			sf.value = &x
+		}
+	}
+	return nil
+}
+
+func (sf *SSHFlag) String() string {
+	if sf.value == nil {
+		return ""
+	}
+	return *sf.value
+}
+
+func (sf *SSHFlag) Type() string {
+	return "ssh"
+}
+
+func (sf *SSHFlag) IsBoolFlag() bool {
+	return true
+}
+
+var _ pflag.Value = &SSHFlag{}
 
 type CreateOptions struct {
 	Image      *imgmd.ImageMetadata
@@ -25,6 +60,7 @@ type CreateOptions struct {
 	CopyFiles  []string
 	KernelName string
 	KernelCmd  string
+	SSH        *SSHFlag
 	VMNames    []*metadata.Name
 }
 
@@ -34,6 +70,8 @@ func Create(co *CreateOptions) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("SSH", co.SSH.String())
 
 	// Create a new ID and directory for the VM
 	idHandler, err := util.NewID(constants.VM_DIR)
