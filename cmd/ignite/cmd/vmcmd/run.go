@@ -18,7 +18,7 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 	ro := &run.RunOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "run [image]",
+		Use:   "run <image>",
 		Short: "Create a new VM and start it",
 		Long: dedent.Dedent(`
 			Create and start a new VM immediately. The image and kernel are matched by

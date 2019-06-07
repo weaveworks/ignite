@@ -17,7 +17,7 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 	so := &run.StartOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "start [vm]",
+		Use:   "start <vm>",
 		Short: "Start a VM",
 		Long: dedent.Dedent(`
 			Start the given VM. The VM is matched by prefix based on its ID and name.

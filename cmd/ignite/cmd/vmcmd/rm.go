@@ -17,7 +17,7 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 	ro := &run.RmOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "rm [vm]...",
+		Use:   "rm <vm>...",
 		Short: "Remove VMs",
 		Long: dedent.Dedent(`
 			Remove one or multiple VMs. The VMs are matched by prefix based

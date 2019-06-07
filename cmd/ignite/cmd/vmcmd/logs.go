@@ -17,7 +17,7 @@ func NewCmdLogs(out io.Writer) *cobra.Command {
 	lo := &run.LogsOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "logs [vm]",
+		Use:   "logs <vm>",
 		Short: "Get the logs for a running VM",
 		Long: dedent.Dedent(`
 			Show the logs for the given VM. The VM needs to be running (its backing

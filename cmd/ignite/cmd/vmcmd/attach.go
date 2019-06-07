@@ -18,7 +18,7 @@ func NewCmdAttach(out io.Writer) *cobra.Command {
 	ao := &run.AttachOptions{CheckRunning: true}
 
 	cmd := &cobra.Command{
-		Use:   "attach [vm]",
+		Use:   "attach <vm>",
 		Short: "Attach to a running VM",
 		Long: dedent.Dedent(`
 			Connect the current terminal to the running VM's TTY.

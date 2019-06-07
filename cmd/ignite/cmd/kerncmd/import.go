@@ -17,7 +17,7 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 	io := &run.ImportKernelOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "import [path]",
+		Use:   "import <path>",
 		Short: "Import an uncompressed kernel image for VM use",
 		Args:  cobra.ExactArgs(1),
 		Long: dedent.Dedent(`

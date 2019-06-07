@@ -17,7 +17,7 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 	ro := &run.RmkOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "rm [kernel]...",
+		Use:   "rm <kernel>...",
 		Short: "Remove kernels",
 		Long: dedent.Dedent(`
 			Remove one or multiple VM kernels. Kernels are matched by prefix based on their

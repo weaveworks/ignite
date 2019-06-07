@@ -14,7 +14,7 @@ func NewCmdContainer(out io.Writer) *cobra.Command {
 	co := &run.ContainerOptions{}
 
 	cmd := &cobra.Command{
-		Use:    "container [id]",
+		Use:    "container <vm>",
 		Hidden: true,
 		Args:   cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
