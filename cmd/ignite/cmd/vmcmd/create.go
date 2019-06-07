@@ -38,7 +38,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 					--memory 2048 \
 					--size 6GB
 		`),
-		Args: cobra.MinimumNArgs(1),
+		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
@@ -71,4 +71,7 @@ func addCreateFlags(fs *pflag.FlagSet, co *run.CreateOptions) {
 	fs.StringSliceVarP(&co.CopyFiles, "copy-files", "f", nil, "Copy files from the host to the created VM")
 	fs.StringVarP(&co.KernelName, "kernel", "k", "", "Specify a kernel to use. By default this equals the image name")
 	fs.StringVar(&co.KernelCmd, "kernel-args", constants.VM_KERNEL_ARGS, "Set the command line for the kernel")
+	co.SSH = &run.SSHFlag{}
+	fs.Var(co.SSH, "ssh", "Set the command line for the kernel")
+	fs.Lookup("ssh").NoOptDefVal = "generate"
 }
