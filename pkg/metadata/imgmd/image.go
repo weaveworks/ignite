@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -31,9 +32,19 @@ func NewSource(src string) (*ImageSource, error) {
 		return nil, err
 	}
 
-	// TODO: docker pull if it's not found
+	// If the docker image isn't found, try to pull it
 	if util.IsEmptyString(out) {
-		return nil, fmt.Errorf("docker image %s not found", src)
+		log.Printf("Image %s not found locally, pulling...", src)
+		if _, err := util.ExecForeground("docker", "pull", src); err != nil {
+			return nil, err
+		}
+		out, err = util.ExecuteCommand("docker", "images", "-q", src)
+		if err != nil {
+			return nil, err
+		}
+		if util.IsEmptyString(out) {
+			return nil, fmt.Errorf("docker image %s could not be found", src)
+		}
 	}
 
 	// Docker outputs one image per line

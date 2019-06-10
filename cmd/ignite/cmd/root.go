@@ -44,6 +44,7 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 			Combining an Image and a Kernel gives you a runnable VM.
 
 			Example usage:
+
 				$ ignite run weaveworks/ignite-ubuntu \
 					--cpus 2 \
 					--memory 1024 \

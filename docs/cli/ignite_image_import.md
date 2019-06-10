@@ -1,16 +1,25 @@
 ## ignite image import
 
-Import a VM base image
+Import a new base image for VMs
 
 ### Synopsis
 
 
-Import a new base image for VMs. This command takes in an existing ext4 block
-device file. Used in conjunction with "export" (not yet implemented).
+Import a new base image for VMs, takes in a Docker image as the source.
+The base image is an ext4 block device file, which contains a root filesystem.
+
+If the import kernel flag (-k, --import-kernel) is specified,
+/boot/vmlinux is extracted from the image and added to a new
+VM kernel object named after the flag.
+
+Example usage:
+    $ ignite build luxas/ubuntu-base:18.04 \
+		--name my-image \
+		--import-kernel my-kernel
 
 
 ```
-ignite image import <path> [flags]
+ignite image import <source> [flags]
 ```
 
 ### Options

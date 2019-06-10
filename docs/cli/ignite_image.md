@@ -28,8 +28,7 @@ ignite image [flags]
 ### SEE ALSO
 
 * [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-* [ignite image build](ignite_image_build.md)	 - Build a new base image for VMs
-* [ignite image import](ignite_image_import.md)	 - Import a VM base image
+* [ignite image import](ignite_image_import.md)	 - Import a new base image for VMs
 * [ignite image ls](ignite_image_ls.md)	 - List available VM base images
 * [ignite image rm](ignite_image_rm.md)	 - Remove VM base images
 
