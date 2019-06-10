@@ -19,8 +19,9 @@ func Rm(ro *RmOptions) error {
 			// If force is set, kill the VM
 			if ro.Force {
 				if err := Stop(&StopOptions{
-					VMs:  []*vmmd.VMMetadata{vm},
-					Kill: true,
+					VMs:          []*vmmd.VMMetadata{vm},
+					Kill:         true,
+					DisablePrint: true,
 				}); err != nil {
 					return err
 				}
