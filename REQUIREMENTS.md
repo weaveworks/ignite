@@ -36,3 +36,5 @@ With time, we aim to eliminate as many of these as possible.
  - `docker` for managing the containers ignite uses
  - `e2fsck` & `resize2fs` for cleaning and resizing the ext4 filesystems
  - `dmsetup` for managing devicemapper snapshots and overlays
+ - `tar` for extracting files from the docker image onto the filesystem
+ - `ssh` for SSH-ing into the VM

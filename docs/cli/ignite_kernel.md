@@ -28,7 +28,6 @@ ignite kernel [flags]
 ### SEE ALSO
 
 * [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-* [ignite kernel import](ignite_kernel_import.md)	 - Import an uncompressed kernel image for VM use
 * [ignite kernel ls](ignite_kernel_ls.md)	 - List available VM kernels
 * [ignite kernel rm](ignite_kernel_rm.md)	 - Remove kernels
 
