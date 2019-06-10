@@ -78,5 +78,5 @@ func addCreateFlags(fs *pflag.FlagSet, co *run.CreateOptions) {
 
 	sshFlag := fs.Lookup("ssh")
 	sshFlag.NoOptDefVal = "<path>"
-	sshFlag.DefValue = "is unset, which disables SSH access to the VM"
+	sshFlag.DefValue = "is unset, which copies no SSH keys to the VM"
 }
