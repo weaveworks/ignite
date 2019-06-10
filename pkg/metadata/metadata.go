@@ -102,7 +102,7 @@ func (md *Metadata) Remove(quiet bool) error {
 	if quiet {
 		fmt.Println(md.ID)
 	} else {
-		log.Print("Removed %s with name %q and ID %q", md.Name, md.ID)
+		log.Printf("Removed %s with name %q and ID %q", md.Type, md.Name.String(), md.ID)
 	}
 	return nil
 }
