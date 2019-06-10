@@ -2,16 +2,13 @@ package run
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/version"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
-	"strings"
-
-	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/util"
-	"github.com/weaveworks/ignite/pkg/version"
 )
 
 type StartOptions struct {
@@ -61,13 +58,19 @@ func Start(so *StartOptions) (string, error) {
 		dockerCmd = append(dockerCmd, "--rm")
 	}
 
-	ports, err := parsePortMappings(so.PortMappings)
-	if err != nil {
+	// Parse the given port mappings
+	if err := so.VM.NewPortMappings(so.PortMappings); err != nil {
 		return "", err
 	}
 
-	for hostPort, vmPort := range ports {
+	// Add the port mappings to Docker
+	for hostPort, vmPort := range so.VM.VMOD().PortMappings {
 		dockerArgs = append(dockerArgs, fmt.Sprintf("-p=%d:%d", hostPort, vmPort))
+	}
+
+	// Save the port mappings into the VM metadata
+	if err := so.VM.Save(); err != nil {
+		return "", err
 	}
 
 	dockerArgs = append(dockerArgs, fmt.Sprintf("weaveworks/ignite:%s", version.GetFirecracker()))
@@ -85,27 +88,4 @@ func Start(so *StartOptions) (string, error) {
 		return "", Attach(&so.AttachOptions)
 	}
 	return so.VM.ID, nil
-}
-
-func parsePortMappings(portMappings []string) (map[uint64]uint64, error) {
-	result := map[uint64]uint64{}
-	for _, portMapping := range portMappings {
-		ports := strings.Split(portMapping, ":")
-		if len(ports) != 2 {
-			return nil, fmt.Errorf("invalid --ports must be of the form hostPort:vmPort")
-		}
-		hostPort, err := strconv.ParseUint(ports[0], 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		vmPort, err := strconv.ParseUint(ports[1], 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		if _, ok := result[hostPort]; ok {
-			return nil, fmt.Errorf("you can't specify two hostports twice")
-		}
-		result[hostPort] = vmPort
-	}
-	return result, nil
 }
