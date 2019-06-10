@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 
@@ -92,6 +93,18 @@ func NewMetadata(id string, name *Name, t ObjectType, data ObjectData) *Metadata
 
 func (md *Metadata) ObjectPath() string {
 	return path.Join(md.Type.Path(), md.ID)
+}
+
+func (md *Metadata) Remove(quiet bool) error {
+	if err := os.RemoveAll(md.ObjectPath()); err != nil {
+		return fmt.Errorf("unable to remove directory for %s %q: %v", md.Type, md.ID, err)
+	}
+	if quiet {
+		fmt.Println(md.ID)
+	} else {
+		log.Print("Removed %s with name %q and ID %q", md.Name, md.ID)
+	}
+	return nil
 }
 
 func (md *Metadata) Save() error {

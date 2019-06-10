@@ -68,5 +68,5 @@ func ImportImage(ao *ImportImageOptions) (string, error) {
 			}
 		}
 	}
-	return idHandler.Success()
+	return idHandler.Success(name.String())
 }

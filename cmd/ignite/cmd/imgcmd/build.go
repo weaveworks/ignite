@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
+	"github.com/weaveworks/ignite/pkg/logs"
 )
 
 // NewCmdBuild builds a new VM image
@@ -44,7 +45,7 @@ func NewCmdBuild(out io.Writer) *cobra.Command {
 				if bo.ImageNames, err = cmdutil.MatchAllImageNames(); err != nil {
 					return err
 				}
-				return cmdutil.PrintMachineReadableID(run.Build(bo))
+				return logs.PrintMachineReadableID(run.Build(bo))
 			}())
 		},
 	}
