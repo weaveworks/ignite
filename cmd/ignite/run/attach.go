@@ -19,9 +19,6 @@ func Attach(ao *AttachOptions) error {
 		return fmt.Errorf("VM %q is not running", ao.VM.ID)
 	}
 
-	// Print the ID before attaching
-	fmt.Println(ao.VM.ID)
-
 	dockerArgs := []string{
 		"attach",
 		constants.IGNITE_PREFIX + ao.VM.ID,
