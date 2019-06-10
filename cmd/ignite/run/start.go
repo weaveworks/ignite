@@ -39,12 +39,16 @@ func Start(so *StartOptions) (string, error) {
 	}
 	igniteBinary, _ := filepath.Abs(path)
 
+	vmDir := filepath.Join(constants.VM_DIR, so.VM.ID)
+	kernelDir := filepath.Join(constants.KERNEL_DIR, so.VM.KernelID())
+
 	dockerArgs := []string{
 		"-itd",
 		fmt.Sprintf("--label=ignite.name=%s", so.VM.Name.String()),
 		fmt.Sprintf("--name=%s", constants.IGNITE_PREFIX+so.VM.ID),
-		fmt.Sprintf("-v=%s:/ignite/ignite", igniteBinary),
-		fmt.Sprintf("-v=%s:%s", constants.DATA_DIR, constants.DATA_DIR),
+		fmt.Sprintf("--volume=%s:/ignite/ignite", igniteBinary),
+		fmt.Sprintf("--volume=%s:%s", vmDir, vmDir),
+		fmt.Sprintf("--volume=%s:%s", kernelDir, kernelDir),
 		fmt.Sprintf("--stop-timeout=%d", constants.STOP_TIMEOUT+constants.IGNITE_TIMEOUT),
 		"--cap-add=SYS_ADMIN",          // Needed to run "dmsetup remove" inside the container
 		"--cap-add=NET_ADMIN",          // Needed for removing the IP from the container's interface
