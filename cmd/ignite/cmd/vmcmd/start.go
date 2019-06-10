@@ -1,6 +1,7 @@
 package vmcmd
 
 import (
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"io"
 
 	"github.com/lithammer/dedent"
@@ -14,7 +15,7 @@ import (
 
 // NewCmdStart starts a VM
 func NewCmdStart(out io.Writer) *cobra.Command {
-	so := &run.StartOptions{}
+	sf := &run.StartFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "start <vm>",
@@ -27,8 +28,8 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				var err error
-				if so.VM, err = cmdutil.MatchSingleVM(args[0]); err != nil {
+				so, err := sf.NewStartOptions(runutil.NewResLoader(), args[0])
+				if err != nil {
 					return err
 				}
 				return run.Start(so)
@@ -36,12 +37,12 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 		},
 	}
 
-	addStartFlags(cmd.Flags(), so)
+	addStartFlags(cmd.Flags(), sf)
 	return cmd
 }
 
-func addStartFlags(fs *pflag.FlagSet, so *run.StartOptions) {
-	cmdutil.AddInteractiveFlag(fs, &so.Interactive)
-	fs.StringSliceVarP(&so.PortMappings, "ports", "p", nil, "Map host ports to VM ports")
-	fs.BoolVarP(&so.Debug, "debug", "d", false, "Debug mode, keep container after VM shutdown")
+func addStartFlags(fs *pflag.FlagSet, sf *run.StartFlags) {
+	cmdutil.AddInteractiveFlag(fs, &sf.Interactive)
+	fs.StringSliceVarP(&sf.PortMappings, "ports", "p", nil, "Map host ports to VM ports")
+	fs.BoolVarP(&sf.Debug, "debug", "d", false, "Debug mode, keep container after VM shutdown")
 }

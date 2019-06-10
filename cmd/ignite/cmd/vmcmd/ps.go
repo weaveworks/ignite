@@ -1,13 +1,13 @@
 package vmcmd
 
 import (
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"io"
 
 	"github.com/lithammer/dedent"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
@@ -27,7 +27,7 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if po.VMs, err = cmdutil.MatchAllVMs(po.All); err != nil {
+				if po.VMs, err = runutil.MatchAllVMs(po.All); err != nil {
 					return err
 				}
 				return run.Ps(po)

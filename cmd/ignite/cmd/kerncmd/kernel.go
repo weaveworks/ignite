@@ -1,12 +1,12 @@
 package kerncmd
 
 import (
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"io"
 
 	"github.com/lithammer/dedent"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
@@ -27,7 +27,7 @@ func NewCmdKernel(out io.Writer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if ko.Kernels, err = cmdutil.MatchAllKernels(); err != nil {
+				if ko.Kernels, err = runutil.MatchAllKernels(); err != nil {
 					return err
 				}
 				return run.Kernels(ko)

@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"path"
 	"strings"
 
@@ -55,10 +56,7 @@ var _ pflag.Value = &SSHFlag{}
 
 const vmAuthorizedKeys = "/root/.ssh/authorized_keys"
 
-type CreateOptions struct {
-	Image      *imgmd.ImageMetadata
-	Kernel     *kernmd.KernelMetadata
-	vm         *vmmd.VMMetadata
+type CreateFlags struct {
 	Name       string
 	CPUs       int64
 	Memory     int64
@@ -67,10 +65,40 @@ type CreateOptions struct {
 	KernelName string
 	KernelCmd  string
 	SSH        *SSHFlag
-	VMNames    []*metadata.Name
 }
 
-func Create(co *CreateOptions) error {
+type createOptions struct {
+	*CreateFlags
+	image  *imgmd.ImageMetadata
+	kernel *kernmd.KernelMetadata
+	vms    []metadata.AnyMetadata
+	newVM  *vmmd.VMMetadata
+}
+
+func (cf *CreateFlags) NewCreateOptions(l *runutil.ResourceLoader, imageMatch string) (*createOptions, error) {
+	var err error
+	co := &createOptions{CreateFlags: cf}
+
+	if co.image, err = l.MatchSingleImage(imageMatch); err != nil {
+		return nil, err
+	}
+
+	if len(cf.KernelName) == 0 {
+		cf.KernelName = imageMatch
+	}
+
+	if co.kernel, err = l.MatchSingleKernel(cf.KernelName); err != nil {
+		return nil, err
+	}
+
+	if co.vms, err = l.MatchAllVMs(true); err != nil {
+		return nil, err
+	}
+
+	return co, nil
+}
+
+func Create(co *createOptions) error {
 	// Parse the --copy-files flag
 	fileMappings, err := parseFileMappings(co.CopyFiles)
 	if err != nil {
@@ -85,17 +113,17 @@ func Create(co *CreateOptions) error {
 	defer idHandler.Remove()
 
 	// Verify the name
-	name, err := metadata.NewName(co.Name, &co.VMNames)
+	name, err := metadata.NewName(co.Name, &co.vms)
 	if err != nil {
 		return err
 	}
 
 	// Create new metadata for the VM and add to createOptions for further processing
 	// This enables the generated VM metadata to pass straight to start and attach via run
-	co.vm = vmmd.NewVMMetadata(idHandler.ID, name, vmmd.NewVMObjectData(co.Image.ID, co.Kernel.ID, co.CPUs, co.Memory, co.KernelCmd))
+	co.newVM = vmmd.NewVMMetadata(idHandler.ID, name, vmmd.NewVMObjectData(co.image.ID, co.kernel.ID, co.CPUs, co.Memory, co.KernelCmd))
 
 	// Save the metadata
-	if err := co.vm.Save(); err != nil {
+	if err := co.newVM.Save(); err != nil {
 		return err
 	}
 
@@ -106,7 +134,7 @@ func Create(co *CreateOptions) error {
 	}
 
 	// Allocate the overlay file
-	if err := co.vm.AllocateOverlay(size.Bytes()); err != nil {
+	if err := co.newVM.AllocateOverlay(size.Bytes()); err != nil {
 		return err
 	}
 
@@ -116,12 +144,12 @@ func Create(co *CreateOptions) error {
 	}
 
 	// Copy the additional files to the overlay
-	if err := co.vm.CopyToOverlay(fileMappings); err != nil {
+	if err := co.newVM.CopyToOverlay(fileMappings); err != nil {
 		return err
 	}
 
 	// Print the ID of the created VM
-	fmt.Println(co.vm.ID)
+	fmt.Println(co.newVM.ID)
 
 	idHandler.Success()
 	return nil
@@ -148,11 +176,11 @@ func parseFileMappings(fileMappings []string) (map[string]string, error) {
 }
 
 // If we're requested to import/generate an SSH key, add that to fileMappings
-func (co *CreateOptions) parseSSH(fileMappings *map[string]string) error {
+func (co *createOptions) parseSSH(fileMappings *map[string]string) error {
 	importKey := co.SSH.String()
 
 	if co.SSH.Generate() {
-		pubKeyPath, err := co.vm.NewSSHKeypair()
+		pubKeyPath, err := co.newVM.NewSSHKeypair()
 		if err != nil {
 			return err
 		}

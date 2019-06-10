@@ -2,6 +2,7 @@ package vmcmd
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"io"
 
 	"github.com/lithammer/dedent"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
@@ -34,7 +34,7 @@ func NewCmdStop(out io.Writer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if so.VMs, err = cmdutil.MatchSingleVMs(args); err != nil {
+				if so.VMs, err = runutil.MatchSingleVMs(args); err != nil {
 					return err
 				}
 				return run.Stop(so)

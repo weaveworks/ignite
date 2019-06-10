@@ -27,15 +27,16 @@ func (n *Name) randomize() {
 	}
 }
 
-func NewNameWithLatest(input string, matches *[]*Name) (*Name, error) {
+func NewNameWithLatest(input string, matches *[]AnyMetadata) (*Name, error) {
 	// Enforce a latest tag for images and kernels
 	if !strings.Contains(input, ":") {
 		input += ":latest"
 	}
+	
 	return NewName(input, matches)
 }
 
-func NewName(input string, matches *[]*Name) (*Name, error) {
+func NewName(input string, matches *[]AnyMetadata) (*Name, error) {
 	matched, err := regexp.MatchString(nameRegex, input)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate name input %q: %v", input, err)
@@ -48,7 +49,7 @@ func NewName(input string, matches *[]*Name) (*Name, error) {
 	// Check the given matches for uniqueness
 	if matches != nil {
 		for _, match := range *matches {
-			if input == match.string {
+			if input == match.GetMD().Name.string {
 				return nil, fmt.Errorf("invalid name %q: already exists", input)
 			}
 		}

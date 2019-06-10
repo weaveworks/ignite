@@ -2,35 +2,49 @@ package run
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-type AttachOptions struct {
-	VM           *vmmd.VMMetadata
-	CheckRunning bool
+// checkRunning can be used to skip the running check, this is used by Start and Run
+// as the in-container ignite takes some time to start up and update the state
+type attachOptions struct {
+	checkRunning bool
+	vm           *vmmd.VMMetadata
 }
 
-func Attach(ao *AttachOptions) error {
+func NewAttachOptions(l *runutil.ResourceLoader, vmMatch string) (*attachOptions, error) {
+	var err error
+	ao := &attachOptions{checkRunning: true}
+
+	if ao.vm, err = l.MatchSingleVM(vmMatch); err != nil {
+		return nil, err
+	}
+
+	return ao, nil
+}
+
+func Attach(ao *attachOptions) error {
 	// Check if the VM is running
-	if ao.CheckRunning && !ao.VM.Running() {
-		return fmt.Errorf("VM %q is not running", ao.VM.ID)
+	if ao.checkRunning && !ao.vm.Running() {
+		return fmt.Errorf("VM %q is not running", ao.vm.ID)
 	}
 
 	// Print the ID before attaching
-	fmt.Println(ao.VM.ID)
+	fmt.Println(ao.vm.ID)
 
 	dockerArgs := []string{
 		"attach",
-		constants.IGNITE_PREFIX + ao.VM.ID,
+		constants.IGNITE_PREFIX + ao.vm.ID,
 	}
 
 	// Attach to the VM in Docker
 	if ec, err := util.ExecForeground("docker", dockerArgs...); err != nil {
 		if ec != 1 { // Docker's detach sequence (^P^Q) has an exit code of -1
-			return fmt.Errorf("failed to attach to container for VM %s: %v", ao.VM.ID, err)
+			return fmt.Errorf("failed to attach to container for VM %s: %v", ao.vm.ID, err)
 		}
 	}
 
