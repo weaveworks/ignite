@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/imgcmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/kerncmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
+	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/util"
 
 	"github.com/lithammer/dedent"
@@ -24,10 +25,23 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 		Use:   "ignite",
 		Short: "ignite: easily run Firecracker VMs",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			// Ignite needs to run as root for now, see
+			// https://github.com/weaveworks/ignite/issues/46
+			// TODO: Remove this when ready
+			ok, err := util.TestRoot()
+			if err != nil {
+				panic(err)
+			} else if !ok {
+				fmt.Println("This program needs to run as root.")
+				os.Exit(1)
+			}
+
 			// TODO: Handle this error more softly?
 			if err := util.CreateDirectories(); err != nil {
 				panic(err)
 			}
+
+			logs.InitLogs()
 		},
 		Long: dedent.Dedent(fmt.Sprintf(`
 			Ignite is a containerized Firecracker microVM administration tool.
@@ -42,6 +56,7 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 			Combining an Image and a Kernel gives you a runnable VM.
 
 			Example usage:
+
 				$ ignite run weaveworks/ignite-ubuntu \
 					--cpus 2 \
 					--memory 1024 \
@@ -55,12 +70,13 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 		`, imageCmd.Short, kernelCmd.Short, vmCmd.Short)),
 	}
 
+	logs.AddQuietFlag(root.PersistentFlags())
+
 	root.AddCommand(imageCmd)
 	root.AddCommand(kernelCmd)
 	root.AddCommand(vmCmd)
 
 	root.AddCommand(NewCmdAttach(os.Stdout))
-	root.AddCommand(NewCmdBuild(os.Stdout))
 	root.AddCommand(NewCmdCompletion(os.Stdout, root))
 	root.AddCommand(NewCmdContainer(os.Stdout))
 	root.AddCommand(NewCmdCreate(os.Stdout))

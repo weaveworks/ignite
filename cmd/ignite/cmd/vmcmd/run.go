@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
+	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
@@ -51,7 +52,7 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 						return err
 					}
 					// If the image doesn't exist, build it
-					if err := run.Build(&run.BuildOptions{
+					if _, err := run.Import(&run.ImportOptions{
 						Source:     args[0],
 						ImageNames: allImages,
 					}); err != nil {
@@ -75,7 +76,7 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 					return err
 				}
 
-				return run.Run(ro)
+				return logs.PrintMachineReadableID(run.Run(ro))
 			}())
 		},
 	}

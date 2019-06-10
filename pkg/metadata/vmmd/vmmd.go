@@ -2,8 +2,6 @@ package vmmd
 
 import (
 	"encoding/json"
-	"net"
-
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
@@ -50,13 +48,14 @@ type VMMetadata struct {
 }
 
 type VMObjectData struct {
-	ImageID   string
-	KernelID  string
-	State     state
-	VCPUs     int64
-	Memory    int64
-	IPAddrs   []net.IP
-	KernelCmd string
+	ImageID      string
+	KernelID     string
+	State        state
+	VCPUs        int64
+	Memory       int64
+	IPAddrs      IPAddrs
+	PortMappings PortMappings
+	KernelCmd    string
 }
 
 func NewVMObjectData(imageID, kernelID string, vCPUs, memory int64, kernelCmd string) *VMObjectData {

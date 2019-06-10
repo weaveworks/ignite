@@ -1,17 +1,18 @@
 package run
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"path"
 
+	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-type BuildOptions struct {
+type ImportOptions struct {
 	Source     string
 	Name       string
 	KernelName string
@@ -19,18 +20,18 @@ type BuildOptions struct {
 	ImageNames []*metadata.Name
 }
 
-func Build(bo *BuildOptions) error {
+func Import(bo *ImportOptions) (string, error) {
 	// Create a new ID and directory for the image
 	idHandler, err := util.NewID(constants.IMAGE_DIR)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer idHandler.Remove()
 
 	// Parse the source
 	imageSrc, err := imgmd.NewSource(bo.Source)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	nameStr := bo.Name
@@ -41,51 +42,50 @@ func Build(bo *BuildOptions) error {
 	// Verify the name
 	name, err := metadata.NewNameWithLatest(nameStr, &bo.ImageNames)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Create new image metadata
 	bo.image = imgmd.NewImageMetadata(idHandler.ID, name)
 
+	log.Println("Starting image import...")
+
 	// Create new file to host the filesystem and format it
 	if err := bo.image.AllocateAndFormat(imageSrc.Size()); err != nil {
-		return err
+		return "", err
 	}
 
 	// Add the files to the filesystem
 	if err := bo.image.AddFiles(imageSrc); err != nil {
-		return err
+		return "", err
 	}
 
 	if err := bo.image.Save(); err != nil {
-		return err
+		return "", err
 	}
+	hrsize := datasize.ByteSize(imageSrc.Size()).HR()
+	log.Printf("Created a %s filesystem of the input", hrsize)
 
 	// Import a new kernel from the image if specified
-	dir, err := bo.image.ExportKernel()
+	tmpKernelDir, err := bo.image.ExportKernel()
 	if err == nil {
-		if dir != "" {
-			if err := ImportKernel(&ImportKernelOptions{
-				Source: path.Join(dir, constants.KERNEL_FILE),
-				Name:   name.String(),
-			}); err != nil {
-				return err
-			}
-
-			if err := os.RemoveAll(dir); err != nil {
-				return err
-			}
+		_, err := ImportKernel(&ImportKernelOptions{
+			Source: path.Join(tmpKernelDir, constants.KERNEL_FILE),
+			Name:   name.String(),
+		})
+		if err != nil {
+			return "", err
 		}
+		if err := os.RemoveAll(tmpKernelDir); err != nil {
+			return "", err
+		}
+		//log.Printf("A kernel was imported from the image with name %q and ID %q", name.String(), kernelID)
 	} else {
 		// Tolerate the kernel to not be found
 		if _, ok := err.(*imgmd.KernelNotFoundError); !ok {
-			return err
+			return "", err
 		}
 	}
 
-	// Print the ID of the newly generated image
-	fmt.Println(bo.image.ID)
-
-	idHandler.Success()
-	return nil
+	return idHandler.Success(name.String())
 }

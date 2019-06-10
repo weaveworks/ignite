@@ -7,19 +7,23 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/weaveworks/ignite/pkg/logs"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/duration"
 )
 
 type output struct {
-	writer *tabwriter.Writer
+	writer   *tabwriter.Writer
+	isHeader bool
 }
 
 func NewOutput() *output {
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 8, 1, '\t', 0)
 	return &output{
-		writer: writer,
+		writer:   writer,
+		isHeader: true,
 	}
 }
 
@@ -42,8 +46,20 @@ func (o *output) Write(input ...interface{}) {
 		} else {
 			sb.WriteString("\n")
 		}
+		// Just output the first column in quiet mode
+		if logs.Quiet && i == 0 {
+			sb.WriteString("\n")
+			break
+		}
 	}
 
+	if o.isHeader {
+		o.isHeader = false
+		// Return if we're in quiet mode and this was the header
+		if logs.Quiet {
+			return
+		}
+	}
 	fmt.Fprint(o.writer, sb.String())
 }
 

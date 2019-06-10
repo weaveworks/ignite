@@ -14,8 +14,9 @@ var (
 )
 
 type StopOptions struct {
-	VMs  []*vmmd.VMMetadata
-	Kill bool
+	VMs          []*vmmd.VMMetadata
+	Kill         bool
+	DisablePrint bool
 }
 
 func Stop(so *StopOptions) error {
@@ -39,8 +40,10 @@ func Stop(so *StopOptions) error {
 			return fmt.Errorf("failed to stop container for VM %q: %v", vm.ID, err)
 		}
 
+		if so.DisablePrint {
+			continue
+		}
 		fmt.Println(vm.ID)
 	}
-
 	return nil
 }
