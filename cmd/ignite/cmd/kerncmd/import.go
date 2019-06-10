@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
+	"github.com/weaveworks/ignite/pkg/logs"
 )
 
 // NewCmdImport imports a kernel for VM use
@@ -31,7 +32,7 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 				if io.KernelNames, err = cmdutil.MatchAllKernelNames(); err != nil {
 					return err
 				}
-				return cmdutil.PrintMachineReadableID(run.ImportKernel(io))
+				return logs.PrintMachineReadableID(run.ImportKernel(io))
 			}())
 		},
 	}

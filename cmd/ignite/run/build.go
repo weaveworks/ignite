@@ -1,9 +1,11 @@
 package run
 
 import (
+	"log"
 	"os"
 	"path"
 
+	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
@@ -46,6 +48,8 @@ func Build(bo *BuildOptions) (string, error) {
 	// Create new image metadata
 	bo.image = imgmd.NewImageMetadata(idHandler.ID, name)
 
+	log.Println("Starting image build...")
+
 	// Create new file to host the filesystem and format it
 	if err := bo.image.AllocateAndFormat(imageSrc.Size()); err != nil {
 		return "", err
@@ -59,27 +63,28 @@ func Build(bo *BuildOptions) (string, error) {
 	if err := bo.image.Save(); err != nil {
 		return "", err
 	}
+	hrsize := datasize.ByteSize(imageSrc.Size()).HR()
+	log.Printf("Created a %s filesystem of the input", hrsize)
 
 	// Import a new kernel from the image if specified
-	dir, err := bo.image.ExportKernel()
+	tmpKernelDir, err := bo.image.ExportKernel()
 	if err == nil {
-		if dir != "" {
-			if _, err := ImportKernel(&ImportKernelOptions{
-				Source: path.Join(dir, constants.KERNEL_FILE),
-				Name:   name.String(),
-			}); err != nil {
-				return "", err
-			}
-
-			if err := os.RemoveAll(dir); err != nil {
-				return "", err
-			}
+		_, err := ImportKernel(&ImportKernelOptions{
+			Source: path.Join(tmpKernelDir, constants.KERNEL_FILE),
+			Name:   name.String(),
+		})
+		if err != nil {
+			return "", err
 		}
+		if err := os.RemoveAll(tmpKernelDir); err != nil {
+			return "", err
+		}
+		//log.Printf("A kernel was imported from the image with name %q and ID %q", name.String(), kernelID)
 	} else {
 		// Tolerate the kernel to not be found
 		if _, ok := err.(*imgmd.KernelNotFoundError); !ok {
 			return "", err
 		}
 	}
-	return idHandler.Success()
+	return idHandler.Success(name.String())
 }

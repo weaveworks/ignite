@@ -2,8 +2,8 @@ package run
 
 import (
 	"fmt"
-	"os"
 
+	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
@@ -30,11 +30,9 @@ func Rm(ro *RmOptions) error {
 			}
 		}
 
-		if err := os.RemoveAll(vm.ObjectPath()); err != nil {
-			return fmt.Errorf("unable to remove directory for %s %q: %v", vm.Type, vm.ID, err)
+		if err := vm.Remove(logs.Quiet); err != nil {
+			return err
 		}
-
-		fmt.Println(vm.ID)
 	}
 
 	return nil

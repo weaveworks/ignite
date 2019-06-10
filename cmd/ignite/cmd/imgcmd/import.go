@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
+	"github.com/weaveworks/ignite/pkg/logs"
 )
 
 // NewCmdImport imports an image from an ext4 block device file
@@ -31,7 +32,7 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 				if io.ImageNames, err = cmdutil.MatchAllImageNames(); err != nil {
 					return err
 				}
-				return cmdutil.PrintMachineReadableID(run.ImportImage(io))
+				return logs.PrintMachineReadableID(run.ImportImage(io))
 			}())
 		},
 	}
