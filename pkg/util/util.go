@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/user"
 	"path"
 	"strings"
 	"time"
@@ -170,4 +171,13 @@ func MatchPrefix(prefix string, fields ...string) []string {
 	}
 
 	return prefixMatches
+}
+
+func TestRoot() (bool, error) {
+	user, err := user.Current()
+	if err != nil {
+		return false, err
+	}
+
+	return user.Uid == "0", nil
 }

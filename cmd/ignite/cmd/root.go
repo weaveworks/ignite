@@ -25,10 +25,22 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 		Use:   "ignite",
 		Short: "ignite: easily run Firecracker VMs",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			// Ignite needs to run as root for now, see
+			// https://github.com/weaveworks/ignite/issues/46
+			// TODO: Remove this when ready
+			ok, err := util.TestRoot()
+			if err != nil {
+				panic(err)
+			} else if !ok {
+				fmt.Println("This program needs to run as root.")
+				os.Exit(1)
+			}
+
 			// TODO: Handle this error more softly?
 			if err := util.CreateDirectories(); err != nil {
 				panic(err)
 			}
+
 			logs.InitLogs()
 		},
 		Long: dedent.Dedent(fmt.Sprintf(`
