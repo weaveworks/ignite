@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,21 +14,37 @@ import (
 	"github.com/weaveworks/ignite/pkg/version"
 )
 
-type StartOptions struct {
-	AttachOptions
+type StartFlags struct {
 	PortMappings []string
 	Interactive  bool
 	Debug        bool
 }
 
-func Start(so *StartOptions) error {
+type startOptions struct {
+	*StartFlags
+	*attachOptions
+}
+
+func (sf *StartFlags) NewStartOptions(l *runutil.ResourceLoader, vmMatch string) (*startOptions, error) {
+	ao, err := NewAttachOptions(l, vmMatch)
+	if err != nil {
+		return nil, err
+	}
+
+	// Disable running check as it takes a while for the in-container Ignite to update the state
+	ao.checkRunning = false
+
+	return &startOptions{sf, ao}, nil
+}
+
+func Start(so *startOptions) error {
 	// Check if the given VM is already running
-	if so.VM.Running() {
-		return fmt.Errorf("VM %q is already running", so.VM.ID)
+	if so.vm.Running() {
+		return fmt.Errorf("VM %q is already running", so.vm.ID)
 	}
 
 	// Setup the snapshot overlay filesystem
-	if err := so.VM.SetupSnapshot(); err != nil {
+	if err := so.vm.SetupSnapshot(); err != nil {
 		return err
 	}
 
@@ -40,8 +57,8 @@ func Start(so *StartOptions) error {
 
 	dockerArgs := []string{
 		"-itd",
-		fmt.Sprintf("--label=ignite.name=%s", so.VM.Name.String()),
-		fmt.Sprintf("--name=%s", constants.IGNITE_PREFIX+so.VM.ID),
+		fmt.Sprintf("--label=ignite.name=%s", so.vm.Name.String()),
+		fmt.Sprintf("--name=%s", constants.IGNITE_PREFIX+so.vm.ID),
 		fmt.Sprintf("-v=%s:/ignite/ignite", igniteBinary),
 		fmt.Sprintf("-v=%s:%s", constants.DATA_DIR, constants.DATA_DIR),
 		fmt.Sprintf("--stop-timeout=%d", constants.STOP_TIMEOUT+constants.IGNITE_TIMEOUT),
@@ -50,7 +67,7 @@ func Start(so *StartOptions) error {
 		"--device=/dev/mapper/control", // This enables containerized Ignite to remove its own dm snapshot
 		"--device=/dev/net/tun",        // Needed for creating TAP adapters
 		"--device=/dev/kvm",            // Pass though virtualization support
-		fmt.Sprintf("--device=%s", so.VM.SnapshotDev()),
+		fmt.Sprintf("--device=%s", so.vm.SnapshotDev()),
 	}
 
 	dockerCmd := append(make([]string, 0, len(dockerArgs)+2), "run")
@@ -70,21 +87,21 @@ func Start(so *StartOptions) error {
 	}
 
 	dockerArgs = append(dockerArgs, fmt.Sprintf("weaveworks/ignite:%s", version.GetFirecracker()))
-	dockerArgs = append(dockerArgs, so.VM.ID)
+	dockerArgs = append(dockerArgs, so.vm.ID)
 
 	// Start the VM in docker
 	if _, err := util.ExecuteCommand("docker", append(dockerCmd, dockerArgs...)...); err != nil {
-		return fmt.Errorf("failed to start container for VM %q: %v", so.VM.ID, err)
+		return fmt.Errorf("failed to start container for VM %q: %v", so.vm.ID, err)
 	}
 
 	// If starting interactively, attach after starting
 	if so.Interactive {
-		if err := Attach(&so.AttachOptions); err != nil {
+		if err := Attach(so.attachOptions); err != nil {
 			return err
 		}
 	} else {
 		// Print the ID of the started VM
-		fmt.Println(so.VM.ID)
+		fmt.Println(so.vm.ID)
 	}
 
 	return nil

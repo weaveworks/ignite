@@ -1,6 +1,7 @@
 package kerncmd
 
 import (
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"io"
 
 	"github.com/lithammer/dedent"
@@ -28,7 +29,7 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 			io.Source = args[0]
 			errutils.Check(func() error {
 				var err error
-				if io.KernelNames, err = cmdutil.MatchAllKernelNames(); err != nil {
+				if io.KernelNames, err = runutil.MatchAllKernelNames(); err != nil {
 					return err
 				}
 				return run.ImportKernel(io)

@@ -1,6 +1,7 @@
 package imgcmd
 
 import (
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"io"
 
 	"github.com/lithammer/dedent"
@@ -41,7 +42,7 @@ func NewCmdBuild(out io.Writer) *cobra.Command {
 			bo.Source = args[0]
 			errutils.Check(func() error {
 				var err error
-				if bo.ImageNames, err = cmdutil.MatchAllImageNames(); err != nil {
+				if bo.ImageNames, err = runutil.MatchAllImageNames(); err != nil {
 					return err
 				}
 				return run.Build(bo)

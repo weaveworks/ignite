@@ -1,6 +1,7 @@
 package vmcmd
 
 import (
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"io"
 
 	"github.com/lithammer/dedent"
@@ -29,7 +30,7 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if ro.VMs, err = cmdutil.MatchSingleVMs(args); err != nil {
+				if ro.VMs, err = runutil.MatchSingleVMs(args); err != nil {
 					return err
 				}
 				return run.Rm(ro)

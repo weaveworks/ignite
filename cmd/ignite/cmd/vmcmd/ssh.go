@@ -2,12 +2,12 @@ package vmcmd
 
 import (
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"io"
 
 	"github.com/lithammer/dedent"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
@@ -29,7 +29,7 @@ func NewCmdSSH(out io.Writer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				if so.VM, err = cmdutil.MatchSingleVM(args[0]); err != nil {
+				if so.VM, err = runutil.MatchSingleVM(args[0]); err != nil {
 					return err
 				}
 				return run.SSH(so)

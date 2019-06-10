@@ -10,6 +10,7 @@ import (
 )
 
 type ImportKernelOptions struct {
+	AllKernels
 	Source      string
 	Name        string
 	KernelNames []*metadata.Name
@@ -28,7 +29,7 @@ func ImportKernel(ao *ImportKernelOptions) error {
 	defer idHandler.Remove()
 
 	// Verify the name
-	name, err := metadata.NewNameWithLatest(ao.Name, &ao.KernelNames)
+	name, err := metadata.NewNameWithLatest(ao.Name, &ao.Kernels)
 	if err != nil {
 		return err
 	}
