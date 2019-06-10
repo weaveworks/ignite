@@ -21,6 +21,7 @@ func NewCmdVM(out io.Writer) *cobra.Command {
 		`),
 		Aliases: []string{"vms"},
 		Run: func(cmd *cobra.Command, args []string) {
+			po.All = true
 			errutils.Check(ExecutePs(po))
 		},
 	}
