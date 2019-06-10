@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/imgcmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/kerncmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
+	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/util"
 
 	"github.com/lithammer/dedent"
@@ -28,6 +29,7 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 			if err := util.CreateDirectories(); err != nil {
 				panic(err)
 			}
+			logs.InitLogs()
 		},
 		Long: dedent.Dedent(fmt.Sprintf(`
 			Ignite is a containerized Firecracker microVM administration tool.
@@ -54,6 +56,8 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 				$ ignite ssh my-vm
 		`, imageCmd.Short, kernelCmd.Short, vmCmd.Short)),
 	}
+
+	logs.AddQuietFlag(root.PersistentFlags())
 
 	root.AddCommand(imageCmd)
 	root.AddCommand(kernelCmd)

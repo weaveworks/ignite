@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -73,9 +74,11 @@ func Start(so *StartOptions) (string, error) {
 	dockerArgs = append(dockerArgs, so.VM.ID)
 
 	// Start the VM in docker
-	if _, err := util.ExecuteCommand("docker", append(dockerCmd, dockerArgs...)...); err != nil {
+	containerID, err := util.ExecuteCommand("docker", append(dockerCmd, dockerArgs...)...)
+	if err != nil {
 		return "", fmt.Errorf("failed to start container for VM %q: %v", so.VM.ID, err)
 	}
+	log.Printf("Started Firecracker in a Docker container with ID %q", containerID)
 
 	// If starting interactively, attach after starting
 	if so.Interactive {

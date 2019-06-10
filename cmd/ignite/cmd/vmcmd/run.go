@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
+	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
@@ -68,7 +69,7 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 				if ro.VMNames, err = cmdutil.MatchAllVMNames(); err != nil {
 					return err
 				}
-				return cmdutil.PrintMachineReadableID(run.Run(ro))
+				return logs.PrintMachineReadableID(run.Run(ro))
 			}())
 		},
 	}
