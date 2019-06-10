@@ -46,31 +46,46 @@ as the primary unit, but whole yet lightweight VMs that integrate with the conta
 
 ### How to use
 
-[![asciicast](https://asciinema.org/a/la4p00rcJOBLfW4HPvS8z7riy.svg)](https://asciinema.org/a/la4p00rcJOBLfW4HPvS8z7riy)
+[![asciicast](https://asciinema.org/a/MIuDWpzrEVyjq86kf5BG4f6Y0.svg)](https://asciinema.org/a/MIuDWpzrEVyjq86kf5BG4f6Y0)
 
 Note: At the moment `ignite` needs root privileges on the host to operate,
 for certain specific operations (e.g. `mount`). This will change in the future.
 
-```console
-$ ignite build weaveworks/ignite-ubuntu:v0.2.0 \
-    --name ubuntu-image \
-    --import-kernel ubuntu-kernel
-$ ignite images
-$ ignite kernels
-$ ignite run ubuntu-image ubuntu-kernel --name my-vm
-$ ignite ps
-$ ignite logs my-vm
-$ ignite attach my-vm
+```bash
+# Let's run the weaveworks/ignite-ubuntu docker image as a VM
+# Use 2 vCPUs and 1GB of RAM, enable SSH access and name it my-vm
+ignite run weaveworks/ignite-ubuntu \
+    --cpus 2 \
+    --memory 1024 \
+    --ssh \
+    --name my-vm
+
+# List running VMs
+ignite ps
+
+# List Docker (OCI) and kernel images imported into Ignite
+ignite images
+ignite kernels
+
+# Get the boot logs of the VM
+ignite logs my-vm
+
+# SSH into the VM
+ignite ssh my-vm
+
+# Inside the VM you can check that the kernel version is different, and the IP address came from the Docker bridge
+# Also the memory is limited to what you specify, as well as the vCPUs
+> uname -a
+> ip addr
+> free -m
+> cat /proc/cpuinfo
+
+# Rebooting the VM tells Firecracker to shut it down
+> reboot
 
 # Cleanup
-$ ignite stop my-vm
-$ ignite rm my-vm
-$ ignite rmi ubuntu-image
-$ ignite rmk ubuntu-kernel
+ignite rm my-vm
 ```
-
-When doing `ignite attach`, first press Enter, and then
-login with user "root" and password "root".
 
 ### CLI documentation
 
