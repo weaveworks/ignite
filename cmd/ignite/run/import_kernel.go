@@ -44,5 +44,5 @@ func ImportKernel(ao *ImportKernelOptions) (string, error) {
 	if err := md.ImportKernel(ao.Source); err != nil {
 		return "", err
 	}
-	return idHandler.Success()
+	return idHandler.Success(name.String())
 }

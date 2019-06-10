@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -16,7 +17,6 @@ import (
 func ExecuteCommand(command string, args ...string) (string, error) {
 	cmd := exec.Command(command, args...)
 	out, err := cmd.CombinedOutput()
-	//log.Debugf("Command %q returned %q\n", cmdArgs, out)
 	if err != nil {
 		return "", fmt.Errorf("command %q exited with %q: %v", cmd.Args, out, err)
 	}
@@ -100,8 +100,10 @@ func (i *IDHandler) Remove() error {
 	return nil
 }
 
-func (i *IDHandler) Success() (string, error) {
+func (i *IDHandler) Success(name string) (string, error) {
 	i.success = true
+	resourceType := path.Base(i.baseDir)
+	log.Printf("Created %s with ID %q and name %q", resourceType, i.ID, name)
 	return i.ID, nil
 }
 

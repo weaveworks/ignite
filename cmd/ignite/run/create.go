@@ -119,7 +119,7 @@ func Create(co *CreateOptions) (string, error) {
 	if err := co.vm.CopyToOverlay(fileMappings); err != nil {
 		return "", err
 	}
-	return idHandler.Success()
+	return idHandler.Success(name.String())
 }
 
 func parseFileMappings(fileMappings []string) (map[string]string, error) {
