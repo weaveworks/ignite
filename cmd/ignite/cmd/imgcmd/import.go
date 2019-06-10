@@ -13,26 +13,22 @@ import (
 	"github.com/weaveworks/ignite/pkg/logs"
 )
 
-// NewCmdBuild builds a new VM image
-func NewCmdBuild(out io.Writer) *cobra.Command {
-	bo := &run.BuildOptions{}
+// NewCmdImport imports  a new VM image
+func NewCmdImport(out io.Writer) *cobra.Command {
+	bo := &run.ImportOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "build <source>",
-		Short: "Build a new base image for VMs",
+		Use:   "import <source>",
+		Short: "Import a new base image for VMs",
 		Long: dedent.Dedent(`
-			Build a new base image for VMs. The base image is an ext4
-			block device file, which contains a root filesystem.
-			
-			"build" can take in either a tarfile or a Docker image as the source.
-			The Docker image needs to exist on the host system (pulled locally).
+			Import a new base image for VMs, takes in a Docker image as the source.
+			The base image is an ext4 block device file, which contains a root filesystem.
 
 			If the import kernel flag (-k, --import-kernel) is specified,
 			/boot/vmlinux is extracted from the image and added to a new
 			VM kernel object named after the flag.
 
 			Example usage:
-				$ ignite build my-image.tar
 			    $ ignite build luxas/ubuntu-base:18.04 \
 					--name my-image \
 					--import-kernel my-kernel
@@ -45,16 +41,16 @@ func NewCmdBuild(out io.Writer) *cobra.Command {
 				if bo.ImageNames, err = cmdutil.MatchAllImageNames(); err != nil {
 					return err
 				}
-				return logs.PrintMachineReadableID(run.Build(bo))
+				return logs.PrintMachineReadableID(run.Import(bo))
 			}())
 		},
 	}
 
-	addBuildFlags(cmd.Flags(), bo)
+	addImportFlags(cmd.Flags(), bo)
 	return cmd
 }
 
-func addBuildFlags(fs *pflag.FlagSet, bo *run.BuildOptions) {
+func addImportFlags(fs *pflag.FlagSet, bo *run.ImportOptions) {
 	cmdutil.AddNameFlag(fs, &bo.Name)
 	cmdutil.AddImportKernelFlags(fs, &bo.KernelName)
 }

@@ -51,7 +51,7 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 						return err
 					}
 					// If the image doesn't exist, build it
-					if _, err := run.Build(&run.BuildOptions{
+					if _, err := run.Import(&run.ImportOptions{
 						Source:     args[0],
 						ImageNames: allImages,
 					}); err != nil {
