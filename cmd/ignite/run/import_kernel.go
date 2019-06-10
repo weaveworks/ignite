@@ -16,38 +16,34 @@ type ImportKernelOptions struct {
 	KernelNames []*metadata.Name
 }
 
-func ImportKernel(ao *ImportKernelOptions) error {
+func ImportKernel(ao *ImportKernelOptions) (string, error) {
 	if !util.FileExists(ao.Source) {
-		return fmt.Errorf("not a kernel image: %s", ao.Source)
+		return "", fmt.Errorf("not a kernel image: %s", ao.Source)
 	}
 
 	// Create a new ID and directory for the kernel
 	idHandler, err := util.NewID(constants.KERNEL_DIR)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer idHandler.Remove()
 
 	// Verify the name
 	name, err := metadata.NewNameWithLatest(ao.Name, &ao.Kernels)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	md := kernmd.NewKernelMetadata(idHandler.ID, name)
 
 	// Save the metadata
 	if err := md.Save(); err != nil {
-		return err
+		return "", err
 	}
 
 	// Perform the copy
 	if err := md.ImportKernel(ao.Source); err != nil {
-		return err
+		return "", err
 	}
-
-	fmt.Println(md.ID)
-
-	idHandler.Success()
-	return nil
+	return idHandler.Success(name.String())
 }

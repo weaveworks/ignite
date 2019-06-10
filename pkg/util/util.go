@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
+	"os/user"
 	"path"
 	"strings"
 	"time"
@@ -16,7 +18,6 @@ import (
 func ExecuteCommand(command string, args ...string) (string, error) {
 	cmd := exec.Command(command, args...)
 	out, err := cmd.CombinedOutput()
-	//log.Debugf("Command %q returned %q\n", cmdArgs, out)
 	if err != nil {
 		return "", fmt.Errorf("command %q exited with %q: %v", cmd.Args, out, err)
 	}
@@ -100,8 +101,11 @@ func (i *IDHandler) Remove() error {
 	return nil
 }
 
-func (i *IDHandler) Success() {
+func (i *IDHandler) Success(name string) (string, error) {
 	i.success = true
+	resourceType := path.Base(i.baseDir)
+	log.Printf("Created %s with ID %q and name %q", resourceType, i.ID, name)
+	return i.ID, nil
 }
 
 // Fills the given string slice with unique MAC addresses
@@ -167,4 +171,13 @@ func MatchPrefix(prefix string, fields ...string) []string {
 	}
 
 	return prefixMatches
+}
+
+func TestRoot() (bool, error) {
+	user, err := user.Current()
+	if err != nil {
+		return false, err
+	}
+
+	return user.Uid == "0", nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -19,40 +20,31 @@ import (
 type ImageSource struct {
 	size        int64
 	dockerImage string
-	imageID     string
+	dockerID    string
 	containerID string
 	dockerCmd   *exec.Cmd
-	tarFile     string
 }
 
 func NewSource(src string) (*ImageSource, error) {
-	if util.FileExists(src) {
-		if !strings.HasSuffix(src, ".tar") {
-			// TODO: Allow reading from stdin
-			return nil, fmt.Errorf("only tar files or docker images are supported import methods")
-		}
-		fo, err := os.Stat(src)
-		if err != nil {
-			return nil, err
-		}
-		return &ImageSource{
-			tarFile: src,
-			size:    fo.Size(),
-		}, nil
-	}
-	// Treat the source as a docker image
-	// If it doesn't have a tag, assume it's latest
-	if !strings.Contains(src, ":") {
-		src += ":latest"
-	}
 	// Query docker for the image
 	out, err := util.ExecuteCommand("docker", "images", "-q", src)
 	if err != nil {
 		return nil, err
 	}
-	// TODO: docker pull if it's not found
+
+	// If the docker image isn't found, try to pull it
 	if util.IsEmptyString(out) {
-		return nil, fmt.Errorf("docker image %s not found", src)
+		log.Printf("Image %s not found locally, pulling...", src)
+		if _, err := util.ExecForeground("docker", "pull", src); err != nil {
+			return nil, err
+		}
+		out, err = util.ExecuteCommand("docker", "images", "-q", src)
+		if err != nil {
+			return nil, err
+		}
+		if util.IsEmptyString(out) {
+			return nil, fmt.Errorf("docker image %s could not be found", src)
+		}
 	}
 
 	// Docker outputs one image per line
@@ -71,37 +63,38 @@ func NewSource(src string) (*ImageSource, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	size, err := strconv.Atoi(out)
 	if err != nil {
 		return nil, err
 	}
+
 	return &ImageSource{
 		dockerImage: src,
-		imageID:     dockerID,
+		dockerID:    dockerID,
 		size:        int64(size),
 	}, nil
 }
 
 func (is *ImageSource) GetReader() (io.ReadCloser, error) {
-	if len(is.imageID) > 0 {
-		// Create a container from the image to be exported
-		containerID, err := util.ExecuteCommand("docker", "create", is.imageID, "sh")
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to create docker container from image %s", is.imageID)
-		}
-
-		// Export the created container to a tar archive that will be later extracted into the VM disk image
-		is.dockerCmd = exec.Command("docker", "export", containerID)
-		reader, err := is.dockerCmd.StdoutPipe()
-		if err != nil {
-			return nil, err
-		}
-		if err := is.dockerCmd.Start(); err != nil {
-			return nil, err
-		}
-		return reader, nil
+	// Create a container from the image to be exported
+	containerID, err := util.ExecuteCommand("docker", "create", is.dockerID, "sh")
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create docker container from image %s", is.dockerID)
 	}
-	return os.Open(is.tarFile)
+
+	// Export the created container to a tar archive that will be later extracted into the VM disk image
+	is.dockerCmd = exec.Command("docker", "export", containerID)
+	reader, err := is.dockerCmd.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := is.dockerCmd.Start(); err != nil {
+		return nil, err
+	}
+
+	return reader, nil
 }
 
 func (is *ImageSource) DockerImage() string {
@@ -119,6 +112,7 @@ func (is *ImageSource) Cleanup() error {
 			return errors.Wrapf(err, "failed to remove container %s:", is.containerID)
 		}
 	}
+
 	return nil
 }
 
@@ -126,6 +120,7 @@ func (md *ImageMetadata) ImportImage(p string) error {
 	if err := util.CopyFile(p, path.Join(md.ObjectPath(), constants.IMAGE_FS)); err != nil {
 		return fmt.Errorf("failed to copy image file %q to image %q: %v", p, md.ID, err)
 	}
+
 	return nil
 }
 
@@ -170,16 +165,20 @@ func (md *ImageMetadata) AddFiles(src *ImageSource) error {
 	if err != nil {
 		return err
 	}
+
 	tarCmd.Stdin = reader
 	if err := tarCmd.Start(); err != nil {
 		return err
 	}
+
 	if err := tarCmd.Wait(); err != nil {
 		return err
 	}
+
 	if err := src.Cleanup(); err != nil {
 		return err
 	}
+
 	return md.SetupResolvConf(tempDir)
 }
 
@@ -193,9 +192,11 @@ func (md *ImageMetadata) SetupResolvConf(tempDir string) error {
 	if err != nil {
 		return err
 	}
+
 	if !empty {
 		return nil
 	}
+
 	//fmt.Println("Symlinking /etc/resolv.conf to /proc/net/pnp")
 	return os.Symlink("../proc/net/pnp", resolvConf)
 }

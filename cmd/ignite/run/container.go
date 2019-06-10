@@ -67,6 +67,9 @@ func Container(co *ContainerOptions) error {
 	// Remove the IP addresses post-run
 	defer co.VM.ClearIPAddresses()
 
+	// Remove the port mappings post-run
+	defer co.VM.ClearPortMappings()
+
 	// Run the VM
 	if err := container.RunVM(co.VM, &dhcpIfaces); err != nil {
 		return fmt.Errorf("runtime error for VM %q: %v", co.VM.ID, err)

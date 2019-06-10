@@ -1,7 +1,6 @@
 package imgcmd
 
 import (
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"io"
 
 	"github.com/lithammer/dedent"
@@ -11,37 +10,47 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
+	"github.com/weaveworks/ignite/pkg/logs"
 )
 
-// NewCmdImport imports an image from an ext4 block device file
+// NewCmdImport imports  a new VM image
 func NewCmdImport(out io.Writer) *cobra.Command {
-	io := &run.ImportImageOptions{}
+	bo := &run.ImportOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "import <path>",
-		Short: "Import a VM base image",
+		Use:   "import <source>",
+		Short: "Import a new base image for VMs",
 		Long: dedent.Dedent(`
-			Import a new base image for VMs. This command takes in an existing ext4 block
-			device file. Used in conjunction with "export" (not yet implemented).
-		`), // TODO export
+			Import a new base image for VMs, takes in a Docker image as the source.
+			The base image is an ext4 block device file, which contains a root filesystem.
+
+			If the import kernel flag (-k, --import-kernel) is specified,
+			/boot/vmlinux is extracted from the image and added to a new
+			VM kernel object named after the flag.
+
+			Example usage:
+			    $ ignite build luxas/ubuntu-base:18.04 \
+					--name my-image \
+					--import-kernel my-kernel
+		`),
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			io.Source = args[0]
+			bo.Source = args[0]
 			errutils.Check(func() error {
 				var err error
-				if io.ImageNames, err = runutil.MatchAllImageNames(); err != nil {
+				if bo.ImageNames, err = cmdutil.MatchAllImageNames(); err != nil {
 					return err
 				}
-				return run.ImportImage(io)
+				return logs.PrintMachineReadableID(run.Import(bo))
 			}())
 		},
 	}
 
-	addImportFlags(cmd.Flags(), io)
+	addImportFlags(cmd.Flags(), bo)
 	return cmd
 }
 
-func addImportFlags(fs *pflag.FlagSet, io *run.ImportImageOptions) {
-	cmdutil.AddNameFlag(fs, &io.Name)
-	cmdutil.AddImportKernelFlags(fs, &io.KernelName)
+func addImportFlags(fs *pflag.FlagSet, bo *run.ImportOptions) {
+	cmdutil.AddNameFlag(fs, &bo.Name)
+	cmdutil.AddImportKernelFlags(fs, &bo.KernelName)
 }

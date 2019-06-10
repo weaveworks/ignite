@@ -2,7 +2,6 @@ package run
 
 import (
 	"fmt"
-
 	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
@@ -19,7 +18,7 @@ func Ps(po *PsOptions) error {
 	o := util.NewOutput()
 	defer o.Flush()
 
-	o.Write("VM ID", "IMAGE", "KERNEL", "CREATED", "SIZE", "CPUS", "MEMORY", "STATE", "IPS", "NAME")
+	o.Write("VM ID", "IMAGE", "KERNEL", "CREATED", "SIZE", "CPUS", "MEMORY", "STATE", "IPS", "PORTS", "NAME")
 	for _, vm := range po.VMs {
 		od := vm.ObjectData.(*vmmd.VMObjectData)
 		size, err := vm.Size()
@@ -41,8 +40,9 @@ func Ps(po *PsOptions) error {
 		kernel := kernmd.ToKernelMetadata(kernelAny)
 
 		// TODO: Clean up this print
+
 		o.Write(vm.ID, image.Name.String(), kernel.Name.String(), vm.Created, datasize.ByteSize(size).HR(), od.VCPUs,
-			(datasize.ByteSize(od.Memory) * datasize.MB).HR(), od.State, od.IPAddrs, vm.Name.String())
+			(datasize.ByteSize(od.Memory) * datasize.MB).HR(), od.State, od.IPAddrs.String(), od.PortMappings.String(), vm.Name.String())
 	}
 
 	return nil
