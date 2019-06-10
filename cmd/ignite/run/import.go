@@ -12,7 +12,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-type BuildOptions struct {
+type ImportOptions struct {
 	Source     string
 	Name       string
 	KernelName string
@@ -20,7 +20,7 @@ type BuildOptions struct {
 	ImageNames []*metadata.Name
 }
 
-func Build(bo *BuildOptions) (string, error) {
+func Import(bo *ImportOptions) (string, error) {
 	// Create a new ID and directory for the image
 	idHandler, err := util.NewID(constants.IMAGE_DIR)
 	if err != nil {
@@ -48,7 +48,7 @@ func Build(bo *BuildOptions) (string, error) {
 	// Create new image metadata
 	bo.image = imgmd.NewImageMetadata(idHandler.ID, name)
 
-	log.Println("Starting image build...")
+	log.Println("Starting image import...")
 
 	// Create new file to host the filesystem and format it
 	if err := bo.image.AllocateAndFormat(imageSrc.Size()); err != nil {
@@ -86,5 +86,6 @@ func Build(bo *BuildOptions) (string, error) {
 			return "", err
 		}
 	}
+
 	return idHandler.Success(name.String())
 }
