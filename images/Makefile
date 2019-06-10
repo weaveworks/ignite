@@ -13,6 +13,8 @@ endif
 
 push:
 	docker push ${DOCKER_USER}/ignite-${WHAT}:${VERSION}
+	docker tag ${DOCKER_USER}/ignite-${WHAT}:${VERSION} ${DOCKER_USER}/ignite-${WHAT}:latest
+	docker push ${DOCKER_USER}/ignite-${WHAT}:latest
 
 build-all:
 	make -C kernel
