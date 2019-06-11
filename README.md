@@ -30,7 +30,7 @@ like `systemd` allows to run system-level applications like the kubelet, which n
 
 This allows for:
 * Legacy applications which cannot be containerized (e.g. they need a specific kernel)
-  * Alternative, a very new type of application requiring 
+  * Alternative, a very new type of application requiring e.g. a custom kernel
 * Reproducible, fast testing of system-wide programs (like Weave Net)
 * Super fast Kubernetes Cluster Lifecycle with multiple machines (without docker hacks)
 * A k8s-managed private VM cloud, on which a layer of k8s container clusters may run
