@@ -25,7 +25,7 @@ type stopOptions struct {
 }
 
 func (sf *StopFlags) NewStopOptions(l *runutil.ResLoader, vmMatches []string) (*stopOptions, error) {
-	so := &stopOptions{}
+	so := &stopOptions{StopFlags: sf}
 
 	if allVMs, err := l.VMs(); err == nil {
 		if so.vms, err = allVMs.MatchMultiple(vmMatches); err != nil {

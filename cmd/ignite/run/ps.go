@@ -16,14 +16,15 @@ type PsFlags struct {
 }
 
 type psOptions struct {
+	*PsFlags
 	allVMs []*vmmd.VMMetadata
 }
 
 func (pf *PsFlags) NewPsOptions(l *runutil.ResLoader) (*psOptions, error) {
-	po := &psOptions{}
+	po := &psOptions{PsFlags: pf}
 
 	if allVMs, err := l.VMs(); err == nil {
-		if po.allVMs, err = allVMs.MatchFilter(pf.All); err != nil {
+		if po.allVMs, err = allVMs.MatchFilter(po.All); err != nil {
 			return nil, err
 		}
 	} else {
