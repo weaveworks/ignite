@@ -12,13 +12,13 @@ type KernelObjectData struct {
 	// TODO: Placeholder
 }
 
-func NewKernelMetadata(id string, name *metadata.Name) *KernelMetadata {
-	return &KernelMetadata{
-		Metadata: metadata.NewMetadata(id,
-			name,
-			metadata.Kernel,
-			&KernelObjectData{}),
+func NewKernelMetadata(id *metadata.ID, name *metadata.Name) (*KernelMetadata, error) {
+	md, err := metadata.NewMetadata(id, name, metadata.Kernel, &KernelObjectData{})
+	if err != nil {
+		return nil, err
 	}
+
+	return &KernelMetadata{Metadata: md}, nil
 }
 
 // The md.ObjectData.(*KernelObjectData) assert won't panic as this method can only receive *KernelMetadata objects

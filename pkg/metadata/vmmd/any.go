@@ -11,10 +11,17 @@ func (md *VMMetadata) GetMD() *metadata.Metadata {
 	return md.Metadata
 }
 
-func LoadVMMetadata(id string) (metadata.AnyMetadata, error) {
-	md := NewVMMetadata(id, nil, &VMObjectData{})
-	err := md.Load()
-	return md, err
+func LoadVMMetadata(id *metadata.ID) (metadata.AnyMetadata, error) {
+	md, err := NewVMMetadata(id, nil, &VMObjectData{})
+	if err != nil {
+		return nil, err
+	}
+
+	if err := md.Load(); err != nil {
+		return nil, err
+	}
+
+	return md, nil
 }
 
 func LoadAllVMMetadata() ([]metadata.AnyMetadata, error) {

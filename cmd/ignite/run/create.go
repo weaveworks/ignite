@@ -2,14 +2,14 @@ package run
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"path"
 	"strings"
+
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 
 	"github.com/spf13/pflag"
 
 	"github.com/c2h5oh/datasize"
-	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
@@ -69,17 +69,22 @@ type CreateFlags struct {
 
 type createOptions struct {
 	*CreateFlags
-	image  *imgmd.ImageMetadata
-	kernel *kernmd.KernelMetadata
-	vms    []metadata.AnyMetadata
-	newVM  *vmmd.VMMetadata
+	image        *imgmd.ImageMetadata
+	kernel       *kernmd.KernelMetadata
+	allVMs       []metadata.AnyMetadata
+	newVM        *vmmd.VMMetadata
+	fileMappings map[string]string
 }
 
-func (cf *CreateFlags) NewCreateOptions(l *runutil.ResourceLoader, imageMatch string) (*createOptions, error) {
+func (cf *CreateFlags) NewCreateOptions(l *runutil.ResLoader, imageMatch string) (*createOptions, error) {
 	var err error
 	co := &createOptions{CreateFlags: cf}
 
-	if co.image, err = l.MatchSingleImage(imageMatch); err != nil {
+	if allImages, err := l.Images(); err == nil {
+		if co.image, err = allImages.MatchSingle(imageMatch); err != nil {
+			return nil, err
+		}
+	} else {
 		return nil, err
 	}
 
@@ -87,11 +92,27 @@ func (cf *CreateFlags) NewCreateOptions(l *runutil.ResourceLoader, imageMatch st
 		cf.KernelName = imageMatch
 	}
 
-	if co.kernel, err = l.MatchSingleKernel(cf.KernelName); err != nil {
+	if allKernels, err := l.Kernels(); err == nil {
+		if co.kernel, err = allKernels.MatchSingle(cf.KernelName); err != nil {
+			return nil, err
+		}
+	} else {
 		return nil, err
 	}
 
-	if co.vms, err = l.MatchAllVMs(true); err != nil {
+	if allVMs, err := l.VMs(); err == nil {
+		co.allVMs = *allVMs
+	} else {
+		return nil, err
+	}
+
+	// Parse the --copy-files flag
+	if co.fileMappings, err = parseFileMappings(co.CopyFiles); err != nil {
+		return nil, err
+	}
+
+	// Parse SSH key importing
+	if err = co.parseSSH(&co.fileMappings); err != nil {
 		return nil, err
 	}
 
@@ -99,28 +120,18 @@ func (cf *CreateFlags) NewCreateOptions(l *runutil.ResourceLoader, imageMatch st
 }
 
 func Create(co *createOptions) error {
-	// Parse the --copy-files flag
-	fileMappings, err := parseFileMappings(co.CopyFiles)
-	if err != nil {
-		return err
-	}
-
-	// Create a new ID and directory for the VM
-	idHandler, err := util.NewID(constants.VM_DIR)
-	if err != nil {
-		return err
-	}
-	defer idHandler.Remove()
-
 	// Verify the name
-	name, err := metadata.NewName(co.Name, &co.vms)
+	name, err := metadata.NewName(co.Name, &co.allVMs)
 	if err != nil {
 		return err
 	}
 
-	// Create new metadata for the VM and add to createOptions for further processing
-	// This enables the generated VM metadata to pass straight to start and attach via run
-	co.newVM = vmmd.NewVMMetadata(idHandler.ID, name, vmmd.NewVMObjectData(co.image.ID, co.kernel.ID, co.CPUs, co.Memory, co.KernelCmd))
+	// Create new metadata for the VM
+	if co.newVM, err = vmmd.NewVMMetadata(nil, name,
+		vmmd.NewVMObjectData(co.image.ID, co.kernel.ID, co.CPUs, co.Memory, co.KernelCmd)); err != nil {
+		return err
+	}
+	defer co.newVM.Cleanup(false) // TODO: Handle silent
 
 	// Save the metadata
 	if err := co.newVM.Save(); err != nil {
@@ -138,21 +149,12 @@ func Create(co *createOptions) error {
 		return err
 	}
 
-	// Parse SSH key importing
-	if err := co.parseSSH(&fileMappings); err != nil {
-		return err
-	}
-
 	// Copy the additional files to the overlay
-	if err := co.newVM.CopyToOverlay(fileMappings); err != nil {
+	if err := co.newVM.CopyToOverlay(co.fileMappings); err != nil {
 		return err
 	}
 
-	// Print the ID of the created VM
-	fmt.Println(co.newVM.ID)
-
-	idHandler.Success()
-	return nil
+	return co.newVM.Success()
 }
 
 func parseFileMappings(fileMappings []string) (map[string]string, error) {

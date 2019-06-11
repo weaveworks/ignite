@@ -12,14 +12,13 @@ type ImageObjectData struct {
 	// TODO: Placeholder
 }
 
-func NewImageMetadata(id string, name *metadata.Name) *ImageMetadata {
-	return &ImageMetadata{
-		Metadata: metadata.NewMetadata(
-			id,
-			name,
-			metadata.Image,
-			&ImageObjectData{}),
+func NewImageMetadata(id *metadata.ID, name *metadata.Name) (*ImageMetadata, error) {
+	md, err := metadata.NewMetadata(id, name, metadata.Image, &ImageObjectData{})
+	if err != nil {
+		return nil, err
 	}
+
+	return &ImageMetadata{Metadata: md}, nil
 }
 
 // The md.ObjectData.(*ImageObjectData) assert won't panic as this method can only receive *ImageMetadata objects

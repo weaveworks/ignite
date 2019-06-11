@@ -1,8 +1,9 @@
 package vmcmd
 
 import (
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"io"
+
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 
 	"github.com/lithammer/dedent"
 

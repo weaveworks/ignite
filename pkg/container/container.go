@@ -33,7 +33,7 @@ ip link set eth0 master br0
 ip link set vm0 master br0
 */
 
-// Array of container interfaces to ignore (not forward to VM)
+// Array of container interfaces to ignore (not forward to vm)
 var ignoreInterfaces = map[string]bool{
 	"lo": true,
 }
@@ -68,7 +68,7 @@ func NetworkSetup(dhcpIfaces *[]DHCPInterface) error {
 	return nil
 }
 
-// bridge creates the TAP device and performs the bridging, returning the MAC address of the VM's adapter
+// bridge creates the TAP device and performs the bridging, returning the MAC address of the vm's adapter
 func bridge(iface *net.Interface) (DHCPInterface, error) {
 	tapName := constants.TAP_PREFIX + iface.Name
 	bridgeName := constants.BRIDGE_PREFIX + iface.Name
@@ -188,7 +188,7 @@ func RunVM(md *vmmd.VMMetadata, dhcpIfaces *[]DHCPInterface) error {
 
 	cfg := firecracker.Config{
 		SocketPath:      constants.SOCKET_PATH,
-		KernelImagePath: path.Join(constants.KERNEL_DIR, od.KernelID, constants.KERNEL_FILE),
+		KernelImagePath: path.Join(constants.KERNEL_DIR, od.KernelID.String(), constants.KERNEL_FILE),
 		KernelArgs:      kernelCmd,
 		Drives: []models.Drive{{
 			DriveID:      firecracker.String("1"),

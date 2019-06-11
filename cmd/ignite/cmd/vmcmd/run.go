@@ -1,8 +1,9 @@
 package vmcmd
 
 import (
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"io"
+
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 
 	"github.com/lithammer/dedent"
 
@@ -10,13 +11,14 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
-	"github.com/weaveworks/ignite/pkg/logs"
-	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
 // NewCmdRun creates, starts (and attaches to) a VM
 func NewCmdRun(out io.Writer) *cobra.Command {
-	rf := &run.RunFlags{}
+	rf := &run.RunFlags{
+		CreateFlags: &run.CreateFlags{},
+		StartFlags:  &run.StartFlags{},
+	}
 
 	cmd := &cobra.Command{
 		Use:   "run <image>",
@@ -39,44 +41,12 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				// TODO: Clean this mess up
-				var err error
-				ro.Image, err = runutil.MatchSingleImage(args[0])
-				if err != nil {
-					// Tolerate a nonexistent error, but return the error otherwise
-					if _, ok := err.(*metadata.NonexistentError); !ok {
-						return err
-					}
-					allImages, err := runutil.MatchAllImageNames()
-					if err != nil {
-						return err
-					}
-					// If the image doesn't exist, build it
-					if _, err := run.Import(&run.ImportOptions{
-						Source:     args[0],
-						ImageNames: allImages,
-					}); err != nil {
-						return err
-					}
-					ro.Image, _ = runutil.MatchSingleImage(args[0])
-				}
-				// TODO: deduplicate this from create.go code
-				if len(ro.KernelName) == 0 {
-					ro.KernelName = args[0]
-				}
-				if ro.Kernel, err = runutil.MatchSingleKernel(ro.KernelName); err != nil {
-					return err
-				}
-				if ro.VMNames, err = runutil.MatchAllVMNames(); err != nil {
-					return err
-				}
-
 				ro, err := rf.NewRunOptions(runutil.NewResLoader(), args[0])
 				if err != nil {
 					return err
 				}
 
-				return logs.PrintMachineReadableID(run.Run(ro))
+				return run.Run(ro)
 			}())
 		},
 	}

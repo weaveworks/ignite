@@ -3,6 +3,8 @@ package imgcmd
 import (
 	"io"
 
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+
 	"github.com/lithammer/dedent"
 
 	"github.com/spf13/cobra"
@@ -10,12 +12,11 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
-	"github.com/weaveworks/ignite/pkg/logs"
 )
 
 // NewCmdImport imports  a new VM image
 func NewCmdImport(out io.Writer) *cobra.Command {
-	bo := &run.ImportOptions{}
+	ifs := &run.ImportFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "import <source>",
@@ -35,22 +36,21 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 		`),
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			bo.Source = args[0]
 			errutils.Check(func() error {
-				var err error
-				if bo.ImageNames, err = cmdutil.MatchAllImageNames(); err != nil {
+				i, err := ifs.NewImportOptions(runutil.NewResLoader(), args[0])
+				if err != nil {
 					return err
 				}
-				return logs.PrintMachineReadableID(run.Import(bo))
+				return run.Import(i)
 			}())
 		},
 	}
 
-	addImportFlags(cmd.Flags(), bo)
+	addImportFlags(cmd.Flags(), ifs)
 	return cmd
 }
 
-func addImportFlags(fs *pflag.FlagSet, bo *run.ImportOptions) {
-	cmdutil.AddNameFlag(fs, &bo.Name)
-	cmdutil.AddImportKernelFlags(fs, &bo.KernelName)
+func addImportFlags(fs *pflag.FlagSet, ifs *run.ImportFlags) {
+	cmdutil.AddNameFlag(fs, &ifs.Name)
+	cmdutil.AddImportKernelFlags(fs, &ifs.KernelName)
 }

@@ -1,8 +1,9 @@
 package vmcmd
 
 import (
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"io"
+
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 
 	"github.com/lithammer/dedent"
 
@@ -15,7 +16,7 @@ import (
 
 // NewCmdRm removes a VM
 func NewCmdRm(out io.Writer) *cobra.Command {
-	ro := &run.RmOptions{}
+	rf := &run.RmFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "rm <vm>...",
@@ -29,19 +30,20 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				var err error
-				if ro.VMs, err = runutil.MatchSingleVMs(args); err != nil {
+				ro, err := rf.NewRmOptions(runutil.NewResLoader(), args)
+				if err != nil {
 					return err
 				}
+
 				return run.Rm(ro)
 			}())
 		},
 	}
 
-	addRmFlags(cmd.Flags(), ro)
+	addRmFlags(cmd.Flags(), rf)
 	return cmd
 }
 
-func addRmFlags(fs *pflag.FlagSet, ro *run.RmOptions) {
-	cmdutil.AddForceFlag(fs, &ro.Force)
+func addRmFlags(fs *pflag.FlagSet, rf *run.RmFlags) {
+	cmdutil.AddForceFlag(fs, &rf.Force)
 }

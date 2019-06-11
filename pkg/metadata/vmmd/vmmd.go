@@ -2,6 +2,7 @@ package vmmd
 
 import (
 	"encoding/json"
+
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
@@ -48,8 +49,8 @@ type VMMetadata struct {
 }
 
 type VMObjectData struct {
-	ImageID      string
-	KernelID     string
+	ImageID      *metadata.ID
+	KernelID     *metadata.ID
 	State        state
 	VCPUs        int64
 	Memory       int64
@@ -58,7 +59,7 @@ type VMObjectData struct {
 	KernelCmd    string
 }
 
-func NewVMObjectData(imageID, kernelID string, vCPUs, memory int64, kernelCmd string) *VMObjectData {
+func NewVMObjectData(imageID, kernelID *metadata.ID, vCPUs, memory int64, kernelCmd string) *VMObjectData {
 	return &VMObjectData{
 		KernelID:  kernelID,
 		ImageID:   imageID,
@@ -69,14 +70,13 @@ func NewVMObjectData(imageID, kernelID string, vCPUs, memory int64, kernelCmd st
 	}
 }
 
-func NewVMMetadata(id string, name *metadata.Name, od *VMObjectData) *VMMetadata {
-	return &VMMetadata{
-		Metadata: metadata.NewMetadata(
-			id,
-			name,
-			metadata.VM,
-			od),
+func NewVMMetadata(id *metadata.ID, name *metadata.Name, od *VMObjectData) (*VMMetadata, error) {
+	md, err := metadata.NewMetadata(id, name, metadata.VM, od)
+	if err != nil {
+		return nil, err
 	}
+
+	return &VMMetadata{Metadata: md}, nil
 }
 
 // The md.ObjectData.(*VMObjectData) assert won't panic as this method can only receive *VMMetadata objects

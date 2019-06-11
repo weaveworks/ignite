@@ -34,7 +34,7 @@ func (md *VMMetadata) AllocateOverlay(requestedSize uint64) error {
 
 	size := int64(requestedSize)
 
-	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, md.VMOD().ImageID, constants.IMAGE_FS))
+	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, md.VMOD().ImageID.String(), constants.IMAGE_FS))
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func (md *VMMetadata) CopyToOverlay(fileMappings map[string]string) error {
 	if len(md.VMOD().IPAddrs) > 0 {
 		ip = md.VMOD().IPAddrs[0]
 	}
-	return md.WriteEtcHosts(mp.Path, md.ID, ip)
+	return md.WriteEtcHosts(mp.Path, md.ID.String(), ip)
 }
 
 // WriteEtcHosts populates the /etc/hosts file to avoid errors like
@@ -126,7 +126,7 @@ func (md *VMMetadata) Running() bool {
 }
 
 func (md *VMMetadata) KernelID() string {
-	return md.VMOD().KernelID
+	return md.VMOD().KernelID.String()
 }
 
 func (md *VMMetadata) Size() (int64, error) {
@@ -151,7 +151,7 @@ func (md *VMMetadata) ClearPortMappings() {
 	md.VMOD().PortMappings = nil
 }
 
-// Generate a new SSH keypair for the VM
+// Generate a new SSH keypair for the vm
 func (md *VMMetadata) NewSSHKeypair() (string, error) {
 	privKeyPath := path.Join(md.ObjectPath(), fmt.Sprintf(constants.VM_SSH_KEY_TEMPLATE, md.ID))
 
