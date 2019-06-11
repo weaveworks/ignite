@@ -14,7 +14,7 @@ func (md *Metadata) GetMD() *Metadata {
 	return md
 }
 
-func LoadAllMetadata(path string, loadFunc func(string) (AnyMetadata, error)) ([]AnyMetadata, error) {
+func LoadAllMetadata(path string, loadFunc func(*ID) (AnyMetadata, error)) ([]AnyMetadata, error) {
 	var mds []AnyMetadata
 
 	entries, err := ioutil.ReadDir(path)
@@ -24,7 +24,7 @@ func LoadAllMetadata(path string, loadFunc func(string) (AnyMetadata, error)) ([
 
 	for _, entry := range entries {
 		if entry.IsDir() {
-			md, err := loadFunc(entry.Name())
+			md, err := loadFunc(&ID{string: entry.Name()})
 			if err != nil {
 				return nil, err
 			}

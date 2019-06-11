@@ -25,7 +25,7 @@ type VMM struct {
 	cleanupFns    []func() error
 }
 
-// Run a vmm with a given set of options
+// Run a VMM with a given set of options
 func (vmm *VMM) Run(ctx context.Context) error {
 	vmmlogger := log.New()
 	vmmlogger.SetLevel(log.GetLevel())

@@ -1,7 +1,6 @@
 package logs
 
 import (
-	"fmt"
 	"io/ioutil"
 	golog "log"
 	"os"
@@ -37,17 +36,6 @@ func InitLogs() {
 
 	// Also forward all logs from the standard logrus logger to our specific instance
 	log.StandardLogger().SetOutput(Logger.Writer())
-}
-
-// PrintMachineReadableID prints the machine-readable ID if we're in quiet mode, otherwise is a no-op
-func PrintMachineReadableID(id string, err error) error {
-	if err != nil {
-		return err
-	}
-	if Quiet {
-		fmt.Println(id)
-	}
-	return nil
 }
 
 // AddQuietFlag adds the quiet flag to a flagset

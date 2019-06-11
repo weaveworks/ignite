@@ -4,19 +4,20 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+
 	"github.com/lithammer/dedent"
 	"github.com/weaveworks/ignite/pkg/constants"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdStop stops a VM
 func NewCmdStop(out io.Writer) *cobra.Command {
-	so := &run.StopOptions{}
+	sf := &run.StopFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "stop <vm>...",
@@ -33,19 +34,20 @@ func NewCmdStop(out io.Writer) *cobra.Command {
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				var err error
-				if so.VMs, err = cmdutil.MatchSingleVMs(args); err != nil {
+				so, err := sf.NewStopOptions(runutil.NewResLoader(), args)
+				if err != nil {
 					return err
 				}
+
 				return run.Stop(so)
 			}())
 		},
 	}
 
-	addStopFlags(cmd.Flags(), so)
+	addStopFlags(cmd.Flags(), sf)
 	return cmd
 }
 
-func addStopFlags(fs *pflag.FlagSet, so *run.StopOptions) {
-	fs.BoolVarP(&so.Kill, "force-kill", "f", false, "Force kill the VM")
+func addStopFlags(fs *pflag.FlagSet, sf *run.StopFlags) {
+	fs.BoolVarP(&sf.Kill, "force-kill", "f", false, "Force kill the VM")
 }

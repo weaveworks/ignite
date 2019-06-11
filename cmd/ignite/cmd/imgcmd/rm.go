@@ -3,6 +3,8 @@ package imgcmd
 import (
 	"io"
 
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+
 	"github.com/lithammer/dedent"
 
 	"github.com/spf13/cobra"
@@ -14,7 +16,7 @@ import (
 
 // NewCmdRm removes an images
 func NewCmdRm(out io.Writer) *cobra.Command {
-	ro := &run.RmiOptions{}
+	rf := &run.RmiFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "rm <image>...",
@@ -27,22 +29,20 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				var err error
-				if ro.Images, err = cmdutil.MatchSingleImages(args); err != nil {
+				ro, err := rf.NewRmiOptions(runutil.NewResLoader(), args)
+				if err != nil {
 					return err
 				}
-				if ro.VMs, err = cmdutil.MatchAllVMs(true); err != nil {
-					return err
-				}
+
 				return run.Rmi(ro)
 			}())
 		},
 	}
 
-	addRmiFlags(cmd.Flags(), ro)
+	addRmiFlags(cmd.Flags(), rf)
 	return cmd
 }
 
-func addRmiFlags(fs *pflag.FlagSet, ro *run.RmiOptions) {
-	cmdutil.AddForceFlag(fs, &ro.Force)
+func addRmiFlags(fs *pflag.FlagSet, rf *run.RmiFlags) {
+	cmdutil.AddForceFlag(fs, &rf.Force)
 }

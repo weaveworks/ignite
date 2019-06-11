@@ -3,18 +3,19 @@ package vmcmd
 import (
 	"io"
 
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+
 	"github.com/lithammer/dedent"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdPs lists running VMs
 func NewCmdPs(out io.Writer) *cobra.Command {
-	po := &run.PsOptions{}
+	pf := &run.PsFlags{}
 
 	cmd := &cobra.Command{
 		Use:     "ps",
@@ -25,22 +26,21 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 			also list VMs that are not currently running.
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
-			errutils.Check(ExecutePs(po))
+			errutils.Check(func() error {
+				po, err := pf.NewPsOptions(runutil.NewResLoader())
+				if err != nil {
+					return err
+				}
+
+				return run.Ps(po)
+			}())
 		},
 	}
 
-	addPsFlags(cmd.Flags(), po)
+	addPsFlags(cmd.Flags(), pf)
 	return cmd
 }
 
-func ExecutePs(po *run.PsOptions) error {
-	var err error
-	if po.VMs, err = cmdutil.MatchAllVMs(po.All); err != nil {
-		return err
-	}
-	return run.Ps(po)
-}
-
-func addPsFlags(fs *pflag.FlagSet, po *run.PsOptions) {
-	fs.BoolVarP(&po.All, "all", "a", false, "Show all VMs, not just running ones")
+func addPsFlags(fs *pflag.FlagSet, pf *run.PsFlags) {
+	fs.BoolVarP(&pf.All, "all", "a", false, "Show all VMs, not just running ones")
 }

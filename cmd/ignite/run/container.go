@@ -4,17 +4,33 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+
 	"github.com/miekg/dns"
 	"github.com/weaveworks/ignite/pkg/container"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-type ContainerOptions struct {
-	VM *vmmd.VMMetadata
+type containerOptions struct {
+	vm *vmmd.VMMetadata
 }
 
-func Container(co *ContainerOptions) error {
+func NewContainerOptions(l *runutil.ResLoader, vmMatch string) (*containerOptions, error) {
+	co := &containerOptions{}
+
+	if allVMS, err := l.VMs(); err == nil {
+		if co.vm, err = allVMS.MatchSingle(vmMatch); err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, err
+	}
+
+	return co, nil
+}
+
+func Container(co *containerOptions) error {
 	var dhcpIfaces []container.DHCPInterface
 
 	// New networking setup
@@ -37,7 +53,7 @@ func Container(co *ContainerOptions) error {
 	for i := range dhcpIfaces {
 		dhcpIface := &dhcpIfaces[i]
 		// Set the VM hostname to the VM ID
-		dhcpIface.Hostname = co.VM.ID
+		dhcpIface.Hostname = co.vm.ID.String()
 
 		// Set the MAC address filter for the DHCP server
 		dhcpIface.MACFilter = macAddresses[i]
@@ -45,7 +61,7 @@ func Container(co *ContainerOptions) error {
 		// Add the DNS servers from the container
 		dhcpIface.SetDNSServers(clientConfig.Servers)
 
-		co.VM.AddIPAddress(dhcpIface.VMIPNet.IP)
+		co.vm.AddIPAddress(dhcpIface.VMIPNet.IP)
 
 		go func() {
 			fmt.Printf("Starting DHCP server for interface %s (%s)\n", dhcpIface.Bridge, dhcpIface.VMIPNet.IP)
@@ -56,23 +72,23 @@ func Container(co *ContainerOptions) error {
 	}
 
 	// VM state handling
-	if err := co.VM.SetState(vmmd.Running); err != nil {
+	if err := co.vm.SetState(vmmd.Running); err != nil {
 		return fmt.Errorf("failed to update VM state: %v", err)
 	}
-	defer co.VM.SetState(vmmd.Stopped) // Performs a save, all other metadata-modifying defers need to be after this
+	defer co.vm.SetState(vmmd.Stopped) // Performs a save, all other metadata-modifying defers need to be after this
 
 	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
-	defer co.VM.RemoveSnapshot()
+	defer co.vm.RemoveSnapshot()
 
 	// Remove the IP addresses post-run
-	defer co.VM.ClearIPAddresses()
+	defer co.vm.ClearIPAddresses()
 
 	// Remove the port mappings post-run
-	defer co.VM.ClearPortMappings()
+	defer co.vm.ClearPortMappings()
 
-	// Run the VM
-	if err := container.RunVM(co.VM, &dhcpIfaces); err != nil {
-		return fmt.Errorf("runtime error for VM %q: %v", co.VM.ID, err)
+	// Run the vm
+	if err := container.RunVM(co.vm, &dhcpIfaces); err != nil {
+		return fmt.Errorf("runtime error for VM %q: %v", co.vm.ID, err)
 	}
 
 	return nil

@@ -3,46 +3,62 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-type ImportKernelOptions struct {
-	Source      string
-	Name        string
-	KernelNames []*metadata.Name
+type ImportKernelFlags struct {
+	Source string
+	Name   string
 }
 
-func ImportKernel(ao *ImportKernelOptions) (string, error) {
-	if !util.FileExists(ao.Source) {
-		return "", fmt.Errorf("not a kernel image: %s", ao.Source)
+type importKernelOptions struct {
+	*ImportKernelFlags
+	allKernels []metadata.AnyMetadata
+}
+
+func (i *ImportKernelFlags) NewImportKernelOptions(l *runutil.ResLoader) (*importKernelOptions, error) {
+	io := &importKernelOptions{ImportKernelFlags: i}
+
+	if allKernels, err := l.Kernels(); err == nil {
+		io.allKernels = *allKernels
+	} else {
+		return nil, err
 	}
 
-	// Create a new ID and directory for the kernel
-	idHandler, err := util.NewID(constants.KERNEL_DIR)
-	if err != nil {
-		return "", err
+	return io, nil
+}
+
+func ImportKernel(ao *importKernelOptions) error {
+	if !util.FileExists(ao.Source) {
+		return fmt.Errorf("not a kernel image: %s", ao.Source)
 	}
-	defer idHandler.Remove()
 
 	// Verify the name
-	name, err := metadata.NewNameWithLatest(ao.Name, &ao.KernelNames)
+	name, err := metadata.NewNameWithLatest(ao.Name, &ao.allKernels)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	md := kernmd.NewKernelMetadata(idHandler.ID, name)
+	// Create new kernel metadata
+	md, err := kernmd.NewKernelMetadata(nil, name)
+	if err != nil {
+		return err
+	}
+	defer md.Cleanup(false) // TODO: Handle silent
 
 	// Save the metadata
 	if err := md.Save(); err != nil {
-		return "", err
+		return err
 	}
 
 	// Perform the copy
 	if err := md.ImportKernel(ao.Source); err != nil {
-		return "", err
+		return err
 	}
-	return idHandler.Success(name.String())
+
+	return md.Success()
 }

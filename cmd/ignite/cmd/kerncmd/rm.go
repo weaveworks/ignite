@@ -3,6 +3,8 @@ package kerncmd
 import (
 	"io"
 
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+
 	"github.com/lithammer/dedent"
 
 	"github.com/spf13/cobra"
@@ -14,7 +16,7 @@ import (
 
 // NewCmdRm removes a kernel
 func NewCmdRm(out io.Writer) *cobra.Command {
-	ro := &run.RmkOptions{}
+	rf := &run.RmkFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "rm <kernel>...",
@@ -27,22 +29,20 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				var err error
-				if ro.Kernels, err = cmdutil.MatchSingleKernels(args); err != nil {
+				ro, err := rf.NewRmkOptions(runutil.NewResLoader(), args)
+				if err != nil {
 					return err
 				}
-				if ro.VMs, err = cmdutil.MatchAllVMs(true); err != nil {
-					return err
-				}
+
 				return run.Rmk(ro)
 			}())
 		},
 	}
 
-	addRmkFlags(cmd.Flags(), ro)
+	addRmkFlags(cmd.Flags(), rf)
 	return cmd
 }
 
-func addRmkFlags(fs *pflag.FlagSet, ro *run.RmkOptions) {
-	cmdutil.AddForceFlag(fs, &ro.Force)
+func addRmkFlags(fs *pflag.FlagSet, rf *run.RmkFlags) {
+	cmdutil.AddForceFlag(fs, &rf.Force)
 }

@@ -4,26 +4,52 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
-type RmiOptions struct {
-	Images []*imgmd.ImageMetadata
-	VMs    []*vmmd.VMMetadata
-	Force  bool
+type RmiFlags struct {
+	Force bool
 }
 
-func Rmi(ro *RmiOptions) error {
-	for _, image := range ro.Images {
-		for _, vm := range ro.VMs {
+type rmiOptions struct {
+	*RmiFlags
+	images []*imgmd.ImageMetadata
+	allVMs []*vmmd.VMMetadata
+}
+
+func (rf *RmiFlags) NewRmiOptions(l *runutil.ResLoader, imageMatches []string) (*rmiOptions, error) {
+	ro := &rmiOptions{RmiFlags: rf}
+
+	if allImages, err := l.Images(); err == nil {
+		if ro.images, err = allImages.MatchMultiple(imageMatches); err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, err
+	}
+
+	if allVMs, err := l.VMs(); err == nil {
+		ro.allVMs = allVMs.MatchAll()
+	} else {
+		return nil, err
+	}
+
+	return ro, nil
+}
+
+func Rmi(ro *rmiOptions) error {
+	for _, image := range ro.images {
+		for _, vm := range ro.allVMs {
 			// Check if there's any VM using this image
-			if vm.VMOD().ImageID == image.ID {
+			if vm.VMOD().ImageID.Equal(image.ID) {
 				if ro.Force {
 					// Force-kill and remove the VM used by this image
-					if err := Rm(&RmOptions{
-						VMs:   []*vmmd.VMMetadata{vm},
-						Force: true,
+					if err := Rm(&rmOptions{
+						&RmFlags{Force: true},
+						[]*vmmd.VMMetadata{vm},
 					}); err != nil {
 						return err
 					}

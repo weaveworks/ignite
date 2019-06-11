@@ -4,22 +4,22 @@ import (
 	"io"
 
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 
 	"github.com/lithammer/dedent"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
-// NewCmdSSH ssh's into a running VM
+// NewCmdSSH ssh's into a running vm
 func NewCmdSSH(out io.Writer) *cobra.Command {
-	so := &run.SSHOptions{}
+	sf := &run.SSHFlags{}
 
 	cmd := &cobra.Command{
 		Use:   "ssh <vm>",
-		Short: "SSH into a running VM",
+		Short: "SSH into a running vm",
 		Long: dedent.Dedent(`
 			SSH into the running VM using the private key created for it during generation.
 			If no private key was created or wanting to use a different identity file,
@@ -29,19 +29,20 @@ func NewCmdSSH(out io.Writer) *cobra.Command {
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				var err error
-				if so.VM, err = cmdutil.MatchSingleVM(args[0]); err != nil {
+				so, err := sf.NewSSHOptions(runutil.NewResLoader(), args[0])
+				if err != nil {
 					return err
 				}
+
 				return run.SSH(so)
 			}())
 		},
 	}
 
-	addSSHFlags(cmd.Flags(), so)
+	addSSHFlags(cmd.Flags(), sf)
 	return cmd
 }
 
-func addSSHFlags(fs *pflag.FlagSet, so *run.SSHOptions) {
-	fs.StringVarP(&so.IdentityFile, "identity", "i", "", "Override the VM's default identity file")
+func addSSHFlags(fs *pflag.FlagSet, sf *run.SSHFlags) {
+	fs.StringVarP(&sf.IdentityFile, "identity", "i", "", "Override the vm's default identity file")
 }
