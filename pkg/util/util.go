@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"os/user"
-	"path"
 	"strings"
 	"time"
 
@@ -51,61 +49,6 @@ func ExecForeground(command string, args ...string) (int, error) {
 
 func IsEmptyString(input string) bool {
 	return len(strings.TrimSpace(input)) == 0
-}
-
-type IDHandler struct {
-	ID      string
-	baseDir string
-	success bool
-}
-
-// Creates a new 8-byte ID and handles directory creation/deletion
-func NewID(baseDir string) (*IDHandler, error) {
-	var id string
-	var idPath string
-	var idBytes []byte
-
-	for {
-		idBytes = make([]byte, 8)
-		if _, err := rand.Read(idBytes); err != nil {
-			return nil, fmt.Errorf("failed to generate ID: %v", err)
-		}
-
-		// Convert the byte slice to a string literally
-		id = fmt.Sprintf("%x", idBytes)
-
-		// If the generated ID is unique break the generator loop
-		idPath = path.Join(baseDir, id)
-		if exists, _ := PathExists(idPath); !exists {
-			break
-		}
-	}
-
-	// Create the directory for the ID
-	if err := os.MkdirAll(idPath, os.ModePerm); err != nil {
-		return nil, fmt.Errorf("failed to create directory for ID %q: %v", id, err)
-	}
-
-	// Return the generated ID
-	return &IDHandler{id, baseDir, false}, nil
-}
-
-func (i *IDHandler) Remove() error {
-	// If success has not been confirmed, remove the generated directory
-	if !i.success {
-		if err := os.RemoveAll(path.Join(i.baseDir, i.ID)); err != nil {
-			return fmt.Errorf("failed to remove directory for ID %q: %v", i.ID, err)
-		}
-	}
-
-	return nil
-}
-
-func (i *IDHandler) Success(name string) (string, error) {
-	i.success = true
-	resourceType := path.Base(i.baseDir)
-	log.Printf("Created %s with ID %q and name %q", resourceType, i.ID, name)
-	return i.ID, nil
 }
 
 // Fills the given string slice with unique MAC addresses

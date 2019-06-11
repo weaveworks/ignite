@@ -50,7 +50,7 @@ func NewIDNameFilter(p string, t ObjectType) *IDNameFilter {
 
 func (f *IDNameFilter) Filter(any AnyMetadata) []string {
 	md := any.GetMD()
-	return util.MatchPrefix(f.prefix, md.ID, md.Name.String())
+	return util.MatchPrefix(f.prefix, md.ID.String(), md.Name.String())
 }
 
 func (f *IDNameFilter) ErrNonexistent() error {

@@ -13,11 +13,11 @@ import (
 )
 
 func (md *VMMetadata) SnapshotDev() string {
-	return path.Join("/dev/mapper", constants.IGNITE_PREFIX+md.ID)
+	return path.Join("/dev/mapper", constants.IGNITE_PREFIX+md.ID.String())
 }
 
 func (md *VMMetadata) SetupSnapshot() error {
-	device := constants.IGNITE_PREFIX + md.ID
+	device := constants.IGNITE_PREFIX + md.ID.String()
 	devicePath := md.SnapshotDev()
 
 	// Return if the snapshot is already setup
@@ -26,7 +26,7 @@ func (md *VMMetadata) SetupSnapshot() error {
 	}
 
 	// Setup loop device for the image
-	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, md.VMOD().ImageID, constants.IMAGE_FS), true)
+	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, md.VMOD().ImageID.String(), constants.IMAGE_FS), true)
 	if err != nil {
 		return err
 	}
@@ -75,9 +75,8 @@ func (md *VMMetadata) SetupSnapshot() error {
 	}
 
 	// Repair the filesystem in case it has errors
-	if _, err := util.ExecuteCommand("e2fsck", "-p", "-f", devicePath); err != nil {
-		return err
-	}
+	// e2fsck throws an error if the filesystem gets repaired, so just ignore it
+	_, _ = util.ExecuteCommand("e2fsck", "-p", "-f", devicePath)
 
 	// If the overlay is larger than the image, call resize2fs to make the filesystem fill the overlay
 	if overlayLoopSize > imageLoopSize {
@@ -108,7 +107,7 @@ func (md *VMMetadata) RemoveSnapshot() error {
 	// If the base device is visible in "dmsetup", we should remove it
 	// The device itself is not forwarded to docker, so we can't query its path
 	// TODO: Improve this detection
-	baseDev := fmt.Sprintf("%s-base", constants.IGNITE_PREFIX+md.ID)
+	baseDev := fmt.Sprintf("%s-base", constants.IGNITE_PREFIX+md.ID.String())
 	if _, err := util.ExecuteCommand("dmsetup", "info", baseDev); err == nil {
 		dmArgs = append(dmArgs, baseDev)
 	}

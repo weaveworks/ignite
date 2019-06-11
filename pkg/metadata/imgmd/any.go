@@ -11,10 +11,17 @@ func (md *ImageMetadata) GetMD() *metadata.Metadata {
 	return md.Metadata
 }
 
-func LoadImageMetadata(id string) (metadata.AnyMetadata, error) {
-	md := NewImageMetadata(id, nil)
-	err := md.Load()
-	return md, err
+func LoadImageMetadata(id *metadata.ID) (metadata.AnyMetadata, error) {
+	md, err := NewImageMetadata(id, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := md.Load(); err != nil {
+		return nil, err
+	}
+
+	return md, nil
 }
 
 func LoadAllImageMetadata() ([]metadata.AnyMetadata, error) {

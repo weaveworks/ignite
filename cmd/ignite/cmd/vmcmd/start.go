@@ -1,8 +1,9 @@
 package vmcmd
 
 import (
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"io"
+
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 
 	"github.com/lithammer/dedent"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
-	"github.com/weaveworks/ignite/pkg/logs"
 )
 
 // NewCmdStart starts a VM
@@ -33,7 +33,8 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				return logs.PrintMachineReadableID(run.Start(so))
+
+				return run.Start(so)
 			}())
 		},
 	}

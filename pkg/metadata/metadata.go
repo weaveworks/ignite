@@ -68,42 +68,50 @@ func (x ObjectType) Path() string {
 type ObjectData interface{}
 
 type Metadata struct {
-	ID         string      `json:"ID"`
+	ID         *ID         `json:"ID"`
 	Name       Name        `json:"Name"`
 	Type       ObjectType  `json:"Type"`
 	Created    metav1.Time `json:"Created"`
 	ObjectData `json:"ObjectData"`
 }
 
-func NewMetadata(id string, name *Name, t ObjectType, data ObjectData) *Metadata {
+func NewMetadata(id *ID, name *Name, t ObjectType, data ObjectData) (*Metadata, error) {
 	if name == nil { // If the name is nil (for loading purposes), create a temporary unset one
 		name = newUnsetName()
 	} else {
 		name.randomize() // Otherwise if the name is unset, create a new random one
 	}
 
-	return &Metadata{
+	md := &Metadata{
 		ID:         id,
 		Name:       *name,
 		Type:       t,
 		Created:    metav1.Now(),
 		ObjectData: data,
 	}
+
+	if err := md.newID(); err != nil {
+		return nil, err
+	}
+
+	return md, nil
 }
 
 func (md *Metadata) ObjectPath() string {
-	return path.Join(md.Type.Path(), md.ID)
+	return path.Join(md.Type.Path(), md.ID.String())
 }
 
 func (md *Metadata) Remove(quiet bool) error {
 	if err := os.RemoveAll(md.ObjectPath()); err != nil {
 		return fmt.Errorf("unable to remove directory for %s %q: %v", md.Type, md.ID, err)
 	}
+
 	if quiet {
 		fmt.Println(md.ID)
 	} else {
 		log.Printf("Removed %s with name %q and ID %q", md.Type, md.Name.String(), md.ID)
 	}
+
 	return nil
 }
 
@@ -127,7 +135,7 @@ func (md *Metadata) Save() error {
 }
 
 func (md *Metadata) Load() error {
-	if md.ID == "" {
+	if md.ID == nil {
 		return errors.New("cannot load metadata, ID not set")
 	}
 

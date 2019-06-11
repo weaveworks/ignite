@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+
 	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -16,11 +17,14 @@ type attachOptions struct {
 	vm           *vmmd.VMMetadata
 }
 
-func NewAttachOptions(l *runutil.ResourceLoader, vmMatch string) (*attachOptions, error) {
-	var err error
+func NewAttachOptions(l *runutil.ResLoader, vmMatch string) (*attachOptions, error) {
 	ao := &attachOptions{checkRunning: true}
 
-	if ao.vm, err = l.MatchSingleVM(vmMatch); err != nil {
+	if allVMs, err := l.VMs(); err == nil {
+		if ao.vm, err = allVMs.MatchSingle(vmMatch); err != nil {
+			return nil, err
+		}
+	} else {
 		return nil, err
 	}
 
@@ -38,7 +42,7 @@ func Attach(ao *attachOptions) error {
 
 	dockerArgs := []string{
 		"attach",
-		constants.IGNITE_PREFIX + ao.vm.ID,
+		constants.IGNITE_PREFIX + ao.vm.ID.String(),
 	}
 
 	// Attach to the VM in Docker

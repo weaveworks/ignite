@@ -2,24 +2,43 @@ package run
 
 import (
 	"fmt"
+
 	"github.com/c2h5oh/datasize"
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-type PsOptions struct {
-	VMs []*vmmd.VMMetadata
+type PsFlags struct {
 	All bool
 }
 
-func Ps(po *PsOptions) error {
+type psOptions struct {
+	allVMs []*vmmd.VMMetadata
+}
+
+func (pf *PsFlags) NewPsOptions(l *runutil.ResLoader) (*psOptions, error) {
+	po := &psOptions{}
+
+	if allVMs, err := l.VMs(); err == nil {
+		if po.allVMs, err = allVMs.MatchFilter(pf.All); err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, err
+	}
+
+	return po, nil
+}
+
+func Ps(po *psOptions) error {
 	o := util.NewOutput()
 	defer o.Flush()
 
 	o.Write("VM ID", "IMAGE", "KERNEL", "CREATED", "SIZE", "CPUS", "MEMORY", "STATE", "IPS", "PORTS", "NAME")
-	for _, vm := range po.VMs {
+	for _, vm := range po.allVMs {
 		od := vm.ObjectData.(*vmmd.VMObjectData)
 		size, err := vm.Size()
 		if err != nil {

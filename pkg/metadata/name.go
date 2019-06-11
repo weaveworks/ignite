@@ -18,8 +18,10 @@ const (
 	nameRegex = `^[a-z-_0-9.:/]*$`
 )
 
-// Compile-time assert to verify interface compatibility
+// Compile-time asserts to verify interface compatibility
 var _ fmt.Stringer = &Name{}
+var _ json.Marshaler = &Name{}
+var _ json.Unmarshaler = &Name{}
 
 func (n *Name) randomize() {
 	if n.string == "" {
@@ -32,7 +34,7 @@ func NewNameWithLatest(input string, matches *[]AnyMetadata) (*Name, error) {
 	if !strings.Contains(input, ":") {
 		input += ":latest"
 	}
-	
+
 	return NewName(input, matches)
 }
 

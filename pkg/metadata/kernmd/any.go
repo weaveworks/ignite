@@ -11,10 +11,17 @@ func (md *KernelMetadata) GetMD() *metadata.Metadata {
 	return md.Metadata
 }
 
-func LoadKernelMetadata(id string) (metadata.AnyMetadata, error) {
-	md := NewKernelMetadata(id, nil)
-	err := md.Load()
-	return md, err
+func LoadKernelMetadata(id *metadata.ID) (metadata.AnyMetadata, error) {
+	md, err := NewKernelMetadata(id, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := md.Load(); err != nil {
+		return nil, err
+	}
+
+	return md, nil
 }
 
 func LoadAllKernelMetadata() ([]metadata.AnyMetadata, error) {

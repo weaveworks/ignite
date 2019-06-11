@@ -4,26 +4,52 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
-type RmkOptions struct {
-	Kernels []*kernmd.KernelMetadata
-	VMs     []*vmmd.VMMetadata
-	Force   bool
+type RmkFlags struct {
+	Force bool
 }
 
-func Rmk(ro *RmkOptions) error {
-	for _, kernel := range ro.Kernels {
-		for _, vm := range ro.VMs {
+type rmkOptions struct {
+	*RmkFlags
+	kernels []*kernmd.KernelMetadata
+	allVMs  []*vmmd.VMMetadata
+}
+
+func (rf *RmkFlags) NewRmkOptions(l *runutil.ResLoader, kernelMatches []string) (*rmkOptions, error) {
+	ro := &rmkOptions{RmkFlags: rf}
+
+	if allKernels, err := l.Kernels(); err == nil {
+		if ro.kernels, err = allKernels.MatchMultiple(kernelMatches); err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, err
+	}
+
+	if allVMs, err := l.VMs(); err == nil {
+		ro.allVMs = allVMs.MatchAll()
+	} else {
+		return nil, err
+	}
+
+	return ro, nil
+}
+
+func Rmk(ro *rmkOptions) error {
+	for _, kernel := range ro.kernels {
+		for _, vm := range ro.allVMs {
 			// Check if there's any VM using this kernel
-			if vm.VMOD().KernelID == kernel.ID {
+			if vm.VMOD().KernelID.Equal(kernel.ID) {
 				if ro.Force {
 					// Force-kill and remove the VM used by this kernel
-					if err := Rm(&RmOptions{
-						VMs:   []*vmmd.VMMetadata{vm},
-						Force: true,
+					if err := Rm(&rmOptions{
+						&RmFlags{Force: true},
+						[]*vmmd.VMMetadata{vm},
 					}); err != nil {
 						return err
 					}

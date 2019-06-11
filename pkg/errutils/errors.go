@@ -18,8 +18,10 @@ func fatal(msg string, code int) {
 		if !strings.HasSuffix(msg, "\n") {
 			msg += "\n"
 		}
+
 		fmt.Fprint(os.Stderr, msg)
 	}
+
 	os.Exit(code)
 }
 

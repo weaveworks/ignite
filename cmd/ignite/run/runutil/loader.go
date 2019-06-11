@@ -8,59 +8,51 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
-type ResourceLoader struct {
-	vms     []metadata.AnyMetadata
-	images  []metadata.AnyMetadata
-	kernels []metadata.AnyMetadata
+type allVMs []metadata.AnyMetadata
+type allImages []metadata.AnyMetadata
+type allKernels []metadata.AnyMetadata
+
+type ResLoader struct {
+	vm     allVMs
+	image  allImages
+	kernel allKernels
 }
 
-func NewResLoader() *ResourceLoader {
-	return &ResourceLoader{}
+func NewResLoader() *ResLoader {
+	return &ResLoader{}
 }
 
-func (r *ResourceLoader) loadVMs() error {
-	// Don't load twice
-	if r.vms != nil {
-		return nil
+func (l *ResLoader) VMs() (*allVMs, error) {
+	if l.vm == nil {
+		var err error
+		if l.vm, err = vmmd.LoadAllVMMetadata(); err != nil {
+			return nil, err
+		}
 	}
 
-	var err error
-	r.vms, err = vmmd.LoadAllVMMetadata()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return &l.vm, nil
 }
 
-func (r *ResourceLoader) loadImages() error {
-	// Don't load twice
-	if r.images != nil {
-		return nil
+func (l *ResLoader) Images() (*allImages, error) {
+	if l.image == nil {
+		var err error
+		if l.image, err = imgmd.LoadAllImageMetadata(); err != nil {
+			return nil, err
+		}
 	}
 
-	var err error
-	r.images, err = imgmd.LoadAllImageMetadata()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return &l.image, nil
 }
 
-func (r *ResourceLoader) loadKernels() error {
-	// Don't load twice
-	if r.kernels != nil {
-		return nil
+func (l *ResLoader) Kernels() (*allKernels, error) {
+	if l.kernel == nil {
+		var err error
+		if l.kernel, err = kernmd.LoadAllKernelMetadata(); err != nil {
+			return nil, err
+		}
 	}
 
-	var err error
-	r.kernels, err = kernmd.LoadAllKernelMetadata()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return &l.kernel, nil
 }
 
 func single(f metadata.Filter, sources []metadata.AnyMetadata) (metadata.AnyMetadata, error) {
@@ -94,12 +86,8 @@ func matchIndividual(fs []metadata.Filter, sources []metadata.AnyMetadata) ([]me
 }
 
 // Match a single VM using the VMFilter
-func (r *ResourceLoader) MatchSingleVM(match string) (*vmmd.VMMetadata, error) {
-	if err := r.loadVMs(); err != nil {
-		return nil, err
-	}
-
-	md, err := single(vmmd.NewVMFilter(match), r.vms)
+func (l *allVMs) MatchSingle(match string) (*vmmd.VMMetadata, error) {
+	md, err := single(vmmd.NewVMFilter(match), *l)
 	if err != nil {
 		return nil, err
 	}
@@ -108,17 +96,13 @@ func (r *ResourceLoader) MatchSingleVM(match string) (*vmmd.VMMetadata, error) {
 }
 
 // Match multiple individual VMs with different filter strings
-func (r *ResourceLoader) MatchSingleVMs(matches []string) ([]*vmmd.VMMetadata, error) {
-	if err := r.loadVMs(); err != nil {
-		return nil, err
-	}
-
+func (l *allVMs) MatchMultiple(matches []string) ([]*vmmd.VMMetadata, error) {
 	filters := make([]metadata.Filter, 0, len(matches))
 	for _, match := range matches {
 		filters = append(filters, vmmd.NewVMFilter(match))
 	}
 
-	results, err := matchIndividual(filters, r.vms)
+	results, err := matchIndividual(filters, *l)
 	if err != nil {
 		return nil, err
 	}
@@ -126,13 +110,22 @@ func (r *ResourceLoader) MatchSingleVMs(matches []string) ([]*vmmd.VMMetadata, e
 	return vmmd.ToVMMetadataAll(results), nil
 }
 
-// Match a single image using the IDNameFilter
-func (r *ResourceLoader) MatchSingleImage(match string) (*imgmd.ImageMetadata, error) {
-	if err := r.loadImages(); err != nil {
+func (l *allVMs) MatchFilter(all bool) ([]*vmmd.VMMetadata, error) {
+	matches, err := filter.NewFilterer(vmmd.NewVMFilterAll("", all), *l)
+	if err != nil {
 		return nil, err
 	}
 
-	md, err := single(metadata.NewIDNameFilter(match, metadata.Image), r.images)
+	return vmmd.ToVMMetadataAll(matches.All()), nil
+}
+
+func (l *allVMs) MatchAll() []*vmmd.VMMetadata {
+	return vmmd.ToVMMetadataAll(*l)
+}
+
+// Match a single image using the IDNameFilter
+func (l *allImages) MatchSingle(match string) (*imgmd.ImageMetadata, error) {
+	md, err := single(metadata.NewIDNameFilter(match, metadata.Image), *l)
 	if err != nil {
 		return nil, err
 	}
@@ -141,17 +134,13 @@ func (r *ResourceLoader) MatchSingleImage(match string) (*imgmd.ImageMetadata, e
 }
 
 // Match multiple individual images with different filter strings
-func (r *ResourceLoader) MatchSingleImages(matches []string) ([]*imgmd.ImageMetadata, error) {
-	if err := r.loadImages(); err != nil {
-		return nil, err
-	}
-
+func (l *allImages) MatchMultiple(matches []string) ([]*imgmd.ImageMetadata, error) {
 	filters := make([]metadata.Filter, 0, len(matches))
 	for _, match := range matches {
 		filters = append(filters, metadata.NewIDNameFilter(match, metadata.Image))
 	}
 
-	results, err := matchIndividual(filters, r.images)
+	results, err := matchIndividual(filters, *l)
 	if err != nil {
 		return nil, err
 	}
@@ -159,13 +148,13 @@ func (r *ResourceLoader) MatchSingleImages(matches []string) ([]*imgmd.ImageMeta
 	return imgmd.ToImageMetadataAll(results), nil
 }
 
-// Match a single kernel using the IDNameFilter
-func (r *ResourceLoader) MatchSingleKernel(match string) (*kernmd.KernelMetadata, error) {
-	if err := r.loadKernels(); err != nil {
-		return nil, err
-	}
+func (l *allImages) MatchAll() []*imgmd.ImageMetadata {
+	return imgmd.ToImageMetadataAll(*l)
+}
 
-	md, err := single(metadata.NewIDNameFilter(match, metadata.Kernel), r.kernels)
+// Match a single kernel using the IDNameFilter
+func (l *allKernels) MatchSingle(match string) (*kernmd.KernelMetadata, error) {
+	md, err := single(metadata.NewIDNameFilter(match, metadata.Kernel), *l)
 	if err != nil {
 		return nil, err
 	}
@@ -174,17 +163,13 @@ func (r *ResourceLoader) MatchSingleKernel(match string) (*kernmd.KernelMetadata
 }
 
 // Match multiple individual kernels with different filter strings
-func (r *ResourceLoader) MatchSingleKernels(matches []string) ([]*kernmd.KernelMetadata, error) {
-	if err := r.loadKernels(); err != nil {
-		return nil, err
-	}
-
+func (l *allKernels) MatchMultiple(matches []string) ([]*kernmd.KernelMetadata, error) {
 	filters := make([]metadata.Filter, 0, len(matches))
 	for _, match := range matches {
 		filters = append(filters, metadata.NewIDNameFilter(match, metadata.Kernel))
 	}
 
-	results, err := matchIndividual(filters, r.kernels)
+	results, err := matchIndividual(filters, *l)
 	if err != nil {
 		return nil, err
 	}
@@ -192,31 +177,6 @@ func (r *ResourceLoader) MatchSingleKernels(matches []string) ([]*kernmd.KernelM
 	return kernmd.ToKernelMetadataAll(results), nil
 }
 
-func (r *ResourceLoader) MatchAllVMs(all bool) ([]metadata.AnyMetadata, error) {
-	if err := r.loadVMs(); err != nil {
-		return nil, err
-	}
-
-	matches, err := filter.NewFilterer(vmmd.NewVMFilterAll("", all), r.vms)
-	if err != nil {
-		return nil, err
-	}
-
-	return matches.All(), nil
-}
-
-func (r *ResourceLoader) MatchAllImages() ([]metadata.AnyMetadata, error) {
-	if err := r.loadImages(); err != nil {
-		return nil, err
-	}
-
-	return r.images, nil
-}
-
-func (r *ResourceLoader) MatchAllKernels() ([]metadata.AnyMetadata, error) {
-	if err := r.loadKernels(); err != nil {
-		return nil, err
-	}
-
-	return r.kernels, nil
+func (l *allKernels) MatchAll() []*kernmd.KernelMetadata {
+	return kernmd.ToKernelMetadataAll(*l)
 }
