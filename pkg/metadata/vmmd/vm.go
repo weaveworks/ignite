@@ -3,6 +3,7 @@ package vmmd
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math"
 	"net"
 	"os"
@@ -47,14 +48,25 @@ func (md *VMMetadata) AllocateOverlay(requestedSize uint64) error {
 			datasize.ByteSize(requestedSize).HR(), datasize.ByteSize(size).HR())
 	}
 
-	overlayFile, err := os.Create(path.Join(md.ObjectPath(), constants.OVERLAY_FILE))
+	metadataFile, err := os.Create(path.Join(md.ObjectPath(), constants.METADATA_FILE))
 	if err != nil {
-		return fmt.Errorf("failed to create overlay file for %q, %v", md.ID, err)
+		return fmt.Errorf("failed to create metadata file for %q, %v", md.ID, err)
 	}
-	defer overlayFile.Close()
+	defer metadataFile.Close()
 
-	if err := overlayFile.Truncate(size); err != nil {
-		return fmt.Errorf("failed to allocate overlay file for VM %q: %v", md.ID, err)
+	dataFile, err := os.Create(path.Join(md.ObjectPath(), constants.DATA_FILE))
+	if err != nil {
+		return fmt.Errorf("failed to create data file for %q, %v", md.ID, err)
+	}
+	defer dataFile.Close()
+
+	// TODO: Calculate the correct size
+	if err := metadataFile.Truncate(1024 * 1024 * 2); err != nil {
+		return fmt.Errorf("failed to allocate data file for VM %q: %v", md.ID, err)
+	}
+
+	if err := dataFile.Truncate(size); err != nil {
+		return fmt.Errorf("failed to allocate data file for VM %q: %v", md.ID, err)
 	}
 
 	return nil
@@ -66,34 +78,37 @@ func (md *VMMetadata) CopyToOverlay(fileMappings map[string]string) error {
 		return nil
 	}
 
-	if err := md.SetupSnapshot(); err != nil {
-		return err
-	}
-	defer md.RemoveSnapshot()
+	log.Println("CopyToOverlay temporarily disabled")
+	return nil
 
-	mp, err := util.Mount(md.SnapshotDev())
-	if err != nil {
-		return err
-	}
-	defer mp.Umount()
-
-	// TODO: File/directory permissions?
-	for hostFile, vmFile := range fileMappings {
-		vmFilePath := path.Join(mp.Path, vmFile)
-		if err := os.MkdirAll(path.Dir(vmFilePath), 0755); err != nil {
-			return err
-		}
-
-		if err := util.CopyFile(hostFile, vmFilePath); err != nil {
-			return err
-		}
-	}
-
-	ip := net.IP{127, 0, 0, 1}
-	if len(md.VMOD().IPAddrs) > 0 {
-		ip = md.VMOD().IPAddrs[0]
-	}
-	return md.WriteEtcHosts(mp.Path, md.ID.String(), ip)
+	//if err := md.SetupSnapshot(); err != nil {
+	//	return err
+	//}
+	//defer md.RemoveSnapshot()
+	//
+	//mp, err := util.Mount(md.SnapshotDev())
+	//if err != nil {
+	//	return err
+	//}
+	//defer mp.Umount()
+	//
+	//// TODO: File/directory permissions?
+	//for hostFile, vmFile := range fileMappings {
+	//	vmFilePath := path.Join(mp.Path, vmFile)
+	//	if err := os.MkdirAll(path.Dir(vmFilePath), 0755); err != nil {
+	//		return err
+	//	}
+	//
+	//	if err := util.CopyFile(hostFile, vmFilePath); err != nil {
+	//		return err
+	//	}
+	//}
+	//
+	//ip := net.IP{127, 0, 0, 1}
+	//if len(md.VMOD().IPAddrs) > 0 {
+	//	ip = md.VMOD().IPAddrs[0]
+	//}
+	//return md.WriteEtcHosts(mp.Path, md.ID.String(), ip)
 }
 
 // WriteEtcHosts populates the /etc/hosts file to avoid errors like
@@ -130,7 +145,7 @@ func (md *VMMetadata) KernelID() string {
 }
 
 func (md *VMMetadata) Size() (int64, error) {
-	fi, err := os.Stat(path.Join(md.ObjectPath(), constants.OVERLAY_FILE))
+	fi, err := os.Stat(path.Join(md.ObjectPath(), constants.DATA_FILE))
 	if err != nil {
 		return 0, err
 	}

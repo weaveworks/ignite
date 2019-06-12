@@ -44,7 +44,7 @@ func Start(so *startOptions) error {
 	}
 
 	// Setup the snapshot overlay filesystem
-	if err := so.vm.SetupSnapshot(); err != nil {
+	if err := so.vm.NewVMOverlay(); err != nil {
 		return err
 	}
 
@@ -71,7 +71,7 @@ func Start(so *startOptions) error {
 		"--device=/dev/mapper/control", // This enables containerized Ignite to remove its own dm snapshot
 		"--device=/dev/net/tun",        // Needed for creating TAP adapters
 		"--device=/dev/kvm",            // Pass though virtualization support
-		fmt.Sprintf("--device=%s", so.vm.SnapshotDev()),
+		fmt.Sprintf("--device=%s", so.vm.OverlayDev()),
 	}
 
 	dockerCmd := append(make([]string, 0, len(dockerArgs)+2), "run")

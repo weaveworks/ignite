@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"os/exec"
 	"path"
@@ -131,6 +132,9 @@ func (md *ImageMetadata) AllocateAndFormat(size int64) error {
 		return errors.Wrapf(err, "failed to create image file for %s", md.ID)
 	}
 	defer imageFile.Close()
+
+	// Align the image to 512-byte sectors, otherwise loop mounting doesn't work
+	size = int64(math.Ceil(float64(size)/512) * 512)
 
 	// The base image is the size of the tar file, plus 100MB
 	if err := imageFile.Truncate(size + 100*1024*1024); err != nil {

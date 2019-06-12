@@ -16,8 +16,11 @@ const (
 	// Filename for metadata files
 	METADATA = "metadata.json"
 
-	// Filename for VM overlay storage files
-	OVERLAY_FILE = "overlay.dm"
+	// Filename for VM overlay metadata storage
+	METADATA_FILE = "metadata.dm"
+
+	// Filename for VM overlay data storage
+	DATA_FILE = "data.dm"
 
 	// Directory for hosting VM instances
 	VM_DIR = DATA_DIR + "/vm"
