@@ -3,7 +3,6 @@ package vmmd
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math"
 	"net"
 	"os"
@@ -78,37 +77,34 @@ func (md *VMMetadata) CopyToOverlay(fileMappings map[string]string) error {
 		return nil
 	}
 
-	log.Println("CopyToOverlay temporarily disabled")
-	return nil
+	if err := md.NewVMOverlay(); err != nil {
+		return err
+	}
+	defer md.RemoveOverlay()
 
-	//if err := md.SetupSnapshot(); err != nil {
-	//	return err
-	//}
-	//defer md.RemoveSnapshot()
-	//
-	//mp, err := util.Mount(md.SnapshotDev())
-	//if err != nil {
-	//	return err
-	//}
-	//defer mp.Umount()
-	//
-	//// TODO: File/directory permissions?
-	//for hostFile, vmFile := range fileMappings {
-	//	vmFilePath := path.Join(mp.Path, vmFile)
-	//	if err := os.MkdirAll(path.Dir(vmFilePath), 0755); err != nil {
-	//		return err
-	//	}
-	//
-	//	if err := util.CopyFile(hostFile, vmFilePath); err != nil {
-	//		return err
-	//	}
-	//}
-	//
-	//ip := net.IP{127, 0, 0, 1}
-	//if len(md.VMOD().IPAddrs) > 0 {
-	//	ip = md.VMOD().IPAddrs[0]
-	//}
-	//return md.WriteEtcHosts(mp.Path, md.ID.String(), ip)
+	mp, err := util.Mount(md.OverlayDev())
+	if err != nil {
+		return err
+	}
+	defer mp.Umount()
+
+	// TODO: File/directory permissions?
+	for hostFile, vmFile := range fileMappings {
+		vmFilePath := path.Join(mp.Path, vmFile)
+		if err := os.MkdirAll(path.Dir(vmFilePath), 0755); err != nil {
+			return err
+		}
+
+		if err := util.CopyFile(hostFile, vmFilePath); err != nil {
+			return err
+		}
+	}
+
+	ip := net.IP{127, 0, 0, 1}
+	if len(md.VMOD().IPAddrs) > 0 {
+		ip = md.VMOD().IPAddrs[0]
+	}
+	return md.WriteEtcHosts(mp.Path, md.ID.String(), ip)
 }
 
 // WriteEtcHosts populates the /etc/hosts file to avoid errors like

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os/exec"
 	"path"
 	"strconv"
 
@@ -13,27 +12,20 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-const (
-	poolPrefix = constants.IGNITE_PREFIX + "pool-"
-	basePrefix = constants.IGNITE_PREFIX + "base-"
-)
-
-type VMFilesystem struct{}
-
-type blockDev interface {
+type blockDevice interface {
 	path() string
 }
 
-var _ blockDev = &dmDevice{}
-var _ blockDev = &dmPool{}
-var _ blockDev = &loopDevice{}
+var _ blockDevice = &dmDevice{}
+var _ blockDevice = &dmPool{}
+var _ blockDevice = &loopDevice{}
 
 type dmDevice struct {
 	pool        *dmDevice
 	name        string
 	id          uint64
 	blocks      uint64
-	externalDev blockDev
+	externalDev blockDevice
 }
 
 // blockSize specifies the data block size of the pool,
@@ -41,21 +33,20 @@ type dmDevice struct {
 // 128 is recommended if snapshotting a lot (like we do with layers).
 type dmPool struct {
 	dmDevice
-	metadataDev blockDev
-	dataDev     blockDev
+	metadataDev blockDevice
+	dataDev     blockDevice
 	blockSize   uint64
 }
 
-func newDMDevice(pool *dmDevice, name string, id, blocks uint64, externalDev blockDev) (*dmDevice, error) {
-	// The volume needs to be generated, but persists across rebuilds, ignore the error for now
-	// TODO: Better error handling
-	_ = dmsetup("message", pool.path(), "0", fmt.Sprintf("create_thin %d", id))
+func newDMDevice(created bool, pool *dmDevice, name string, id, blocks uint64, externalDev blockDevice) (*dmDevice, error) {
+	// The volume is persistent in the metadata, it only needs to be generated once
+	if !created {
+		if err := dmsetup("message", pool.path(), "0", fmt.Sprintf("create_thin %d", id)); err != nil {
+			return nil, err
+		}
+	}
 
-	return activateDMDevice(pool, name, id, blocks, externalDev)
-}
-
-func activateDMDevice(pool *dmDevice, name string, id, blocks uint64, externalDev blockDev) (*dmDevice, error) {
-	dev := &dmDevice{
+	newDev := &dmDevice{
 		pool:        pool,
 		name:        name,
 		id:          id,
@@ -63,14 +54,40 @@ func activateDMDevice(pool *dmDevice, name string, id, blocks uint64, externalDe
 		externalDev: externalDev,
 	}
 
-	if err := dev.create(); err != nil {
-		return nil, err
-	}
-
-	return dev, nil
+	return newDev.activate()
 }
 
-func newDMPool(name string, blocks, blockSize uint64, metadataDev, dataDev blockDev) (*dmPool, error) {
+func (d *dmDevice) createSnapshot(created bool, name string) (*dmDevice, error) {
+	snapshotID := d.id + 1
+
+	// The snapshot is persistent in the metadata, it only needs to be generated once
+	if !created {
+		if err := dmsetup("suspend", d.path()); err != nil {
+			return nil, err
+		}
+
+		if err := dmsetup("message", d.pool.path(), "0",
+			fmt.Sprintf("create_snap %d %d", snapshotID, d.id)); err != nil {
+			return nil, err
+		}
+
+		if err := dmsetup("resume", d.path()); err != nil {
+			return nil, err
+		}
+	}
+
+	snapshotDev := &dmDevice{
+		pool:        d.pool,
+		name:        name,
+		id:          snapshotID,
+		blocks:      d.blocks,
+		externalDev: d.externalDev,
+	}
+
+	return snapshotDev.activate()
+}
+
+func newDMPool(name string, blocks, blockSize uint64, metadataDev, dataDev blockDevice) (*dmPool, error) {
 	pool := &dmPool{
 		dmDevice: dmDevice{
 			name:   name,
@@ -81,14 +98,10 @@ func newDMPool(name string, blocks, blockSize uint64, metadataDev, dataDev block
 		blockSize:   blockSize,
 	}
 
-	if err := pool.create(); err != nil {
-		return nil, err
-	}
-
-	return pool, nil
+	return pool.activate()
 }
 
-func (d *dmDevice) create() error {
+func (d *dmDevice) activate() (*dmDevice, error) {
 	dmTable := fmt.Sprintf("0 %d thin %s %d",
 		d.blocks,
 		d.pool.path(),
@@ -100,13 +113,13 @@ func (d *dmDevice) create() error {
 	}
 
 	if err := dmsetup("create", d.name, "--table", dmTable); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return d, nil
 }
 
-func (d *dmPool) create() error {
+func (d *dmPool) activate() (*dmPool, error) {
 	dmTable := fmt.Sprintf("0 %d thin-pool %s %s %d 0",
 		d.blocks,
 		d.metadataDev.path(),
@@ -115,55 +128,87 @@ func (d *dmPool) create() error {
 	)
 
 	if err := dmsetup("create", d.name, "--table", dmTable); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return d, nil
 }
 
 func (d *dmDevice) path() string {
 	return path.Join("/dev/mapper", d.name)
 }
 
+type devNames []string
+
+// Order matters for removal
+func (md *VMMetadata) newDevNames() devNames {
+	return []string{
+		constants.IGNITE_PREFIX + md.ID.String(),
+		constants.IGNITE_PREFIX + "base-" + md.ID.String(),
+		constants.IGNITE_PREFIX + "pool-" + md.ID.String(),
+	}
+}
+
+func (d devNames) overlay() string {
+	return d[0]
+}
+
+func (d devNames) base() string {
+	return d[1]
+}
+
+func (d devNames) pool() string {
+	return d[2]
+}
+
+func (d devNames) all() []string {
+	return d
+}
+
 func (md *VMMetadata) NewVMOverlay() error {
-	poolName := poolPrefix + md.ID.String()
-	baseDevName := basePrefix + md.ID.String()
-	overlayDevName := constants.IGNITE_PREFIX + md.ID.String()
+	names := md.newDevNames()
 
 	// Return if the overlay is already setup
-	if util.FileExists((&dmDevice{name: overlayDevName}).path()) {
+	// TODO: Check this individually for each volume
+	if util.FileExists((&dmDevice{name: names.overlay()}).path()) {
 		return nil
 	}
 
 	// Setup loop device for the metadata
-	metadataDev, err := newLoopDev(path.Join(md.ObjectPath(), constants.METADATA_FILE), false)
+	metadataDev, err := newLoopDevice(path.Join(md.ObjectPath(), constants.METADATA_FILE), false)
 	if err != nil {
 		return err
 	}
 
 	// Setup loop device for the data
-	dataDev, err := newLoopDev(path.Join(md.ObjectPath(), constants.DATA_FILE), false)
+	dataDev, err := newLoopDevice(path.Join(md.ObjectPath(), constants.DATA_FILE), false)
 	if err != nil {
 		return err
 	}
 
+	// The pool size should be the size of the data device
 	poolSize, err := dataDev.Size512K()
 	if err != nil {
 		return err
 	}
 
-	pool, err := newDMPool(poolName, poolSize, 128, metadataDev, dataDev)
+	// Create the thin provisioning pool
+	pool, err := newDMPool(names.pool(), poolSize, 128, metadataDev, dataDev)
 	if err != nil {
 		return err
 	}
 
 	// Setup loop device for the image
-	imageDev, err := newLoopDev(path.Join(constants.IMAGE_DIR, md.VMOD().ImageID.String(), constants.IMAGE_FS), false)
+	imageDev, err := newLoopDevice(path.Join(constants.IMAGE_DIR, md.VMOD().ImageID.String(), constants.IMAGE_FS), true)
 	if err != nil {
 		return err
 	}
 
-	baseDev, err := newDMDevice(&pool.dmDevice, baseDevName, 0, pool.blocks, imageDev)
+	// Detect if we're running for the first time, this is needed for triggering volume/snapshot creation
+	created := md.VMOD().VolumesCreated
+
+	// Create the base device, which is an external snapshot of the image
+	baseDev, err := newDMDevice(created, &pool.dmDevice, names.base(), 0, pool.blocks, imageDev)
 	if err != nil {
 		return err
 	}
@@ -174,7 +219,29 @@ func (md *VMMetadata) NewVMOverlay() error {
 	}
 
 	// TODO: Save/return this overlay device
-	if _, err = baseDev.createSnapshot(overlayDevName); err != nil {
+	if _, err = baseDev.createSnapshot(created, names.overlay()); err != nil {
+		return err
+	}
+
+	// Mark the volumes to be created
+	if !created {
+		md.VMOD().VolumesCreated = true
+		if err := md.Save(); err != nil {
+			return err
+		}
+	}
+
+	// By detaching the loop devices after setting up thin provisioning
+	// they get automatically removed when the thin volumes/snapshots are removed.
+	if err := metadataDev.Detach(); err != nil {
+		return err
+	}
+
+	if err := dataDev.Detach(); err != nil {
+		return err
+	}
+
+	if err := imageDev.Detach(); err != nil {
 		return err
 	}
 
@@ -182,126 +249,20 @@ func (md *VMMetadata) NewVMOverlay() error {
 }
 
 func (md *VMMetadata) OverlayDev() string {
-	return path.Join("/dev/mapper", constants.IGNITE_PREFIX+md.ID.String())
+	return (&dmDevice{name: md.newDevNames().overlay()}).path()
 }
 
 func (md *VMMetadata) RemoveOverlay() error {
-	log.Println("Overlay remove: stub")
-	return nil
+	devNames := md.newDevNames().all()
+	dmArgs := append(make([]string, 0, len(devNames)+1), "remove")
+	return dmsetup(append(dmArgs, devNames...)...)
 }
-
-//func (md *VMMetadata) SnapshotDev() string {
-//	return path.Join("/dev/mapper", constants.IGNITE_PREFIX+md.ID.String())
-//}
-//
-//func (md *VMMetadata) SetupSnapshot() error {
-//	device := constants.IGNITE_PREFIX + md.ID.String()
-//	devicePath := md.SnapshotDev()
-//
-//	// Return if the snapshot is already setup
-//	if util.FileExists(devicePath) {
-//		return nil
-//	}
-//
-//	// Setup loop device for the image
-//	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, md.VMOD().ImageID.String(), constants.IMAGE_FS), true)
-//	if err != nil {
-//		return err
-//	}
-//
-//	// Setup loop device for the VM overlay
-//	overlayLoop, err := newLoopDev(path.Join(md.ObjectPath(), constants.OVERLAY_FILE), false)
-//	if err != nil {
-//		return err
-//	}
-//
-//	imageLoopSize, err := imageLoop.Size512K()
-//	if err != nil {
-//		return err
-//	}
-//
-//	overlayLoopSize, err := overlayLoop.Size512K()
-//	if err != nil {
-//		return err
-//	}
-//
-//	// If the overlay is larger than the base image, we need to set up an additional dm device
-//	// which will contain the image and additional zero space (which reads zeros and discards writes).
-//	// This is fine, because all writes will target the overlay snapshot and not the read-only image.
-//	// The newly generated larger device will then be used for creating the snapshot (which is always
-//	// as large as the device backing it).
-//
-//	basePath := imageLoop.Path()
-//	if overlayLoopSize > imageLoopSize {
-//		// "0 8388608 linear /dev/loop0 0"
-//		// "8388608 12582912 zero"
-//		dmBaseTable := []byte(fmt.Sprintf("0 %d linear %s 0\n%d %d zero", imageLoopSize, imageLoop.Path(), imageLoopSize, overlayLoopSize))
-//
-//		baseDevice := fmt.Sprintf("%s-base", device)
-//		if err := runDMSetup(baseDevice, dmBaseTable); err != nil {
-//			return err
-//		}
-//
-//		basePath = fmt.Sprintf("/dev/mapper/%s", baseDevice)
-//	}
-//
-//	// "0 8388608 snapshot /dev/{loop0,mapper/ignite-<uid>-base} /dev/loop1 P 8"
-//	dmTable := []byte(fmt.Sprintf("0 %d snapshot %s %s P 8", overlayLoopSize, basePath, overlayLoop.Path()))
-//
-//	if err := runDMSetup(device, dmTable); err != nil {
-//		return err
-//	}
-//
-//	// Repair the filesystem in case it has errors
-//	// e2fsck throws an error if the filesystem gets repaired, so just ignore it
-//	_, _ = util.ExecuteCommand("e2fsck", "-p", "-f", devicePath)
-//
-//	// If the overlay is larger than the image, call resize2fs to make the filesystem fill the overlay
-//	if overlayLoopSize > imageLoopSize {
-//		if _, err := util.ExecuteCommand("resize2fs", devicePath); err != nil {
-//			return err
-//		}
-//	}
-//
-//	// By detaching the loop devices after setting up the snapshot
-//	// they get automatically removed when the snapshot is removed.
-//	if err := imageLoop.Detach(); err != nil {
-//		return err
-//	}
-//
-//	if err := overlayLoop.Detach(); err != nil {
-//		return err
-//	}
-//
-//	return nil
-//}
-//
-//func (md *VMMetadata) RemoveSnapshot() error {
-//	dmArgs := []string{
-//		"remove",
-//		md.SnapshotDev(),
-//	}
-//
-//	// If the base device is visible in "dmsetup", we should remove it
-//	// The device itself is not forwarded to docker, so we can't query its path
-//	// TODO: Improve this detection
-//	baseDev := fmt.Sprintf("%s-base", constants.IGNITE_PREFIX+md.ID.String())
-//	if _, err := util.ExecuteCommand("dmsetup", "info", baseDev); err == nil {
-//		dmArgs = append(dmArgs, baseDev)
-//	}
-//
-//	if _, err := util.ExecuteCommand("dmsetup", dmArgs...); err != nil {
-//		return err
-//	}
-//
-//	return nil
-//}
 
 type loopDevice struct {
 	losetup.Device
 }
 
-func newLoopDev(file string, readOnly bool) (*loopDevice, error) {
+func newLoopDevice(file string, readOnly bool) (*loopDevice, error) {
 	dev, err := losetup.Attach(file, 0, readOnly)
 	if err != nil {
 		return nil, fmt.Errorf("failed to setup loop device for %q: %v", file, err)
@@ -324,58 +285,13 @@ func (ld *loopDevice) path() string {
 	return ld.Path()
 }
 
-// dmsetup uses stdin to read multiline tables, this is a helper function for that
-func runDMSetup(name string, table []byte) error {
-	cmd := exec.Command("dmsetup", "create", name)
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		return err
-	}
-
-	if _, err := stdin.Write(table); err != nil {
-		return err
-	}
-
-	if err := stdin.Close(); err != nil {
-		return err
-	}
-
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("command %q exited with %q: %v", cmd.Args, out, err)
-	}
-
-	return nil
-}
-
-func (d *dmDevice) createSnapshot(name string) (*dmDevice, error) {
-	snapshotID := d.id + 1
-
-	if err := dmsetup("suspend", d.path()); err != nil {
-		return nil, err
-	}
-
-	// The snapshot needs to be generated, but persists across rebuilds, ignore the error for now
-	// TODO: Better error handling
-	if err := dmsetup("message", d.pool.path(), "0",
-		fmt.Sprintf("create_snap %d %d", snapshotID, d.id)); err != nil {
-		//return nil, err
-	}
-
-	if err := dmsetup("resume", d.path()); err != nil {
-		return nil, err
-	}
-
-	return activateDMDevice(d.pool, name, snapshotID, d.blocks, d.externalDev)
-}
-
 func dmsetup(args ...string) error {
 	log.Printf("Running dmsetup: %q\n", args)
 	_, err := util.ExecuteCommand("dmsetup", args...)
 	return err
 }
 
-func resize2fs(device blockDev) error {
+func resize2fs(device blockDevice) error {
 	_, _ = util.ExecuteCommand("e2fsck", "-pf", device.path())
 	_, err := util.ExecuteCommand("resize2fs", device.path())
 	return err
