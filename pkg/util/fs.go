@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 
 	"github.com/weaveworks/ignite/pkg/constants"
 )
@@ -108,15 +109,46 @@ func FileIsEmpty(file string) (bool, error) {
 	if err != nil && !os.IsNotExist(err) {
 		return false, err
 	}
+
 	// The file exists, and has content. Proceed as usual
 	if err == nil && fileInfo.Size() > 0 {
 		return false, nil
 	}
+
 	// The file exists, but has no content. Remove the file to allow the symlink
 	if err == nil && fileInfo.Size() == 0 {
 		if err := os.Remove(file); err != nil {
 			return false, err
 		}
 	}
+
 	return true, nil
+}
+
+// Quick hack to resolve a kernel in a mounted image
+func FindKernel(dir string) (string, error) {
+	bootDir := path.Join(dir, "boot")
+	kernel := path.Join(bootDir, constants.KERNEL_FILE)
+
+	fi, err := os.Lstat(kernel)
+	if err != nil {
+		return "", err
+	}
+
+	// The target is a symlink
+	if fi.Mode()&os.ModeSymlink != 0 {
+		kernel, err = os.Readlink(kernel)
+		if err != nil {
+			return "", err
+		}
+
+		// Fix the path for absolute and relative symlinks
+		if path.IsAbs(kernel) {
+			kernel = path.Join(dir, kernel)
+		} else {
+			kernel = path.Join(bootDir, kernel)
+		}
+	}
+
+	return kernel, nil
 }

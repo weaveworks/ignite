@@ -183,7 +183,7 @@ func RunVM(md *vmmd.VMMetadata, dhcpIfaces *[]DHCPInterface) error {
 
 	kernelCmd := od.KernelCmd
 	if len(kernelCmd) == 0 {
-		kernelCmd = constants.VM_KERNEL_ARGS
+		kernelCmd = constants.VM_DEFAULT_KERNEL_ARGS
 	}
 
 	cfg := firecracker.Config{

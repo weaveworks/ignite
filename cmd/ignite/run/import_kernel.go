@@ -1,27 +1,28 @@
 package run
 
 import (
-	"fmt"
+	"log"
+
+	"github.com/weaveworks/ignite/pkg/source"
 
 	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
-	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type ImportKernelFlags struct {
-	Source string
-	Name   string
+	Name string
 }
 
 type importKernelOptions struct {
 	*ImportKernelFlags
+	source     string
 	allKernels []metadata.AnyMetadata
 }
 
-func (i *ImportKernelFlags) NewImportKernelOptions(l *runutil.ResLoader) (*importKernelOptions, error) {
-	io := &importKernelOptions{ImportKernelFlags: i}
+func (i *ImportKernelFlags) NewImportKernelOptions(l *runutil.ResLoader, source string) (*importKernelOptions, error) {
+	io := &importKernelOptions{ImportKernelFlags: i, source: source}
 
 	if allKernels, err := l.Kernels(); err == nil {
 		io.allKernels = *allKernels
@@ -32,13 +33,15 @@ func (i *ImportKernelFlags) NewImportKernelOptions(l *runutil.ResLoader) (*impor
 	return io, nil
 }
 
-func ImportKernel(ao *importKernelOptions) error {
-	if !util.FileExists(ao.Source) {
-		return fmt.Errorf("not a kernel image: %s", ao.Source)
+func ImportKernel(io *importKernelOptions) error {
+	// Parse the source
+	kernelSrc, err := source.NewDockerSource(io.source)
+	if err != nil {
+		return err
 	}
 
 	// Verify the name
-	name, err := metadata.NewNameWithLatest(ao.Name, &ao.allKernels)
+	name, err := metadata.NewNameWithLatest(io.Name, &io.allKernels)
 	if err != nil {
 		return err
 	}
@@ -50,13 +53,20 @@ func ImportKernel(ao *importKernelOptions) error {
 	}
 	defer md.Cleanup(false) // TODO: Handle silent
 
-	// Save the metadata
-	if err := md.Save(); err != nil {
+	log.Println("Starting kernel import...")
+
+	// Create a new image file to host the filesystem and format it
+	if imageFile, err := md.CreateImageFile(kernelSrc.Size()); err == nil {
+		// Add the files to the filesystem and export vmlinux
+		if err := md.AddFiles(imageFile, kernelSrc); err != nil {
+			return err
+		}
+	} else {
 		return err
 	}
 
-	// Perform the copy
-	if err := md.ImportKernel(ao.Source); err != nil {
+	// Save the metadata
+	if err := md.Save(); err != nil {
 		return err
 	}
 

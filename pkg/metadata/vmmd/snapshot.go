@@ -175,13 +175,13 @@ func (md *VMMetadata) NewVMOverlay() error {
 	}
 
 	// Setup loop device for the metadata
-	metadataDev, err := newLoopDevice(path.Join(md.ObjectPath(), constants.METADATA_FILE), false)
+	metadataDev, err := newLoopDevice(path.Join(md.ObjectPath(), constants.VM_METADATA_FILE), false)
 	if err != nil {
 		return err
 	}
 
 	// Setup loop device for the data
-	dataDev, err := newLoopDevice(path.Join(md.ObjectPath(), constants.DATA_FILE), false)
+	dataDev, err := newLoopDevice(path.Join(md.ObjectPath(), constants.VM_DATA_FILE), false)
 	if err != nil {
 		return err
 	}

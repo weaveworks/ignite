@@ -9,7 +9,7 @@ type ImageMetadata struct {
 }
 
 type ImageObjectData struct {
-	// TODO: Placeholder
+	ContainsKernel bool
 }
 
 func NewImageMetadata(id *metadata.ID, name *metadata.Name) (*ImageMetadata, error) {

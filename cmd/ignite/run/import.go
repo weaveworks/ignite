@@ -2,20 +2,17 @@ package run
 
 import (
 	"log"
-	"os"
-	"path"
 
 	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/source"
 
 	"github.com/c2h5oh/datasize"
-	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 )
 
 type ImportFlags struct {
-	Name       string
-	KernelName string
+	Name string
 }
 
 type importOptions struct {
@@ -38,74 +35,48 @@ func (i *ImportFlags) NewImportOptions(l *runutil.ResLoader, source string) (*im
 	return io, nil
 }
 
-func Import(bo *importOptions) error {
+func Import(io *importOptions) error {
 	// Parse the source
-	imageSrc, err := imgmd.NewSource(bo.source)
+	imageSrc, err := source.NewDockerSource(io.source)
 	if err != nil {
 		return err
 	}
 
-	nameStr := bo.Name
+	nameStr := io.Name
 	if len(imageSrc.DockerImage()) > 0 {
 		nameStr = imageSrc.DockerImage()
 	}
 
 	// Verify the name
-	name, err := metadata.NewNameWithLatest(nameStr, &bo.allImages)
+	name, err := metadata.NewNameWithLatest(nameStr, &io.allImages)
 	if err != nil {
 		return err
 	}
 
 	// Create new image metadata
-	if bo.newImage, err = imgmd.NewImageMetadata(nil, name); err != nil {
+	if io.newImage, err = imgmd.NewImageMetadata(nil, name); err != nil {
 		return err
 	}
-	defer bo.newImage.Cleanup(false) // TODO: Handle silent
+	defer io.newImage.Cleanup(false) // TODO: Handle silent
 
 	log.Println("Starting image import...")
 
-	// Create new file to host the filesystem and format it
-	if err := bo.newImage.AllocateAndFormat(imageSrc.Size()); err != nil {
+	// Create a new image file to host the filesystem and format it
+	imageFile, err := io.newImage.CreateImageFile(imageSrc.Size())
+	if err != nil {
 		return err
 	}
 
 	// Add the files to the filesystem
-	if err := bo.newImage.AddFiles(imageSrc); err != nil {
+	if err := io.newImage.AddFiles(imageFile, imageSrc); err != nil {
 		return err
 	}
 
-	if err := bo.newImage.Save(); err != nil {
+	if err := io.newImage.Save(); err != nil {
 		return err
 	}
-	hrsize := datasize.ByteSize(imageSrc.Size()).HR()
-	log.Printf("Created a %s filesystem of the input", hrsize)
 
-	// Import a new kernel from the image if specified
-	tmpKernelDir, err := bo.newImage.ExportKernel()
-	if err == nil {
-		io, err := (&ImportKernelFlags{
-			Source: path.Join(tmpKernelDir, constants.KERNEL_FILE),
-			Name:   name.String(),
-		}).NewImportKernelOptions(bo.resLoader)
-		if err != nil {
-			return err
-		}
+	log.Printf("Created a %s filesystem for the image", datasize.ByteSize(imageFile.Size()).HR())
 
-		if err := ImportKernel(io); err != nil {
-			return err
-		}
-
-		if err := os.RemoveAll(tmpKernelDir); err != nil {
-			return err
-		}
-
-		//log.Printf("A kernel was imported from the image with name %q and ID %q", name.String(), kernelID)
-	} else {
-		// Tolerate the kernel to not be found
-		if _, ok := err.(*imgmd.KernelNotFoundError); !ok {
-			return err
-		}
-	}
-
-	return bo.newImage.Success()
+	return io.newImage.Success()
 }

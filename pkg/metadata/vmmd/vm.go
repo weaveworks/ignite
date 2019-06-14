@@ -47,13 +47,13 @@ func (md *VMMetadata) AllocateOverlay(requestedSize uint64) error {
 			datasize.ByteSize(requestedSize).HR(), datasize.ByteSize(size).HR())
 	}
 
-	metadataFile, err := os.Create(path.Join(md.ObjectPath(), constants.METADATA_FILE))
+	metadataFile, err := os.Create(path.Join(md.ObjectPath(), constants.VM_METADATA_FILE))
 	if err != nil {
 		return fmt.Errorf("failed to create metadata file for %q, %v", md.ID, err)
 	}
 	defer metadataFile.Close()
 
-	dataFile, err := os.Create(path.Join(md.ObjectPath(), constants.DATA_FILE))
+	dataFile, err := os.Create(path.Join(md.ObjectPath(), constants.VM_DATA_FILE))
 	if err != nil {
 		return fmt.Errorf("failed to create data file for %q, %v", md.ID, err)
 	}
@@ -141,7 +141,7 @@ func (md *VMMetadata) KernelID() string {
 }
 
 func (md *VMMetadata) Size() (int64, error) {
-	fi, err := os.Stat(path.Join(md.ObjectPath(), constants.DATA_FILE))
+	fi, err := os.Stat(path.Join(md.ObjectPath(), constants.VM_DATA_FILE))
 	if err != nil {
 		return 0, err
 	}
