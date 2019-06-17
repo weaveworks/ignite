@@ -2,3 +2,4 @@
 bin
 *.bin
 *.ext4
+images/kubeadm/run

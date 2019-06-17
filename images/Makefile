@@ -20,8 +20,10 @@ build-all:
 	make -C kernel
 	$(MAKE) build WHAT=ubuntu
 	$(MAKE) build WHAT=centos
+	$(MAKE) build WHAT=kubeadm
 
 push-all: build-all
 	make -C kernel push
 	$(MAKE) push WHAT=ubuntu
 	$(MAKE) push WHAT=centos
+	$(MAKE) push WHAT=kubeadm
