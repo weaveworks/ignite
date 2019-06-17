@@ -16,7 +16,7 @@ func (md *ImageMetadata) CreateImageFile(size int64) (*source.ImageFile, error) 
 }
 
 // AddFiles copies the contents of the tar file into the ext4 filesystem
-func (md *ImageMetadata) AddFiles(i *source.ImageFile, src source.Source) error {
+func (md *ImageMetadata) AddFiles(i *ImageDM, src source.Source) error {
 	mountPoint, err := i.AddFiles(src)
 	if err != nil {
 		return err
@@ -24,11 +24,11 @@ func (md *ImageMetadata) AddFiles(i *source.ImageFile, src source.Source) error 
 	defer mountPoint.Umount()
 
 	// Check if this is a "combined image" now that it's mounted
-	if kernel, err := util.FindKernel(mountPoint.Path); err == nil {
-		md.ImageOD().ContainsKernel = len(kernel) > 0
-	} else {
-		return err
-	}
+	//if kernel, err := util.FindKernel(mountPoint.Path); err == nil {
+	//	md.ImageOD().ContainsKernel = len(kernel) > 0
+	//} else {
+	//	return err
+	//}
 
 	return md.setupResolvConf(mountPoint.Path)
 }

@@ -105,6 +105,10 @@ func (ds *DockerSource) Size() int64 {
 	return ds.size
 }
 
+func (ds *DockerSource) ID() string {
+	return ds.dockerID
+}
+
 func (ds *DockerSource) Cleanup() error {
 	if len(ds.containerID) > 0 {
 		// Remove the temporary container

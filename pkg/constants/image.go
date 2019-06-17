@@ -6,4 +6,10 @@ const (
 
 	// Filename for the image file containing the image filesystem
 	IMAGE_FS = "image.ext4"
+
+	// Filename for the thin provisioning metadata file
+	IMAGE_THINMETADATA = "metadata.dm"
+
+	// Filename for the thin provisioning data file
+	IMAGE_THINDATA = "data.dm"
 )

@@ -9,7 +9,7 @@ type ImageMetadata struct {
 }
 
 type ImageObjectData struct {
-	ContainsKernel bool
+	ImageDM *ImageDM
 }
 
 func NewImageMetadata(id *metadata.ID, name *metadata.Name) (*ImageMetadata, error) {

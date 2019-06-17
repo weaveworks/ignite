@@ -61,14 +61,19 @@ func Import(io *importOptions) error {
 
 	log.Println("Starting image import...")
 
-	// Create a new image file to host the filesystem and format it
-	imageFile, err := io.newImage.CreateImageFile(imageSrc.Size())
-	if err != nil {
+	if err := io.newImage.NewImageDM(); err != nil {
 		return err
 	}
 
+	// Create a new image file to host the filesystem and format it
+	//imageFile, err := io.newImage.CreateImageFile(imageSrc.Size())
+	//if err != nil {
+	//	return err
+	//}
+
 	// Add the files to the filesystem
-	if err := io.newImage.AddFiles(imageFile, imageSrc); err != nil {
+	// TODO: Integrate ImageDM better
+	if err := io.newImage.AddFiles(io.newImage.ImageOD().ImageDM, imageSrc); err != nil {
 		return err
 	}
 
@@ -76,7 +81,8 @@ func Import(io *importOptions) error {
 		return err
 	}
 
-	log.Printf("Created a %s filesystem for the image", datasize.ByteSize(imageFile.Size()).HR())
+	// TODO: This
+	log.Printf("Created a %s filesystem for the image", datasize.ByteSize(0).HR())
 
 	return io.newImage.Success()
 }

@@ -7,4 +7,5 @@ type Source interface {
 	Reader() (io.ReadCloser, error)
 	Size() int64
 	Cleanup() error
+	ID() string
 }
