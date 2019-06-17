@@ -110,12 +110,6 @@ func (cf *CreateFlags) NewCreateOptions(l *runutil.ResLoader, imageMatch string)
 	if co.fileMappings, err = parseFileMappings(co.CopyFiles); err != nil {
 		return nil, err
 	}
-
-	// Parse SSH key importing
-	if err = co.parseSSH(&co.fileMappings); err != nil {
-		return nil, err
-	}
-
 	return co, nil
 }
 
@@ -132,6 +126,11 @@ func Create(co *createOptions) error {
 		return err
 	}
 	defer co.newVM.Cleanup(false) // TODO: Handle silent
+
+	// Parse SSH key importing
+	if err := co.parseSSH(&co.fileMappings); err != nil {
+		return err
+	}
 
 	// Save the metadata
 	if err := co.newVM.Save(); err != nil {
