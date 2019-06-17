@@ -46,7 +46,7 @@ as the primary unit, but whole yet lightweight VMs that integrate with the conta
 
 ### How to use
 
-[![asciicast](https://asciinema.org/a/MIuDWpzrEVyjq86kf5BG4f6Y0.svg)](https://asciinema.org/a/MIuDWpzrEVyjq86kf5BG4f6Y0)
+[![asciicast](https://asciinema.org/a/252221.svg)](https://asciinema.org/a/252221)
 
 Note: At the moment `ignite` needs root privileges on the host to operate,
 for certain specific operations (e.g. `mount`). This will change in the future.
