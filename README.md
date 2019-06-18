@@ -53,7 +53,7 @@ for certain specific operations (e.g. `mount`). This will change in the future.
 
 ```bash
 # Let's run the weaveworks/ignite-ubuntu docker image as a VM
-# Use 2 vCPUs and 1GB of RAM, enable SSH access and name it my-vm
+# Use 2 vCPUs and 1GB of RAM, enable automatic SSH access and name it my-vm
 ignite run weaveworks/ignite-ubuntu \
     --cpus 2 \
     --memory 1024 \
@@ -91,16 +91,26 @@ ignite rm my-vm
 
 See the [CLI Reference](docs/cli/ignite.md).
 
-### Sample Images
+### Base images and kernels
+
+A _base image_ is an OCI-compliant image containing some operating system (e.g. Ubuntu).
+You can follow normal `docker build` patterns for customizing your VM's rootfs.
+
+A _kernel binary_ is today expected to be inside of the rootfs, at `/boot/vmlinux` (may
+be a symlink). It is also recommended to put supported kernel modules in `/lib/modules`
+if you need that. Today we couple the kernel and the base image, this will however change
+in future releases so you can mix and match kernel and base image OCI-images at `ignite run`-time.
 
 As the upstream `centos:7` and `ubuntu:18.04` images from Docker Hub doesn't
-have all the utilities and packages you'd expect in a VM, we have packaged some
+have all the utilities and packages you'd expect in a VM (e.g. an init system), we have packaged some
 reference base images and a sample kernel image to get started quickly.
 
- - [Kernel Builder Image](images/kernel/Dockerfile)
- - [Ubuntu 18.04 Dockerfile](images/ubuntu/Dockerfile)
- - [CentOS 7 Dockerfile](images/ubuntu/Dockerfile)
- - [Guide: Run a HA Kubernetes cluster with Ignite and kubeadm](images/kubeadm)
+ - [Kernel Builder Image](images/kernel/Dockerfile) (`weaveworks/ignite-centos`)
+ - [Ubuntu 18.04 Dockerfile](images/ubuntu/Dockerfile) (`weaveworks/ignite-ubuntu`)
+ - [CentOS 7 Dockerfile](images/ubuntu/Dockerfile) (`weaveworks/ignite-kernel`)
+ - [Guide: Run a HA Kubernetes cluster with Ignite and kubeadm](images/kubeadm) (`weaveworks/ignite-kubeadm`)
+
+These prebuilt images can be given to `ignite run` directly.
 
 ### Known limitations
 
