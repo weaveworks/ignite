@@ -1,4 +1,4 @@
-## Firecracker Ignite
+# Firecracker Ignite
 
 Ignite is a Firecracker microVM administration tool, like Docker manages
 runC containers.
@@ -17,7 +17,7 @@ container on the host would.
 And Firecracker is **fast**! Building and starting VMs takes just some fraction of a second, or
 at most some seconds. With Ignite you can get started with Firecracker in no time!
 
-### Use-cases
+## Use-cases
 
 With Ignite, Firecracker is now much more accessible for end users, which means the ecosystem
 can achieve the next level of momentum due to the easy onboarding path thanks to a docker-like UX.
@@ -35,7 +35,7 @@ This allows for:
 * Super fast Kubernetes Cluster Lifecycle with multiple machines (without docker hacks)
 * A k8s-managed private VM cloud, on which a layer of k8s container clusters may run
 
-#### Scope
+### Scope
 
 If you want to run _applications_ in **containers** with added _Firecracker isolation_, use
 [firecracker-containerd](https://github.com/firecracker-microvm/firecracker-containerd).
@@ -44,7 +44,7 @@ Or a similar solution like Kata Containers or gVisor, that are complementary to 
 Firecracker Ignite, however, is operating at another layer. Ignite isn’t concerned with **containers**
 as the primary unit, but whole yet lightweight VMs that integrate with the container landscape.
 
-### How to use
+## How to use
 
 [![asciicast](https://asciinema.org/a/252221.svg)](https://asciinema.org/a/252221)
 
@@ -104,16 +104,17 @@ reference base images and a sample kernel image to get started quickly.
 
 ### Known limitations
 
-See [REQUIREMENTS.md](REQUIREMENTS.md)
+See [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md)
 
-### Maintainers
+## Contributing
 
-- Lucas Käldström, @luxas
-- Dennis Marttinen, @twelho
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code Of Conduct](CODE_OF_CONDUCT.md).
 
-### License
-
-Apache 2.0
+Other interesting resources include:
+ - [The issue tracker](https://github.com/weaveworks/ignite/issues)
+ - [The list of milestones](https://github.com/weaveworks/ignite/milestones)
+ - [CHANGELOG.md](CHANGELOG.md)
+ - [ROADMAP.md](ROADMAP.md)
 
 ## Getting Help
 
@@ -124,3 +125,12 @@ If you have any questions about, feedback for or problems with `ignite`:
 - [File an issue](https://github.com/weaveworks/ignite/issues/new).
 
 Your feedback is always welcome!
+
+## Maintainers
+
+- Lucas Käldström, [@luxas](https://github.com/luxas)
+- Dennis Marttinen, [@twelho](https://github.com/twelho)
+
+## License
+
+[Apache 2.0](LICENSE)
