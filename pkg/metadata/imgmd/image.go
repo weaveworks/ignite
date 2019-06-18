@@ -58,5 +58,5 @@ func (md *ImageMetadata) Size() (int64, error) {
 		return 0, err
 	}
 
-	return imageFile.Size(), nil
+	return imageFile.SizeBytes(), nil
 }

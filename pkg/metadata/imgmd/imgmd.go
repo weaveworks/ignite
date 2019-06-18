@@ -13,12 +13,18 @@ type ImageObjectData struct {
 }
 
 func NewImageMetadata(id *metadata.ID, name *metadata.Name) (*ImageMetadata, error) {
-	md, err := metadata.NewMetadata(id, name, metadata.Image, &ImageObjectData{})
+	md, err := metadata.NewMetadata(id, name, metadata.Image, NewImageObjectData())
 	if err != nil {
 		return nil, err
 	}
 
 	return &ImageMetadata{Metadata: md}, nil
+}
+
+func NewImageObjectData() *ImageObjectData {
+	return &ImageObjectData{
+		ImageDM: emptyImageDM(),
+	}
 }
 
 // The md.ObjectData.(*ImageObjectData) assert won't panic as this method can only receive *ImageMetadata objects

@@ -8,121 +8,106 @@ import (
 )
 
 type dmDevice struct {
-	Name     string
-	Blocks   uint64
-	ParentID int
+	pool   *DMPool
+	parent *dmDevice
+	name   string
+	blocks Sectors
 }
-
-const (
-	idPool = -1
-	idFail = -2
-)
 
 var _ blockDevice = &dmDevice{}
 
-func (p *DMPool) CreateVolume(name string, blocks uint64) (int, error) {
+func (p *DMPool) CreateVolume(name string, blocks Sectors) (*dmDevice, error) {
 	// The pool needs to be active for this
-	// TODO: Make this a trigger
-	if _, err := p.activatePool(); err != nil {
-		return idFail, err
+	if err := p.activate(); err != nil {
+		return nil, err
 	}
 
-	if id, err := p.newDevice(func(id int) (*dmDevice, error) {
+	if volume, err := p.newDevice(func(id int) (*dmDevice, error) {
 		if err := dmsetup("message", p.Path(), "0", fmt.Sprintf("create_thin %d", id)); err != nil {
 			return nil, err
 		}
 
 		return &dmDevice{
-			Name:     name,
-			Blocks:   blocks,
-			ParentID: idPool,
+			pool:   p,
+			parent: nil,
+			name:   name,
+			blocks: blocks,
 		}, nil
 	}); err != nil {
-		return idFail, err
+		return nil, err
 	} else {
-		return p.activateDevice(id)
+		return volume, volume.activate()
 	}
 }
 
-func (p *DMPool) CreateSnapshot(parentID int, name string) (int, error) {
-	parent, err := p.Get(parentID)
-	if err != nil {
-		return idFail, err
+func (d *dmDevice) CreateSnapshot(name string) (*dmDevice, error) {
+	// The device needs to be active for this
+	if err := d.activate(); err != nil {
+		return nil, err
 	}
 
-	// The pool needs to be active for this
-	if _, err := p.activatePool(); err != nil {
-		return idFail, err
-	}
-
-	if id, err := p.newDevice(func(id int) (*dmDevice, error) {
-		if err := dmsetup("suspend", parent.Path()); err != nil {
+	if snapshot, err := d.pool.newDevice(func(id int) (*dmDevice, error) {
+		if err := dmsetup("suspend", d.Path()); err != nil {
 			return nil, err
 		}
 
-		if err := dmsetup("message", p.Path(), "0",
-			fmt.Sprintf("create_snap %d %d", id, parentID)); err != nil {
+		if err := dmsetup("message", d.pool.Path(), "0",
+			fmt.Sprintf("create_snap %d %d", id, d.pool.getID(d))); err != nil {
 			return nil, err
 		}
 
-		if err := dmsetup("resume", parent.Path()); err != nil {
+		if err := dmsetup("resume", d.Path()); err != nil {
 			return nil, err
 		}
 
 		return &dmDevice{
-			Name:     name,
-			Blocks:   parent.Blocks,
-			ParentID: parentID,
+			pool:   d.pool,
+			parent: d,
+			name:   name,
+			blocks: d.blocks,
 		}, nil
 	}); err != nil {
-		return idFail, err
+		return nil, err
 	} else {
-		return p.activateDevice(id)
+		return snapshot, snapshot.activate()
 	}
 }
 
-func (p *DMPool) activateDevice(id int) (int, error) {
-	log.Printf("Activate device: %d\n", id)
-	// Activate the pool as the base device
-	if id < 0 {
-		return p.activatePool()
-	}
-
-	device, err := p.Get(id)
-	if err != nil {
-		return idFail, err
-	}
-
-	// Check if all parents are active
-	// TODO: Reference count this for deactivation
-	if code, err := p.activateDevice(device.ParentID); err != nil {
-		return code, err
+func (d *dmDevice) activate() error {
+	log.Printf("Activate device: %s\n", d.name)
+	if d.parent == nil {
+		// Activate the pool as the base device
+		if err := d.pool.activate(); err != nil {
+			return err
+		}
+	} else {
+		// Check if all parents are active
+		// TODO: Reference count this for deactivation
+		if err := d.parent.activate(); err != nil {
+			return err
+		}
 	}
 
 	// Don't try to activate an already active device
-	if device.active() {
-		return id, nil
+	if d.active() {
+		return nil
 	}
 
 	dmTable := fmt.Sprintf("0 %d thin %s %d",
-		device.Blocks,
-		p.Path(),
-		id,
+		d.blocks,
+		d.pool.Path(),
+		d.pool.getID(d),
 	)
 
-	//if d.externalDev != nil {
-	//	dmTable = fmt.Sprintf("%s %s", dmTable, d.externalDev.Path())
-	//}
-
-	if err := dmsetup("create", device.Name, "--table", dmTable); err != nil {
-		return idFail, err
+	if err := dmsetup("create", d.name, "--table", dmTable); err != nil {
+		return err
 	}
 
-	return id, nil
+	return nil
 }
 
 func (d *dmDevice) Path() string {
-	return path.Join("/dev/mapper", d.Name)
+	return path.Join("/dev/mapper", d.name)
 }
 
 // If /dev/mapper/<name> exists the device is active

@@ -2,6 +2,7 @@ package source
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/dm"
 	"os"
 	"os/exec"
 
@@ -38,9 +39,14 @@ func LoadImageFile(path string) (*ImageFile, error) {
 	}, nil
 }
 
-// Size gets the size of the image file
-func (i *ImageFile) Size() int64 {
+// Get the image size as bytes
+func (i *ImageFile) SizeBytes() int64 {
 	return i.size
+}
+
+// Get the image size as 512-byte sectors
+func (i *ImageFile) SizeSectors() dm.Sectors {
+	return dm.SectorsFromBytes(i.size)
 }
 
 // Create allocates and formats the image file

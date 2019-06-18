@@ -56,7 +56,7 @@ func ImportKernel(io *importKernelOptions) error {
 	log.Println("Starting kernel import...")
 
 	// Create a new image file to host the filesystem and format it
-	if imageFile, err := md.CreateImageFile(kernelSrc.Size()); err == nil {
+	if imageFile, err := md.CreateImageFile(kernelSrc.SizeBytes()); err == nil {
 		// Add the files to the filesystem and export vmlinux
 		if err := md.AddFiles(imageFile, kernelSrc); err != nil {
 			return err

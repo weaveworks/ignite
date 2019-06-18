@@ -14,8 +14,9 @@ import (
 const (
 	dataDevSize = 100 * 1073741824 // 100 GB
 	blockSize   = 128              // Pool allocation block size
-	imageSize   = 10 * 1073741824  // 10 GB TODO: Make this as large as the image
 )
+
+var imageExtraSize = dm.SectorsFromBytes(100 * 1048576)
 
 func prefix(input string) string {
 	return constants.IGNITE_PREFIX + input
@@ -23,6 +24,12 @@ func prefix(input string) string {
 
 type ImageDM struct {
 	*dm.DMPool
+}
+
+func emptyImageDM() *ImageDM {
+	return &ImageDM{
+		&dm.DMPool{},
+	}
 }
 
 func (md *ImageMetadata) NewImageDM() error {
@@ -35,10 +42,10 @@ func (md *ImageMetadata) NewImageDM() error {
 
 	md.ImageOD().ImageDM = &ImageDM{dm.NewDMPool(
 		prefix("pool-"+md.ID.String()),
-		dataDevSize/512,
-		blockSize,
-		dm.NewLoopDevice(metadataFile),
-		dm.NewLoopDevice(dataFile),
+		dm.SectorsFromBytes(dataDevSize),
+		dm.Sectors(blockSize),
+		dm.NewLoopDevice(metadataFile, false),
+		dm.NewLoopDevice(dataFile, false),
 	)}
 
 	return nil
@@ -73,12 +80,7 @@ func allocateDMFiles(metadataFile, dataFile string) error {
 }
 
 func (dm *ImageDM) AddFiles(src source.Source) (*util.MountPoint, error) {
-	id, err := dm.CreateVolume(src.ID(), imageSize/512)
-	if err != nil {
-		return nil, err
-	}
-
-	volume, err := dm.Get(id)
+	volume, err := dm.CreateVolume(src.ID(), src.SizeSectors()+imageExtraSize)
 	if err != nil {
 		return nil, err
 	}
@@ -111,6 +113,17 @@ func (dm *ImageDM) AddFiles(src source.Source) (*util.MountPoint, error) {
 	if err := src.Cleanup(); err != nil {
 		return nil, err
 	}
+
+	// Test snapshot creation
+	if _, err := volume.CreateSnapshot("snapshot-" + src.ID()); err != nil {
+		return nil, err
+	}
+
+	if _, err := volume.CreateSnapshot("snapshot2-" + src.ID()); err != nil {
+		return nil, err
+	}
+
+	dm.Remove(1)
 
 	return mountPoint, nil
 }
