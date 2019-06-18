@@ -1,9 +1,9 @@
 FROM weaveworks/ignite-ubuntu:latest
-# Install dependencies
+# Install dependencies. Use containerd for running the containers (for better performance)
 RUN apt-get update && apt-get install -y \
         apt-transport-https \
+        containerd \
         curl \
-        docker.io \
         gnupg2 \
         jq \
     && apt-get clean

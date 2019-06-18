@@ -19,6 +19,8 @@ kind: InitConfiguration
 bootstrapTokens:
 - token: "${TOKEN}"
 certificateKey: "${CERT_KEY}"
+nodeRegistration:
+  criSocket: /run/containerd/containerd.sock
 ---
 apiVersion: kubeadm.k8s.io/v1beta2
 kind: ClusterConfiguration
