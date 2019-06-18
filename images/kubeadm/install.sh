@@ -23,6 +23,24 @@ if [[ $# != 3 && ${MODE} != "cleanup" ]]; then
 	exit 1
 fi
 
+gsutil_cp() {
+	if [[ -f $(which gsutil 2>/dev/null) ]]; then
+		gsutil cp $1 $2
+	else
+		URL=$(echo $1 | sed "s|gs://|https://storage.googleapis.com/|")
+		curl -sSL ${URL} > $2
+	fi
+}
+
+gsutil_cat() {
+	if [[ -f $(which gsutil 2>/dev/null) ]]; then
+		gsutil cat $1
+	else
+		URL=$(echo $1 | sed "s|gs://|https://storage.googleapis.com/|")
+		curl -sSL ${URL}
+	fi
+}
+
 cleanup() {
 	kubeadm reset -f
 	if [[ -f $(which crictl) ]]; then
@@ -44,13 +62,12 @@ if [[ ! -f $(which docker) ]]; then
 	apt-get	update && apt-get install -y docker.io
 fi
 
-
 BINARY_BUCKET=""
 if [[ "${BINARY_REF}" =~ ^[0-9]{5}$ ]]; then
 	PR_NUMBER=${BINARY_REF}
-	BUILD_NUMBER=$(gsutil cat gs://kubernetes-jenkins/pr-logs/pull/${PR_NUMBER}/pull-kubernetes-bazel-build/latest-build.txt)
-	BAZEL_PULL_REF=$(gsutil cat gs://kubernetes-jenkins/pr-logs/pull/${PR_NUMBER}/pull-kubernetes-bazel-build/${BUILD_NUMBER}/started.json | jq -r .pull)
-	BAZEL_BUILD_LOCATION=$(gsutil cat gs://kubernetes-jenkins/shared-results/${BAZEL_PULL_REF}/bazel-build-location.txt)
+	BUILD_NUMBER=$(gsutil_cat gs://kubernetes-jenkins/pr-logs/pull/${PR_NUMBER}/pull-kubernetes-bazel-build/latest-build.txt)
+	BAZEL_PULL_REF=$(gsutil_cat gs://kubernetes-jenkins/pr-logs/pull/${PR_NUMBER}/pull-kubernetes-bazel-build/${BUILD_NUMBER}/started.json | jq -r .pull)
+	BAZEL_BUILD_LOCATION=$(gsutil_cat gs://kubernetes-jenkins/shared-results/${BAZEL_PULL_REF}/bazel-build-location.txt)
 	BINARY_BUCKET="${BAZEL_BUILD_LOCATION}/bin/linux/amd64"
 elif [[ "${BINARY_REF}" =~ ^(ci|ci-cross){1}/latest ]]; then
 	COMMIT=$(curl -sSL https://dl.k8s.io/${BINARY_REF}.txt)
@@ -65,8 +82,12 @@ fi
 
 # Download the debs and kubeadm
 BINARY_DIR=$(mktemp -d)
-gsutil cp ${BINARY_BUCKET}/*.deb ${BINARY_DIR}
-gsutil cp ${BINARY_BUCKET}/kubeadm ${BINARY_DIR}
+for pkg in cri-tools kubeadm kubectl kubelet kubernetes-cni; do
+	echo "Downloading ${pkg}.deb"
+	gsutil_cp ${BINARY_BUCKET}/${pkg}.deb ${BINARY_DIR}/${pkg}.deb
+done
+
+gsutil_cp ${BINARY_BUCKET}/kubeadm ${BINARY_DIR}/kubeadm
 chmod +x ${BINARY_DIR}/kubeadm
 
 install_kubeadm_apt() {
