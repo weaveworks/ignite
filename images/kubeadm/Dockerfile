@@ -1,6 +1,6 @@
 FROM weaveworks/ignite-ubuntu:latest
 # Install dependencies. Use containerd for running the containers (for better performance)
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
         apt-transport-https \
         containerd \
         curl \

@@ -55,13 +55,6 @@ if [[ "${MODE}" == "cleanup" ]]; then
 	exit 0
 fi
 
-if [[ ! -f $(which jq) ]]; then
-	apt-get	update && apt-get install -y jq
-fi
-if [[ ! -f $(which docker) ]]; then
-	apt-get	update && apt-get install -y docker.io
-fi
-
 BINARY_BUCKET=""
 if [[ "${BINARY_REF}" =~ ^[0-9]{5}$ ]]; then
 	PR_NUMBER=${BINARY_REF}
@@ -91,7 +84,6 @@ gsutil_cp ${BINARY_BUCKET}/kubeadm ${BINARY_DIR}/kubeadm
 chmod +x ${BINARY_DIR}/kubeadm
 
 install_kubeadm_apt() {
-	apt-get update && apt-get install -y apt-transport-https curl || exit 0
 	curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 	echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
 	apt-get update && apt-get install -y kubeadm
