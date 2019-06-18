@@ -100,6 +100,7 @@ reference base images and a sample kernel image to get started quickly.
  - [Kernel Builder Image](images/kernel/Dockerfile)
  - [Ubuntu 18.04 Dockerfile](images/ubuntu/Dockerfile)
  - [CentOS 7 Dockerfile](images/ubuntu/Dockerfile)
+ - [Guide: Run a HA Kubernetes cluster with Ignite and kubeadm](images/kubeadm)
 
 ### Known limitations
 
