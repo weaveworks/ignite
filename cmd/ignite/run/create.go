@@ -5,14 +5,16 @@ import (
 	"path"
 	"strings"
 
+	"github.com/weaveworks/ignite/pkg/source"
+
 	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 
 	"github.com/spf13/pflag"
 
 	"github.com/c2h5oh/datasize"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
-	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -70,7 +72,7 @@ type CreateFlags struct {
 type createOptions struct {
 	*CreateFlags
 	image        *imgmd.ImageMetadata
-	kernel       *kernmd.KernelMetadata
+	kernel       source.Source
 	allVMs       []metadata.AnyMetadata
 	newVM        *vmmd.VMMetadata
 	fileMappings map[string]string
@@ -89,14 +91,11 @@ func (cf *CreateFlags) NewCreateOptions(l *runutil.ResLoader, imageMatch string)
 	}
 
 	if len(cf.KernelName) == 0 {
-		cf.KernelName = imageMatch
+		cf.KernelName = constants.DEFAULT_KERNEL
 	}
 
-	if allKernels, err := l.Kernels(); err == nil {
-		if co.kernel, err = allKernels.MatchSingle(cf.KernelName); err != nil {
-			return nil, err
-		}
-	} else {
+	co.kernel, err = source.NewDockerSource(cf.KernelName)
+	if err != nil {
 		return nil, err
 	}
 
@@ -126,24 +125,24 @@ func Create(co *createOptions) error {
 		return err
 	}
 
-	// Create new metadata for the VM
-	if co.newVM, err = vmmd.NewVMMetadata(nil, name,
-		vmmd.NewVMObjectData(co.image.ID, co.kernel.ID, co.CPUs, co.Memory, co.KernelCmd)); err != nil {
-		return err
-	}
-	defer co.newVM.Cleanup(false) // TODO: Handle silent
-
-	// Save the metadata
-	if err := co.newVM.Save(); err != nil {
-		return err
-	}
-
 	// Parse the given overlay size
 	var size datasize.ByteSize
 	if err := size.UnmarshalText([]byte(co.Size)); err != nil {
 		return err
 	}
 
+	// Create new metadata for the VM
+	if co.newVM, err = vmmd.NewVMMetadata(nil, name,
+		vmmd.NewVMObjectData(co.image.ID, metadata.IDFromSource(co.kernel), size.Bytes(), co.CPUs, co.Memory, co.KernelCmd)); err != nil {
+		return err
+	}
+	defer co.newVM.Cleanup(false) // TODO: Handle silent
+
+	// Import the kernel and create the overlay
+	_, err = co.image.CreateOverlay(co.kernel, size.Bytes(), co.newVM.ID)
+	if err != nil {
+		return err
+	}
 	// Allocate the overlay file
 	if err := co.newVM.AllocateOverlay(size.Bytes()); err != nil {
 		return err
@@ -151,6 +150,16 @@ func Create(co *createOptions) error {
 
 	// Copy the additional files to the overlay
 	if err := co.newVM.CopyToOverlay(co.fileMappings); err != nil {
+		return err
+	}
+
+	// Save the metadata
+	if err := co.newVM.Save(); err != nil {
+		return err
+	}
+
+	// Save the image metadata to register the new overlays
+	if err := co.image.Save(); err != nil {
 		return err
 	}
 

@@ -78,7 +78,7 @@ func Container(co *containerOptions) error {
 	defer co.vm.SetState(vmmd.Stopped) // Performs a save, all other metadata-modifying defers need to be after this
 
 	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
-	defer co.vm.RemoveOverlay()
+	//defer co.vm.RemoveOverlay()
 
 	// Remove the IP addresses post-run
 	defer co.vm.ClearIPAddresses()

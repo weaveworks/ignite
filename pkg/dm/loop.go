@@ -2,10 +2,11 @@ package dm
 
 import (
 	"fmt"
-	"github.com/freddierice/go-losetup"
 	"io/ioutil"
 	"path"
 	"strconv"
+
+	"github.com/freddierice/go-losetup"
 )
 
 type loopDevice struct {

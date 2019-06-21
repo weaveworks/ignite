@@ -1,15 +1,16 @@
 package source
 
 import (
-	"github.com/weaveworks/ignite/pkg/dm"
 	"io"
+
+	"github.com/weaveworks/ignite/pkg/format"
 )
 
 // Reader returns a io.ReadCloser to tar file data
 type Source interface {
 	Reader() (io.ReadCloser, error)
 	SizeBytes() int64
-	SizeSectors() dm.Sectors
+	SizeSectors() format.Sectors
 	Cleanup() error
 	ID() string
 }

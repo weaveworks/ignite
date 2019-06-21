@@ -12,4 +12,7 @@ const (
 
 	// Filename for the thin provisioning data file
 	IMAGE_THINDATA = "data.dm"
+
+	// The default kernel for VMs
+	DEFAULT_KERNEL = "weaveworks/ignite-kernel:4.19.47"
 )

@@ -117,10 +117,30 @@ func MatchPrefix(prefix string, fields ...string) []string {
 }
 
 func TestRoot() (bool, error) {
-	user, err := user.Current()
+	u, err := user.Current()
 	if err != nil {
 		return false, err
 	}
 
-	return user.Uid == "0", nil
+	return u.Uid == "0", nil
+}
+
+type Prefixer struct {
+	prefix    string
+	separator string
+}
+
+func NewPrefixer() *Prefixer {
+	return &Prefixer{
+		prefix:    "ignite", // TODO: Remove the dash from IGNITE_PREFIX and use it here
+		separator: "-",
+	}
+}
+
+func (p *Prefixer) Prefix(input ...string) string {
+	if len(input) > 0 {
+		p.prefix += p.separator + strings.Join(input, p.separator)
+	}
+
+	return p.prefix
 }

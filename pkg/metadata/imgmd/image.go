@@ -2,33 +2,19 @@ package imgmd
 
 import (
 	"os"
-	"path"
 	"path/filepath"
 
-	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-func (md *ImageMetadata) CreateImageFile(size int64) (*source.ImageFile, error) {
-	// Add 100 MB to the tar file size to be safe
-	return source.NewImageFile(path.Join(md.ObjectPath(), constants.IMAGE_FS), size+100*1048576)
-}
-
-// AddFiles copies the contents of the tar file into the ext4 filesystem
-func (md *ImageMetadata) AddFiles(i *ImageDM, src source.Source) error {
-	mountPoint, err := i.AddFiles(src)
+// AddFiles copies the contents of the tar file a new pool volume
+func (md *ImageMetadata) AddFiles(src source.Source) error {
+	mountPoint, err := md.newImageVolume(src)
 	if err != nil {
 		return err
 	}
 	defer mountPoint.Umount()
-
-	// Check if this is a "combined image" now that it's mounted
-	//if kernel, err := util.FindKernel(mountPoint.Path); err == nil {
-	//	md.ImageOD().ContainsKernel = len(kernel) > 0
-	//} else {
-	//	return err
-	//}
 
 	return md.setupResolvConf(mountPoint.Path)
 }
@@ -52,11 +38,7 @@ func (md *ImageMetadata) setupResolvConf(dir string) error {
 	return os.Symlink("../proc/net/pnp", resolvConf)
 }
 
+// TODO: This
 func (md *ImageMetadata) Size() (int64, error) {
-	imageFile, err := source.LoadImageFile(path.Join(md.ObjectPath(), constants.IMAGE_FS))
-	if err != nil {
-		return 0, err
-	}
-
-	return imageFile.SizeBytes(), nil
+	return 0, nil
 }

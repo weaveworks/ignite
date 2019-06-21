@@ -2,6 +2,7 @@ package run
 
 import (
 	"log"
+	"os"
 
 	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 	"github.com/weaveworks/ignite/pkg/source"
@@ -54,14 +55,18 @@ func Import(io *importOptions) error {
 	}
 
 	// Create new image metadata
-	if io.newImage, err = imgmd.NewImageMetadata(nil, name); err != nil {
+	if io.newImage, err = imgmd.NewImageMetadata(metadata.IDFromSource(imageSrc), name); err != nil {
 		return err
 	}
 	defer io.newImage.Cleanup(false) // TODO: Handle silent
 
 	log.Println("Starting image import...")
 
-	if err := io.newImage.NewImageDM(); err != nil {
+	// TODO: Handle directory creation/removal separately
+	os.MkdirAll(io.newImage.ObjectPath(), 0755)
+
+	// Create a new DM pool for the image
+	if err := io.newImage.NewDMPool(); err != nil {
 		return err
 	}
 
@@ -72,8 +77,7 @@ func Import(io *importOptions) error {
 	//}
 
 	// Add the files to the filesystem
-	// TODO: Integrate ImageDM better
-	if err := io.newImage.AddFiles(io.newImage.ImageOD().ImageDM, imageSrc); err != nil {
+	if err := io.newImage.AddFiles(imageSrc); err != nil {
 		return err
 	}
 

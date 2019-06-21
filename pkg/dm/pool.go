@@ -2,18 +2,20 @@ package dm
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/util"
 	"path"
+
+	"github.com/weaveworks/ignite/pkg/format"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 // blockSize specifies the data block size of the pool,
 // it should be between 128 (64KB) and 2097152 (1GB).
 // 128 is recommended if snapshotting a lot (like we do with layers).
-type DMPool struct {
+type Pool struct {
 	name        string
-	devices     []*dmDevice
-	blocks      Sectors
-	blockSize   Sectors
+	devices     []*Device
+	blocks      format.Sectors
+	blockSize   format.Sectors
 	metadataDev blockDevice
 	dataDev     blockDevice
 	free        int
@@ -23,8 +25,8 @@ const (
 	idPool = -1
 )
 
-func NewDMPool(name string, blocks, blockSize Sectors, metadataDev, dataDev blockDevice) *DMPool {
-	return &DMPool{
+func NewPool(name string, blocks, blockSize format.Sectors, metadataDev, dataDev blockDevice) *Pool {
+	return &Pool{
 		name:        name,
 		blocks:      blocks,
 		blockSize:   blockSize,
@@ -33,7 +35,9 @@ func NewDMPool(name string, blocks, blockSize Sectors, metadataDev, dataDev bloc
 	}
 }
 
-func (p *DMPool) Get(name string) (*dmDevice, error) {
+func (p *Pool) Get(name string) (*Device, error) {
+	fmt.Printf("%#v\n", p.devices)
+
 	for _, device := range p.devices {
 		if device.name == name {
 			return device, nil
@@ -43,7 +47,7 @@ func (p *DMPool) Get(name string) (*dmDevice, error) {
 	return nil, fmt.Errorf("device %q not found in pool", name)
 }
 
-func (p *DMPool) getID(device *dmDevice) int {
+func (p *Pool) getID(device *Device) int {
 	// If the querying for nil, return the pool's ID
 	if device == nil {
 		return idPool
@@ -60,7 +64,7 @@ func (p *DMPool) getID(device *dmDevice) int {
 	panic(fmt.Sprintf("pool %q getID failed!", p.name))
 }
 
-func (p *DMPool) getDevice(id int) *dmDevice {
+func (p *Pool) getDevice(id int) *Device {
 	// If querying for the pool's ID, return nil
 	if id == idPool {
 		return nil
@@ -75,7 +79,7 @@ func (p *DMPool) getDevice(id int) *dmDevice {
 	return p.devices[id]
 }
 
-func (p *DMPool) activate() error {
+func (p *Pool) activate() error {
 	// Don't try to activate an already active pool
 	if p.active() {
 		return nil
@@ -104,18 +108,18 @@ func (p *DMPool) activate() error {
 	return nil
 }
 
-func (p *DMPool) Path() string {
+func (p *Pool) Path() string {
 	return path.Join("/dev/mapper", p.name)
 }
 
 // If /dev/mapper/<name> exists the pool is active
-func (p *DMPool) active() bool {
+func (p *Pool) active() bool {
 	return util.FileExists(p.Path())
 }
 
 // This returns a free ID in the pool
 // TODO: Verify that this works
-func (p *DMPool) newID() int {
+func (p *Pool) newID() int {
 	if p.free < len(p.devices) {
 		returnID := p.free
 		for i := p.free + 1; i <= len(p.devices); i++ {
@@ -133,7 +137,7 @@ func (p *DMPool) newID() int {
 	return p.free - 1
 }
 
-func (p *DMPool) newDevice(genFunc func(int) (*dmDevice, error)) (*dmDevice, error) {
+func (p *Pool) newDevice(genFunc func(int) (*Device, error)) (*Device, error) {
 	var err error
 
 	id := p.newID()
@@ -145,7 +149,7 @@ func (p *DMPool) newDevice(genFunc func(int) (*dmDevice, error)) (*dmDevice, err
 	return p.devices[id], err
 }
 
-func (p *DMPool) Remove(id int) {
+func (p *Pool) Remove(id int) {
 	if p.getDevice(id) != nil {
 		p.devices[id] = nil
 

@@ -6,9 +6,12 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"path"
+	"strings"
 	"syscall"
 	"time"
+
+	"github.com/weaveworks/ignite/pkg/dm"
+	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 
 	"github.com/firecracker-microvm/firecracker-go-sdk"
 	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
@@ -169,9 +172,67 @@ func connectAdapterToBridge(adapterName, bridgeName string) error {
 	return err
 }
 
+// TODO: Temporary hack
+func HackGetOverlay(md *vmmd.VMMetadata) (*dm.Device, error) {
+	// TODO: Compact this, image metadata pointer inside image (cached, so other VMs don't have to reload it)
+	imageAny, err := imgmd.LoadImageMetadata(md.VMOD().ImageID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load image metadata for %s %q: %v", md.Type, md.ID, err)
+	}
+
+	overlay, err := imgmd.ToImageMetadata(imageAny).ImageOD().Pool.Get(md.Overlay())
+	if err != nil {
+		return nil, err
+	}
+
+	return overlay, nil
+}
+
+func HackGetKernel(md *vmmd.VMMetadata) (*dm.Device, error) {
+	// TODO: Compact this, image metadata pointer inside image (cached, so other VMs don't have to reload it)
+	imageAny, err := imgmd.LoadImageMetadata(md.VMOD().ImageID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load image metadata for %s %q: %v", md.Type, md.ID, err)
+	}
+
+	overlayPath := strings.Split(md.Overlay(), "-")
+
+	kernel, err := imgmd.ToImageMetadata(imageAny).ImageOD().Pool.Get(strings.Join(overlayPath[:len(overlayPath)-1], "-"))
+	if err != nil {
+		return nil, err
+	}
+
+	return kernel, nil
+}
+
 func RunVM(md *vmmd.VMMetadata, dhcpIfaces *[]DHCPInterface) error {
 	od := md.VMOD()
-	drivePath := md.OverlayDev()
+
+	// TODO: Temporary hack to get the overlay
+	ovl, err := HackGetOverlay(md)
+	if err != nil {
+		return err
+	}
+
+	drivePath := ovl.Path()
+
+	// TODO: Temporary hack to load vmlinux
+	kernel, err := HackGetKernel(md)
+	if err != nil {
+		return err
+	}
+
+	kernelMount, err := util.Mount(kernel.Path())
+	fmt.Println("Mounted kernel:", kernelMount.Path)
+	if err != nil {
+		return err
+	}
+	defer kernelMount.Umount()
+
+	kernelFile, err := util.FindKernel(kernelMount.Path)
+	if err != nil {
+		return err
+	}
 
 	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(*dhcpIfaces))
 	for _, dhcpIface := range *dhcpIfaces {
@@ -188,7 +249,7 @@ func RunVM(md *vmmd.VMMetadata, dhcpIfaces *[]DHCPInterface) error {
 
 	cfg := firecracker.Config{
 		SocketPath:      constants.SOCKET_PATH,
-		KernelImagePath: path.Join(constants.KERNEL_DIR, od.KernelID.String(), constants.KERNEL_FILE),
+		KernelImagePath: kernelFile,
 		KernelArgs:      kernelCmd,
 		Drives: []models.Drive{{
 			DriveID:      firecracker.String("1"),

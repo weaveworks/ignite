@@ -1,6 +1,7 @@
 package vmcmd
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
@@ -22,11 +23,14 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create <image>",
 		Short: "Create a new VM without starting it",
-		Long: dedent.Dedent(`
-			Create a new VM by combining the given image and kernel.
+		Long: dedent.Dedent(fmt.Sprintf(`
+			Create a new VM by combining the given image and a kernel.
+			If the kernel flag (-k, --kernel) is not specified, use the
+			default kernel (%[1]s).
+
 			Various VM tunables can be set during creation by using
-			the flags for this command. The image and kernel are
-			matched by prefix based on their ID and name.
+			the flags for this command. The image is matched by prefix
+			based on their ID and name and the kernel is a Docker image.
 			
 			If the name flag (-n, --name) is not specified,
 			the VM is given a random name. Using the copy files
@@ -34,12 +38,13 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 			the VM during creation with the syntax /host/path:/vm/path.
 
 			Example usage:
-				$ ignite create my-image my-kernel \
+				$ ignite create my-image \
+					--kernel %[1]s \
 					--name my-vm \
 					--cpus 2 \
 					--memory 2048 \
 					--size 6GB
-		`),
+		`, constants.DEFAULT_KERNEL)),
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {

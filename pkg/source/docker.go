@@ -2,12 +2,13 @@ package source
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/dm"
 	"io"
 	"log"
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/weaveworks/ignite/pkg/format"
 
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -107,8 +108,8 @@ func (ds *DockerSource) SizeBytes() int64 {
 }
 
 // Get the size as 512-byte sectors
-func (ds *DockerSource) SizeSectors() dm.Sectors {
-	return dm.SectorsFromBytes(ds.size)
+func (ds *DockerSource) SizeSectors() format.Sectors {
+	return format.SectorsFromBytes(ds.size)
 }
 
 func (ds *DockerSource) ID() string {

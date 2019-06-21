@@ -8,6 +8,8 @@ import (
 	"os"
 	"path"
 
+	"github.com/weaveworks/ignite/pkg/source"
+
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -43,6 +45,12 @@ func (id *ID) UnmarshalJSON(b []byte) error {
 
 func (id *ID) Equal(other *ID) bool {
 	return id.string == other.string
+}
+
+func IDFromSource(src source.Source) *ID {
+	return &ID{
+		string: src.ID(),
+	}
 }
 
 // Creates a new 8-byte ID and handles directory creation/deletion

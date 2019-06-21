@@ -1,6 +1,7 @@
 package imgmd
 
 import (
+	"github.com/weaveworks/ignite/pkg/dm"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
@@ -9,7 +10,7 @@ type ImageMetadata struct {
 }
 
 type ImageObjectData struct {
-	ImageDM *ImageDM
+	Pool *dm.Pool
 }
 
 func NewImageMetadata(id *metadata.ID, name *metadata.Name) (*ImageMetadata, error) {
@@ -23,7 +24,8 @@ func NewImageMetadata(id *metadata.ID, name *metadata.Name) (*ImageMetadata, err
 
 func NewImageObjectData() *ImageObjectData {
 	return &ImageObjectData{
-		ImageDM: emptyImageDM(),
+		// TODO: Might need to initialize the devices array, metadataDev & dataDev
+		Pool: &dm.Pool{},
 	}
 }
 
