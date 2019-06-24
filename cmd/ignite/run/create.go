@@ -5,13 +5,14 @@ import (
 	"path"
 	"strings"
 
+	"github.com/weaveworks/ignite/pkg/format"
+
 	"github.com/weaveworks/ignite/pkg/source"
 
 	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 
 	"github.com/spf13/pflag"
 
-	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
@@ -59,14 +60,14 @@ var _ pflag.Value = &SSHFlag{}
 const vmAuthorizedKeys = "/root/.ssh/authorized_keys"
 
 type CreateFlags struct {
-	Name       string
-	CPUs       int64
-	Memory     int64
-	Size       string
-	CopyFiles  []string
-	KernelName string
-	KernelCmd  string
-	SSH        *SSHFlag
+	Name         string
+	CPUs         int64
+	MemoryString string
+	SizeString   string
+	CopyFiles    []string
+	KernelName   string
+	KernelCmd    string
+	SSH          *SSHFlag
 }
 
 type createOptions struct {
@@ -75,6 +76,8 @@ type createOptions struct {
 	kernel       source.Source
 	allVMs       []metadata.AnyMetadata
 	newVM        *vmmd.VMMetadata
+	size         format.Data
+	memory       format.Data
 	fileMappings map[string]string
 }
 
@@ -90,8 +93,8 @@ func (cf *CreateFlags) NewCreateOptions(l *runutil.ResLoader, imageMatch string)
 		return nil, err
 	}
 
-	if len(cf.KernelName) == 0 {
-		cf.KernelName = constants.DEFAULT_KERNEL
+	if len(co.KernelName) == 0 {
+		co.KernelName = constants.DEFAULT_KERNEL
 	}
 
 	co.kernel, err = source.NewDockerSource(cf.KernelName)
@@ -102,6 +105,16 @@ func (cf *CreateFlags) NewCreateOptions(l *runutil.ResLoader, imageMatch string)
 	if allVMs, err := l.VMs(); err == nil {
 		co.allVMs = *allVMs
 	} else {
+		return nil, err
+	}
+
+	// Parse the given overlay size
+	if err := co.size.UnmarshalText([]byte(co.SizeString)); err != nil {
+		return nil, err
+	}
+
+	// Parse the given memory amount
+	if err := co.memory.UnmarshalText([]byte(co.MemoryString)); err != nil {
 		return nil, err
 	}
 
@@ -125,30 +138,21 @@ func Create(co *createOptions) error {
 		return err
 	}
 
-	// Parse the given overlay size
-	var size datasize.ByteSize
-	if err := size.UnmarshalText([]byte(co.Size)); err != nil {
-		return err
-	}
-
 	// Create new metadata for the VM
 	if co.newVM, err = vmmd.NewVMMetadata(nil, name,
-		vmmd.NewVMObjectData(co.image.ID, metadata.IDFromSource(co.kernel), size.Bytes(), co.CPUs, co.Memory, co.KernelCmd)); err != nil {
+		vmmd.NewVMObjectData(co.image.ID, metadata.IDFromSource(co.kernel), co.size, co.CPUs, co.memory, co.KernelCmd)); err != nil {
 		return err
 	}
 	defer co.newVM.Cleanup(false) // TODO: Handle silent
 
 	// Import the kernel and create the overlay
-	_, err = co.image.CreateOverlay(co.kernel, size.Bytes(), co.newVM.ID)
+	_, err = co.image.CreateOverlay(co.kernel, co.size, co.newVM.ID)
 	if err != nil {
-		return err
-	}
-	// Allocate the overlay file
-	if err := co.newVM.AllocateOverlay(size.Bytes()); err != nil {
 		return err
 	}
 
 	// Copy the additional files to the overlay
+	// TODO: Support this for the overlay in the image
 	if err := co.newVM.CopyToOverlay(co.fileMappings); err != nil {
 		return err
 	}

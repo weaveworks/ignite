@@ -10,15 +10,15 @@ import (
 type poolSerial struct {
 	Name      string
 	Devices   []*deviceSerial
-	Blocks    format.Sectors
-	BlockSize format.Sectors
+	Blocks    format.Data
+	BlockSize format.Data
 	Free      int
 }
 
 // Device serialization
 type deviceSerial struct {
 	Name     string
-	Blocks   format.Sectors
+	Blocks   format.Data
 	ParentID int
 }
 

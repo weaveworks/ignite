@@ -16,7 +16,7 @@ import (
 type DockerSource struct {
 	dockerImage string
 	dockerID    string
-	size        int64
+	size        format.Data
 	containerID string
 	exportCmd   *exec.Cmd
 }
@@ -66,7 +66,7 @@ func NewDockerSource(src string) (*DockerSource, error) {
 	}
 
 	// Parse the size from the output
-	size, err := strconv.Atoi(out)
+	size, err := strconv.ParseUint(out, 10, 64)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func NewDockerSource(src string) (*DockerSource, error) {
 	return &DockerSource{
 		dockerImage: src,
 		dockerID:    dockerID,
-		size:        int64(size),
+		size:        format.DataFrom(size),
 	}, nil
 }
 
@@ -103,13 +103,8 @@ func (ds *DockerSource) DockerImage() string {
 	return ds.dockerImage
 }
 
-func (ds *DockerSource) SizeBytes() int64 {
+func (ds *DockerSource) Size() format.Data {
 	return ds.size
-}
-
-// Get the size as 512-byte sectors
-func (ds *DockerSource) SizeSectors() format.Sectors {
-	return format.SectorsFromBytes(ds.size)
 }
 
 func (ds *DockerSource) ID() string {

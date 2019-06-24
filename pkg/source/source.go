@@ -9,8 +9,7 @@ import (
 // Reader returns a io.ReadCloser to tar file data
 type Source interface {
 	Reader() (io.ReadCloser, error)
-	SizeBytes() int64
-	SizeSectors() format.Sectors
+	Size() format.Data
 	Cleanup() error
 	ID() string
 }

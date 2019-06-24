@@ -15,7 +15,7 @@ type Device struct {
 	pool   *Pool
 	parent *Device
 	name   string
-	blocks format.Sectors
+	blocks format.Data
 
 	// These flags are for filesystem and snapshot creation
 	mkfs   bool
@@ -24,7 +24,7 @@ type Device struct {
 
 var _ blockDevice = &Device{}
 
-func (p *Pool) CreateVolume(name string, blocks format.Sectors) (*Device, error) {
+func (p *Pool) CreateVolume(name string, blocks format.Data) (*Device, error) {
 	// The pool needs to be active for this
 	if err := p.activate(); err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (p *Pool) CreateVolume(name string, blocks format.Sectors) (*Device, error)
 	}
 }
 
-func (d *Device) CreateSnapshot(name string, blocks format.Sectors) (*Device, error) {
+func (d *Device) CreateSnapshot(name string, blocks format.Data) (*Device, error) {
 	// The device needs to be active for this
 	if err := d.activate(); err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (d *Device) activate() error {
 	}
 
 	dmTable := fmt.Sprintf("0 %d thin %s %d",
-		d.blocks,
+		d.blocks.Sectors(),
 		d.pool.Path(),
 		d.pool.getID(d),
 	)
@@ -172,6 +172,6 @@ func (d *Device) active() bool {
 	return util.FileExists(d.Path())
 }
 
-func (d *Device) Size() format.Sectors {
+func (d *Device) Size() format.Data {
 	return d.blocks
 }

@@ -260,7 +260,7 @@ func RunVM(md *vmmd.VMMetadata, dhcpIfaces *[]DHCPInterface) error {
 		NetworkInterfaces: networkInterfaces,
 		MachineCfg: models.MachineConfiguration{
 			VcpuCount:  od.VCPUs,
-			MemSizeMib: od.Memory,
+			MemSizeMib: int64(od.Memory.MBytes()),
 		},
 		//JailerCfg: firecracker.JailerConfig{
 		//	GID:      firecracker.Int(0),

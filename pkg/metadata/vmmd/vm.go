@@ -8,8 +8,6 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/weaveworks/ignite/pkg/format"
-
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -25,51 +23,6 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 `
 )
-
-func (md *VMMetadata) AllocateOverlay(requestedSize uint64) error {
-	//// Truncate only accepts an int64
-	//if requestedSize > math.MaxInt64 {
-	//	return fmt.Errorf("requested size %d too large, cannot truncate", requestedSize)
-	//}
-	//
-	//size := int64(requestedSize)
-	//
-	//fi, err := os.Stat(path.Join(constants.IMAGE_DIR, md.VMOD().ImageID.String(), constants.IMAGE_FS))
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//// The overlay needs to be at least as large as the image
-	//if size < fi.Size() {
-	//	size = fi.Size()
-	//	// TODO: Logging
-	//	fmt.Printf("warning: requested overlay size (%s) < image size (%s), using image size for overlay\n",
-	//		datasize.ByteSize(requestedSize).HR(), datasize.ByteSize(size).HR())
-	//}
-	//
-	//metadataFile, err := os.Create(path.Join(md.ObjectPath(), constants.VM_METADATA_FILE))
-	//if err != nil {
-	//	return fmt.Errorf("failed to create metadata file for %q, %v", md.ID, err)
-	//}
-	//defer metadataFile.Close()
-	//
-	//dataFile, err := os.Create(path.Join(md.ObjectPath(), constants.VM_DATA_FILE))
-	//if err != nil {
-	//	return fmt.Errorf("failed to create data file for %q, %v", md.ID, err)
-	//}
-	//defer dataFile.Close()
-	//
-	//// TODO: Calculate the correct size
-	//if err := metadataFile.Truncate(1024 * 1024 * 2); err != nil {
-	//	return fmt.Errorf("failed to allocate data file for VM %q: %v", md.ID, err)
-	//}
-	//
-	//if err := dataFile.Truncate(size); err != nil {
-	//	return fmt.Errorf("failed to allocate data file for VM %q: %v", md.ID, err)
-	//}
-
-	return nil
-}
 
 func (md *VMMetadata) CopyToOverlay(fileMappings map[string]string) error {
 	// TODO: This
@@ -145,7 +98,7 @@ func (md *VMMetadata) KernelID() string {
 
 // TODO: Temporary hack
 func (md *VMMetadata) Overlay() string {
-	return util.NewPrefixer().Prefix(md.VMOD().ImageID.String(), "resize", format.SectorsFromBytes(md.VMOD().Size).String(), "kernel", md.ID.String())
+	return util.NewPrefixer().Prefix(md.VMOD().ImageID.String(), "resize", md.VMOD().Size.String(), "kernel", md.ID.String())
 }
 
 func (md *VMMetadata) Size() (int64, error) {

@@ -14,8 +14,8 @@ import (
 type Pool struct {
 	name        string
 	devices     []*Device
-	blocks      format.Sectors
-	blockSize   format.Sectors
+	blocks      format.Data
+	blockSize   format.Data
 	metadataDev blockDevice
 	dataDev     blockDevice
 	free        int
@@ -25,7 +25,7 @@ const (
 	idPool = -1
 )
 
-func NewPool(name string, blocks, blockSize format.Sectors, metadataDev, dataDev blockDevice) *Pool {
+func NewPool(name string, blocks, blockSize format.Data, metadataDev, dataDev blockDevice) *Pool {
 	return &Pool{
 		name:        name,
 		blocks:      blocks,
@@ -95,10 +95,10 @@ func (p *Pool) activate() error {
 	}
 
 	dmTable := fmt.Sprintf("0 %d thin-pool %s %s %d 0",
-		p.blocks,
+		p.blocks.Sectors(),
 		p.metadataDev.Path(),
 		p.dataDev.Path(),
-		p.blockSize,
+		p.blockSize.Sectors(),
 	)
 
 	if err := dmsetup("create", p.name, "--table", dmTable); err != nil {

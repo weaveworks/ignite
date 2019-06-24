@@ -2,6 +2,7 @@ package imgmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path"
 
@@ -13,13 +14,11 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-const (
-	dataDevSize = 100 * 1073741824 // 100 GB
-	blockSize   = 128              // Pool allocation block size
+var (
+	dataDevSize = format.DataFrom(100 * 1073741824) // 100 GB
+	blockSize   = format.DataFrom(65536)            // Pool allocation block size 128 (* 512 = 65536)
+	extraSize   = format.DataFrom(100 * 1048576)    // Additional space to add to the image for the ext4 partition (100 MB)
 )
-
-// Additional space to add to the image for the ext4 partition (100 MB)
-var extraSize = format.SectorsFromBytes(100 * 1048576)
 
 func (md *ImageMetadata) NewDMPool() error {
 	metadataFile := path.Join(md.ObjectPath(), constants.IMAGE_THINMETADATA)
@@ -31,8 +30,8 @@ func (md *ImageMetadata) NewDMPool() error {
 
 	md.ImageOD().Pool = dm.NewPool(
 		util.NewPrefixer().Prefix("pool", md.ID.String()),
-		format.SectorsFromBytes(dataDevSize),
-		format.Sectors(blockSize),
+		dataDevSize,
+		blockSize,
 		dm.NewLoopDevice(metadataFile, false),
 		dm.NewLoopDevice(dataFile, false),
 	)
@@ -42,7 +41,7 @@ func (md *ImageMetadata) NewDMPool() error {
 
 // Allocate the thin provisioning data and metadata files
 func allocateDMFiles(metadataFile, dataFile string) error {
-	thinFiles := map[string]int64{
+	thinFiles := map[string]format.Data{
 		metadataFile: calcMetadataDevSize(dataDevSize),
 		dataFile:     dataDevSize,
 	}
@@ -55,7 +54,7 @@ func allocateDMFiles(metadataFile, dataFile string) error {
 			}
 
 			// Allocate the image file
-			if err := file.Truncate(size); err != nil {
+			if err := file.Truncate(int64(size.Bytes())); err != nil {
 				return fmt.Errorf("failed to allocate space for thin provisioning file %q: %v", p, err)
 			}
 
@@ -72,7 +71,7 @@ func (md *ImageMetadata) newImageVolume(src source.Source) (*util.MountPoint, er
 	od := md.ImageOD()
 	p := util.NewPrefixer()
 
-	volume, err := od.Pool.CreateVolume(p.Prefix(src.ID()), src.SizeSectors()+extraSize)
+	volume, err := od.Pool.CreateVolume(p.Prefix(src.ID()), src.Size().Add(extraSize))
 	if err != nil {
 		return nil, err
 	}
@@ -82,62 +81,37 @@ func (md *ImageMetadata) newImageVolume(src source.Source) (*util.MountPoint, er
 		return nil, err
 	}
 
-	//tarCmd := exec.Command("tar", "-x", "-C", mountPoint.Path)
-	//reader, err := src.Reader()
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//tarCmd.Stdin = reader
-	//if err := tarCmd.Start(); err != nil {
-	//	return nil, err
-	//}
-	//
-	//if err := tarCmd.Wait(); err != nil {
-	//	return nil, err
-	//}
-	//
-	//if err := src.Cleanup(); err != nil {
-	//	return nil, err
-	//}
-
-	// Test kernel import
-	//if err := testKernelImport(volume, p); err != nil {
-	//	return nil, err
-	//}
-
-	// Test snapshot creation
-	//if _, err := volume.CreateSnapshot("snapshot-" + src.ID(), volume.Size()); err != nil {
-	//	return nil, err
-	//}
-	//
-	//if _, err := volume.CreateSnapshot("snapshot2-" + src.ID(), volume.Size()); err != nil {
-	//	return nil, err
-	//}
-	//
-	//od.Pool.Remove(1)
-
 	return mountPoint, nil
 }
 
-func (md *ImageMetadata) CreateOverlay(kernelSrc source.Source, size uint64, id *metadata.ID) (*dm.Device, error) {
-	sizeSectors := format.SectorsFromBytes(size)
+func (md *ImageMetadata) CreateOverlay(kernelSrc source.Source, requestedSize format.Data, id *metadata.ID) (*dm.Device, error) {
+	var err error
 	p := util.NewPrefixer()
-	volumeName := p.Prefix(md.ID.String())
-	resizeName := p.Prefix("resize", sizeSectors.String())
+	pool := md.ImageOD().Pool
+
+	volume, err := pool.Get(p.Prefix(md.ID.String()))
+	if err != nil {
+		return nil, err
+	}
+
+	// Make sure the overlay is always larger than the image
+	// We need to do this here, as the size is used to name
+	// the resize layers and everything on top
+	size := requestedSize.Max(volume.Size())
+
+	if size != requestedSize {
+		// TODO: Warning error level
+		log.Printf("Requested size %s < image size %s, using image size for overlay", requestedSize.HR(), size.HR())
+	}
+
+	resizeName := p.Prefix("resize", size.String())
 	kernelName := p.Prefix("kernel")
 	overlayName := p.Prefix(id.String())
 
-	// Requested kernel doesn't exist, so import it
 	var kernel *dm.Device
-	var err error
-	if kernel, err = md.ImageOD().Pool.Get(kernelName); err != nil {
-		volume, err := md.ImageOD().Pool.Get(volumeName)
-		if err != nil {
-			return nil, err
-		}
-
-		resize, err := volume.CreateSnapshot(resizeName, sizeSectors)
+	if kernel, err = pool.Get(kernelName); err != nil {
+		// Requested kernel doesn't exist, so import it
+		resize, err := volume.CreateSnapshot(resizeName, size)
 		if err != nil {
 			return nil, err
 		}
@@ -166,49 +140,10 @@ func (md *ImageMetadata) CreateOverlay(kernelSrc source.Source, size uint64, id 
 	return overlay, nil
 }
 
-func testKernelImport(volume *dm.Device, p *util.Prefixer) error {
-	// TODO: These are the test case variables
-	var resizeSize = format.SectorsFromBytes(10 * 1073741824)
-
-	resize, err := volume.CreateSnapshot(p.Prefix("resize", resizeSize.String()), resizeSize)
-	if err != nil {
-		return err
-	}
-
-	// The kernel
-	kernel, err := resize.CreateSnapshot(p.Prefix("kernel"), resize.Size())
-	if err != nil {
-		return err
-	}
-
-	kernelSrc, err := source.NewDockerSource("weaveworks/ignite-kernel:4.19.47")
-	if err != nil {
-		return err
-	}
-
-	mountPoint, err := kernel.Import(kernelSrc)
-	if err != nil {
-		return err
-	}
-
-	if err := mountPoint.Umount(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func calcMetadataDevSize(dataDevSize int64) int64 {
+func calcMetadataDevSize(dataDevSize format.Data) format.Data {
 	// The minimum size is 2 MB and the maximum size is 16 GB
-	var minSize int64 = 2 * 1048576
-	var maxSize int64 = 16 * 1073741824
-	size := 48 * dataDevSize / blockSize
+	minSize := format.DataFrom(2 * 1048576)
+	maxSize := format.DataFrom(16 * 1073741824)
 
-	if size < minSize {
-		return minSize
-	} else if size > maxSize {
-		return maxSize
-	}
-
-	return size
+	return format.DataFrom(48 * dataDevSize.Bytes() / blockSize.Bytes()).Min(maxSize).Max(minSize)
 }
