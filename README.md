@@ -34,6 +34,7 @@ This allows for:
 * Reproducible, fast testing of system-wide programs (like Weave Net)
 * Super fast Kubernetes Cluster Lifecycle with multiple machines (without docker hacks)
 * A k8s-managed private VM cloud, on which a layer of k8s container clusters may run
+* No need to run containers in VMs to combine container UX with VM security and isolation, Ignite combines both!
 
 ### Scope
 
