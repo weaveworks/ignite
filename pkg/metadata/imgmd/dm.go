@@ -41,7 +41,7 @@ func (md *ImageMetadata) NewDMPool() error {
 
 // Allocate the thin provisioning data and metadata files
 func allocateDMFiles(metadataFile, dataFile string) error {
-	thinFiles := map[string]format.Data{
+	thinFiles := map[string]format.DataSize{
 		metadataFile: calcMetadataDevSize(dataDevSize),
 		dataFile:     dataDevSize,
 	}
@@ -84,7 +84,7 @@ func (md *ImageMetadata) newImageVolume(src source.Source) (*util.MountPoint, er
 	return mountPoint, nil
 }
 
-func (md *ImageMetadata) CreateOverlay(kernelSrc source.Source, requestedSize format.Data, id *metadata.ID) (*dm.Device, error) {
+func (md *ImageMetadata) CreateOverlay(kernelSrc source.Source, requestedSize format.DataSize, id *metadata.ID) (*dm.Device, error) {
 	var err error
 	p := util.NewPrefixer()
 	pool := md.ImageOD().Pool
@@ -140,7 +140,7 @@ func (md *ImageMetadata) CreateOverlay(kernelSrc source.Source, requestedSize fo
 	return overlay, nil
 }
 
-func calcMetadataDevSize(dataDevSize format.Data) format.Data {
+func calcMetadataDevSize(dataDevSize format.DataSize) format.DataSize {
 	// The minimum size is 2 MB and the maximum size is 16 GB
 	minSize := format.DataFrom(2 * 1048576)
 	maxSize := format.DataFrom(16 * 1073741824)

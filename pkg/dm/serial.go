@@ -2,39 +2,46 @@ package dm
 
 import (
 	"encoding/json"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 
 	"github.com/weaveworks/ignite/pkg/format"
 )
+
+// TODO: This should serialize as v1alpha1.DeviceMapperPool
+
+func () Serialize() *v1alpha1.DeviceMapperPool {
+
+}
 
 // Pool serialization
 type poolSerial struct {
 	Name      string
 	Devices   []*deviceSerial
-	Blocks    format.Data
-	BlockSize format.Data
+	Blocks    format.DataSize
+	BlockSize format.DataSize
 	Free      int
 }
 
 // Device serialization
 type deviceSerial struct {
-	Name     string
-	Blocks   format.Data
+	Blocks   format.DataSize
 	ParentID int
+	Metadata Metadata
 }
 
 func (d *Device) encode() *deviceSerial {
 	return &deviceSerial{
-		Name:     d.name,
 		Blocks:   d.blocks,
 		ParentID: d.pool.getID(d.parent),
+		Metadata: d.metadata,
 	}
 }
 
 func (dj *deviceSerial) decode(p *Pool) *Device {
 	return &Device{
-		pool:   p,
-		name:   dj.Name,
-		blocks: dj.Blocks,
+		pool:     p,
+		blocks:   dj.Blocks,
+		metadata: dj.Metadata,
 	}
 }
 

@@ -16,7 +16,7 @@ import (
 type DockerSource struct {
 	dockerImage string
 	dockerID    string
-	size        format.Data
+	size        format.DataSize
 	containerID string
 	exportCmd   *exec.Cmd
 }
@@ -103,7 +103,7 @@ func (ds *DockerSource) DockerImage() string {
 	return ds.dockerImage
 }
 
-func (ds *DockerSource) Size() format.Data {
+func (ds *DockerSource) Size() format.DataSize {
 	return ds.size
 }
 

@@ -53,16 +53,16 @@ type VMMetadata struct {
 type VMObjectData struct {
 	ImageID      *metadata.ID
 	KernelID     *metadata.ID
-	Size         format.Data
+	Size         format.DataSize
 	State        state
 	VCPUs        int64
-	Memory       format.Data
+	Memory       format.DataSize
 	IPAddrs      IPAddrs
 	PortMappings PortMappings
 	KernelCmd    string
 }
 
-func NewVMObjectData(imageID, kernelID *metadata.ID, size format.Data, vCPUs int64, memory format.Data, kernelCmd string) *VMObjectData {
+func NewVMObjectData(imageID, kernelID *metadata.ID, size format.DataSize, vCPUs int64, memory format.DataSize, kernelCmd string) *VMObjectData {
 	return &VMObjectData{
 		KernelID:  kernelID,
 		ImageID:   imageID,

@@ -4,7 +4,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
-// Verify that VMMetadata implements AnyMetadata
+// Verify that ImageMetadata implements AnyMetadata
 var _ metadata.AnyMetadata = &ImageMetadata{}
 
 func (md *ImageMetadata) GetMD() *metadata.Metadata {

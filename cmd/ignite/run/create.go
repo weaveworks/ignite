@@ -76,8 +76,8 @@ type createOptions struct {
 	kernel       source.Source
 	allVMs       []metadata.AnyMetadata
 	newVM        *vmmd.VMMetadata
-	size         format.Data
-	memory       format.Data
+	size         format.DataSize
+	memory       format.DataSize
 	fileMappings map[string]string
 }
 

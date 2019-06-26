@@ -14,8 +14,8 @@ import (
 type Pool struct {
 	name        string
 	devices     []*Device
-	blocks      format.Data
-	blockSize   format.Data
+	blocks      format.DataSize
+	blockSize   format.DataSize
 	metadataDev blockDevice
 	dataDev     blockDevice
 	free        int
@@ -25,7 +25,7 @@ const (
 	idPool = -1
 )
 
-func NewPool(name string, blocks, blockSize format.Data, metadataDev, dataDev blockDevice) *Pool {
+func NewPool(name string, blocks, blockSize format.DataSize, metadataDev, dataDev blockDevice) *Pool {
 	return &Pool{
 		name:        name,
 		blocks:      blocks,
@@ -35,17 +35,17 @@ func NewPool(name string, blocks, blockSize format.Data, metadataDev, dataDev bl
 	}
 }
 
-func (p *Pool) Get(name string) (*Device, error) {
-	fmt.Printf("%#v\n", p.devices)
-
-	for _, device := range p.devices {
-		if device.name == name {
-			return device, nil
-		}
-	}
-
-	return nil, fmt.Errorf("device %q not found in pool", name)
-}
+//func (p *Pool) Get(name string) (*Device, error) {
+//	fmt.Printf("%#v\n", p.devices)
+//
+//	for _, device := range p.devices {
+//		if device.name == name {
+//			return device, nil
+//		}
+//	}
+//
+//	return nil, fmt.Errorf("device %q not found in pool", name)
+//}
 
 func (p *Pool) getID(device *Device) int {
 	// If the querying for nil, return the pool's ID

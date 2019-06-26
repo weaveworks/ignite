@@ -4,7 +4,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
-	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
@@ -44,16 +43,16 @@ func (l *ResLoader) Images() (*allImages, error) {
 	return &l.image, nil
 }
 
-func (l *ResLoader) Kernels() (*allKernels, error) {
-	if l.kernel == nil {
-		var err error
-		if l.kernel, err = kernmd.LoadAllKernelMetadata(); err != nil {
-			return nil, err
-		}
-	}
-
-	return &l.kernel, nil
-}
+//func (l *ResLoader) Kernels() (*allKernels, error) {
+//	if l.kernel == nil {
+//		var err error
+//		if l.kernel, err = kernmd.LoadAllKernelMetadata(); err != nil {
+//			return nil, err
+//		}
+//	}
+//
+//	return &l.kernel, nil
+//}
 
 func single(f metadata.Filter, sources []metadata.AnyMetadata) (metadata.AnyMetadata, error) {
 	var result metadata.AnyMetadata
@@ -153,30 +152,30 @@ func (l *allImages) MatchAll() []*imgmd.ImageMetadata {
 }
 
 // Match a single kernel using the IDNameFilter
-func (l *allKernels) MatchSingle(match string) (*kernmd.KernelMetadata, error) {
-	md, err := single(metadata.NewIDNameFilter(match, metadata.Kernel), *l)
-	if err != nil {
-		return nil, err
-	}
-
-	return kernmd.ToKernelMetadata(md), nil
-}
-
-// Match multiple individual kernels with different filter strings
-func (l *allKernels) MatchMultiple(matches []string) ([]*kernmd.KernelMetadata, error) {
-	filters := make([]metadata.Filter, 0, len(matches))
-	for _, match := range matches {
-		filters = append(filters, metadata.NewIDNameFilter(match, metadata.Kernel))
-	}
-
-	results, err := matchIndividual(filters, *l)
-	if err != nil {
-		return nil, err
-	}
-
-	return kernmd.ToKernelMetadataAll(results), nil
-}
-
-func (l *allKernels) MatchAll() []*kernmd.KernelMetadata {
-	return kernmd.ToKernelMetadataAll(*l)
-}
+//func (l *allKernels) MatchSingle(match string) (*kernmd.KernelMetadata, error) {
+//	md, err := single(metadata.NewIDNameFilter(match, metadata.Kernel), *l)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return kernmd.ToKernelMetadata(md), nil
+//}
+//
+//// Match multiple individual kernels with different filter strings
+//func (l *allKernels) MatchMultiple(matches []string) ([]*kernmd.KernelMetadata, error) {
+//	filters := make([]metadata.Filter, 0, len(matches))
+//	for _, match := range matches {
+//		filters = append(filters, metadata.NewIDNameFilter(match, metadata.Kernel))
+//	}
+//
+//	results, err := matchIndividual(filters, *l)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return kernmd.ToKernelMetadataAll(results), nil
+//}
+//
+//func (l *allKernels) MatchAll() []*kernmd.KernelMetadata {
+//	return kernmd.ToKernelMetadataAll(*l)
+//}
