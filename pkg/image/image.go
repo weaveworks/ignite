@@ -3,12 +3,13 @@ package image
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/util"
 	"io/ioutil"
 	"os"
 	"path"
+
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type data struct {
