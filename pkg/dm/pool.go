@@ -4,34 +4,30 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/format"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-// blockSize specifies the data block size of the pool,
-// it should be between 128 (64KB) and 2097152 (1GB).
-// 128 is recommended if snapshotting a lot (like we do with layers).
 type Pool struct {
-	name        string
-	devices     []*Device
-	blocks      format.DataSize
-	blockSize   format.DataSize
-	metadataDev blockDevice
-	dataDev     blockDevice
-	free        int
+	v1alpha1.Pool
+	free v1alpha1.DMID
 }
 
-const (
-	idPool = -1
-)
+var poolName = util.NewPrefixer().Prefix("pool")
 
-func NewPool(name string, blocks, blockSize format.DataSize, metadataDev, dataDev blockDevice) *Pool {
+func NewPool(metadataSize, dataSize, allocationSize v1alpha1.Size, metadataPath, dataPath string) *Pool {
 	return &Pool{
-		name:        name,
-		blocks:      blocks,
-		blockSize:   blockSize,
-		metadataDev: metadataDev,
-		dataDev:     dataDev,
+		Pool: v1alpha1.Pool{
+			Spec: v1alpha1.PoolSpec{
+				MetadataSize:   metadataSize,
+				DataSize:       dataSize,
+				AllocationSize: allocationSize,
+				MetadataPath:   metadataPath,
+				DataPath:       dataPath,
+			},
+		},
+		free: v1alpha1.NewDMID(0),
 	}
 }
 
@@ -47,36 +43,45 @@ func NewPool(name string, blocks, blockSize format.DataSize, metadataDev, dataDe
 //	return nil, fmt.Errorf("device %q not found in pool", name)
 //}
 
-func (p *Pool) getID(device *Device) int {
+func (p *Pool) getID(device *Device) v1alpha1.DMID {
 	// If the querying for nil, return the pool's ID
 	if device == nil {
-		return idPool
+		return v1alpha1.NewPoolDMID()
 	}
 
-	for i, d := range p.devices {
-		if d == device {
-			return i
+	for i, d := range p.Pool.Status.Devices {
+		if d == device.PoolDevice {
+			return v1alpha1.NewDMID(i)
 		}
 	}
 
 	// This should never happen, unless you try to get
 	// the ID of a device residing in another pool
-	panic(fmt.Sprintf("pool %q getID failed!", p.name))
+	panic("pool getID: device not found")
 }
 
-func (p *Pool) getDevice(id int) *Device {
+// GetDevice dynamically spawns a device from a v1alpha1.PoolDevice
+func (p *Pool) getDevice(id v1alpha1.DMID) *Device {
 	// If querying for the pool's ID, return nil
-	if id == idPool {
+	if id.Pool() {
 		return nil
 	}
 
-	if id < 0 || id >= len(p.devices) {
+	if id.Index() >= len(p.Pool.Status.Devices) {
 		// This should never happen, unless you try
 		// to get a device residing in another pool
-		panic(fmt.Sprintf("pool %q getDevice failed!", p.name))
+		panic("pool getDevice: index out of range")
 	}
 
-	return p.devices[id]
+	spec := p.Pool.Status.Devices[id.Index()]
+	if spec == nil {
+		panic("pool getDevice: nonexistent device")
+	}
+
+	return &Device{
+		PoolDevice: spec,
+		pool:       p,
+	}
 }
 
 func (p *Pool) activate() error {
@@ -86,22 +91,24 @@ func (p *Pool) activate() error {
 	}
 
 	// Activate the backing devices
-	if err := p.metadataDev.activate(); err != nil {
+	metadataDev, err := activateBackingDevice(p.Spec.MetadataPath, false)
+	if err != nil {
 		return err
 	}
 
-	if err := p.dataDev.activate(); err != nil {
+	dataDev, err := activateBackingDevice(p.Spec.DataPath, false)
+	if err != nil {
 		return err
 	}
 
 	dmTable := fmt.Sprintf("0 %d thin-pool %s %s %d 0",
-		p.blocks.Sectors(),
-		p.metadataDev.Path(),
-		p.dataDev.Path(),
-		p.blockSize.Sectors(),
+		p.Spec.Size.Sectors(),
+		metadataDev.Path(),
+		dataDev.Path(),
+		p.Spec.AllocationSize.Sectors(),
 	)
 
-	if err := dmsetup("create", p.name, "--table", dmTable); err != nil {
+	if err := dmsetup("create", poolName, "--table", dmTable); err != nil {
 		return err
 	}
 
@@ -109,7 +116,7 @@ func (p *Pool) activate() error {
 }
 
 func (p *Pool) Path() string {
-	return path.Join("/dev/mapper", p.name)
+	return path.Join("/dev/mapper", poolName)
 }
 
 // If /dev/mapper/<name> exists the pool is active
@@ -118,42 +125,45 @@ func (p *Pool) active() bool {
 }
 
 // This returns a free ID in the pool
-// TODO: Verify that this works
-func (p *Pool) newID() int {
-	if p.free < len(p.devices) {
-		returnID := p.free
-		for i := p.free + 1; i <= len(p.devices); i++ {
-			if i == len(p.devices) || p.devices[i] == nil {
-				p.free = i
+// TODO: Check that this works correctly
+func (p *Pool) newID() v1alpha1.DMID {
+	index := p.free.Index()
+	nDevices := len(p.Pool.Status.Devices)
+
+	if index < nDevices {
+		for i := index + 1; i <= nDevices; i++ {
+			if i == nDevices || p.Pool.Status.Devices[i] == nil {
+				p.free = v1alpha1.NewDMID(i)
 				break
 			}
 		}
-
-		return returnID
+	} else {
+		p.Pool.Status.Devices = append(p.Pool.Status.Devices, nil)
+		p.free = v1alpha1.NewDMID(len(p.Pool.Status.Devices))
 	}
 
-	p.devices = append(p.devices, nil)
-	p.free = len(p.devices)
-	return p.free - 1
+	return v1alpha1.NewDMID(index)
 }
 
-func (p *Pool) newDevice(genFunc func(int) (*Device, error)) (*Device, error) {
-	var err error
-
+func (p *Pool) newDevice(genFunc func(v1alpha1.DMID) (*Device, error)) (*Device, error) {
+	free := p.free
 	id := p.newID()
-	p.devices[id], err = genFunc(id)
+
+	device, err := genFunc(id)
 	if err != nil {
-		p.Remove(id)
+		p.free = free
+	} else {
+		p.Pool.Status.Devices[id.Index()] = device.PoolDevice
 	}
 
-	return p.devices[id], err
+	return device, nil
 }
 
-func (p *Pool) Remove(id int) {
+func (p *Pool) Remove(id v1alpha1.DMID) {
 	if p.getDevice(id) != nil {
-		p.devices[id] = nil
+		p.Pool.Status.Devices[id.Index()] = nil
 
-		if p.free > id {
+		if p.free.Index() > id.Index() {
 			p.free = id
 		}
 	}

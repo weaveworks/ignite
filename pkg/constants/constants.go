@@ -7,6 +7,9 @@ const (
 	// Ignite data base directory
 	DATA_DIR = "/var/lib/firecracker"
 
+	// Permissions for the data directory and its subdirectories
+	DATA_DIR_PERM = 0755
+
 	// Filename for metadata files
 	METADATA = "metadata.json"
 

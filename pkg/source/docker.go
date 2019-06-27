@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+
 	"github.com/weaveworks/ignite/pkg/format"
 
 	"github.com/weaveworks/ignite/pkg/util"
@@ -45,6 +47,69 @@ func NewDockerSource(src string) (*DockerSource, error) {
 
 		if util.IsEmptyString(out) {
 			return nil, fmt.Errorf("docker image %s could not be found", src)
+		}
+	}
+
+	// Docker outputs one image per line
+	dockerIDs := strings.Split(strings.TrimSpace(out), "\n")
+
+	// Check if the image query is too broad
+	if len(dockerIDs) > 1 {
+		return nil, fmt.Errorf("multiple matches, Docker image query too broad: %q", src)
+	}
+
+	// Select the first (and only) match
+	dockerID := dockerIDs[0]
+
+	// Get the size of the Docker image
+	out, err = util.ExecuteCommand("docker", "inspect", src, "-f", "{{.Size}}")
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the size from the output
+	size, err := strconv.ParseUint(out, 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	return &DockerSource{
+		dockerImage: src,
+		dockerID:    dockerID,
+		size:        format.DataFrom(size),
+	}, nil
+}
+
+func (ds *DockerSource) Parse(input *v1alpha1.ImageSource) error {
+	// Use the digest to match the image
+	// If it's not given, fall back to the name
+	var source string
+	if len(input.Digest) > 0 {
+		source = input.Digest
+	} else {
+		source = input.Name
+	}
+
+	// Query Docker for the image
+	out, err := util.ExecuteCommand("docker", "images", "-q", source)
+	if err != nil {
+		return err
+	}
+
+	// If the Docker image isn't found, try to pull it
+	if util.IsEmptyString(out) {
+		log.Printf("Docker image %q not found locally, pulling...", source)
+		if _, err := util.ExecForeground("docker", "pull", source); err != nil {
+			return err
+		}
+
+		out, err = util.ExecuteCommand("docker", "images", "-q", source)
+		if err != nil {
+			return err
+		}
+
+		if util.IsEmptyString(out) {
+			return fmt.Errorf("docker image %s could not be found", source)
 		}
 	}
 

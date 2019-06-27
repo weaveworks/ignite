@@ -20,5 +20,6 @@ require (
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	k8s.io/apimachinery v0.0.0-20190528154326-e59c2fb0a8e5
+	k8s.io/code-generator v0.0.0-20190620073620-d55040311883 // indirect
 	sigs.k8s.io/yaml v1.1.0
 )

@@ -6,16 +6,15 @@ import (
 	"os/exec"
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/format"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+
 	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type Device struct {
-	pool     *Pool
-	parent   *Device
-	blocks   format.DataSize
-	metadata Metadata
+	*v1alpha1.PoolDevice
+	pool *Pool
 
 	// These flags are for filesystem and snapshot creation
 	mkfs   bool
@@ -24,23 +23,25 @@ type Device struct {
 
 var _ blockDevice = &Device{}
 
-func (p *Pool) CreateVolume(blocks format.DataSize, data Metadata) (*Device, error) {
+func (p *Pool) CreateVolume(size v1alpha1.Size, metadataPath string) (*Device, error) {
 	// The pool needs to be active for this
 	if err := p.activate(); err != nil {
 		return nil, err
 	}
 
-	if volume, err := p.newDevice(func(id int) (*Device, error) {
-		if err := dmsetup("message", p.Path(), "0", fmt.Sprintf("create_thin %d", id)); err != nil {
+	if volume, err := p.newDevice(func(id v1alpha1.DMID) (*Device, error) {
+		if err := dmsetup("message", p.Path(), "0", fmt.Sprintf("create_thin %s", id)); err != nil {
 			return nil, err
 		}
 
 		return &Device{
-			pool:     p,
-			parent:   nil,
-			blocks:   blocks,
-			metadata: data,
-			mkfs:     true, // This is a new volume, create a new filesystem for it on activation
+			PoolDevice: &v1alpha1.PoolDevice{
+				Size:         size,
+				Parent:       nil,
+				MetadataPath: metadataPath,
+			},
+			pool: p,
+			mkfs: true, // This is a new volume, create a new filesystem for it on activation
 		}, nil
 	}); err != nil {
 		return nil, err
@@ -49,19 +50,19 @@ func (p *Pool) CreateVolume(blocks format.DataSize, data Metadata) (*Device, err
 	}
 }
 
-func (d *Device) CreateSnapshot(blocks format.DataSize, data Metadata) (*Device, error) {
+func (d *Device) CreateSnapshot(size v1alpha1.Size, metadataPath string) (*Device, error) {
 	// The device needs to be active for this
 	if err := d.activate(); err != nil {
 		return nil, err
 	}
 
-	if snapshot, err := d.pool.newDevice(func(id int) (*Device, error) {
+	if snapshot, err := d.pool.newDevice(func(id v1alpha1.DMID) (*Device, error) {
 		if err := dmsetup("suspend", d.Path()); err != nil {
 			return nil, err
 		}
 
 		if err := dmsetup("message", d.pool.Path(), "0",
-			fmt.Sprintf("create_snap %d %d", id, d.pool.getID(d))); err != nil {
+			fmt.Sprintf("create_snap %s %s", id, d.pool.getID(d))); err != nil {
 			return nil, err
 		}
 
@@ -70,24 +71,26 @@ func (d *Device) CreateSnapshot(blocks format.DataSize, data Metadata) (*Device,
 		}
 
 		return &Device{
-			pool:     d.pool,
-			parent:   d,
-			blocks:   blocks,
-			metadata: data,
-			resize:   blocks != d.blocks, // Set the resize flag if the size differs from the parent
+			PoolDevice: &v1alpha1.PoolDevice{
+				Size:         size,
+				Parent:       d.pool.getID(d),
+				MetadataPath: metadataPath,
+			},
+			pool:   d.pool,
+			resize: size != d.PoolDevice.Size, // Set the resize flag if the size differs from the parent
 		}, nil
 	}); err != nil {
 		return nil, err
 	} else {
-		fmt.Printf("%#v\n", d.pool.devices)
 		return snapshot, snapshot.activate()
 	}
 }
 
 func (d *Device) activate() error {
 	id := d.pool.getID(d)
-	log.Printf("Activate device: %d\n", id)
-	if d.parent == nil {
+	parent := d.pool.getDevice(d.PoolDevice.Parent)
+
+	if parent == nil {
 		// Activate the pool as the base device
 		if err := d.pool.activate(); err != nil {
 			return err
@@ -95,7 +98,7 @@ func (d *Device) activate() error {
 	} else {
 		// Check if all parents are active
 		// TODO: Reference count this for deactivation
-		if err := d.parent.activate(); err != nil {
+		if err := parent.activate(); err != nil {
 			return err
 		}
 	}
@@ -105,23 +108,24 @@ func (d *Device) activate() error {
 		return nil
 	}
 
-	dmTable := fmt.Sprintf("0 %d thin %s %d",
-		d.blocks.Sectors(),
+	dmTable := fmt.Sprintf("0 %d thin %s %s",
+		d.PoolDevice.Size.Sectors(),
 		d.pool.Path(),
 		id,
 	)
 
+	log.Printf("Activate device: %s\n", id)
 	if err := dmsetup("create", d.name(id), "--table", dmTable); err != nil {
 		return err
 	}
 
 	if d.mkfs {
-		log.Printf("Creating new filesystem on device: %d\n", id)
+		log.Printf("Creating new filesystem on device: %s\n", id)
 		if err := mkfs(d); err != nil {
 			return err
 		}
 	} else if d.resize { // If the resize flag has been set, resize the filesystem to fill the device
-		log.Printf("Resizing filesystem on device: %d\n", id)
+		log.Printf("Resizing filesystem on device: %s\n", id)
 		if err := resize2fs(d); err != nil {
 			return err
 		}
@@ -158,8 +162,8 @@ func (d *Device) Import(src source.Source) (*util.MountPoint, error) {
 	return mountPoint, nil
 }
 
-func (d *Device) name(id int) string {
-	return fmt.Sprintf("%s-%d", d.pool.name, id)
+func (d *Device) name(id v1alpha1.DMID) string {
+	return util.NewPrefixer().Prefix(id.String())
 }
 
 // TODO: Path should probably activate
@@ -175,8 +179,4 @@ func (d *Device) Start() (string, error) {
 // If /dev/mapper/<name> exists the device is active
 func (d *Device) active() bool {
 	return util.FileExists(d.Path())
-}
-
-func (d *Device) Size() format.DataSize {
-	return d.blocks
 }

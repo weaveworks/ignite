@@ -11,6 +11,7 @@ var (
 		addKnownTypes,
 		addDefaultingFuncs,
 	)
+
 	localSchemeBuilder = &SchemeBuilder
 	AddToScheme        = localSchemeBuilder.AddToScheme
 )
@@ -32,5 +33,6 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&Pool{},
 		&Image{},
 	)
+
 	return nil
 }

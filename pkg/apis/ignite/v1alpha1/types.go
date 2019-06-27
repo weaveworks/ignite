@@ -48,11 +48,10 @@ type ImageSource struct {
 // ImageStatus defines the status of the image
 type ImageStatus struct {
 	// LayerID points to the index of the device in the DM pool
-	// TODO: Make this this a dedicated DMID type or similar
-	LayerID uint32 `json:"layerID"`
+	LayerID DMID `json:"layerID"`
 }
 
-// Pool defines devicemapper pool database
+// Pool defines device mapper pool database
 // This file is managed by the snapshotter part of Ignite, and the file (existing as a singleton)
 // is present at /var/lib/firecracker/snapshotter/pool.json
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -67,39 +66,34 @@ type Pool struct {
 
 // PoolSpec defines the Pool's specification
 type PoolSpec struct {
-	Blocks         Size `json:"blocks"`
+	// MetadataSize specifies the size of the pool's metadata
+	MetadataSize Size `json:"metadataSize"`
+	// DataSize specifies the size of the pool's data
+	DataSize Size `json:"size"`
+	// AllocationSize specifies the smallest size that can be allocated at a time
 	AllocationSize Size `json:"allocationSize"`
-	// DataPath points to the backing physical device or sparse file (to be loop mounted) for the pool
-	// Defaults to /var/lib/firecracker/snapshotter/data.dm
-	DataPath string `json:"dataPath"`
-	// MetadataPath points to the file where dm stores all metadata information
-	// Defaults to /var/lib/firecracker/snapshotter/metadata.dm
+	// MetadataPath points to the file where device mapper stores all metadata information
+	// Defaults to constants.SNAPSHOTTER_METADATA_PATH
 	MetadataPath string `json:"metadataPath"`
+	// DataPath points to the backing physical device or sparse file (to be loop mounted) for the pool
+	// Defaults to constants.SNAPSHOTTER_DATA_PATH
+	DataPath string `json:"dataPath"`
 }
 
 // PoolStatus defines the Pool's current status
 type PoolStatus struct {
-	Devices []PoolDevice `json:"devices"`
+	// The Devices array needs to contain pointers to accommodate "holes" in the mapping
+	// Where devices have been deleted, the pointer is nil
+	Devices []*PoolDevice `json:"devices"`
 }
-
-// PoolDeviceType defines what kind of DM device this is
-/*type PoolDeviceType string
-
-const (
-	PoolDeviceTypeImage  PoolDeviceType = "Image"
-	PoolDeviceTypeResize PoolDeviceType = "Resize"
-	PoolDeviceTypeKernel PoolDeviceType = "Kernel"
-	PoolDeviceTypeVM     PoolDeviceType = "VM"
-)*/
 
 // PoolDevice defines one device in the pool
 type PoolDevice struct {
-	Blocks Size    `json:"blocks"`
-	Parent *uint32 `json:"parent"`
+	Size   Size `json:"size"`
+	Parent DMID `json:"parent"`
 	// MetadataPath points to the JSON/YAML file with metadata about this device
 	// This is most often of the format /var/lib/firecracker/{type}/{id}/metadata.json
 	MetadataPath string `json:"metadataPath"`
-	//Type   PoolDeviceType `json:"type"`
 }
 
 // Kernel is a serializable object that caches information about imported kernels
@@ -116,6 +110,7 @@ type Kernel struct {
 	//Status KernelStatus `json:"status"`
 }
 
+// KernelSpec describes the properties of a kernel
 type KernelSpec struct {
 	Version string      `json:"version"`
 	Source  ImageSource `json:"source"`
@@ -137,7 +132,7 @@ type VM struct {
 	Status VMStatus `json:"status"`
 }
 
-// VMSpec de
+// VMSpec describes the configuration of a VM
 type VMSpec struct {
 	CPUs   uint64        `json:"cpus"`
 	Memory Size          `json:"memory"`
@@ -150,7 +145,7 @@ type VMSpec struct {
 	// SSH appends to CopyFiles when active
 	// nil here means "don't do anything special"
 	// An empty struct means "generate a new SSH key and copy it in"
-	// Specifying a path mean "use this public key"
+	// Specifying a path means "use this public key"
 	SSH *SSH `json:"ssh"`
 }
 

@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/c2h5oh/datasize"
@@ -24,7 +25,7 @@ func (om *ObjectMeta) GetUID() types.UID {
 
 // TODO: We should maybe move this to a metav1 package once we're happy with this
 
-// Size specifies
+// Size specifies a common unit for data sizes
 type Size struct {
 	datasize.ByteSize
 }
@@ -48,47 +49,92 @@ func NewSizeFromSectors(sectors uint64) Size {
 	}
 }
 
-func (d *Size) Sectors() uint64 {
-	return d.Bytes() / sectorSize
+func (s *Size) Sectors() uint64 {
+	return s.Bytes() / sectorSize
 }
 
 // Override ByteSize's default string implementation which results in something similar to HR()
-func (d *Size) String() string {
-	return strconv.FormatUint(d.Bytes(), 10)
+func (s *Size) String() string {
+	return strconv.FormatUint(s.Bytes(), 10)
 }
 
 // Add returns a copy, does not modify the receiver
-func (d Size) Add(other Size) Size {
-	d.ByteSize += other.ByteSize
-	return d
+func (s Size) Add(other Size) Size {
+	s.ByteSize += other.ByteSize
+	return s
 }
 
-func (d Size) Min(other Size) Size {
-	if other.ByteSize < d.ByteSize {
+func (s Size) Min(other Size) Size {
+	if other.ByteSize < s.ByteSize {
 		return other
 	}
 
-	return d
+	return s
 }
 
-func (d Size) Max(other Size) Size {
-	if other.ByteSize > d.ByteSize {
+func (s Size) Max(other Size) Size {
+	if other.ByteSize > s.ByteSize {
 		return other
 	}
 
-	return d
+	return s
 }
 
-func (d *Size) MarshalJSON() ([]byte, error) {
-	return json.Marshal(d.Bytes())
+func (s *Size) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Bytes())
 }
 
-func (d *Size) UnmarshalJSON(b []byte) error {
+func (s *Size) UnmarshalJSON(b []byte) error {
 	var i uint64
 	if err := json.Unmarshal(b, &i); err != nil {
 		return err
 	}
 
-	*d = NewSizeFromBytes(i)
+	*s = NewSizeFromBytes(i)
 	return nil
+}
+
+// DMID specifies the format for device mapper IDs
+type DMID struct {
+	index int32
+}
+
+var _ fmt.Stringer = DMID{}
+
+func NewDMID(i int) DMID {
+	// device mapper IDs are unsigned 24-bit integers
+	if i < 0 || i >= 1<<24 {
+		panic(fmt.Sprintf("device mapper ID out of range: %d", i))
+	}
+
+	return DMID{
+		index: int32(i),
+	}
+}
+
+func NewPoolDMID() DMID {
+	// Internally we keep the pool ID out of range
+	return DMID{
+		index: -1,
+	}
+}
+
+func (d *DMID) Pool() bool {
+	return d.index < 0
+}
+
+func (d *DMID) Index() int {
+	if !d.Pool() {
+		return int(d.index)
+	}
+
+	panic("attempt to index nonexistent ID")
+}
+
+func (d DMID) String() string {
+	if !d.Pool() {
+		return fmt.Sprintf("%d", d.index)
+	}
+
+	return "pool"
 }
