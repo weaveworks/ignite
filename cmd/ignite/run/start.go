@@ -10,14 +10,27 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
 
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/containerruntime/docker"
+	"github.com/weaveworks/ignite/pkg/network/cni"
 	"github.com/weaveworks/ignite/pkg/util"
 	"github.com/weaveworks/ignite/pkg/version"
 )
+
+const (
+	NetworkModeCNI    = "cni"
+	NetworkModeBridge = "bridge"
+)
+
+var NetworkModes = []string{
+	NetworkModeCNI,
+	NetworkModeBridge,
+}
 
 type StartFlags struct {
 	PortMappings []string
 	Interactive  bool
 	Debug        bool
+	NetworkMode  string
 }
 
 type startOptions struct {
@@ -33,6 +46,10 @@ func (sf *StartFlags) NewStartOptions(l *runutil.ResLoader, vmMatch string) (*st
 
 	// Disable running check as it takes a while for the in-container Ignite to update the state
 	ao.checkRunning = false
+
+	if sf.NetworkMode != NetworkModeCNI && sf.NetworkMode != NetworkModeBridge {
+		return nil, fmt.Errorf("invalid network mode %s, must be one of %v", sf.NetworkMode, NetworkModes)
+	}
 
 	return &startOptions{sf, ao}, nil
 }
@@ -74,6 +91,10 @@ func Start(so *startOptions) error {
 		fmt.Sprintf("--device=%s", so.vm.SnapshotDev()),
 	}
 
+	if so.NetworkMode == NetworkModeCNI {
+		dockerArgs = append(dockerArgs, "--net=none")
+	}
+
 	dockerCmd := append(make([]string, 0, len(dockerArgs)+2), "run")
 
 	// If we're not debugging, remove the container post-run
@@ -99,10 +120,17 @@ func Start(so *startOptions) error {
 	dockerArgs = append(dockerArgs, fmt.Sprintf("weaveworks/ignite:%s", version.GetFirecracker()))
 	dockerArgs = append(dockerArgs, so.vm.ID.String())
 
-	// Start the VM in docker
+	// Create the VM container in docker
 	containerID, err := util.ExecuteCommand("docker", append(dockerCmd, dockerArgs...)...)
 	if err != nil {
 		return fmt.Errorf("failed to start container for VM %q: %v", so.vm.ID, err)
+	}
+
+	if so.NetworkMode == NetworkModeCNI {
+		if err := setupCNINetworking(containerID); err != nil {
+			return err
+		}
+		log.Printf("Networking is now handled by CNI")
 	}
 
 	log.Printf("Started Firecracker in a Docker container with ID %q", containerID)
@@ -111,6 +139,21 @@ func Start(so *startOptions) error {
 	if so.Interactive {
 		return Attach(so.attachOptions)
 	}
-
 	return nil
+}
+
+func setupCNINetworking(containerID string) error {
+	// TODO: Both the client and networkPlugin variables should be constructed once,
+	// and accessible throughout the program.
+	// TODO: Right now IP addresses aren't reclaimed when the VM is removed.
+	// networkPlugin.RemoveContainerNetwork need to be called when removing the VM.
+	client, err := docker.GetDockerClient()
+	if err != nil {
+		return err
+	}
+	networkPlugin, err := cni.GetCNINetworkPlugin(client)
+	if err != nil {
+		return err
+	}
+	return networkPlugin.SetupContainerNetwork(containerID)
 }

@@ -3,6 +3,7 @@ package container
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -16,6 +17,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 /*
@@ -39,22 +41,49 @@ var ignoreInterfaces = map[string]bool{
 }
 
 func NetworkSetup(dhcpIfaces *[]DHCPInterface) error {
+	interval := 1 * time.Second
+	timeout := 1 * time.Minute
+	return wait.PollImmediate(interval, timeout, func() (bool, error) {
+		// this func returns true if it's done, and optionally an error
+		retry, err := networkSetup(dhcpIfaces)
+		if err == nil {
+			// we're done here
+			log.Printf("network setup done")
+			return true, nil
+		}
+		if retry {
+			// we got an error, but let's ignore it and try again
+			log.Printf("retry, although error: %v", err)
+			return false, nil
+		}
+		log.Printf("fatal error %v", err)
+		// the error was fatal, return it
+		return false, err
+	})
+}
+
+func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 	ifaces, err := net.Interfaces()
-	if err != nil {
-		return fmt.Errorf("cannot get local network interfaces: %v", err)
+	if err != nil || ifaces == nil || len(ifaces) == 0 {
+		return true, fmt.Errorf("cannot get local network interfaces: %v", err)
 	}
 
+	// interfacesCount counts the interfaces that are relevant to Ignite (in other words, not ignored)
+	interfacesCount := 0
 	for _, iface := range ifaces {
 		// Skip the interface if it's ignored
 		if !ignoreInterfaces[iface.Name] {
-			ipNet, err := takeAddress(&iface)
+			// This is an interface we care about
+			interfacesCount++
+
+			ipNet, retry, err := takeAddress(&iface)
 			if err != nil {
-				return fmt.Errorf("parsing interface failed: %v", err)
+				return retry, fmt.Errorf("parsing interface failed: %v", err)
 			}
 
 			dhcpIface, err := bridge(&iface)
 			if err != nil {
-				return fmt.Errorf("bridging interface %s failed: %v0", iface.Name, err)
+				return false, fmt.Errorf("bridging interface %s failed: %v0", iface.Name, err)
 			}
 
 			// Gateway for now is just x.x.x.1 TODO: Better detection
@@ -65,7 +94,12 @@ func NetworkSetup(dhcpIfaces *[]DHCPInterface) error {
 		}
 	}
 
-	return nil
+	// If there weren't any interfaces we cared about, retry the loop
+	if interfacesCount == 0 {
+		return true, fmt.Errorf("no active interfaces available yet")
+	}
+
+	return false, nil
 }
 
 // bridge creates the TAP device and performs the bridging, returning the MAC address of the vm's adapter
@@ -100,10 +134,11 @@ func bridge(iface *net.Interface) (DHCPInterface, error) {
 }
 
 // takeAddress removes the first address of an interface and returns it
-func takeAddress(iface *net.Interface) (*net.IPNet, error) {
+func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
 	addrs, err := iface.Addrs()
-	if err != nil {
-		return nil, fmt.Errorf("interface %s has no address", iface.Name)
+	if err != nil || addrs == nil || len(addrs) == 0 {
+		// set the bool to true so the caller knows to retry
+		return nil, true, fmt.Errorf("interface %s has no address", iface.Name)
 	}
 
 	for _, addr := range addrs {
@@ -129,7 +164,7 @@ func takeAddress(iface *net.Interface) (*net.IPNet, error) {
 		}
 
 		if _, err := util.ExecuteCommand("ip", "addr", "del", ip.String(), "dev", iface.Name); err != nil {
-			return nil, errors.Wrapf(err, "failed to remove address from interface %s", iface.Name)
+			return nil, false, errors.Wrapf(err, "failed to remove address from interface %s", iface.Name)
 		}
 
 		fmt.Printf("Found an deleted address: %s (%s)\n", ip.String(), fmt.Sprintf("%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3]))
@@ -137,10 +172,10 @@ func takeAddress(iface *net.Interface) (*net.IPNet, error) {
 		return &net.IPNet{
 			IP:   ip,
 			Mask: mask,
-		}, nil
+		}, false, nil
 	}
 
-	return nil, fmt.Errorf("interface %s has no valid addresses", iface.Name)
+	return nil, false, fmt.Errorf("interface %s has no valid addresses", iface.Name)
 }
 
 func createTAPAdapter(tapName string) error {

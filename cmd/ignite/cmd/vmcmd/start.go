@@ -1,6 +1,7 @@
 package vmcmd
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
@@ -46,5 +47,6 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 func addStartFlags(fs *pflag.FlagSet, sf *run.StartFlags) {
 	cmdutil.AddInteractiveFlag(fs, &sf.Interactive)
 	fs.StringSliceVarP(&sf.PortMappings, "ports", "p", nil, "Map host ports to VM ports")
+	fs.StringVar(&sf.NetworkMode, "net", "bridge", fmt.Sprintf("Networking mode to use. Available options are: %v", run.NetworkModes))
 	fs.BoolVarP(&sf.Debug, "debug", "d", false, "Debug mode, keep container after VM shutdown")
 }
