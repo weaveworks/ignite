@@ -1,4 +1,4 @@
-# Firecracker Ignite
+# Weave Ignite
 
 Ignite is a Firecracker microVM administration tool, like Docker manages
 runC containers.
@@ -14,7 +14,7 @@ PID 1.
 Networking is set up automatically, the VM gets the same IP as any docker
 container on the host would.
 
-And Firecracker is **fast**! Building and starting VMs takes just some fraction of a second, or
+And Firecracker is **fast**! Building and starting VMs takes just some _fraction of a second_, or
 at most some seconds. With Ignite you can get started with Firecracker in no time!
 
 ## Use-cases
@@ -46,6 +46,10 @@ Firecracker Ignite, however, is operating at another layer. Ignite isn’t conce
 as the primary unit, but whole yet lightweight VMs that integrate with the container landscape.
 
 ## How to use
+
+Before starting, you might want to read about the dependencies and non-goals of Ignite in [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md).
+
+**WARNING**: In it's `v0.X` series, Ignite is in _alpha_, which means that it might change in backwards-incompatible ways.
 
 [![asciicast](https://asciinema.org/a/252221.svg)](https://asciinema.org/a/252221)
 
@@ -92,6 +96,10 @@ ignite rm my-vm
 
 See the [CLI Reference](docs/cli/ignite.md).
 
+### Architecture
+
+![docs/architecture.png](docs/architecture.png)
+
 ### Base images and kernels
 
 A _base image_ is an OCI-compliant image containing some operating system (e.g. Ubuntu).
@@ -112,10 +120,6 @@ reference base images and a sample kernel image to get started quickly.
  - [Guide: Run a HA Kubernetes cluster with Ignite and kubeadm](images/kubeadm) (`weaveworks/ignite-kubeadm`)
 
 These prebuilt images can be given to `ignite run` directly.
-
-### Known limitations
-
-See [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md)
 
 ## Contributing
 
