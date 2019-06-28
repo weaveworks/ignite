@@ -1,5 +1,8 @@
 # DHCP4 - A DHCP library written in Go.
 
+## New Maintainer requested
+I no longer work on projects requiring DHCP and am therefore not suited to maintain this library. If you are interested in taking over see [#46](https://github.com/krolaw/dhcp4/issues/46).
+
 ## Author
 http://richard.warburton.it/
 
@@ -16,4 +19,4 @@ to be able to listen on a single network interface.
 * https://github.com/fdurand for proper interface binding on linux. 
 
 ## Wow
-DHCP4 is one of the libraries used by Facebook's [DHCP load balancing relay](https://github.com/facebookincubator/dhcplb).  "Facebook currently uses it in production, and it's deployed at global scale across all of our data centers." 
+DHCP4 was one of the libraries used by Facebook's [DHCP load balancing relay](https://github.com/facebookincubator/dhcplb/tree/7f3b3859478a4f19a15984d97c96fceaa89e982b).  "Facebook currently uses it in production, and it's deployed at global scale across all of our data centers." FB has since moved to another lib.
