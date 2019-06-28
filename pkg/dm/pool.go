@@ -49,7 +49,7 @@ func (p *Pool) getID(device *Device) v1alpha1.DMID {
 		return v1alpha1.NewPoolDMID()
 	}
 
-	for i, d := range p.Pool.Status.Devices {
+	for i, d := range p.Status.Devices {
 		if d == device.PoolDevice {
 			return v1alpha1.NewDMID(i)
 		}
@@ -61,27 +61,42 @@ func (p *Pool) getID(device *Device) v1alpha1.DMID {
 }
 
 // GetDevice dynamically spawns a device from a v1alpha1.PoolDevice
-func (p *Pool) getDevice(id v1alpha1.DMID) *Device {
+func (p *Pool) GetDevice(id v1alpha1.DMID) *Device {
 	// If querying for the pool's ID, return nil
 	if id.Pool() {
 		return nil
 	}
 
-	if id.Index() >= len(p.Pool.Status.Devices) {
+	if id.Index() >= len(p.Status.Devices) {
 		// This should never happen, unless you try
 		// to get a device residing in another pool
-		panic("pool getDevice: index out of range")
+		panic("pool GetDevice: index out of range")
 	}
 
-	spec := p.Pool.Status.Devices[id.Index()]
+	spec := p.Status.Devices[id.Index()]
 	if spec == nil {
-		panic("pool getDevice: nonexistent device")
+		panic("pool GetDevice: nonexistent device")
 	}
 
 	return &Device{
 		PoolDevice: spec,
 		pool:       p,
 	}
+}
+
+// This is a custom iterator to iterate over existing devices only (it skips nil slots)
+func (p *Pool) ForDevices(iterFunc func(v1alpha1.DMID, *Device) error) error {
+	for i := 0; i < len(p.Status.Devices); i++ {
+		spec := p.Status.Devices[i]
+		if spec != nil {
+			id := v1alpha1.NewDMID(i)
+			if err := iterFunc(id, p.GetDevice(id)); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (p *Pool) activate() error {
@@ -102,7 +117,7 @@ func (p *Pool) activate() error {
 	}
 
 	dmTable := fmt.Sprintf("0 %d thin-pool %s %s %d 0",
-		p.Spec.Size.Sectors(),
+		p.Spec.DataSize.Sectors(),
 		metadataDev.Path(),
 		dataDev.Path(),
 		p.Spec.AllocationSize.Sectors(),
@@ -128,18 +143,18 @@ func (p *Pool) active() bool {
 // TODO: Check that this works correctly
 func (p *Pool) newID() v1alpha1.DMID {
 	index := p.free.Index()
-	nDevices := len(p.Pool.Status.Devices)
+	nDevices := len(p.Status.Devices)
 
 	if index < nDevices {
 		for i := index + 1; i <= nDevices; i++ {
-			if i == nDevices || p.Pool.Status.Devices[i] == nil {
+			if i == nDevices || p.Status.Devices[i] == nil {
 				p.free = v1alpha1.NewDMID(i)
 				break
 			}
 		}
 	} else {
-		p.Pool.Status.Devices = append(p.Pool.Status.Devices, nil)
-		p.free = v1alpha1.NewDMID(len(p.Pool.Status.Devices))
+		p.Status.Devices = append(p.Status.Devices, nil)
+		p.free = v1alpha1.NewDMID(len(p.Status.Devices))
 	}
 
 	return v1alpha1.NewDMID(index)
@@ -153,15 +168,15 @@ func (p *Pool) newDevice(genFunc func(v1alpha1.DMID) (*Device, error)) (*Device,
 	if err != nil {
 		p.free = free
 	} else {
-		p.Pool.Status.Devices[id.Index()] = device.PoolDevice
+		p.Status.Devices[id.Index()] = device.PoolDevice
 	}
 
 	return device, nil
 }
 
 func (p *Pool) Remove(id v1alpha1.DMID) {
-	if p.getDevice(id) != nil {
-		p.Pool.Status.Devices[id.Index()] = nil
+	if p.GetDevice(id) != nil {
+		p.Status.Devices[id.Index()] = nil
 
 		if p.free.Index() > id.Index() {
 			p.free = id

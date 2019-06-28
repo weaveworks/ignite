@@ -3,22 +3,17 @@ package source
 import (
 	"fmt"
 	"io"
+	"k8s.io/apimachinery/pkg/util/json"
 	"log"
 	"os/exec"
-	"strconv"
-	"strings"
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-
-	"github.com/weaveworks/ignite/pkg/format"
 
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type DockerSource struct {
-	dockerImage string
-	dockerID    string
-	size        format.DataSize
+	imageID     string
 	containerID string
 	exportCmd   *exec.Cmd
 }
@@ -26,131 +21,107 @@ type DockerSource struct {
 // Compile-time assert to verify interface compatibility
 var _ Source = &DockerSource{}
 
-func NewDockerSource(src string) (*DockerSource, error) {
-	// Query Docker for the image
-	out, err := util.ExecuteCommand("docker", "images", "-q", src)
+func NewDockerSource() *DockerSource {
+	return &DockerSource{}
+}
+
+type inspect struct {
+	ID       string   `json:"Id"`
+	Size     uint64   `json:"Size"`
+	RepoTags []string `json:"RepoTags"`
+}
+
+type errNotFound struct {
+	source string
+}
+
+// Compile-time assert to verify interface compatibility
+var _ error = &errNotFound{}
+
+func newErrNotFound(source string) *errNotFound {
+	return &errNotFound{source}
+}
+
+func (e *errNotFound) Error() string {
+	return fmt.Sprintf("docker image %q could not be found", e.source)
+}
+
+func parseInspect(source string) (*inspect, error) {
+	out, err := util.ExecuteCommand("docker", "inspect", source)
 	if err != nil {
 		return nil, err
 	}
 
-	// If the Docker image isn't found, try to pull it
 	if util.IsEmptyString(out) {
-		log.Printf("Docker image %q not found locally, pulling...", src)
-		if _, err := util.ExecForeground("docker", "pull", src); err != nil {
-			return nil, err
-		}
-
-		out, err = util.ExecuteCommand("docker", "images", "-q", src)
-		if err != nil {
-			return nil, err
-		}
-
-		if util.IsEmptyString(out) {
-			return nil, fmt.Errorf("docker image %s could not be found", src)
-		}
+		return nil, newErrNotFound(source)
 	}
 
-	// Docker outputs one image per line
-	dockerIDs := strings.Split(strings.TrimSpace(out), "\n")
+	// Docker inspect outputs an array containing the struct we need
+	var result []*inspect
 
-	// Check if the image query is too broad
-	if len(dockerIDs) > 1 {
-		return nil, fmt.Errorf("multiple matches, Docker image query too broad: %q", src)
-	}
-
-	// Select the first (and only) match
-	dockerID := dockerIDs[0]
-
-	// Get the size of the Docker image
-	out, err = util.ExecuteCommand("docker", "inspect", src, "-f", "{{.Size}}")
-	if err != nil {
+	if err := json.Unmarshal([]byte(out), &result); err != nil {
 		return nil, err
 	}
 
-	// Parse the size from the output
-	size, err := strconv.ParseUint(out, 10, 64)
-	if err != nil {
-		return nil, err
+	// Extract the struct from the array
+	data := result[0]
+
+	if data.Size == 0 || len(data.ID) == 0 || len(data.RepoTags) == 0 {
+		return nil, fmt.Errorf("parsing docker image %q data failed", source)
 	}
 
-	return &DockerSource{
-		dockerImage: src,
-		dockerID:    dockerID,
-		size:        format.DataFrom(size),
-	}, nil
+	return data, nil
 }
 
 func (ds *DockerSource) Parse(input *v1alpha1.ImageSource) error {
-	// Use the digest to match the image
+	// Use the ID to match the image
 	// If it's not given, fall back to the name
-	var source string
-	if len(input.Digest) > 0 {
-		source = input.Digest
-	} else {
+	source := input.ID
+	if len(source) == 0 {
 		source = input.Name
 	}
 
+	var err error
+	var imageData *inspect
+
 	// Query Docker for the image
-	out, err := util.ExecuteCommand("docker", "images", "-q", source)
-	if err != nil {
-		return err
-	}
+	for imageData == nil {
+		imageData, err = parseInspect(source)
 
-	// If the Docker image isn't found, try to pull it
-	if util.IsEmptyString(out) {
-		log.Printf("Docker image %q not found locally, pulling...", source)
-		if _, err := util.ExecForeground("docker", "pull", source); err != nil {
+		switch err.(type) {
+		case nil:
+			// Success
+		case *errNotFound:
+			source = input.Name // Fall back to the name, as docker pull doesn't accept IDs
+
+			log.Printf("Docker image %q not found locally, pulling...", source)
+			if _, err := util.ExecForeground("docker", "pull", source); err != nil {
+				return err
+			}
+		default:
 			return err
 		}
-
-		out, err = util.ExecuteCommand("docker", "images", "-q", source)
-		if err != nil {
-			return err
-		}
-
-		if util.IsEmptyString(out) {
-			return fmt.Errorf("docker image %s could not be found", source)
-		}
 	}
 
-	// Docker outputs one image per line
-	dockerIDs := strings.Split(strings.TrimSpace(out), "\n")
+	// Update the fields
+	// TODO: Add just missing fields
+	input.Type = v1alpha1.ImageSourceTypeDocker
+	input.ID = imageData.ID
+	input.Name = imageData.RepoTags[0]
+	input.Size = v1alpha1.NewSizeFromBytes(imageData.Size)
 
-	// Check if the image query is too broad
-	if len(dockerIDs) > 1 {
-		return nil, fmt.Errorf("multiple matches, Docker image query too broad: %q", src)
-	}
-
-	// Select the first (and only) match
-	dockerID := dockerIDs[0]
-
-	// Get the size of the Docker image
-	out, err = util.ExecuteCommand("docker", "inspect", src, "-f", "{{.Size}}")
-	if err != nil {
-		return nil, err
-	}
-
-	// Parse the size from the output
-	size, err := strconv.ParseUint(out, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	return &DockerSource{
-		dockerImage: src,
-		dockerID:    dockerID,
-		size:        format.DataFrom(size),
-	}, nil
+	ds.imageID = input.ID
+	return nil
 }
 
 func (ds *DockerSource) Reader() (io.ReadCloser, error) {
 	// Create a container from the image to be exported
 	var err error
-	if ds.containerID, err = util.ExecuteCommand("docker", "create", ds.dockerID, "sh"); err != nil {
-		return nil, fmt.Errorf("failed to create Docker container from image %q: %v", ds.dockerID, err)
+	if ds.containerID, err = util.ExecuteCommand("docker", "create", ds.imageID, "sh"); err != nil {
+		return nil, fmt.Errorf("failed to create Docker container from image %q: %v", ds.imageID, err)
 	}
 
-	// Open a tar file stream to be extracted straight into the VM disk image
+	// Open a tar file stream to be extracted straight into the image volume
 	ds.exportCmd = exec.Command("docker", "export", ds.containerID)
 	reader, err := ds.exportCmd.StdoutPipe()
 	if err != nil {
@@ -162,18 +133,6 @@ func (ds *DockerSource) Reader() (io.ReadCloser, error) {
 	}
 
 	return reader, nil
-}
-
-func (ds *DockerSource) DockerImage() string {
-	return ds.dockerImage
-}
-
-func (ds *DockerSource) Size() format.DataSize {
-	return ds.size
-}
-
-func (ds *DockerSource) ID() string {
-	return ds.dockerID
 }
 
 func (ds *DockerSource) Cleanup() error {

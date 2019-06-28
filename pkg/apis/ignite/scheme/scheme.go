@@ -34,6 +34,7 @@ func DecodeFileInto(filePath string, obj runtime.Object) error {
 	if err != nil {
 		return err
 	}
+
 	return DecodeInto(content, obj)
 }
 

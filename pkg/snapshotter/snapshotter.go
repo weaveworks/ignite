@@ -2,7 +2,10 @@ package snapshotter
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
+	"k8s.io/apimachinery/pkg/runtime"
 	"os"
+	"path"
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -13,13 +16,16 @@ import (
 var (
 	dataSize       = v1alpha1.NewSizeFromBytes(constants.POOL_DATA_SIZE_BYTES)           // Size of the common pool
 	allocationSize = v1alpha1.NewSizeFromSectors(constants.POOL_ALLOCATION_SIZE_SECTORS) // Pool allocation block size
-	extraSize      = v1alpha1.NewSizeFromBytes(constants.POOL_VOLUME_EXTRA_SIZE)         // Additional space to add to image volumes for the ext4 partition
 )
 
 // Snapshotter abstracts the device mapper pool and provides convenience methods
 // It's also responsible for (de)serializing the pool
 type Snapshotter struct {
 	*dm.Pool
+	images  []*Image
+	resizes []*Resize
+	kernels []*Kernel
+	vms     []*VM
 }
 
 // NewSnapshotter creates a new snapshotter with a new pool
@@ -29,9 +35,9 @@ func NewSnapshotter() (*Snapshotter, error) {
 	metadataSize := calcMetadataDevSize(dataSize)
 
 	s := &Snapshotter{
-		dm.NewPool(
-			dataSize,
+		Pool: dm.NewPool(
 			metadataSize,
+			dataSize,
 			allocationSize,
 			constants.SNAPSHOTTER_METADATA_PATH,
 			constants.SNAPSHOTTER_DATA_PATH),
@@ -42,6 +48,44 @@ func NewSnapshotter() (*Snapshotter, error) {
 	}
 
 	return s, nil
+}
+
+// TODO: Dependency-based loader, which loads the given device and it's parents recursively
+
+// Loader, which loads the pool and then all devices based on their metadata
+func (s *Snapshotter) Load() error {
+	if err := scheme.DecodeFileInto(path.Join(constants.SNAPSHOTTER_DIR, constants.METADATA), s); err != nil {
+		return err
+	}
+
+	if err := s.ForDevices(func(id v1alpha1.DMID, device *dm.Device) error {
+		var metadata runtime.Object = nil
+
+		if len(device.MetadataPath) > 0 {
+			if err := scheme.DecodeFileInto(device.MetadataPath, metadata); err != nil {
+				return err
+			}
+		}
+
+		switch device.Type {
+		case v1alpha1.PoolDeviceTypeImage:
+			s.images = append(s.images, NewImage(*metadata.(*v1alpha1.Image), device))
+		case v1alpha1.PoolDeviceTypeResize:
+			s.resizes = append(s.resizes, NewResize(device))
+		case v1alpha1.PoolDeviceTypeKernel:
+			s.kernels = append(s.kernels, NewKernel(*metadata.(*v1alpha1.Kernel), device))
+		case v1alpha1.PoolDeviceTypeVM:
+			s.vms = append(s.vms, NewVM(*metadata.(*v1alpha1.VM), device))
+		default:
+			return fmt.Errorf("unknown pool device type: %s", device.Type)
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // initialize creates the snapshotter directory and

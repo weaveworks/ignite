@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"k8s.io/apimachinery/pkg/runtime"
 	"net"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,6 +20,8 @@ type Image struct {
 	Status ImageStatus `json:"status"`
 }
 
+var _ runtime.Object = &Image{}
+
 // ImageSpec declares what the image contains
 type ImageSpec struct {
 	Source ImageSource `json:"source"`
@@ -36,9 +39,8 @@ const (
 type ImageSource struct {
 	// Type defines how the image was imported
 	Type ImageSourceType `json:"type"`
-	// Digest defines the source contents (e.g. the Docker image ID)
-	// See https://github.com/opencontainers/image-spec/blob/master/descriptor.md for more info
-	Digest string `json:"digest"`
+	// ID defines the source's ID (e.g. the Docker image ID)
+	ID string `json:"id"`
 	// Name defines the user-friendly name of the imported source
 	Name string `json:"name"`
 	// Size defines the size of the source in bytes
@@ -87,10 +89,21 @@ type PoolStatus struct {
 	Devices []*PoolDevice `json:"devices"`
 }
 
+type PoolDeviceType string
+
+const (
+	PoolDeviceTypeImage  PoolDeviceType = "Image"
+	PoolDeviceTypeResize PoolDeviceType = "Resize"
+	PoolDeviceTypeKernel PoolDeviceType = "Kernel"
+	PoolDeviceTypeVM     PoolDeviceType = "VM"
+)
+
 // PoolDevice defines one device in the pool
 type PoolDevice struct {
 	Size   Size `json:"size"`
 	Parent DMID `json:"parent"`
+	// Type specifies the type of the contents of the device
+	Type PoolDeviceType `json:"type"`
 	// MetadataPath points to the JSON/YAML file with metadata about this device
 	// This is most often of the format /var/lib/firecracker/{type}/{id}/metadata.json
 	MetadataPath string `json:"metadataPath"`

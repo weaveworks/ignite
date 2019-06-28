@@ -2,6 +2,8 @@ package dm
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/layer"
 	"log"
 	"os/exec"
 	"path"
@@ -23,7 +25,10 @@ type Device struct {
 
 var _ blockDevice = &Device{}
 
-func (p *Pool) CreateVolume(size v1alpha1.Size, metadataPath string) (*Device, error) {
+// Additional space to add to volumes to compensate for the ext4 partition
+var extraSize = v1alpha1.NewSizeFromBytes(constants.POOL_VOLUME_EXTRA_SIZE)
+
+func (p *Pool) CreateVolume(layer layer.Layer) (*Device, error) {
 	// The pool needs to be active for this
 	if err := p.activate(); err != nil {
 		return nil, err
@@ -34,11 +39,14 @@ func (p *Pool) CreateVolume(size v1alpha1.Size, metadataPath string) (*Device, e
 			return nil, err
 		}
 
+		// Assign the volume ID to the layer
+		*layer.ID() = id
+
 		return &Device{
 			PoolDevice: &v1alpha1.PoolDevice{
-				Size:         size,
+				Size:         layer.Size().Add(extraSize),
 				Parent:       nil,
-				MetadataPath: metadataPath,
+				MetadataPath: layer.MetadataPath(),
 			},
 			pool: p,
 			mkfs: true, // This is a new volume, create a new filesystem for it on activation
@@ -50,7 +58,7 @@ func (p *Pool) CreateVolume(size v1alpha1.Size, metadataPath string) (*Device, e
 	}
 }
 
-func (d *Device) CreateSnapshot(size v1alpha1.Size, metadataPath string) (*Device, error) {
+func (d *Device) CreateSnapshot(layer layer.Layer) (*Device, error) {
 	// The device needs to be active for this
 	if err := d.activate(); err != nil {
 		return nil, err
@@ -70,14 +78,18 @@ func (d *Device) CreateSnapshot(size v1alpha1.Size, metadataPath string) (*Devic
 			return nil, err
 		}
 
+		// Assign the snapshot ID to the layer
+		*layer.ID() = id
+
+		// TODO: Prevent snapshots smaller than their parents?
 		return &Device{
 			PoolDevice: &v1alpha1.PoolDevice{
-				Size:         size,
+				Size:         layer.Size(),
 				Parent:       d.pool.getID(d),
-				MetadataPath: metadataPath,
+				MetadataPath: layer.MetadataPath(),
 			},
 			pool:   d.pool,
-			resize: size != d.PoolDevice.Size, // Set the resize flag if the size differs from the parent
+			resize: layer.Size() != d.Size, // Set the resize flag if the size differs from the parent
 		}, nil
 	}); err != nil {
 		return nil, err
@@ -88,7 +100,7 @@ func (d *Device) CreateSnapshot(size v1alpha1.Size, metadataPath string) (*Devic
 
 func (d *Device) activate() error {
 	id := d.pool.getID(d)
-	parent := d.pool.getDevice(d.PoolDevice.Parent)
+	parent := d.pool.GetDevice(d.Parent)
 
 	if parent == nil {
 		// Activate the pool as the base device
@@ -109,7 +121,7 @@ func (d *Device) activate() error {
 	}
 
 	dmTable := fmt.Sprintf("0 %d thin %s %s",
-		d.PoolDevice.Size.Sectors(),
+		d.Size.Sectors(),
 		d.pool.Path(),
 		id,
 	)
