@@ -18,12 +18,12 @@ func main() {
 
 // Run runs the main cobra command of this application
 func Run() error {
-	if len(os.Args) != 1 {
+	if len(os.Args) != 2 {
 		fmt.Printf("Usage: ignite-spawn [VM ID]")
 		os.Exit(0)
 	}
 
-	vmID := os.Args[0]
+	vmID := os.Args[1]
 	opts, err := NewOptions(loader.NewResLoader(), vmID)
 	if err != nil {
 		return err

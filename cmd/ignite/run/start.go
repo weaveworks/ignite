@@ -117,7 +117,12 @@ func Start(so *startOptions) error {
 		return err
 	}
 
-	dockerArgs = append(dockerArgs, fmt.Sprintf("weaveworks/ignite:%s", version.GetFirecracker()))
+	// Use the :dev image tag for non-release builds
+	imageTag := version.GetIgnite().GitVersion
+	if version.GetIgnite().GitTreeState == "dirty" {
+		imageTag = "dev"
+	}
+	dockerArgs = append(dockerArgs, fmt.Sprintf("weaveworks/ignite:%s", imageTag))
 	dockerArgs = append(dockerArgs, so.vm.ID.String())
 
 	// Create the VM container in docker
