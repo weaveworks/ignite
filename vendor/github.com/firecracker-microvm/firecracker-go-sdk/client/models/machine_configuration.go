@@ -34,15 +34,18 @@ type MachineConfiguration struct {
 	CPUTemplate CPUTemplate `json:"cpu_template,omitempty"`
 
 	// Flag for enabling/disabling Hyperthreading
-	HtEnabled bool `json:"ht_enabled,omitempty"`
+	// Required: true
+	HtEnabled *bool `json:"ht_enabled"`
 
 	// Memory size of VM
-	MemSizeMib int64 `json:"mem_size_mib,omitempty"`
+	// Required: true
+	MemSizeMib *int64 `json:"mem_size_mib"`
 
 	// Number of vCPUs (either 1 or an even number)
+	// Required: true
 	// Maximum: 32
 	// Minimum: 1
-	VcpuCount int64 `json:"vcpu_count,omitempty"`
+	VcpuCount *int64 `json:"vcpu_count"`
 }
 
 // Validate validates this machine configuration
@@ -50,6 +53,14 @@ func (m *MachineConfiguration) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateCPUTemplate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateHtEnabled(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMemSizeMib(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -79,17 +90,35 @@ func (m *MachineConfiguration) validateCPUTemplate(formats strfmt.Registry) erro
 	return nil
 }
 
-func (m *MachineConfiguration) validateVcpuCount(formats strfmt.Registry) error {
+func (m *MachineConfiguration) validateHtEnabled(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.VcpuCount) { // not required
-		return nil
-	}
-
-	if err := validate.MinimumInt("vcpu_count", "body", int64(m.VcpuCount), 1, false); err != nil {
+	if err := validate.Required("ht_enabled", "body", m.HtEnabled); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("vcpu_count", "body", int64(m.VcpuCount), 32, false); err != nil {
+	return nil
+}
+
+func (m *MachineConfiguration) validateMemSizeMib(formats strfmt.Registry) error {
+
+	if err := validate.Required("mem_size_mib", "body", m.MemSizeMib); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *MachineConfiguration) validateVcpuCount(formats strfmt.Registry) error {
+
+	if err := validate.Required("vcpu_count", "body", m.VcpuCount); err != nil {
+		return err
+	}
+
+	if err := validate.MinimumInt("vcpu_count", "body", int64(*m.VcpuCount), 1, false); err != nil {
+		return err
+	}
+
+	if err := validate.MaximumInt("vcpu_count", "body", int64(*m.VcpuCount), 32, false); err != nil {
 		return err
 	}
 

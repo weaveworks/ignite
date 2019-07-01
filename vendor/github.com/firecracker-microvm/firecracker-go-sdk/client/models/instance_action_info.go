@@ -34,9 +34,8 @@ type InstanceActionInfo struct {
 
 	// Enumeration indicating what type of action is contained in the payload
 	// Required: true
-	// Read Only: true
 	// Enum: [BlockDeviceRescan FlushMetrics InstanceStart SendCtrlAltDel]
-	ActionType string `json:"action_type"`
+	ActionType *string `json:"action_type"`
 
 	// payload
 	Payload string `json:"payload,omitempty"`
@@ -93,12 +92,12 @@ func (m *InstanceActionInfo) validateActionTypeEnum(path, location string, value
 
 func (m *InstanceActionInfo) validateActionType(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("action_type", "body", string(m.ActionType)); err != nil {
+	if err := validate.Required("action_type", "body", m.ActionType); err != nil {
 		return err
 	}
 
 	// value enum
-	if err := m.validateActionTypeEnum("action_type", "body", m.ActionType); err != nil {
+	if err := m.validateActionTypeEnum("action_type", "body", *m.ActionType); err != nil {
 		return err
 	}
 

@@ -34,19 +34,16 @@ type InstanceInfo struct {
 
 	// MicroVM / instance ID.
 	// Required: true
-	// Read Only: true
-	ID string `json:"id"`
+	ID *string `json:"id"`
 
 	// The current detailed state of the Firecracker instance. This value is read-only for the control-plane.
 	// Required: true
-	// Read Only: true
 	// Enum: [Uninitialized Starting Running Halting Halted]
-	State string `json:"state"`
+	State *string `json:"state"`
 
 	// MicroVM hypervisor build version.
 	// Required: true
-	// Read Only: true
-	VmmVersion string `json:"vmm_version"`
+	VmmVersion *string `json:"vmm_version"`
 }
 
 // Validate validates this instance info
@@ -73,7 +70,7 @@ func (m *InstanceInfo) Validate(formats strfmt.Registry) error {
 
 func (m *InstanceInfo) validateID(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("id", "body", string(m.ID)); err != nil {
+	if err := validate.Required("id", "body", m.ID); err != nil {
 		return err
 	}
 
@@ -120,12 +117,12 @@ func (m *InstanceInfo) validateStateEnum(path, location string, value string) er
 
 func (m *InstanceInfo) validateState(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("state", "body", string(m.State)); err != nil {
+	if err := validate.Required("state", "body", m.State); err != nil {
 		return err
 	}
 
 	// value enum
-	if err := m.validateStateEnum("state", "body", m.State); err != nil {
+	if err := m.validateStateEnum("state", "body", *m.State); err != nil {
 		return err
 	}
 
@@ -134,7 +131,7 @@ func (m *InstanceInfo) validateState(formats strfmt.Registry) error {
 
 func (m *InstanceInfo) validateVmmVersion(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("vmm_version", "body", string(m.VmmVersion)); err != nil {
+	if err := validate.Required("vmm_version", "body", m.VmmVersion); err != nil {
 		return err
 	}
 

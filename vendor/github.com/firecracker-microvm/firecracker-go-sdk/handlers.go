@@ -22,6 +22,7 @@ import (
 const (
 	StartVMMHandlerName                = "fcinit.StartVMM"
 	BootstrapLoggingHandlerName        = "fcinit.BootstrapLogging"
+	CreateLogFilesHandlerName          = "fcinit.CreateLogFilesHandler"
 	CreateMachineHandlerName           = "fcinit.CreateMachine"
 	CreateBootSourceHandlerName        = "fcinit.CreateBootSource"
 	AttachDrivesHandlerName            = "fcinit.AttachDrives"
@@ -107,6 +108,29 @@ var StartVMMHandler = Handler{
 	},
 }
 
+// CreateLogFilesHandler is a named handler that will create the fifo log files
+var CreateLogFilesHandler = Handler{
+	Name: CreateLogFilesHandlerName,
+	Fn: func(ctx context.Context, m *Machine) error {
+		logFifoPath := m.cfg.LogFifo
+		metricsFifoPath := m.cfg.MetricsFifo
+
+		if len(logFifoPath) == 0 || len(metricsFifoPath) == 0 {
+			// logging is disabled
+			return nil
+		}
+
+		if err := createFifos(logFifoPath, metricsFifoPath); err != nil {
+			m.logger.Errorf("Unable to set up logging: %s", err)
+			return err
+		}
+
+		m.logger.Debug("Created metrics and logging fifos.")
+
+		return nil
+	},
+}
+
 // BootstrapLoggingHandler is a named handler that will set up fifo logging of
 // firecracker process.
 var BootstrapLoggingHandler = Handler{
@@ -180,6 +204,7 @@ func NewSetMetadataHandler(metadata interface{}) Handler {
 
 var defaultFcInitHandlerList = HandlerList{}.Append(
 	StartVMMHandler,
+	CreateLogFilesHandler,
 	BootstrapLoggingHandler,
 	CreateMachineHandler,
 	CreateBootSourceHandler,

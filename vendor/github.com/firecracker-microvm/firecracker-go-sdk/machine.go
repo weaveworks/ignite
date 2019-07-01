@@ -106,7 +106,7 @@ func (cfg *Config) Validate() error {
 	}
 
 	if _, err := os.Stat(cfg.KernelImagePath); err != nil {
-		return fmt.Errorf("failed to stat kernal image path, %q: %v", cfg.KernelImagePath, err)
+		return fmt.Errorf("failed to stat kernel image path, %q: %v", cfg.KernelImagePath, err)
 	}
 
 	rootPath := ""
@@ -126,6 +126,17 @@ func (cfg *Config) Validate() error {
 		return fmt.Errorf("socket %s already exists", cfg.SocketPath)
 	}
 
+	if cfg.MachineCfg.VcpuCount == nil ||
+		Int64Value(cfg.MachineCfg.VcpuCount) < 1 {
+		return fmt.Errorf("machine needs a nonzero VcpuCount")
+	}
+	if cfg.MachineCfg.MemSizeMib == nil ||
+		Int64Value(cfg.MachineCfg.MemSizeMib) < 1 {
+		return fmt.Errorf("machine needs a nonzero amount of memory")
+	}
+	if cfg.MachineCfg.HtEnabled == nil {
+		return fmt.Errorf("machine needs a setting for ht_enabled")
+	}
 	return nil
 }
 
@@ -200,14 +211,9 @@ func NewMachine(ctx context.Context, cfg Config, opts ...Opt) (*Machine, error) 
 	m := &Machine{
 		exitCh: make(chan struct{}),
 	}
-	logger := log.New()
-
-	if cfg.Debug {
-		logger.SetLevel(log.DebugLevel)
-	}
 
 	m.Handlers = defaultHandlers
-	m.logger = log.NewEntry(logger)
+
 	if cfg.EnableJailer {
 		m.Handlers.Validation = m.Handlers.Validation.Append(JailerConfigValidationHandler)
 		if err := jail(ctx, m, &cfg); err != nil {
@@ -216,7 +222,7 @@ func NewMachine(ctx context.Context, cfg Config, opts ...Opt) (*Machine, error) 
 	} else {
 		m.Handlers.Validation = m.Handlers.Validation.Append(ConfigValidationHandler)
 		m.cmd = defaultFirecrackerVMMCommandBuilder.
-			WithSocketPath(m.cfg.SocketPath).
+			WithSocketPath(cfg.SocketPath).
 			Build(ctx)
 	}
 
@@ -224,10 +230,20 @@ func NewMachine(ctx context.Context, cfg Config, opts ...Opt) (*Machine, error) 
 		opt(m)
 	}
 
+	if m.logger == nil {
+		logger := log.New()
+		if cfg.Debug {
+			logger.SetLevel(log.DebugLevel)
+		}
+
+		m.logger = log.NewEntry(logger)
+	}
+
 	if m.client == nil {
 		m.client = NewClient(cfg.SocketPath, m.logger, cfg.Debug)
 	}
 
+	m.machineConfig = cfg.MachineCfg
 	m.cfg = cfg
 
 	m.logger.Debug("Called NewMachine()")
@@ -332,6 +348,11 @@ func (m *Machine) startVMM(ctx context.Context) error {
 		os.Remove(m.cfg.LogFifo)
 		os.Remove(m.cfg.MetricsFifo)
 		errCh <- err
+
+		// Notify subscribers that there will be no more values.
+		// When err is nil, two reads are performed (waitForSocket and close exitCh goroutine),
+		// second one never ends as it tries to read from empty channel.
+		close(errCh)
 	}()
 
 	// Set up a signal handler and pass INT, QUIT, and TERM through to firecracker
@@ -357,8 +378,13 @@ func (m *Machine) startVMM(ctx context.Context) error {
 		return err
 	}
 	go func() {
-		err := <-errCh
-		m.err = err
+		select {
+		case <-ctx.Done():
+			m.err = ctx.Err()
+		case err := <-errCh:
+			m.err = err
+		}
+
 		close(m.exitCh)
 	}()
 
@@ -402,13 +428,6 @@ func (m *Machine) setupLogging(ctx context.Context) error {
 		m.logger.Printf("VMM logging and metrics disabled.")
 		return nil
 	}
-
-	if err := createFifos(m.cfg.LogFifo, m.cfg.MetricsFifo); err != nil {
-		m.logger.Errorf("Unable to set up logging: %s", err)
-		return err
-	}
-
-	m.logger.Debug("Created metrics and logging fifos.")
 
 	l := models.Logger{
 		LogFifo:       String(m.cfg.LogFifo),
@@ -475,9 +494,9 @@ func (m *Machine) createMachine(ctx context.Context) error {
 	}
 
 	m.logger.Debug("PutMachineConfiguration returned")
-	err = m.refreshMachineConfig()
+	err = m.refreshMachineConfiguration()
 	if err != nil {
-		log.Errorf("Unable to inspect Firecracker MachineConfig. Continuing anyway. %s", err)
+		log.Errorf("Unable to inspect Firecracker MachineConfiguration. Continuing anyway. %s", err)
 	}
 	m.logger.Debug("createMachine returning")
 	return err
@@ -561,8 +580,9 @@ func (m *Machine) addVsock(ctx context.Context, dev VsockDevice) error {
 }
 
 func (m *Machine) startInstance(ctx context.Context) error {
+	action := models.InstanceActionInfoActionTypeInstanceStart
 	info := models.InstanceActionInfo{
-		ActionType: models.InstanceActionInfoActionTypeInstanceStart,
+		ActionType: &action,
 	}
 
 	resp, err := m.client.CreateSyncAction(ctx, &info)
@@ -575,8 +595,9 @@ func (m *Machine) startInstance(ctx context.Context) error {
 }
 
 func (m *Machine) sendCtrlAltDel(ctx context.Context) error {
+	action := models.InstanceActionInfoActionTypeSendCtrlAltDel
 	info := models.InstanceActionInfo{
-		ActionType: models.InstanceActionInfoActionTypeSendCtrlAltDel,
+		ActionType: &action,
 	}
 
 	resp, err := m.client.CreateSyncAction(ctx, &info)
@@ -586,11 +607,6 @@ func (m *Machine) sendCtrlAltDel(ctx context.Context) error {
 		m.logger.Errorf("Unable to send CtrlAltDel: %s", err)
 	}
 	return err
-}
-
-// EnableMetadata will append or replace the metadata handler.
-func (m *Machine) EnableMetadata(metadata interface{}) {
-	m.Handlers.FcInit = m.Handlers.FcInit.Swappend(NewSetMetadataHandler(metadata))
 }
 
 // SetMetadata sets the machine's metadata for MDDS
@@ -616,15 +632,15 @@ func (m *Machine) UpdateGuestDrive(ctx context.Context, driveID, pathOnHost stri
 	return nil
 }
 
-// refreshMachineConfig synchronizes our cached representation of the machine configuration
+// refreshMachineConfiguration synchronizes our cached representation of the machine configuration
 // with that reported by the Firecracker API
-func (m *Machine) refreshMachineConfig() error {
-	resp, err := m.client.GetMachineConfig()
+func (m *Machine) refreshMachineConfiguration() error {
+	resp, err := m.client.GetMachineConfiguration()
 	if err != nil {
 		return err
 	}
 
-	m.logger.Infof("refreshMachineConfig: %s", resp.Error())
+	m.logger.Infof("refreshMachineConfiguration: %s", resp.Error())
 	m.machineConfig = *resp.Payload
 	return nil
 }
@@ -648,7 +664,7 @@ func (m *Machine) waitForSocket(timeout time.Duration, exitchan chan error) erro
 			}
 
 			// Send test HTTP request to make sure socket is available
-			if _, err := m.client.GetMachineConfig(); err != nil {
+			if _, err := m.client.GetMachineConfiguration(); err != nil {
 				continue
 			}
 

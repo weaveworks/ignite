@@ -4,7 +4,7 @@ info:
   description: RESTful public-facing API.
                The API is accessible through HTTP calls on specific URLs carrying JSON modeled data.
                The transport medium is a Unix Domain Socket.
-  version: 0.15.0
+  version: 0.17.0
   termsOfService: ""
   contact:
     email: "compute-capsule@amazon.com"
@@ -210,6 +210,7 @@ paths:
         Gets the machine configuration of the VM. When called before the PUT operation, it
         will return the default values for the vCPU count (=1), memory size (=128 MiB).
         By default Hyperthreading is disabled and there is no CPU Template.
+      operationId: getMachineConfiguration
       responses:
         200:
           description: OK
@@ -233,6 +234,30 @@ paths:
       - name: body
         in: body
         description: Machine Configuration Parameters
+        schema:
+          $ref: "#/definitions/MachineConfiguration"
+      responses:
+        204:
+          description: Machine Configuration created/updated
+        400:
+          description: Machine Configuration cannot be updated due to bad input
+          schema:
+            $ref: "#/definitions/Error"
+        default:
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/Error"
+
+    patch:
+      summary: Partially updates the Machine Configuration of the VM.
+      description:
+        Partially updates the Virtual Machine Configuration with the specified input.
+        If any of the parameters has an incorrect value, the whole update fails.
+      operationId: patchMachineConfiguration
+      parameters:
+      - name: body
+        in: body
+        description: A subset of Machine Configuration Parameters
         schema:
           $ref: "#/definitions/MachineConfiguration"
       responses:
@@ -428,7 +453,6 @@ definitions:
       action_type:
         description: Enumeration indicating what type of action is contained in the payload
         type: string
-        readOnly: true
         enum:
         - BlockDeviceRescan
         - FlushMetrics
@@ -449,13 +473,11 @@ definitions:
       id:
         description: MicroVM / instance ID.
         type: string
-        readOnly: true
       state:
         description:
           The current detailed state of the Firecracker instance.
           This value is read-only for the control-plane.
         type: string
-        readOnly: true
         enum:
           - Uninitialized
           - Starting
@@ -465,7 +487,6 @@ definitions:
       vmm_version:
         description: MicroVM hypervisor build version.
         type: string
-        readOnly: true
 
   Logger:
     type: object
@@ -506,6 +527,10 @@ definitions:
     description:
       Describes the number of vCPUs, memory size, Hyperthreading capabilities and
       the CPU template.
+    required:
+      - vcpu_count
+      - mem_size_mib
+      - ht_enabled
     properties:
       vcpu_count:
         type: integer
@@ -619,7 +644,6 @@ definitions:
         format: int64
         description: The amount of milliseconds it takes for the bucket to refill.
         minimum: 0
-
   Vsock:
     type: object
     required:

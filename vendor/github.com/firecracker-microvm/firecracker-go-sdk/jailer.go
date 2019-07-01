@@ -89,6 +89,13 @@ type JailerConfig struct {
 
 	// ChrootStrategy will dictate how files are transfered to the root drive.
 	ChrootStrategy HandlersAdapter
+
+	// Stdout specifies the IO writer for STDOUT to use when spawning the jailer.
+	Stdout io.Writer
+	// Stderr specifies the IO writer for STDERR to use when spawning the jailer.
+	Stderr io.Writer
+	// Stdin specifies the IO reader for STDIN to use when spawning the jailer.
+	Stdin io.Reader
 }
 
 // JailerCommandBuilder will build a jailer command. This can be used to
@@ -283,15 +290,26 @@ func (b JailerCommandBuilder) Build(ctx context.Context) *exec.Cmd {
 // Jail will set up proper handlers and remove configuration validation due to
 // stating of files
 func jail(ctx context.Context, m *Machine, cfg *Config) error {
-	rootfs := ""
+	jailerWorkspaceDir := ""
 	if len(cfg.JailerCfg.ChrootBaseDir) > 0 {
-		rootfs = filepath.Join(cfg.JailerCfg.ChrootBaseDir, "firecracker", cfg.JailerCfg.ID)
+		jailerWorkspaceDir = filepath.Join(cfg.JailerCfg.ChrootBaseDir, "firecracker", cfg.JailerCfg.ID, rootfsFolderName)
 	} else {
-		rootfs = filepath.Join(defaultJailerPath, cfg.JailerCfg.ID)
+		jailerWorkspaceDir = filepath.Join(defaultJailerPath, cfg.JailerCfg.ID, rootfsFolderName)
 	}
 
-	cfg.SocketPath = filepath.Join(rootfs, "api.socket")
-	m.cmd = NewJailerCommandBuilder().
+	cfg.SocketPath = filepath.Join(jailerWorkspaceDir, "api.socket")
+
+	stdout := cfg.JailerCfg.Stdout
+	if stdout == nil {
+		stdout = os.Stdout
+	}
+
+	stderr := cfg.JailerCfg.Stderr
+	if stderr == nil {
+		stderr = os.Stderr
+	}
+
+	builder := NewJailerCommandBuilder().
 		WithID(cfg.JailerCfg.ID).
 		WithUID(*cfg.JailerCfg.UID).
 		WithGID(*cfg.JailerCfg.GID).
@@ -300,9 +318,14 @@ func jail(ctx context.Context, m *Machine, cfg *Config) error {
 		WithChrootBaseDir(cfg.JailerCfg.ChrootBaseDir).
 		WithDaemonize(cfg.JailerCfg.Daemonize).
 		WithSeccompLevel(cfg.JailerCfg.SeccompLevel).
-		WithStdout(os.Stdout).
-		WithStderr(os.Stderr).
-		Build(ctx)
+		WithStdout(stdout).
+		WithStderr(stderr)
+
+	if stdin := cfg.JailerCfg.Stdin; stdin != nil {
+		builder = builder.WithStdin(stdin)
+	}
+
+	m.cmd = builder.Build(ctx)
 
 	if err := cfg.JailerCfg.ChrootStrategy.AdaptHandlers(&m.Handlers); err != nil {
 		return err
@@ -351,6 +374,29 @@ func LinkFilesHandler(rootfs, kernelImageFileName string) Handler {
 			}
 
 			m.cfg.KernelImagePath = kernelImageFileName
+
+			for _, fifoPath := range []*string{&m.cfg.LogFifo, &m.cfg.MetricsFifo} {
+				if fifoPath == nil || *fifoPath == "" {
+					continue
+				}
+
+				fileName := filepath.Base(*fifoPath)
+				if err := linkFileToRootFS(
+					m.cfg.JailerCfg,
+					filepath.Join(rootfs, fileName),
+					*fifoPath,
+				); err != nil {
+					return err
+				}
+
+				if err := os.Chown(filepath.Join(rootfs, fileName), *m.cfg.JailerCfg.UID, *m.cfg.JailerCfg.GID); err != nil {
+					return err
+				}
+
+				// update fifoPath as jailer works relative to the chroot dir
+				*fifoPath = fileName
+			}
+
 			return nil
 		},
 	}
@@ -371,18 +417,18 @@ func NewNaiveChrootStrategy(rootfs, kernelImagePath string) NaiveChrootStrategy 
 	}
 }
 
-// ErrCreateMachineHandlerMissing occurs when the CreateMachineHandler is not
-// present in FcInit.
-var ErrCreateMachineHandlerMissing = fmt.Errorf("%s is missing from FcInit's list", CreateMachineHandlerName)
+// ErrRequiredHandlerMissing occurs when a required handler is not present in
+// the handler list.
+var ErrRequiredHandlerMissing = fmt.Errorf("required handler is missing from FcInit's list")
 
 // AdaptHandlers will inject the LinkFilesHandler into the handler list.
 func (s NaiveChrootStrategy) AdaptHandlers(handlers *Handlers) error {
-	if !handlers.FcInit.Has(CreateMachineHandlerName) {
-		return ErrCreateMachineHandlerMissing
+	if !handlers.FcInit.Has(CreateLogFilesHandlerName) {
+		return ErrRequiredHandlerMissing
 	}
 
 	handlers.FcInit = handlers.FcInit.AppendAfter(
-		CreateMachineHandlerName,
+		CreateLogFilesHandlerName,
 		LinkFilesHandler(filepath.Join(s.Rootfs, rootfsFolderName), filepath.Base(s.KernelImagePath)),
 	)
 

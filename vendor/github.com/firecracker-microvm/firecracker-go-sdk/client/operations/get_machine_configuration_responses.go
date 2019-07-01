@@ -29,24 +29,24 @@ import (
 	client_models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
-// GetMachineConfigReader is a Reader for the GetMachineConfig structure.
-type GetMachineConfigReader struct {
+// GetMachineConfigurationReader is a Reader for the GetMachineConfiguration structure.
+type GetMachineConfigurationReader struct {
 	formats strfmt.Registry
 }
 
 // ReadResponse reads a server response into the received o.
-func (o *GetMachineConfigReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
+func (o *GetMachineConfigurationReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
 	switch response.Code() {
 
 	case 200:
-		result := NewGetMachineConfigOK()
+		result := NewGetMachineConfigurationOK()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
 		return result, nil
 
 	default:
-		result := NewGetMachineConfigDefault(response.Code())
+		result := NewGetMachineConfigurationDefault(response.Code())
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
@@ -57,24 +57,24 @@ func (o *GetMachineConfigReader) ReadResponse(response runtime.ClientResponse, c
 	}
 }
 
-// NewGetMachineConfigOK creates a GetMachineConfigOK with default headers values
-func NewGetMachineConfigOK() *GetMachineConfigOK {
-	return &GetMachineConfigOK{}
+// NewGetMachineConfigurationOK creates a GetMachineConfigurationOK with default headers values
+func NewGetMachineConfigurationOK() *GetMachineConfigurationOK {
+	return &GetMachineConfigurationOK{}
 }
 
-/*GetMachineConfigOK handles this case with default header values.
+/*GetMachineConfigurationOK handles this case with default header values.
 
 OK
 */
-type GetMachineConfigOK struct {
+type GetMachineConfigurationOK struct {
 	Payload *client_models.MachineConfiguration
 }
 
-func (o *GetMachineConfigOK) Error() string {
-	return fmt.Sprintf("[GET /machine-config][%d] getMachineConfigOK  %+v", 200, o.Payload)
+func (o *GetMachineConfigurationOK) Error() string {
+	return fmt.Sprintf("[GET /machine-config][%d] getMachineConfigurationOK  %+v", 200, o.Payload)
 }
 
-func (o *GetMachineConfigOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+func (o *GetMachineConfigurationOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(client_models.MachineConfiguration)
 
@@ -86,33 +86,33 @@ func (o *GetMachineConfigOK) readResponse(response runtime.ClientResponse, consu
 	return nil
 }
 
-// NewGetMachineConfigDefault creates a GetMachineConfigDefault with default headers values
-func NewGetMachineConfigDefault(code int) *GetMachineConfigDefault {
-	return &GetMachineConfigDefault{
+// NewGetMachineConfigurationDefault creates a GetMachineConfigurationDefault with default headers values
+func NewGetMachineConfigurationDefault(code int) *GetMachineConfigurationDefault {
+	return &GetMachineConfigurationDefault{
 		_statusCode: code,
 	}
 }
 
-/*GetMachineConfigDefault handles this case with default header values.
+/*GetMachineConfigurationDefault handles this case with default header values.
 
 Internal server error
 */
-type GetMachineConfigDefault struct {
+type GetMachineConfigurationDefault struct {
 	_statusCode int
 
 	Payload *client_models.Error
 }
 
-// Code gets the status code for the get machine config default response
-func (o *GetMachineConfigDefault) Code() int {
+// Code gets the status code for the get machine configuration default response
+func (o *GetMachineConfigurationDefault) Code() int {
 	return o._statusCode
 }
 
-func (o *GetMachineConfigDefault) Error() string {
-	return fmt.Sprintf("[GET /machine-config][%d] GetMachineConfig default  %+v", o._statusCode, o.Payload)
+func (o *GetMachineConfigurationDefault) Error() string {
+	return fmt.Sprintf("[GET /machine-config][%d] getMachineConfiguration default  %+v", o._statusCode, o.Payload)
 }
 
-func (o *GetMachineConfigDefault) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+func (o *GetMachineConfigurationDefault) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(client_models.Error)
 

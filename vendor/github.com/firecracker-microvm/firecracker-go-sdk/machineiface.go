@@ -13,5 +13,20 @@
 
 package firecracker
 
-// Version represents the current version of the SDK.
-const Version = "0.17.0"
+import (
+	"context"
+)
+
+// This ensures the interface method signatures match that of Machine
+var _ MachineIface = (*Machine)(nil)
+
+// MachineIface can be used for mocking and testing of the Machine. The Machine
+// is subject to change, meaning this interface would change.
+type MachineIface interface {
+	Start(context.Context) error
+	StopVMM() error
+	Shutdown(context.Context) error
+	Wait(context.Context) error
+	SetMetadata(context.Context, interface{}) error
+	UpdateGuestDrive(context.Context, string, string, ...PatchGuestDriveByIDOpt) error
+}

@@ -21,7 +21,7 @@ func waitForAliveVMM(ctx context.Context, client *Client) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-t.C:
-			if _, err := client.GetMachineConfig(); err == nil {
+			if _, err := client.GetMachineConfiguration(); err == nil {
 				return nil
 			}
 		}

@@ -213,20 +213,20 @@ func (f *Client) PutMmds(ctx context.Context, metadata interface{}, opts ...PutM
 	return f.client.Operations.PutMmds(params)
 }
 
-// GetMachineConfigOpt  is a functional option to be used for the
-// GetMachineConfig API in setting any additional optional fields.
-type GetMachineConfigOpt func(*ops.GetMachineConfigParams)
+// GetMachineConfigurationOpt  is a functional option to be used for the
+// GetMachineConfiguration API in setting any additional optional fields.
+type GetMachineConfigurationOpt func(*ops.GetMachineConfigurationParams)
 
-// GetMachineConfig is a wrapper for the swagger generated client to make
+// GetMachineConfiguration is a wrapper for the swagger generated client to make
 // calling of the API easier.
-func (f *Client) GetMachineConfig(opts ...GetMachineConfigOpt) (*ops.GetMachineConfigOK, error) {
-	p := ops.NewGetMachineConfigParams()
+func (f *Client) GetMachineConfiguration(opts ...GetMachineConfigurationOpt) (*ops.GetMachineConfigurationOK, error) {
+	p := ops.NewGetMachineConfigurationParams()
 	p.SetTimeout(firecrackerRequestTimeout)
 	for _, opt := range opts {
 		opt(p)
 	}
 
-	return f.client.Operations.GetMachineConfig(p)
+	return f.client.Operations.GetMachineConfiguration(p)
 }
 
 // PatchGuestDriveByIDOpt is a functional option to be used for the PutMmds API in setting

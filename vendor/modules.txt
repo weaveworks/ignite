@@ -48,7 +48,7 @@ github.com/docker/go-connections/sockets
 github.com/docker/go-connections/tlsconfig
 # github.com/docker/go-units v0.3.3
 github.com/docker/go-units
-# github.com/firecracker-microvm/firecracker-go-sdk v0.15.1
+# github.com/firecracker-microvm/firecracker-go-sdk v0.15.2-0.20190627223500-b2e8284e890c
 github.com/firecracker-microvm/firecracker-go-sdk
 github.com/firecracker-microvm/firecracker-go-sdk/client/models
 github.com/firecracker-microvm/firecracker-go-sdk/client

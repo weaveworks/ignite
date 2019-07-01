@@ -46,36 +46,6 @@ func NewClient(transport runtime.ClientTransport, formats strfmt.Registry) *Clie
 }
 
 /*
-GetMachineConfig gets the machine configuration of the VM
-
-Gets the machine configuration of the VM. When called before the PUT operation, it will return the default values for the vCPU count (=1), memory size (=128 MiB). By default Hyperthreading is disabled and there is no CPU Template.
-*/
-func (a *Client) GetMachineConfig(params *GetMachineConfigParams) (*GetMachineConfigOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewGetMachineConfigParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "GetMachineConfig",
-		Method:             "GET",
-		PathPattern:        "/machine-config",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &GetMachineConfigReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*GetMachineConfigOK), nil
-
-}
-
-/*
 GetMmds gets the m m d s data store
 */
 func (a *Client) GetMmds(params *GetMmdsParams) (*GetMmdsOK, error) {
@@ -216,6 +186,36 @@ func (a *Client) DescribeInstance(params *DescribeInstanceParams) (*DescribeInst
 }
 
 /*
+GetMachineConfiguration gets the machine configuration of the VM
+
+Gets the machine configuration of the VM. When called before the PUT operation, it will return the default values for the vCPU count (=1), memory size (=128 MiB). By default Hyperthreading is disabled and there is no CPU Template.
+*/
+func (a *Client) GetMachineConfiguration(params *GetMachineConfigurationParams) (*GetMachineConfigurationOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewGetMachineConfigurationParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "getMachineConfiguration",
+		Method:             "GET",
+		PathPattern:        "/machine-config",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http"},
+		Params:             params,
+		Reader:             &GetMachineConfigurationReader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*GetMachineConfigurationOK), nil
+
+}
+
+/*
 PatchGuestDriveByID updates the properties of a drive
 
 Updates the properties of the drive with the ID specified by drive_id path parameter. Will fail if update is not possible.
@@ -272,6 +272,36 @@ func (a *Client) PatchGuestNetworkInterfaceByID(params *PatchGuestNetworkInterfa
 		return nil, err
 	}
 	return result.(*PatchGuestNetworkInterfaceByIDNoContent), nil
+
+}
+
+/*
+PatchMachineConfiguration partiallies updates the machine configuration of the VM
+
+Partially updates the Virtual Machine Configuration with the specified input. If any of the parameters has an incorrect value, the whole update fails.
+*/
+func (a *Client) PatchMachineConfiguration(params *PatchMachineConfigurationParams) (*PatchMachineConfigurationNoContent, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewPatchMachineConfigurationParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "patchMachineConfiguration",
+		Method:             "PATCH",
+		PathPattern:        "/machine-config",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http"},
+		Params:             params,
+		Reader:             &PatchMachineConfigurationReader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*PatchMachineConfigurationNoContent), nil
 
 }
 
@@ -467,14 +497,15 @@ func (a *Client) SetTransport(transport runtime.ClientTransport) {
 // ClientIface is an interface that can be used to mock out a Firecracker agent
 // for testing purposes.
 type ClientIface interface {
-	GetMachineConfig(params *GetMachineConfigParams) (*GetMachineConfigOK, error)
 	GetMmds(params *GetMmdsParams) (*GetMmdsOK, error)
 	PatchMmds(params *PatchMmdsParams) (*PatchMmdsNoContent, error)
 	PutMmds(params *PutMmdsParams) (*PutMmdsNoContent, error)
 	CreateSyncAction(params *CreateSyncActionParams) (*CreateSyncActionNoContent, error)
 	DescribeInstance(params *DescribeInstanceParams) (*DescribeInstanceOK, error)
+	GetMachineConfiguration(params *GetMachineConfigurationParams) (*GetMachineConfigurationOK, error)
 	PatchGuestDriveByID(params *PatchGuestDriveByIDParams) (*PatchGuestDriveByIDNoContent, error)
 	PatchGuestNetworkInterfaceByID(params *PatchGuestNetworkInterfaceByIDParams) (*PatchGuestNetworkInterfaceByIDNoContent, error)
+	PatchMachineConfiguration(params *PatchMachineConfigurationParams) (*PatchMachineConfigurationNoContent, error)
 	PutGuestBootSource(params *PutGuestBootSourceParams) (*PutGuestBootSourceNoContent, error)
 	PutGuestDriveByID(params *PutGuestDriveByIDParams) (*PutGuestDriveByIDNoContent, error)
 	PutGuestNetworkInterfaceByID(params *PutGuestNetworkInterfaceByIDParams) (*PutGuestNetworkInterfaceByIDNoContent, error)
