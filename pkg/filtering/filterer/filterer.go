@@ -1,29 +1,29 @@
-package filter
+package filterer
 
 import (
-	"github.com/weaveworks/ignite/pkg/metadata"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 )
 
 type filterer struct {
-	filter  metadata.Filter
-	sources []metadata.AnyMetadata
+	filter  Filter
+	sources []v1alpha1.Object
 }
 
-func NewFilterer(filter metadata.Filter, sources []metadata.AnyMetadata) (*filterer, error) {
+func NewFilterer(filter Filter, sources []v1alpha1.Object) (*filterer, error) {
 	return &filterer{
 		filter:  filter,
 		sources: sources,
 	}, nil
 }
 
-func (f *filterer) match() []*metadata.Match {
-	var matches []*metadata.Match
+func (f *filterer) match() []*Match {
+	var matches []*Match
 
 	for _, object := range f.sources {
 		strings := f.filter.Filter(object)
 
 		if len(strings) > 0 {
-			matches = append(matches, &metadata.Match{
+			matches = append(matches, &Match{
 				Object:  object,
 				Strings: strings,
 			})
@@ -33,7 +33,7 @@ func (f *filterer) match() []*metadata.Match {
 	return matches
 }
 
-func (f *filterer) Single() (metadata.AnyMetadata, error) {
+func (f *filterer) Single() (v1alpha1.Object, error) {
 	matches := f.match()
 
 	if len(matches) == 0 {
@@ -47,10 +47,10 @@ func (f *filterer) Single() (metadata.AnyMetadata, error) {
 	return matches[0].Object, nil
 }
 
-func (f *filterer) All() []metadata.AnyMetadata {
+func (f *filterer) All() []v1alpha1.Object {
 	matches := f.match()
 
-	objects := make([]metadata.AnyMetadata, 0, len(matches))
+	objects := make([]v1alpha1.Object, 0, len(matches))
 	for _, match := range matches {
 		objects = append(objects, match.Object)
 	}

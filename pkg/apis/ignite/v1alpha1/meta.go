@@ -15,12 +15,19 @@ type ObjectMeta struct {
 	UID  types.UID `json:"uid"`
 }
 
-func (om *ObjectMeta) GetName() string {
-	return om.Name
+func (o *ObjectMeta) GetName() string {
+	return o.Name
 }
 
-func (om *ObjectMeta) GetUID() types.UID {
-	return om.UID
+func (o *ObjectMeta) GetUID() types.UID {
+	return o.UID
+}
+
+// All types implementing Object conform to this
+// interface, it's mainly used for filtering
+type Object interface {
+	GetName() string
+	GetUID() types.UID
 }
 
 // TODO: We should maybe move this to a metav1 package once we're happy with this

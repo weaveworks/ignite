@@ -2,10 +2,12 @@ package run
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/metadata"
+	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/snapshotter"
 	"path"
 	"strings"
-
-	"github.com/weaveworks/ignite/pkg/format"
 
 	"github.com/weaveworks/ignite/pkg/source"
 
@@ -14,9 +16,6 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/metadata"
-	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -72,12 +71,11 @@ type CreateFlags struct {
 
 type createOptions struct {
 	*CreateFlags
-	image        *imgmd.ImageMetadata
-	kernel       source.Source
-	allVMs       []metadata.AnyMetadata
-	newVM        *vmmd.VMMetadata
-	size         format.DataSize
-	memory       format.DataSize
+	image        *snapshotter.Image
+	kernel       *v1alpha1.ImageSource
+	newVM        *snapshotter.VM
+	size         v1alpha1.Size
+	memory       v1alpha1.Size
 	fileMappings map[string]string
 }
 
@@ -97,15 +95,8 @@ func (cf *CreateFlags) NewCreateOptions(l *runutil.ResLoader, imageMatch string)
 		co.KernelName = constants.DEFAULT_KERNEL
 	}
 
-	co.kernel, err = source.NewDockerSource(cf.KernelName)
-	if err != nil {
-		return nil, err
-	}
-
-	if allVMs, err := l.VMs(); err == nil {
-		co.allVMs = *allVMs
-	} else {
-		return nil, err
+	co.kernel = &v1alpha1.ImageSource{
+		Name: co.KernelName,
 	}
 
 	// Parse the given overlay size
