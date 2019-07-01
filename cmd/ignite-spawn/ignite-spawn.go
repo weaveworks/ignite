@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/weaveworks/ignite/pkg/container"
+	"github.com/weaveworks/ignite/pkg/container/prometheus"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
@@ -42,6 +44,10 @@ func StartVM(co *options) error {
 	if err := container.StartDHCPServers(co.vm, dhcpIfaces); err != nil {
 		return err
 	}
+
+	// Serve metrics over an unix socket in the VM's own directory
+	metricsSocket := path.Join(co.vm.ObjectPath(), "prometheus.sock")
+	go prometheus.ServeMetrics(metricsSocket)
 
 	// VM state handling
 	if err := co.vm.SetState(vmmd.Running); err != nil {
