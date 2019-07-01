@@ -1,6 +1,6 @@
 UID_GID?=$(shell id -u):$(shell id -g)
 FIRECRACKER_VERSION:=$(shell cat hack/FIRECRACKER_VERSION)
-GO_VERSION=1.12
+GO_VERSION=1.12.6
 DOCKER_USER=weaveworks
 IMAGE_DEV_TAG=dev
 GIT_VERSION:=$(shell hack/ldflags.sh --version-only)
