@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/containerruntime/docker"
@@ -38,7 +38,7 @@ type startOptions struct {
 	*attachOptions
 }
 
-func (sf *StartFlags) NewStartOptions(l *runutil.ResLoader, vmMatch string) (*startOptions, error) {
+func (sf *StartFlags) NewStartOptions(l *loader.ResLoader, vmMatch string) (*startOptions, error) {
 	ao, err := NewAttachOptions(l, vmMatch)
 	if err != nil {
 		return nil, err

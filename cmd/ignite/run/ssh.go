@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
@@ -20,7 +20,7 @@ type sshOptions struct {
 	vm *vmmd.VMMetadata
 }
 
-func (sf *SSHFlags) NewSSHOptions(l *runutil.ResLoader, vmMatch string) (*sshOptions, error) {
+func (sf *SSHFlags) NewSSHOptions(l *loader.ResLoader, vmMatch string) (*sshOptions, error) {
 	so := &sshOptions{SSHFlags: sf}
 
 	if allVMs, err := l.VMs(); err == nil {

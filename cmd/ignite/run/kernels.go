@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/c2h5oh/datasize"
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -13,7 +13,7 @@ type kernelsOptions struct {
 	allKernels []*kernmd.KernelMetadata
 }
 
-func NewKernelsOptions(l *runutil.ResLoader) (*kernelsOptions, error) {
+func NewKernelsOptions(l *loader.ResLoader) (*kernelsOptions, error) {
 	io := &kernelsOptions{}
 
 	if allKernels, err := l.Kernels(); err == nil {

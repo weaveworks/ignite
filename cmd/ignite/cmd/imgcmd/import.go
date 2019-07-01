@@ -3,7 +3,7 @@ package imgcmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/lithammer/dedent"
 
@@ -37,7 +37,7 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				i, err := ifs.NewImportOptions(runutil.NewResLoader(), args[0])
+				i, err := ifs.NewImportOptions(loader.NewResLoader(), args[0])
 				if err != nil {
 					return err
 				}

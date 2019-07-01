@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
@@ -20,7 +20,7 @@ type rmiOptions struct {
 	allVMs []*vmmd.VMMetadata
 }
 
-func (rf *RmiFlags) NewRmiOptions(l *runutil.ResLoader, imageMatches []string) (*rmiOptions, error) {
+func (rf *RmiFlags) NewRmiOptions(l *loader.ResLoader, imageMatches []string) (*rmiOptions, error) {
 	ro := &rmiOptions{RmiFlags: rf}
 
 	if allImages, err := l.Images(); err == nil {

@@ -78,7 +78,6 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 
 	root.AddCommand(NewCmdAttach(os.Stdout))
 	root.AddCommand(NewCmdCompletion(os.Stdout, root))
-	root.AddCommand(NewCmdContainer(os.Stdout))
 	root.AddCommand(NewCmdCreate(os.Stdout))
 	root.AddCommand(NewCmdKill(os.Stdout))
 	root.AddCommand(NewCmdLogs(os.Stdout))

@@ -3,7 +3,7 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
@@ -20,7 +20,7 @@ type importKernelOptions struct {
 	allKernels []metadata.AnyMetadata
 }
 
-func (i *ImportKernelFlags) NewImportKernelOptions(l *runutil.ResLoader) (*importKernelOptions, error) {
+func (i *ImportKernelFlags) NewImportKernelOptions(l *loader.ResLoader) (*importKernelOptions, error) {
 	io := &importKernelOptions{ImportKernelFlags: i}
 
 	if allKernels, err := l.Kernels(); err == nil {

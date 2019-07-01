@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/lithammer/dedent"
 
@@ -29,7 +29,7 @@ func NewCmdSSH(out io.Writer) *cobra.Command {
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				so, err := sf.NewSSHOptions(runutil.NewResLoader(), args[0])
+				so, err := sf.NewSSHOptions(loader.NewResLoader(), args[0])
 				if err != nil {
 					return err
 				}

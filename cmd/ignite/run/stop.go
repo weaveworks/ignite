@@ -3,7 +3,7 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -24,7 +24,7 @@ type stopOptions struct {
 	silent bool
 }
 
-func (sf *StopFlags) NewStopOptions(l *runutil.ResLoader, vmMatches []string) (*stopOptions, error) {
+func (sf *StopFlags) NewStopOptions(l *loader.ResLoader, vmMatches []string) (*stopOptions, error) {
 	so := &stopOptions{StopFlags: sf}
 
 	if allVMs, err := l.VMs(); err == nil {

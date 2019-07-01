@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
@@ -20,7 +20,7 @@ type rmkOptions struct {
 	allVMs  []*vmmd.VMMetadata
 }
 
-func (rf *RmkFlags) NewRmkOptions(l *runutil.ResLoader, kernelMatches []string) (*rmkOptions, error) {
+func (rf *RmkFlags) NewRmkOptions(l *loader.ResLoader, kernelMatches []string) (*rmkOptions, error) {
 	ro := &rmkOptions{RmkFlags: rf}
 
 	if allKernels, err := l.Kernels(); err == nil {

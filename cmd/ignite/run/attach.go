@@ -3,7 +3,7 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
@@ -17,7 +17,7 @@ type attachOptions struct {
 	vm           *vmmd.VMMetadata
 }
 
-func NewAttachOptions(l *runutil.ResLoader, vmMatch string) (*attachOptions, error) {
+func NewAttachOptions(l *loader.ResLoader, vmMatch string) (*attachOptions, error) {
 	ao := &attachOptions{checkRunning: true}
 
 	if allVMs, err := l.VMs(); err == nil {

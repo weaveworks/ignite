@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/c2h5oh/datasize"
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -13,7 +13,7 @@ type imagesOptions struct {
 	allImages []*imgmd.ImageMetadata
 }
 
-func NewImagesOptions(l *runutil.ResLoader) (*imagesOptions, error) {
+func NewImagesOptions(l *loader.ResLoader) (*imagesOptions, error) {
 	io := &imagesOptions{}
 
 	if allImages, err := l.Images(); err == nil {

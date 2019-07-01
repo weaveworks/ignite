@@ -3,7 +3,7 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
@@ -17,7 +17,7 @@ type rmOptions struct {
 	vms []*vmmd.VMMetadata
 }
 
-func (rf *RmFlags) NewRmOptions(l *runutil.ResLoader, vmMatches []string) (*rmOptions, error) {
+func (rf *RmFlags) NewRmOptions(l *loader.ResLoader, vmMatches []string) (*rmOptions, error) {
 	ro := &rmOptions{RmFlags: rf}
 
 	if allVMs, err := l.VMs(); err == nil {

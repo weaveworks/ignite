@@ -3,7 +3,7 @@ package vmcmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/lithammer/dedent"
 
@@ -27,7 +27,7 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				po, err := pf.NewPsOptions(runutil.NewResLoader())
+				po, err := pf.NewPsOptions(loader.NewResLoader())
 				if err != nil {
 					return err
 				}

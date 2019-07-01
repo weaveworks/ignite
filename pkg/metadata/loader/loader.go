@@ -1,4 +1,4 @@
-package runutil
+package loader
 
 import (
 	"github.com/weaveworks/ignite/pkg/filter"

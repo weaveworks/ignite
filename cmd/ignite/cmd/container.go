@@ -3,7 +3,7 @@ package cmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
@@ -19,7 +19,7 @@ func NewCmdContainer(out io.Writer) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
 				var err error
-				co, err := run.NewContainerOptions(runutil.NewResLoader(), args[0])
+				co, err := run.NewContainerOptions(loader.NewResLoader(), args[0])
 				if err != nil {
 					return err
 				}

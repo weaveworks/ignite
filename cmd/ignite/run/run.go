@@ -1,7 +1,7 @@
 package run
 
 import (
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
@@ -15,7 +15,7 @@ type runOptions struct {
 	*startOptions
 }
 
-func (rf *RunFlags) NewRunOptions(l *runutil.ResLoader, imageMatch string) (*runOptions, error) {
+func (rf *RunFlags) NewRunOptions(l *loader.ResLoader, imageMatch string) (*runOptions, error) {
 	// Logic to import the image if it doesn't exist
 	if allImages, err := l.Images(); err == nil {
 		if _, err := allImages.MatchSingle(imageMatch); err != nil { // TODO: Use this match in create?

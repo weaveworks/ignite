@@ -5,7 +5,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -21,12 +21,12 @@ type ImportFlags struct {
 type importOptions struct {
 	*ImportFlags
 	source    string
-	resLoader *runutil.ResLoader
+	resLoader *loader.ResLoader
 	newImage  *imgmd.ImageMetadata
 	allImages []metadata.AnyMetadata
 }
 
-func (i *ImportFlags) NewImportOptions(l *runutil.ResLoader, source string) (*importOptions, error) {
+func (i *ImportFlags) NewImportOptions(l *loader.ResLoader, source string) (*importOptions, error) {
 	io := &importOptions{ImportFlags: i, resLoader: l, source: source}
 
 	if allImages, err := l.Images(); err == nil {

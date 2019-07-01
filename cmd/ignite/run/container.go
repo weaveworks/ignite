@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/miekg/dns"
 	"github.com/weaveworks/ignite/pkg/container"
@@ -16,7 +16,7 @@ type containerOptions struct {
 	vm *vmmd.VMMetadata
 }
 
-func NewContainerOptions(l *runutil.ResLoader, vmMatch string) (*containerOptions, error) {
+func NewContainerOptions(l *loader.ResLoader, vmMatch string) (*containerOptions, error) {
 	co := &containerOptions{}
 
 	if allVMS, err := l.VMs(); err == nil {

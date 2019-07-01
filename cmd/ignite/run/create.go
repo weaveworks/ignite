@@ -5,7 +5,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/spf13/pflag"
 
@@ -76,7 +76,7 @@ type createOptions struct {
 	fileMappings map[string]string
 }
 
-func (cf *CreateFlags) NewCreateOptions(l *runutil.ResLoader, imageMatch string) (*createOptions, error) {
+func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, imageMatch string) (*createOptions, error) {
 	var err error
 	co := &createOptions{CreateFlags: cf}
 

@@ -3,7 +3,7 @@ package vmcmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/lithammer/dedent"
 
@@ -25,7 +25,7 @@ func NewCmdAttach(out io.Writer) *cobra.Command {
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				ao, err := run.NewAttachOptions(runutil.NewResLoader(), args[0])
+				ao, err := run.NewAttachOptions(loader.NewResLoader(), args[0])
 				if err != nil {
 					return err
 				}

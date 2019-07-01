@@ -3,7 +3,7 @@ package kerncmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run/runutil"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/lithammer/dedent"
 
@@ -25,7 +25,7 @@ func NewCmdKernel(out io.Writer) *cobra.Command {
 		Aliases: []string{"kernels"},
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				ko, err := run.NewKernelsOptions(runutil.NewResLoader())
+				ko, err := run.NewKernelsOptions(loader.NewResLoader())
 				if err != nil {
 					return err
 				}
