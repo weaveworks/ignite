@@ -47,7 +47,7 @@ func ExecuteFirecracker(md *vmmd.VMMetadata, dhcpIfaces []DHCPInterface) error {
 		MachineCfg: models.MachineConfiguration{
 			VcpuCount:  &od.VCPUs,
 			MemSizeMib: &od.Memory,
-			HtEnabled: boolPtr(true),
+			HtEnabled:  boolPtr(true),
 		},
 		//JailerCfg: firecracker.JailerConfig{
 		//	GID:      firecracker.Int(0),
