@@ -68,6 +68,7 @@ elif [[ "${BINARY_REF}" =~ ^(ci|ci-cross){1}/latest ]]; then
 elif [[ "${BINARY_REF}" =~ ^release/[a-z]+(-[0-9]+.[0-9]+)*$ ]]; then
 	RELEASE=$(curl -sSL https://dl.k8s.io/${BINARY_REF}.txt)
 	BINARY_BUCKET="gs://kubernetes-release/release/${RELEASE}/bin/linux/amd64"
+	INSTALL_APT=true
 else
 	# Assume an exact "git describe" version/commit reference like "v1.12.0-alpha.0-1035-gf2dec305ad"
 	BINARY_BUCKET="gs://kubernetes-release-dev/ci/${BINARY_REF}-bazel/bin/linux/amd64"
@@ -105,7 +106,11 @@ install_debs() {
 if [[ "${MODE}" == "init" || "${MODE}" == "install" ]]; then
 	INIT_KUBEADM=${BINARY_DIR}/kubeadm
 	INIT_K8S_VERSION=${CONTROL_PLANE_VERSION}
-	install_debs
+	if [[ ${INSTALL_APT} == "true" ]]; then
+		install_kubeadm_apt
+	else
+		install_debs
+	fi
 elif [[ "${MODE}" == "upgrade" ]]; then
 	INIT_KUBEADM="kubeadm"
 	INIT_K8S_VERSION="stable"

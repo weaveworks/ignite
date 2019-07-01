@@ -24,7 +24,7 @@ nodeRegistration:
 ---
 apiVersion: kubeadm.k8s.io/v1beta2
 kind: ClusterConfiguration
-kubernetesVersion: v1.15.0-rc.1
+kubernetesVersion: v1.15.0
 controlPlaneEndpoint: firekube.luxas.dev:6443
 apiServer:
   certSANs:
