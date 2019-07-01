@@ -1,8 +1,8 @@
 package prometheus
 
 import (
-	"net/http"
 	"net"
+	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
