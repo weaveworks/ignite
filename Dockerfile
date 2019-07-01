@@ -5,16 +5,14 @@ RUN apk add --no-cache \
     device-mapper
 
 ARG FIRECRACKER_VERSION
-ADD https://github.com/firecracker-microvm/firecracker/releases/download/${FIRECRACKER_VERSION}/firecracker-${FIRECRACKER_VERSION} /ignite/firecracker
+ADD https://github.com/firecracker-microvm/firecracker/releases/download/${FIRECRACKER_VERSION}/firecracker-${FIRECRACKER_VERSION} /usr/local/bin/firecracker
 
-# The Ignite binary should be bind-mounted over /ignite/ignite
-# The downloaded Firecracker binary exists in /ignite/firecracker,
-# but both Firecracker and Ignite are symlinked to be in $PATH
-# The data directory is mounted in from the host to /var/lib/firecracker
-RUN touch /ignite/ignite && \
-    chmod +x /ignite/firecracker && \
-    ln -s /ignite/firecracker /usr/local/bin/firecracker && \
-    ln -s /ignite/ignite /usr/local/bin/ignite
+ADD bin/ignite-spawn /usr/local/bin/ignite-spawn
 
-# Ignite runs as PID 1 in the container, spawning the firecracker process
-ENTRYPOINT ["/ignite/ignite", "container"]
+# Symlink both firecracker and ignite-spawn to /, too
+RUN chmod +x /usr/local/bin/firecracker /usr/local/bin/ignite-spawn && \
+    ln -s /usr/local/bin/firecracker  /firecracker  && \
+    ln -s /usr/local/bin/ignite-spawn /ignite-spawn
+
+# ignite-spawn runs as PID 1 in the container, spawning the firecracker process
+ENTRYPOINT ["/usr/local/bin/ignite-spawn"]

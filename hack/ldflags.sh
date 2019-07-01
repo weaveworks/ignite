@@ -76,8 +76,14 @@ ldflags() {
   SCRIPT_DIR=$( dirname "${BASH_SOURCE[0]}" )
   ldflags+=($(ldflag "firecrackerVersion" "$(cat ${SCRIPT_DIR}/FIRECRACKER_VERSION)"))
 
+  # Output only the version with this flag
+  if [[ $1 == "--version-only" ]]; then
+    echo "${IGNITE_GIT_VERSION}"
+    exit 0
+  fi
+
   # The -ldflags parameter takes a single string, so join the output.
   echo "${ldflags[*]-}"
 }
 
-ldflags
+ldflags $@
