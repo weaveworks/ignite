@@ -10,7 +10,7 @@ require (
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0
 	github.com/docker/go-connections v0.4.0 // indirect
-	github.com/firecracker-microvm/firecracker-go-sdk v0.15.1
+	github.com/firecracker-microvm/firecracker-go-sdk v0.15.2-0.20190627223500-b2e8284e890c
 	github.com/freddierice/go-losetup v0.0.0-20170407175016-fc9adea44124
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/gorilla/mux v1.7.2 // indirect

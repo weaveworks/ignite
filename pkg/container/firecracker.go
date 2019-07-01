@@ -45,8 +45,9 @@ func ExecuteFirecracker(md *vmmd.VMMetadata, dhcpIfaces []DHCPInterface) error {
 		}},
 		NetworkInterfaces: networkInterfaces,
 		MachineCfg: models.MachineConfiguration{
-			VcpuCount:  od.VCPUs,
-			MemSizeMib: od.Memory,
+			VcpuCount:  &od.VCPUs,
+			MemSizeMib: &od.Memory,
+			HtEnabled: boolPtr(true),
 		},
 		//JailerCfg: firecracker.JailerConfig{
 		//	GID:      firecracker.Int(0),
@@ -130,4 +131,8 @@ func installSignalHandlers(ctx context.Context, m *firecracker.Machine) {
 			}
 		}
 	}()
+}
+
+func boolPtr(val bool) *bool {
+	return &val
 }
