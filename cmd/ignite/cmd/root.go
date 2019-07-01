@@ -13,6 +13,7 @@ import (
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 // NewIgniteCommand returns the root command for ignite
@@ -70,7 +71,7 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 		`, imageCmd.Short, kernelCmd.Short, vmCmd.Short)),
 	}
 
-	logs.AddQuietFlag(root.PersistentFlags())
+	AddQuietFlag(root.PersistentFlags())
 
 	root.AddCommand(imageCmd)
 	root.AddCommand(kernelCmd)
@@ -91,4 +92,9 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	root.AddCommand(NewCmdStop(os.Stdout))
 	root.AddCommand(NewCmdVersion(os.Stdout))
 	return root
+}
+
+// AddQuietFlag adds the quiet flag to a flagset
+func AddQuietFlag(fs *pflag.FlagSet) {
+	fs.BoolVarP(&logs.Quiet, "quiet", "q", logs.Quiet, "The quiet mode allows for machine-parsable output, by printing only IDs")
 }

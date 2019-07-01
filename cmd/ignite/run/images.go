@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/c2h5oh/datasize"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 

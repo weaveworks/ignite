@@ -1,8 +1,8 @@
 package run
 
 import (
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 )
 
 type RunFlags struct {

@@ -3,8 +3,8 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/logs"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 

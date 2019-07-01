@@ -6,7 +6,6 @@ import (
 	"os"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/pflag"
 )
 
 // Quiet specifies whether to only print machine-readable IDs
@@ -36,9 +35,4 @@ func InitLogs() {
 
 	// Also forward all logs from the standard logrus logger to our specific instance
 	log.StandardLogger().SetOutput(Logger.Writer())
-}
-
-// AddQuietFlag adds the quiet flag to a flagset
-func AddQuietFlag(fs *pflag.FlagSet) {
-	fs.BoolVarP(&Quiet, "quiet", "q", Quiet, "The quiet mode allows for machine-parsable output, by printing only IDs")
 }
