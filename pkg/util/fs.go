@@ -108,15 +108,18 @@ func FileIsEmpty(file string) (bool, error) {
 	if err != nil && !os.IsNotExist(err) {
 		return false, err
 	}
+
 	// The file exists, and has content. Proceed as usual
 	if err == nil && fileInfo.Size() > 0 {
 		return false, nil
 	}
+
 	// The file exists, but has no content. Remove the file to allow the symlink
 	if err == nil && fileInfo.Size() == 0 {
 		if err := os.Remove(file); err != nil {
 			return false, err
 		}
 	}
+
 	return true, nil
 }
