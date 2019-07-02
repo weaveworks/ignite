@@ -5,14 +5,13 @@ import (
 	"path"
 	"strings"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
-
 	"github.com/spf13/pflag"
-
-	"github.com/c2h5oh/datasize"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -56,15 +55,22 @@ var _ pflag.Value = &SSHFlag{}
 
 const vmAuthorizedKeys = "/root/.ssh/authorized_keys"
 
+func NewCreateFlags() *CreateFlags {
+	cf := &CreateFlags{
+		VM: &v1alpha1.VM{},
+	}
+	scheme.Scheme.Default(cf.VM)
+	return cf
+}
+
 type CreateFlags struct {
-	Name       string
-	CPUs       int64
-	Memory     int64
-	Size       string
+	// TODO: Also respect CopyFiles, SSH, PortMappings, Networking mode, and kernel stuff from the config file
 	CopyFiles  []string
 	KernelName string
 	KernelCmd  string
 	SSH        *SSHFlag
+	ConfigFile string
+	VM         *v1alpha1.VM
 }
 
 type createOptions struct {
@@ -76,12 +82,32 @@ type createOptions struct {
 	fileMappings map[string]string
 }
 
-func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, imageMatch string) (*createOptions, error) {
+func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*createOptions, error) {
+	if len(args) == 1 {
+		cf.VM.Spec.Image = &v1alpha1.ImageClaim{
+			Type: v1alpha1.ImageSourceTypeDocker,
+			Ref:  args[0],
+		}
+	}
+
+	// Decode the config file if given
+	if len(cf.ConfigFile) != 0 {
+		// Marshal into a "clean" object, discard all flag input
+		cf.VM = &v1alpha1.VM{}
+		if err := scheme.DecodeFileInto(cf.ConfigFile, cf.VM); err != nil {
+			return nil, err
+		}
+	}
+
+	if cf.VM.Spec.Image == nil || len(cf.VM.Spec.Image.Ref) == 0 {
+		return nil, fmt.Errorf("you must specify an image to run either via CLI args or a config file")
+	}
+
 	var err error
 	co := &createOptions{CreateFlags: cf}
 
 	if allImages, err := l.Images(); err == nil {
-		if co.image, err = allImages.MatchSingle(imageMatch); err != nil {
+		if co.image, err = allImages.MatchSingle(cf.VM.Spec.Image.Ref); err != nil {
 			return nil, err
 		}
 	} else {
@@ -89,7 +115,7 @@ func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, imageMatch string) 
 	}
 
 	if len(cf.KernelName) == 0 {
-		cf.KernelName = imageMatch
+		cf.KernelName = cf.VM.Spec.Image.Ref
 	}
 
 	if allKernels, err := l.Kernels(); err == nil {
@@ -115,14 +141,14 @@ func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, imageMatch string) 
 
 func Create(co *createOptions) error {
 	// Verify the name
-	name, err := metadata.NewName(co.Name, &co.allVMs)
+	name, err := metadata.NewName(co.VM.Name, &co.allVMs)
 	if err != nil {
 		return err
 	}
 
 	// Create new metadata for the VM
 	if co.newVM, err = vmmd.NewVMMetadata(nil, name,
-		vmmd.NewVMObjectData(co.image.ID, co.kernel.ID, co.CPUs, co.Memory, co.KernelCmd)); err != nil {
+		vmmd.NewVMObjectData(co.image.ID, co.kernel.ID, int64(co.VM.Spec.CPUs), int64(co.VM.Spec.Memory.MBytes()), co.KernelCmd)); err != nil {
 		return err
 	}
 	defer co.newVM.Cleanup(false) // TODO: Handle silent
@@ -137,14 +163,8 @@ func Create(co *createOptions) error {
 		return err
 	}
 
-	// Parse the given overlay size
-	var size datasize.ByteSize
-	if err := size.UnmarshalText([]byte(co.Size)); err != nil {
-		return err
-	}
-
 	// Allocate the overlay file
-	if err := co.newVM.AllocateOverlay(size.Bytes()); err != nil {
+	if err := co.newVM.AllocateOverlay(co.VM.Spec.DiskSize.Bytes()); err != nil {
 		return err
 	}
 

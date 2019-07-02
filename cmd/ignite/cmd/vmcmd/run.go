@@ -16,7 +16,7 @@ import (
 // NewCmdRun creates, starts (and attaches to) a VM
 func NewCmdRun(out io.Writer) *cobra.Command {
 	rf := &run.RunFlags{
-		CreateFlags: &run.CreateFlags{},
+		CreateFlags: run.NewCreateFlags(),
 		StartFlags:  &run.StartFlags{},
 	}
 
@@ -38,10 +38,10 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 					--memory 2048 \
 					--size 10G
 		`),
-		Args: cobra.ExactArgs(1),
+		Args: cobra.RangeArgs(0, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				ro, err := rf.NewRunOptions(loader.NewResLoader(), args[0])
+				ro, err := rf.NewRunOptions(loader.NewResLoader(), args)
 				if err != nil {
 					return err
 				}

@@ -10,6 +10,10 @@ func AddNameFlag(fs *pflag.FlagSet, name *string) {
 	fs.StringVarP(name, "name", "n", *name, "Specify the name")
 }
 
+func AddConfigFlag(fs *pflag.FlagSet, configFile *string) {
+	fs.StringVar(configFile, "config", *configFile, "Specify a path to a file with the API resources you want to pass")
+}
+
 func AddInteractiveFlag(fs *pflag.FlagSet, interactive *bool) {
 	fs.BoolVarP(interactive, "interactive", "i", *interactive, "Attach to the VM after starting")
 }
@@ -22,18 +26,30 @@ func AddImportKernelFlags(fs *pflag.FlagSet, kernelName *string) {
 	fs.StringVarP(kernelName, "import-kernel", "k", *kernelName, "Import a new kernel from /boot/vmlinux in the image with the specified name")
 }
 
-func SizeVar(fs *pflag.FlagSet, ptr interface{}, flagName string, defaultSizeBytes int64, description string) {
-	SizeVarP(fs, ptr, flagName, "", defaultSizeBytes, description)
+type SizeFlag struct {
+	value ignitemeta.Size
 }
 
-func SizeVarP(fs *pflag.FlagSet, ptr interface{}, flagName, shorthand string, defaultSizeBytes int64, description string) {
-	size := ignitemeta.NewSizeFromBytes(uint64(defaultSizeBytes))
-	switch v := ptr.(type) {
-	case *string:
-		fs.StringVarP(v, flagName, shorthand, size.String(), description)
-	case *int64:
-		fs.Int64VarP(v, flagName, shorthand, size.Int64(), description)
-	default:
-		panic("invalid size flag set up")
-	}
+func (sf *SizeFlag) Set(val string) error {
+	var err error
+	sf.value, err = ignitemeta.NewSizeFromString(val)
+	return err
+}
+
+func (sf *SizeFlag) String() string {
+	return sf.value.String()
+}
+
+func (sf *SizeFlag) Type() string {
+	return "size"
+}
+
+var _ pflag.Value = &SizeFlag{}
+
+func SizeVar(fs *pflag.FlagSet, ptr *ignitemeta.Size, name string, defVal ignitemeta.Size, usage string) {
+	SizeVarP(fs, ptr, name, "", defVal, usage)
+}
+
+func SizeVarP(fs *pflag.FlagSet, ptr *ignitemeta.Size, name, shorthand string, defVal ignitemeta.Size, usage string) {
+	fs.VarP(&SizeFlag{value: defVal}, name, shorthand, usage)
 }
