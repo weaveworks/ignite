@@ -2,119 +2,17 @@ package imgmd
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
-	"strconv"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
 )
-
-type ImageSource struct {
-	size        int64
-	dockerImage string
-	dockerID    string
-	containerID string
-	dockerCmd   *exec.Cmd
-}
-
-func NewSource(src string) (*ImageSource, error) {
-	// Query docker for the image
-	out, err := util.ExecuteCommand("docker", "images", "-q", src)
-	if err != nil {
-		return nil, err
-	}
-
-	// If the docker image isn't found, try to pull it
-	if util.IsEmptyString(out) {
-		log.Printf("Image %s not found locally, pulling...", src)
-		if _, err := util.ExecForeground("docker", "pull", src); err != nil {
-			return nil, err
-		}
-		out, err = util.ExecuteCommand("docker", "images", "-q", src)
-		if err != nil {
-			return nil, err
-		}
-		if util.IsEmptyString(out) {
-			return nil, fmt.Errorf("docker image %s could not be found", src)
-		}
-	}
-
-	// Docker outputs one image per line
-	dockerIDs := strings.Split(strings.TrimSpace(out), "\n")
-
-	// Check if the image query is too broad
-	if len(dockerIDs) > 1 {
-		return nil, fmt.Errorf("multiple matches, too broad docker image query: %s", src)
-	}
-
-	// Select the first (and only) match
-	dockerID := dockerIDs[0]
-
-	// docker inspect quay.io/footloose/centos7ignite -f "{{.Size}}"
-	out, err = util.ExecuteCommand("docker", "inspect", src, "-f", "{{.Size}}")
-	if err != nil {
-		return nil, err
-	}
-
-	size, err := strconv.Atoi(out)
-	if err != nil {
-		return nil, err
-	}
-
-	return &ImageSource{
-		dockerImage: src,
-		dockerID:    dockerID,
-		size:        int64(size),
-	}, nil
-}
-
-func (is *ImageSource) GetReader() (io.ReadCloser, error) {
-	// Create a container from the image to be exported
-	containerID, err := util.ExecuteCommand("docker", "create", is.dockerID, "sh")
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create docker container from image %s", is.dockerID)
-	}
-
-	// Export the created container to a tar archive that will be later extracted into the VM disk image
-	is.dockerCmd = exec.Command("docker", "export", containerID)
-	reader, err := is.dockerCmd.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-
-	if err := is.dockerCmd.Start(); err != nil {
-		return nil, err
-	}
-
-	return reader, nil
-}
-
-func (is *ImageSource) DockerImage() string {
-	return is.dockerImage
-}
-
-func (is *ImageSource) Size() int64 {
-	return is.size
-}
-
-func (is *ImageSource) Cleanup() error {
-	if len(is.containerID) > 0 {
-		// Remove the temporary container
-		if _, err := util.ExecuteCommand("docker", "rm", is.containerID); err != nil {
-			return errors.Wrapf(err, "failed to remove container %s:", is.containerID)
-		}
-	}
-
-	return nil
-}
 
 func (md *ImageMetadata) AllocateAndFormat(size int64) error {
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
@@ -139,7 +37,7 @@ func (md *ImageMetadata) AllocateAndFormat(size int64) error {
 }
 
 // AddFiles copies the contents of the tar file into the ext4 filesystem
-func (md *ImageMetadata) AddFiles(src *ImageSource) error {
+func (md *ImageMetadata) AddFiles(src source.Source) error {
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 	tempDir, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -153,7 +51,7 @@ func (md *ImageMetadata) AddFiles(src *ImageSource) error {
 	defer util.ExecuteCommand("umount", tempDir)
 
 	tarCmd := exec.Command("tar", "-x", "-C", tempDir)
-	reader, err := src.GetReader()
+	reader, err := src.Reader()
 	if err != nil {
 		return err
 	}

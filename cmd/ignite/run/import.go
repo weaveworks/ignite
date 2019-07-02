@@ -5,29 +5,22 @@ import (
 	"os"
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
-
-	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
+	"github.com/weaveworks/ignite/pkg/source"
 )
 
-type ImportFlags struct {
-	Name       string
-	KernelName string
-}
-
 type importOptions struct {
-	*ImportFlags
 	source    string
 	resLoader *loader.ResLoader
 	newImage  *imgmd.ImageMetadata
 	allImages []metadata.AnyMetadata
 }
 
-func (i *ImportFlags) NewImportOptions(l *loader.ResLoader, source string) (*importOptions, error) {
-	io := &importOptions{ImportFlags: i, resLoader: l, source: source}
+func NewImportOptions(l *loader.ResLoader, source string) (*importOptions, error) {
+	io := &importOptions{resLoader: l, source: source}
 
 	if allImages, err := l.Images(); err == nil {
 		io.allImages = *allImages
@@ -40,18 +33,14 @@ func (i *ImportFlags) NewImportOptions(l *loader.ResLoader, source string) (*imp
 
 func Import(bo *importOptions) error {
 	// Parse the source
-	imageSrc, err := imgmd.NewSource(bo.source)
+	dockerSource := source.NewDockerSource()
+	src, err := dockerSource.Parse(bo.source)
 	if err != nil {
 		return err
 	}
 
-	nameStr := bo.Name
-	if len(imageSrc.DockerImage()) > 0 {
-		nameStr = imageSrc.DockerImage()
-	}
-
 	// Verify the name
-	name, err := metadata.NewNameWithLatest(nameStr, &bo.allImages)
+	name, err := metadata.NewNameWithLatest(bo.source, &bo.allImages)
 	if err != nil {
 		return err
 	}
@@ -65,20 +54,28 @@ func Import(bo *importOptions) error {
 	log.Println("Starting image import...")
 
 	// Create new file to host the filesystem and format it
-	if err := bo.newImage.AllocateAndFormat(imageSrc.Size()); err != nil {
+	if err := bo.newImage.AllocateAndFormat(src.Size.Int64()); err != nil {
 		return err
 	}
 
 	// Add the files to the filesystem
-	if err := bo.newImage.AddFiles(imageSrc); err != nil {
+	if err := bo.newImage.AddFiles(dockerSource); err != nil {
 		return err
 	}
 
 	if err := bo.newImage.Save(); err != nil {
 		return err
 	}
-	hrsize := datasize.ByteSize(imageSrc.Size()).HR()
-	log.Printf("Created a %s filesystem of the input", hrsize)
+	log.Printf("Created a %s filesystem of the input", src.Size.HR())
+
+	// If the kernel already exists, don't try to import something with the same name
+	if allKernels, err := bo.resLoader.Kernels(); err != nil {
+		return err
+	} else {
+		if k, err := allKernels.MatchSingle(name.String()); k != nil && err == nil {
+			return bo.newImage.Success()
+		}
+	}
 
 	// Import a new kernel from the image if specified
 	tmpKernelDir, err := bo.newImage.ExportKernel()
