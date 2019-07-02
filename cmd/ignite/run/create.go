@@ -10,10 +10,14 @@ import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
-	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/snapshotter"
+	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/filtering/filter"
 )
 
 type SSHFlag struct {
@@ -75,60 +79,37 @@ type CreateFlags struct {
 
 type createOptions struct {
 	*CreateFlags
-	image        *imgmd.ImageMetadata
-	kernel       *kernmd.KernelMetadata
-	allVMs       []metadata.AnyMetadata
-	newVM        *vmmd.VMMetadata
+	image        *snapshotter.Image
+	kernel       *v1alpha1.ImageSource
+	newVM        *snapshotter.VM
 	fileMappings map[string]string
 }
 
-func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*createOptions, error) {
+func (cf *CreateFlags) NewCreateOptions(ss *snapshotter.Snapshotter, args []string) (*createOptions, error) {
+	co := &createOptions{CreateFlags: cf}
+	
 	if len(args) == 1 {
-		cf.VM.Spec.Image = &v1alpha1.ImageClaim{
+		co.VM.Spec.Image = &v1alpha1.ImageClaim{
 			Type: v1alpha1.ImageSourceTypeDocker,
 			Ref:  args[0],
 		}
 	}
 
 	// Decode the config file if given
-	if len(cf.ConfigFile) != 0 {
+	if len(co.ConfigFile) != 0 {
 		// Marshal into a "clean" object, discard all flag input
-		cf.VM = &v1alpha1.VM{}
-		if err := scheme.DecodeFileInto(cf.ConfigFile, cf.VM); err != nil {
+		co.VM = &v1alpha1.VM{}
+		if err := scheme.DecodeFileInto(co.ConfigFile, co.VM); err != nil {
 			return nil, err
 		}
 	}
 
-	if cf.VM.Spec.Image == nil || len(cf.VM.Spec.Image.Ref) == 0 {
+	if co.VM.Spec.Image == nil || len(co.VM.Spec.Image.Ref) == 0 {
 		return nil, fmt.Errorf("you must specify an image to run either via CLI args or a config file")
 	}
 
 	var err error
-	co := &createOptions{CreateFlags: cf}
-
-	if allImages, err := l.Images(); err == nil {
-		if co.image, err = allImages.MatchSingle(cf.VM.Spec.Image.Ref); err != nil {
-			return nil, err
-		}
-	} else {
-		return nil, err
-	}
-
-	if len(cf.KernelName) == 0 {
-		cf.KernelName = cf.VM.Spec.Image.Ref
-	}
-
-	if allKernels, err := l.Kernels(); err == nil {
-		if co.kernel, err = allKernels.MatchSingle(cf.KernelName); err != nil {
-			return nil, err
-		}
-	} else {
-		return nil, err
-	}
-
-	if allVMs, err := l.VMs(); err == nil {
-		co.allVMs = *allVMs
-	} else {
+	if co.image, err = ss.GetImage(filter.NewIDNameFilter(co.VM.Spec.Image.Ref)); err != nil {
 		return nil, err
 	}
 
@@ -136,6 +117,23 @@ func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*cr
 	if co.fileMappings, err = parseFileMappings(co.CopyFiles); err != nil {
 		return nil, err
 	}
+
+	if len(co.KernelName) == 0 {
+		co.KernelName = constants.DEFAULT_KERNEL
+	}
+
+	// TODO: Filter that checks if image contains wanted kernel and if it has the correct size
+	if kernel, err := ss.GetKernel(filter.NewKernelFilter(co.KernelName, co.image, co.size)); err != nil {
+		switch err.(type) {
+		case snapshotter.ErrNonexistent:
+
+		}
+	}
+
+	co.kernel = &v1alpha1.ImageSource{
+		Name: co.KernelName,
+	}
+
 	return co, nil
 }
 
@@ -148,7 +146,7 @@ func Create(co *createOptions) error {
 
 	// Create new metadata for the VM
 	if co.newVM, err = vmmd.NewVMMetadata(nil, name,
-		vmmd.NewVMObjectData(co.image.ID, co.kernel.ID, int64(co.VM.Spec.CPUs), int64(co.VM.Spec.Memory.MBytes()), co.KernelCmd)); err != nil {
+		vmmd.NewVMObjectData(co.image.ID, metadata.IDFromSource(co.kernel), co.VM.Spec.DiskSize, int64(co.CPUs), co.VM.Spec.Memory, co.KernelCmd)); err != nil {
 		return err
 	}
 	defer co.newVM.Cleanup(false) // TODO: Handle silent
@@ -158,18 +156,25 @@ func Create(co *createOptions) error {
 		return err
 	}
 
+	// Import the kernel and create the overlay
+	_, err = co.image.CreateOverlay(co.kernel, co.VM.Spec.DiskSize, co.newVM.ID)
+	if err != nil {
+		return err
+	}
+
+	// Copy the additional files to the overlay
+	// TODO: Support this for the overlay in the image
+	if err := co.newVM.CopyToOverlay(co.fileMappings); err != nil {
+		return err
+	}
+
 	// Save the metadata
 	if err := co.newVM.Save(); err != nil {
 		return err
 	}
 
-	// Allocate the overlay file
-	if err := co.newVM.AllocateOverlay(co.VM.Spec.DiskSize.Bytes()); err != nil {
-		return err
-	}
-
-	// Copy the additional files to the overlay
-	if err := co.newVM.CopyToOverlay(co.fileMappings); err != nil {
+	// Save the image metadata to register the new overlays
+	if err := co.image.Save(); err != nil {
 		return err
 	}
 

@@ -33,6 +33,7 @@ func ExecuteFirecracker(md *vmmd.VMMetadata, dhcpIfaces []DHCPInterface) error {
 		kernelCmd = constants.VM_DEFAULT_KERNEL_ARGS
 	}
 
+	memorySize := int64(od.Memory.Bytes())
 	cfg := firecracker.Config{
 		SocketPath:      constants.SOCKET_PATH,
 		KernelImagePath: path.Join(constants.KERNEL_DIR, od.KernelID.String(), constants.KERNEL_FILE),
@@ -46,7 +47,7 @@ func ExecuteFirecracker(md *vmmd.VMMetadata, dhcpIfaces []DHCPInterface) error {
 		NetworkInterfaces: networkInterfaces,
 		MachineCfg: models.MachineConfiguration{
 			VcpuCount:  &od.VCPUs,
-			MemSizeMib: &od.Memory,
+			MemSizeMib: &memorySize,
 			HtEnabled:  boolPtr(true),
 		},
 		//JailerCfg: firecracker.JailerConfig{

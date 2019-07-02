@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/imgcmd"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/kerncmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -19,7 +18,7 @@ import (
 // NewIgniteCommand returns the root command for ignite
 func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	imageCmd := imgcmd.NewCmdImage(os.Stdout)
-	kernelCmd := kerncmd.NewCmdKernel(os.Stdout)
+	//kernelCmd := kerncmd.NewCmdKernel(os.Stdout)
 	vmCmd := vmcmd.NewCmdVM(os.Stdout)
 
 	root := &cobra.Command{
@@ -68,13 +67,13 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 				$ ignite ps
 				$ ignite logs my-vm
 				$ ignite ssh my-vm
-		`, imageCmd.Short, kernelCmd.Short, vmCmd.Short)),
+		`, imageCmd.Short, nil, vmCmd.Short)), // TODO: This
 	}
 
 	AddQuietFlag(root.PersistentFlags())
 
 	root.AddCommand(imageCmd)
-	root.AddCommand(kernelCmd)
+	//root.AddCommand(kernelCmd)
 	root.AddCommand(vmCmd)
 
 	root.AddCommand(NewCmdAttach(os.Stdout))
@@ -85,7 +84,6 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	root.AddCommand(NewCmdPs(os.Stdout))
 	root.AddCommand(NewCmdRm(os.Stdout))
 	root.AddCommand(NewCmdRmi(os.Stdout))
-	root.AddCommand(NewCmdRmk(os.Stdout))
 	root.AddCommand(NewCmdRun(os.Stdout))
 	root.AddCommand(NewCmdSSH(os.Stdout))
 	root.AddCommand(NewCmdStart(os.Stdout))

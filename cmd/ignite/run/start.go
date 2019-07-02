@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/container"
 	"github.com/weaveworks/ignite/pkg/containerruntime/docker"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/network/cni"
@@ -59,8 +60,25 @@ func Start(so *startOptions) error {
 		return fmt.Errorf("VM %q is already running", so.vm.ID)
 	}
 
-	// Setup the snapshot overlay filesystem
-	if err := so.vm.SetupSnapshot(); err != nil {
+	ovl, err := container.HackGetOverlay(so.vm)
+	if err != nil {
+		return err
+	}
+
+	kern, err := container.HackGetKernel(so.vm)
+	if err != nil {
+		return err
+	}
+
+	// Start the overlay
+	ovlPath, err := ovl.Start()
+	if err != nil {
+		return err
+	}
+
+	// Start the kernel device
+	kernPath, err := kern.Start()
+	if err != nil {
 		return err
 	}
 
@@ -71,23 +89,25 @@ func Start(so *startOptions) error {
 	}
 	igniteBinary, _ := filepath.Abs(path)
 
-	vmDir := filepath.Join(constants.VM_DIR, so.vm.ID.String())
-	kernelDir := filepath.Join(constants.KERNEL_DIR, so.vm.KernelID())
+	//vmDir := filepath.Join(constants.VM_DIR, so.vm.ID.String())
+	//kernelDir := filepath.Join(constants.KERNEL_DIR, so.vm.KernelID())
 
 	dockerArgs := []string{
 		"-itd",
 		fmt.Sprintf("--label=ignite.name=%s", so.vm.Name.String()),
 		fmt.Sprintf("--name=%s", constants.IGNITE_PREFIX+so.vm.ID.String()),
 		fmt.Sprintf("--volume=%s:/ignite/ignite", igniteBinary),
-		fmt.Sprintf("--volume=%s:%s", vmDir, vmDir),
-		fmt.Sprintf("--volume=%s:%s", kernelDir, kernelDir),
+		//fmt.Sprintf("--volume=%s:%s", vmDir, vmDir),
+		//fmt.Sprintf("--volume=%s:%s", kernelDir, kernelDir),
+		fmt.Sprintf("--volume=%[1]s:%[1]s", constants.DATA_DIR), // TODO: Temporary until image resolving is implemented
 		fmt.Sprintf("--stop-timeout=%d", constants.STOP_TIMEOUT+constants.IGNITE_TIMEOUT),
 		"--cap-add=SYS_ADMIN",          // Needed to run "dmsetup remove" inside the container
 		"--cap-add=NET_ADMIN",          // Needed for removing the IP from the container's interface
 		"--device=/dev/mapper/control", // This enables containerized Ignite to remove its own dm snapshot
 		"--device=/dev/net/tun",        // Needed for creating TAP adapters
 		"--device=/dev/kvm",            // Pass though virtualization support
-		fmt.Sprintf("--device=%s", so.vm.SnapshotDev()),
+		fmt.Sprintf("--device=%s", ovlPath),
+		fmt.Sprintf("--device=%s", kernPath),
 	}
 
 	if so.NetworkMode == NetworkModeCNI {
