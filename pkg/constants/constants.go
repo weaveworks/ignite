@@ -7,26 +7,11 @@ const (
 	// Ignite data base directory
 	DATA_DIR = "/var/lib/firecracker"
 
-	// Path to data directory containing a directory for each image
-	IMAGE_DIR = DATA_DIR + "/image"
-
-	// Filename for the disk image containing the filesystem
-	IMAGE_FS = "image.ext4"
+	// Permissions for the data directory and its subdirectories
+	DATA_DIR_PERM = 0755
 
 	// Filename for metadata files
 	METADATA = "metadata.json"
-
-	// Filename for VM overlay storage files
-	OVERLAY_FILE = "overlay.dm"
-
-	// Directory for hosting VM instances
-	VM_DIR = DATA_DIR + "/vm"
-
-	// Directory containing VM kernels
-	KERNEL_DIR = DATA_DIR + "/kernel"
-
-	// Kernel filename
-	KERNEL_FILE = "vmlinux"
 
 	// DHCP infinite lease time
 	DHCP_INFINITE_LEASE = "4294967295s"
@@ -45,9 +30,6 @@ const (
 
 	// In-container path for the firecracker socket
 	SOCKET_PATH = "/tmp/firecracker.sock"
-
-	// Common VM kernel parameters
-	VM_KERNEL_ARGS = "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp"
 
 	// In-container path for the firecracker log FIFO
 	LOG_FIFO = "/tmp/firecracker_log.fifo"

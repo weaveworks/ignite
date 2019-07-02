@@ -3,16 +3,14 @@ package vmcmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
-
 	"github.com/lithammer/dedent"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/errutils"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 )
 
 // NewCmdCreate creates a new VM given an image and a kernel
@@ -60,11 +58,13 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	cmdutil.AddNameFlag(fs, &cf.Name)
 	fs.Int64Var(&cf.CPUs, "cpus", constants.VM_DEFAULT_CPUS, "VM vCPU count, 1 or even numbers between 1 and 32")
-	fs.Int64Var(&cf.Memory, "memory", constants.VM_DEFAULT_MEMORY, "VM RAM in MiB")
-	fs.StringVarP(&cf.Size, "size", "s", constants.VM_DEFAULT_SIZE, "VM filesystem size, for example 5GB or 2048MB")
+	// TODO: This should allow for string inputs, e.g. 5MB or 12345kB, instead of hardcoding to MBs
+	// Serialized, the string format shall be preserved, too.
+	fs.Int64Var(&cf.Memory, "memory", constants.VM_DEFAULT_MEMORY, "Amount of RAM in MiB to allocate for the VM")
+	cmdutil.SizeVarP(fs, &cf.Size, "size", "s", constants.VM_DEFAULT_SIZE, "VM filesystem size, for example 5GB or 2048MB")
 	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", nil, "Copy files from the host to the created VM")
 	fs.StringVarP(&cf.KernelName, "kernel", "k", "", "Specify a kernel to use. By default this equals the image name")
-	fs.StringVar(&cf.KernelCmd, "kernel-args", constants.VM_KERNEL_ARGS, "Set the command line for the kernel")
+	fs.StringVar(&cf.KernelCmd, "kernel-args", constants.VM_DEFAULT_KERNEL_ARGS, "Set the command line for the kernel")
 
 	cf.SSH = &run.SSHFlag{}
 	fs.Var(cf.SSH, "ssh", "Enable SSH for the VM. If <path> is given, it will be imported as the public key. If just '--ssh' is specified, a new keypair will be generated.")
