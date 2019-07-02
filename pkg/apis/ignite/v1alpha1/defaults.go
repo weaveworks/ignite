@@ -46,8 +46,8 @@ func SetDefaults_VMSpec(obj *VMSpec) {
 		obj.Memory = ignitemeta.NewSizeFromBytes(constants.VM_DEFAULT_MEMORY)
 	}
 
-	if obj.Size == ignitemeta.EmptySize {
-		obj.Size = ignitemeta.NewSizeFromBytes(constants.VM_DEFAULT_SIZE)
+	if obj.DiskSize == ignitemeta.EmptySize {
+		obj.DiskSize = ignitemeta.NewSizeFromBytes(constants.VM_DEFAULT_SIZE)
 	}
 }
 

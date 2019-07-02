@@ -16,7 +16,7 @@ const (
 
 type ObjectMeta struct {
 	Name string    `json:"name"`
-	UID  types.UID `json:"uid"`
+	UID  types.UID `json:"uid,omitempty"`
 }
 
 func (o *ObjectMeta) GetName() string {
@@ -44,6 +44,12 @@ var EmptySize = NewSizeFromBytes(0)
 
 var _ json.Marshaler = &Size{}
 var _ json.Unmarshaler = &Size{}
+
+func NewSizeFromString(str string) (Size, error) {
+	s := Size{}
+	err := s.UnmarshalText([]byte(str))
+	return s, err
+}
 
 func NewSizeFromBytes(bytes uint64) Size {
 	return Size{
@@ -95,17 +101,18 @@ func (s Size) Max(other Size) Size {
 }
 
 func (s *Size) MarshalJSON() ([]byte, error) {
-	return json.Marshal(s.Bytes())
+	return json.Marshal(s.String())
 }
 
 func (s *Size) UnmarshalJSON(b []byte) error {
-	var i uint64
-	if err := json.Unmarshal(b, &i); err != nil {
+	var str string
+	err := json.Unmarshal(b, &str)
+	if err != nil {
 		return err
 	}
 
-	*s = NewSizeFromBytes(i)
-	return nil
+	*s, err = NewSizeFromString(str)
+	return err
 }
 
 // DMID specifies the format for device mapper IDs

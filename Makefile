@@ -10,7 +10,7 @@ WHAT?=ignite
 PROJECT = github.com/weaveworks/ignite
 APIS_DIR = ${PROJECT}/pkg/apis
 API_DIRS = ${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/meta/v1alpha1
-CACHE_DIR = /tmp/go-cache
+CACHE_DIR = $(shell pwd)/bin/cache
 
 all: binary
 binary:

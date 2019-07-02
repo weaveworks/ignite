@@ -42,7 +42,7 @@ type ImageSource struct {
 	ID string `json:"id"`
 	// Name defines the user-friendly name of the imported source
 	Name string `json:"name"`
-	// ignitemeta.Size defines the size of the source in bytes
+	// Size defines the size of the source in bytes
 	Size ignitemeta.Size `json:"size"`
 }
 
@@ -146,19 +146,26 @@ type VM struct {
 
 // VMSpec describes the configuration of a VM
 type VMSpec struct {
-	CPUs   uint64          `json:"cpus"`
-	Memory ignitemeta.Size `json:"memory"`
-	Size   ignitemeta.Size `json:"size"`
-	Ports  []PortMapping   `json:"ports"`
+	Image    *ImageClaim     `json:"image"`
+	CPUs     uint64          `json:"cpus"`
+	Memory   ignitemeta.Size `json:"memory"`
+	DiskSize ignitemeta.Size `json:"diskSize"`
+	Ports    []PortMapping   `json:"ports,omitempty"`
 	// This will be done at either "ignite start" or "ignite create" time
 	// TODO: We might to revisit this later
-	CopyFiles []FileMapping `json:"copyFiles"`
+	CopyFiles []FileMapping `json:"copyFiles,omitempty"`
 	// SSH specifies how the SSH setup should be done
 	// SSH appends to CopyFiles when active
 	// nil here means "don't do anything special"
 	// An empty struct means "generate a new SSH key and copy it in"
 	// Specifying a path means "use this public key"
-	SSH *SSH `json:"ssh"`
+	SSH *SSH `json:"ssh,omitempty"`
+}
+
+// ImageClaim specifies a claim to import an image
+type ImageClaim struct {
+	Type ImageSourceType `json:"type"`
+	Ref  string          `json:"ref"`
 }
 
 // PortMapping defines a port mapping between the VM and the host
