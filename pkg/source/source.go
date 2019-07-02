@@ -12,7 +12,7 @@ type Source interface {
 	ID() string
 
 	// Parse verifies the ImageSource, fills in any missing fields and prepares the reader
-	Parse(*v1alpha1.ImageSource) error
+	Parse(src string) (*v1alpha1.ImageSource, error)
 
 	// Reader provides a tar stream reader
 	Reader() (io.ReadCloser, error)

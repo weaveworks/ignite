@@ -3,13 +3,13 @@ package source
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os/exec"
 
-	"k8s.io/apimachinery/pkg/util/json"
-
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/containerruntime/docker"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -26,97 +26,43 @@ func NewDockerSource() *DockerSource {
 	return &DockerSource{}
 }
 
-type inspect struct {
-	ID       string   `json:"Id"`
-	Size     uint64   `json:"Size"`
-	RepoTags []string `json:"RepoTags"`
-}
-
-type errNotFound struct {
-	source string
-}
-
-// Compile-time assert to verify interface compatibility
-var _ error = &errNotFound{}
-
-func newErrNotFound(source string) *errNotFound {
-	return &errNotFound{source}
-}
-
-func (e *errNotFound) Error() string {
-	return fmt.Sprintf("docker image %q could not be found", e.source)
-}
-
-func parseInspect(source string) (*inspect, error) {
-	out, err := util.ExecuteCommand("docker", "inspect", source)
-	if err != nil {
-		return nil, err
-	}
-
-	if util.IsEmptyString(out) {
-		return nil, newErrNotFound(source)
-	}
-
-	// Docker inspect outputs an array containing the struct we need
-	var result []*inspect
-
-	if err := json.Unmarshal([]byte(out), &result); err != nil {
-		return nil, err
-	}
-
-	// Extract the struct from the array
-	data := result[0]
-
-	if data.Size == 0 || len(data.ID) == 0 || len(data.RepoTags) == 0 {
-		return nil, fmt.Errorf("parsing docker image %q data failed", source)
-	}
-
-	return data, nil
-}
-
 func (ds *DockerSource) ID() string {
 	return ds.imageID
 }
 
-func (ds *DockerSource) Parse(input *v1alpha1.ImageSource) error {
-	// Use the ID to match the image
-	// If it's not given, fall back to the name
-	source := input.ID
-	if len(source) == 0 {
-		source = input.Name
+func (ds *DockerSource) Parse(source string) (*v1alpha1.ImageSource, error) {
+	client, err := docker.GetDockerClient()
+	if err != nil {
+		return nil, err
 	}
 
-	var err error
-	var imageData *inspect
-
-	// Query Docker for the image
-	for imageData == nil {
-		imageData, err = parseInspect(source)
-
-		switch err.(type) {
-		case nil:
-			// Success
-		case *errNotFound:
-			source = input.Name // Fall back to the name, as docker pull doesn't accept IDs
-
-			log.Printf("Docker image %q not found locally, pulling...", source)
-			if _, err := util.ExecForeground("docker", "pull", source); err != nil {
-				return err
-			}
-		default:
-			return err
+	res, err := client.InspectImage(source)
+	if err != nil {
+		log.Printf("Docker image %q not found locally, pulling...", source)
+		rc, err := client.PullImage(source)
+		if err != nil {
+			return nil, err
+		}
+		// Don't output the pull command
+		io.Copy(ioutil.Discard, rc)
+		rc.Close()
+		res, err = client.InspectImage(source)
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	// Update the fields
-	// TODO: Add just missing fields
-	input.Type = v1alpha1.ImageSourceTypeDocker
-	input.ID = imageData.ID
-	input.Name = imageData.RepoTags[0]
-	input.Size = ignitemeta.NewSizeFromBytes(imageData.Size)
+	if res.Size == 0 || len(res.ID) == 0 || len(res.Names) == 0 {
+		return nil, fmt.Errorf("parsing docker image %q data failed", source)
+	}
 
-	ds.imageID = input.ID
-	return nil
+	ds.imageID = res.ID
+	return &v1alpha1.ImageSource{
+		Type: v1alpha1.ImageSourceTypeDocker,
+		ID: res.ID,
+		Name: res.Names[0],
+		Size: ignitemeta.NewSizeFromBytes(uint64(res.Size)),
+	}, nil
 }
 
 func (ds *DockerSource) Reader() (io.ReadCloser, error) {
