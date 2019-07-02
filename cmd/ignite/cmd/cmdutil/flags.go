@@ -22,10 +22,6 @@ func AddForceFlag(fs *pflag.FlagSet, force *bool) {
 	fs.BoolVarP(force, "force", "f", *force, "Force this operation. Warning, use of this mode may have unintended consequences.")
 }
 
-func AddImportKernelFlags(fs *pflag.FlagSet, kernelName *string) {
-	fs.StringVarP(kernelName, "import-kernel", "k", *kernelName, "Import a new kernel from /boot/vmlinux in the image with the specified name")
-}
-
 type SizeFlag struct {
 	value ignitemeta.Size
 }

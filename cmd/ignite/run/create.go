@@ -82,7 +82,9 @@ type createOptions struct {
 	fileMappings map[string]string
 }
 
-func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*createOptions, error) {
+// parseArgsAndConfig resolves the image to use (the argument to the command)
+// and the config file, if it needs to be loaded
+func (cf *CreateFlags) parseArgsAndConfig(args []string) error {
 	if len(args) == 1 {
 		cf.VM.Spec.Image = &v1alpha1.ImageClaim{
 			Type: v1alpha1.ImageSourceTypeDocker,
@@ -95,15 +97,23 @@ func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*cr
 		// Marshal into a "clean" object, discard all flag input
 		cf.VM = &v1alpha1.VM{}
 		if err := scheme.DecodeFileInto(cf.ConfigFile, cf.VM); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
+	// Specifying an image either way is mandatory
 	if cf.VM.Spec.Image == nil || len(cf.VM.Spec.Image.Ref) == 0 {
-		return nil, fmt.Errorf("you must specify an image to run either via CLI args or a config file")
+		return fmt.Errorf("you must specify an image to run either via CLI args or a config file")
+	}
+	return nil
+}
+
+func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*createOptions, error) {
+	err := cf.parseArgsAndConfig(args)
+	if err != nil {
+		return nil, err
 	}
 
-	var err error
 	co := &createOptions{CreateFlags: cf}
 
 	if allImages, err := l.Images(); err == nil {

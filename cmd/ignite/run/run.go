@@ -16,19 +16,21 @@ type runOptions struct {
 }
 
 func (rf *RunFlags) NewRunOptions(l *loader.ResLoader, args []string) (*runOptions, error) {
-	co, err := rf.NewCreateOptions(l, args)
+	// parse the args and the config file
+	err := rf.CreateFlags.parseArgsAndConfig(args)
 	if err != nil {
 		return nil, err
 	}
 
 	// Logic to import the image if it doesn't exist
 	if allImages, err := l.Images(); err == nil {
-		if _, err := allImages.MatchSingle(co.VM.Spec.Image.Ref); err != nil { // TODO: Use this match in create?
+		imageName := rf.VM.Spec.Image.Ref
+		if _, err := allImages.MatchSingle(imageName); err != nil { // TODO: Use this match in create?
 			if _, ok := err.(*metadata.NonexistentError); !ok {
 				return nil, err
 			}
 
-			io, err := (&ImportFlags{}).NewImportOptions(l, co.VM.Spec.Image.Ref)
+			io, err := NewImportOptions(l, imageName)
 			if err != nil {
 				return nil, err
 			}
@@ -38,6 +40,11 @@ func (rf *RunFlags) NewRunOptions(l *loader.ResLoader, args []string) (*runOptio
 			}
 		}
 	} else {
+		return nil, err
+	}
+
+	co, err := rf.NewCreateOptions(l, args)
+	if err != nil {
 		return nil, err
 	}
 
