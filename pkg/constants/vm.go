@@ -1,10 +1,25 @@
 package constants
 
 const (
-	// Default values for VM options
-	VM_DEFAULT_CPUS   = 1
-	VM_DEFAULT_MEMORY = 512
-	VM_DEFAULT_SIZE   = "4GB"
+	// Path to directory containing a subdirectory for each VM
+	VM_DIR = DATA_DIR + "/vm"
 
+	// Default values for VM options
+	VM_DEFAULT_CPUS = 1
+	// TODO: Somehow unify this with the other constants. Now RAM always implies MB
+	VM_DEFAULT_MEMORY      = 512
+	VM_DEFAULT_SIZE        = 4 * GB
+	VM_DEFAULT_KERNEL_ARGS = "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp"
+
+	// SSH key template for VMs
 	VM_SSH_KEY_TEMPLATE = "id_%s"
+
+	// Filename for VM overlay metadata storage
+	VM_METADATA_FILE = "metadata.dm"
+
+	// Filename for VM overlay data storage
+	VM_DATA_FILE = "data.dm"
+
+	// TODO: remove this when the old dm code is removed
+	OVERLAY_FILE = "overlay.dm"
 )
