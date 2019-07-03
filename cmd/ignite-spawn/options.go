@@ -6,7 +6,7 @@ import (
 )
 
 type options struct {
-	vm *vmmd.VMMetadata
+	vm *vmmd.VM
 }
 
 func NewOptions(l *loader.ResLoader, vmMatch string) (*options, error) {

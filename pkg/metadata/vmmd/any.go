@@ -4,8 +4,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
-func LoadVMMetadata(id string) (metadata.Metadata, error) {
-	md, err := NewVMMetadata(id, nil, nil)
+func LoadVM(id string) (metadata.Metadata, error) {
+	md, err := NewVM(id, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -17,19 +17,19 @@ func LoadVMMetadata(id string) (metadata.Metadata, error) {
 	return md, nil
 }
 
-func LoadAllVMMetadata() ([]metadata.Metadata, error) {
-	return metadata.LoadAllMetadata((&VMMetadata{}).TypePath(), LoadVMMetadata)
+func LoadAllVM() ([]metadata.Metadata, error) {
+	return metadata.LoadAllMetadata((&VM{}).TypePath(), LoadVM)
 }
 
-func ToVMMetadata(md metadata.Metadata) *VMMetadata {
-	return md.(*VMMetadata) // This type assert is internal, we don't need to validate it
+func ToVM(md metadata.Metadata) *VM {
+	return md.(*VM) // This type assert is internal, we don't need to validate it
 }
 
-func ToVMMetadataAll(any []metadata.Metadata) []*VMMetadata {
-	var mds []*VMMetadata
+func ToVMAll(any []metadata.Metadata) []*VM {
+	var mds []*VM
 
 	for _, md := range any {
-		mds = append(mds, ToVMMetadata(md))
+		mds = append(mds, ToVM(md))
 	}
 
 	return mds

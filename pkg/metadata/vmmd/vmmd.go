@@ -9,18 +9,18 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
-type VMMetadata struct {
+type VM struct {
 	*api.VM
 }
 
-var _ metadata.Metadata = &VMMetadata{}
+var _ metadata.Metadata = &VM{}
 
-func NewVMMetadata(id string, name *string, object *api.VM) (*VMMetadata, error) {
+func NewVM(id string, name *string, object *api.VM) (*VM, error) {
 	if object == nil {
 		object = &api.VM{}
 	}
 
-	md := &VMMetadata{
+	md := &VM{
 		VM: object,
 	}
 
@@ -33,23 +33,23 @@ func NewVMMetadata(id string, name *string, object *api.VM) (*VMMetadata, error)
 	return md, nil
 }
 
-func (md *VMMetadata) Type() api.PoolDeviceType {
+func (md *VM) Type() api.PoolDeviceType {
 	return api.PoolDeviceTypeVM
 }
 
-func (md *VMMetadata) TypePath() string {
+func (md *VM) TypePath() string {
 	return constants.VM_DIR
 }
 
-func (md *VMMetadata) ObjectPath() string {
+func (md *VM) ObjectPath() string {
 	return path.Join(md.TypePath(), md.GetUID())
 }
 
-func (md *VMMetadata) Load() (err error) {
+func (md *VM) Load() (err error) {
 	md.VM, err = client.VMs().Get(md.GetUID())
 	return
 }
 
-func (md *VMMetadata) Save() error {
+func (md *VM) Save() error {
 	return client.VMs().Set(md.VM)
 }

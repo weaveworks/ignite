@@ -11,7 +11,7 @@ import (
 )
 
 type logsOptions struct {
-	vm *vmmd.VMMetadata
+	vm *vmmd.VM
 }
 
 func NewLogsOptions(l *loader.ResLoader, vmMatch string) (*logsOptions, error) {

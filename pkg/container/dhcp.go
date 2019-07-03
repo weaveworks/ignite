@@ -17,7 +17,7 @@ import (
 var leaseDuration, _ = time.ParseDuration(constants.DHCP_INFINITE_LEASE) // Infinite lease time
 
 // StartDHCPServers starts multiple DHCP servers for the VM, one per interface
-func StartDHCPServers(vm *vmmd.VMMetadata, dhcpIfaces []DHCPInterface) error {
+func StartDHCPServers(vm *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 	// Generate the MAC addresses for the VM's adapters
 	macAddresses := make([]string, 0, len(dhcpIfaces))
 	if err := util.NewMAC(&macAddresses); err != nil {

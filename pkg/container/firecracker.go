@@ -16,7 +16,7 @@ import (
 )
 
 // ExecuteFirecracker executes the firecracker process using the Go SDK
-func ExecuteFirecracker(md *vmmd.VMMetadata, dhcpIfaces []DHCPInterface) error {
+func ExecuteFirecracker(md *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 	drivePath := md.SnapshotDev()
 
 	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(dhcpIfaces))

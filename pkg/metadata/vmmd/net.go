@@ -28,7 +28,7 @@ func (pm *PortMappings) String() string {
 	return sb.String()
 }
 
-func (md *VMMetadata) NewPortMappings(input []string) error {
+func (md *VM) NewPortMappings(input []string) error {
 	result := PortMappings{}
 
 	for _, portMapping := range input {
@@ -63,6 +63,6 @@ func (md *VMMetadata) NewPortMappings(input []string) error {
 	return nil
 }
 
-func (md *VMMetadata) ClearPortMappings() {
+func (md *VM) ClearPortMappings() {
 	md.Spec.Ports = nil
 }

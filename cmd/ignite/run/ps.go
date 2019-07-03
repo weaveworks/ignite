@@ -17,7 +17,7 @@ type PsFlags struct {
 
 type psOptions struct {
 	*PsFlags
-	allVMs []*vmmd.VMMetadata
+	allVMs []*vmmd.VM
 }
 
 func (pf *PsFlags) NewPsOptions(l *loader.ResLoader) (*psOptions, error) {

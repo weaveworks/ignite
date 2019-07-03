@@ -26,7 +26,7 @@ func NewResLoader() *ResLoader {
 func (l *ResLoader) VMs() (*allVMs, error) {
 	if l.vm == nil {
 		var err error
-		if l.vm, err = vmmd.LoadAllVMMetadata(); err != nil {
+		if l.vm, err = vmmd.LoadAllVM(); err != nil {
 			return nil, err
 		}
 	}
@@ -87,17 +87,17 @@ func matchIndividual(fs []metadata.Filter, sources []metadata.Metadata) ([]metad
 }
 
 // Match a single VM using the VMFilter
-func (l *allVMs) MatchSingle(match string) (*vmmd.VMMetadata, error) {
+func (l *allVMs) MatchSingle(match string) (*vmmd.VM, error) {
 	md, err := single(vmmd.NewVMFilter(match), *l)
 	if err != nil {
 		return nil, err
 	}
 
-	return vmmd.ToVMMetadata(md), nil
+	return vmmd.ToVM(md), nil
 }
 
 // Match multiple individual VMs with different filter strings
-func (l *allVMs) MatchMultiple(matches []string) ([]*vmmd.VMMetadata, error) {
+func (l *allVMs) MatchMultiple(matches []string) ([]*vmmd.VM, error) {
 	filters := make([]metadata.Filter, 0, len(matches))
 	for _, match := range matches {
 		filters = append(filters, vmmd.NewVMFilter(match))
@@ -108,20 +108,20 @@ func (l *allVMs) MatchMultiple(matches []string) ([]*vmmd.VMMetadata, error) {
 		return nil, err
 	}
 
-	return vmmd.ToVMMetadataAll(results), nil
+	return vmmd.ToVMAll(results), nil
 }
 
-func (l *allVMs) MatchFilter(all bool) ([]*vmmd.VMMetadata, error) {
+func (l *allVMs) MatchFilter(all bool) ([]*vmmd.VM, error) {
 	matches, err := filter.NewFilterer(vmmd.NewVMFilterAll("", all), *l)
 	if err != nil {
 		return nil, err
 	}
 
-	return vmmd.ToVMMetadataAll(matches.All()), nil
+	return vmmd.ToVMAll(matches.All()), nil
 }
 
-func (l *allVMs) MatchAll() []*vmmd.VMMetadata {
-	return vmmd.ToVMMetadataAll(*l)
+func (l *allVMs) MatchAll() []*vmmd.VM {
+	return vmmd.ToVMAll(*l)
 }
 
 // Match a single image using the IDNameFilter

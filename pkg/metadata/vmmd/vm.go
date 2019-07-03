@@ -28,7 +28,7 @@ ff02::2 ip6-allrouters
 `
 )
 
-func (md *VMMetadata) AllocateOverlay(requestedSize uint64) error {
+func (md *VM) AllocateOverlay(requestedSize uint64) error {
 	// Truncate only accepts an int64
 	if requestedSize > math.MaxInt64 {
 		return fmt.Errorf("requested size %d too large, cannot truncate", requestedSize)
@@ -62,7 +62,7 @@ func (md *VMMetadata) AllocateOverlay(requestedSize uint64) error {
 	return nil
 }
 
-func (md *VMMetadata) CopyToOverlay(fileMappings map[string]string) error {
+func (md *VM) CopyToOverlay(fileMappings map[string]string) error {
 	// Skip the mounting process if there are no files
 	if len(fileMappings) == 0 {
 		return nil
@@ -101,7 +101,7 @@ func (md *VMMetadata) CopyToOverlay(fileMappings map[string]string) error {
 
 // WriteEtcHosts populates the /etc/hosts file to avoid errors like
 // sudo: unable to resolve host 4462576f8bf5b689
-func (md *VMMetadata) WriteEtcHosts(tmpDir, hostname string, primaryIP net.IP) error {
+func (md *VM) WriteEtcHosts(tmpDir, hostname string, primaryIP net.IP) error {
 	hostFilePath := filepath.Join(tmpDir, "/etc/hosts")
 	empty, err := util.FileIsEmpty(hostFilePath)
 	if err != nil {
@@ -114,7 +114,7 @@ func (md *VMMetadata) WriteEtcHosts(tmpDir, hostname string, primaryIP net.IP) e
 	return ioutil.WriteFile(hostFilePath, content, 0644)
 }
 
-func (md *VMMetadata) SetState(s api.VMState) error {
+func (md *VM) SetState(s api.VMState) error {
 	md.Status.State = s
 
 	if err := md.Save(); err != nil {
@@ -124,11 +124,11 @@ func (md *VMMetadata) SetState(s api.VMState) error {
 	return nil
 }
 
-func (md *VMMetadata) Running() bool {
+func (md *VM) Running() bool {
 	return md.Status.State == api.VMStateRunning
 }
 
-func (md *VMMetadata) Size() (int64, error) {
+func (md *VM) Size() (int64, error) {
 	fi, err := os.Stat(path.Join(md.ObjectPath(), constants.OVERLAY_FILE))
 	if err != nil {
 		return 0, err
@@ -137,16 +137,16 @@ func (md *VMMetadata) Size() (int64, error) {
 	return fi.Size(), nil
 }
 
-func (md *VMMetadata) AddIPAddress(address net.IP) {
+func (md *VM) AddIPAddress(address net.IP) {
 	md.Status.IPAddresses = append(md.Status.IPAddresses, address)
 }
 
-func (md *VMMetadata) ClearIPAddresses() {
+func (md *VM) ClearIPAddresses() {
 	md.Status.IPAddresses = nil
 }
 
 // Generate a new SSH keypair for the vm
-func (md *VMMetadata) NewSSHKeypair() (string, error) {
+func (md *VM) NewSSHKeypair() (string, error) {
 	privKeyPath := path.Join(md.ObjectPath(), fmt.Sprintf(constants.VM_SSH_KEY_TEMPLATE, md.GetUID()))
 
 	// Use ED25519 instead of RSA for performance (it's equally secure, but a lot faster to generate/authenticate)

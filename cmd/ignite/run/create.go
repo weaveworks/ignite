@@ -79,7 +79,7 @@ type createOptions struct {
 	image        *imgmd.Image
 	kernel       *kernmd.Kernel
 	allVMs       []metadata.Metadata
-	newVM        *vmmd.VMMetadata
+	newVM        *vmmd.VM
 	fileMappings map[string]string
 }
 
@@ -163,7 +163,7 @@ func Create(co *createOptions) error {
 	}
 
 	// Create new metadata for the VM
-	if co.newVM, err = vmmd.NewVMMetadata("", &name, co.VM); err != nil {
+	if co.newVM, err = vmmd.NewVM("", &name, co.VM); err != nil {
 		return err
 	}
 	defer metadata.Cleanup(co.newVM, false) // TODO: Handle silent

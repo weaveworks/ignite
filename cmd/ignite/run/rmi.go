@@ -17,7 +17,7 @@ type RmiFlags struct {
 type rmiOptions struct {
 	*RmiFlags
 	images []*imgmd.Image
-	allVMs []*vmmd.VMMetadata
+	allVMs []*vmmd.VM
 }
 
 func (rf *RmiFlags) NewRmiOptions(l *loader.ResLoader, imageMatches []string) (*rmiOptions, error) {
@@ -49,7 +49,7 @@ func Rmi(ro *rmiOptions) error {
 					// Force-kill and remove the VM used by this image
 					if err := Rm(&rmOptions{
 						&RmFlags{Force: true},
-						[]*vmmd.VMMetadata{vm},
+						[]*vmmd.VM{vm},
 					}); err != nil {
 						return err
 					}

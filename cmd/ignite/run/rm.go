@@ -16,7 +16,7 @@ type RmFlags struct {
 
 type rmOptions struct {
 	*RmFlags
-	vms []*vmmd.VMMetadata
+	vms []*vmmd.VM
 }
 
 func (rf *RmFlags) NewRmOptions(l *loader.ResLoader, vmMatches []string) (*rmOptions, error) {
@@ -43,7 +43,7 @@ func Rm(ro *rmOptions) error {
 					&StopFlags{
 						Kill: true,
 					},
-					[]*vmmd.VMMetadata{vm},
+					[]*vmmd.VM{vm},
 					true,
 				}); err != nil {
 					return err

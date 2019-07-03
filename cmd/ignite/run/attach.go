@@ -14,7 +14,7 @@ import (
 // as the in-container ignite takes some time to start up and update the state
 type attachOptions struct {
 	checkRunning bool
-	vm           *vmmd.VMMetadata
+	vm           *vmmd.VM
 }
 
 func NewAttachOptions(l *loader.ResLoader, vmMatch string) (*attachOptions, error) {

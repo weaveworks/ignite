@@ -17,7 +17,7 @@ type RmkFlags struct {
 type rmkOptions struct {
 	*RmkFlags
 	kernels []*kernmd.Kernel
-	allVMs  []*vmmd.VMMetadata
+	allVMs  []*vmmd.VM
 }
 
 func (rf *RmkFlags) NewRmkOptions(l *loader.ResLoader, kernelMatches []string) (*rmkOptions, error) {
@@ -49,7 +49,7 @@ func Rmk(ro *rmkOptions) error {
 					// Force-kill and remove the VM used by this kernel
 					if err := Rm(&rmOptions{
 						&RmFlags{Force: true},
-						[]*vmmd.VMMetadata{vm},
+						[]*vmmd.VM{vm},
 					}); err != nil {
 						return err
 					}

@@ -20,7 +20,7 @@ type StopFlags struct {
 
 type stopOptions struct {
 	*StopFlags
-	vms    []*vmmd.VMMetadata
+	vms    []*vmmd.VM
 	silent bool
 }
 

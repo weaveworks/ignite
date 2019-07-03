@@ -12,11 +12,11 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-func (md *VMMetadata) SnapshotDev() string {
+func (md *VM) SnapshotDev() string {
 	return path.Join("/dev/mapper", constants.IGNITE_PREFIX+md.GetUID())
 }
 
-func (md *VMMetadata) SetupSnapshot() error {
+func (md *VM) SetupSnapshot() error {
 	device := constants.IGNITE_PREFIX + md.GetUID()
 	devicePath := md.SnapshotDev()
 
@@ -98,7 +98,7 @@ func (md *VMMetadata) SetupSnapshot() error {
 	return nil
 }
 
-func (md *VMMetadata) RemoveSnapshot() error {
+func (md *VM) RemoveSnapshot() error {
 	dmArgs := []string{
 		"remove",
 		md.SnapshotDev(),

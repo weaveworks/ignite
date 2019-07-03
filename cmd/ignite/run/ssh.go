@@ -17,7 +17,7 @@ type SSHFlags struct {
 
 type sshOptions struct {
 	*SSHFlags
-	vm *vmmd.VMMetadata
+	vm *vmmd.VM
 }
 
 func (sf *SSHFlags) NewSSHOptions(l *loader.ResLoader, vmMatch string) (*sshOptions, error) {

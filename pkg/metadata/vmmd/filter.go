@@ -27,7 +27,7 @@ func NewVMFilterAll(p string, all bool) *VMFilter {
 func (n *VMFilter) Filter(md metadata.Metadata) []string {
 	// Option to list just running VMs
 	if !n.all {
-		if !ToVMMetadata(md).Running() {
+		if !ToVM(md).Running() {
 			return nil
 		}
 	}
