@@ -3,9 +3,9 @@ package containerruntime
 import "io"
 
 type ImageInspectResult struct {
-	ID string
+	ID    string
 	Names []string
-	Size int64
+	Size  int64
 }
 
 type Interface interface {

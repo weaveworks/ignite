@@ -59,7 +59,7 @@ func (ds *DockerSource) Parse(source string) (*v1alpha1.ImageSource, error) {
 	ds.imageID = res.ID
 	return &v1alpha1.ImageSource{
 		Type: v1alpha1.ImageSourceTypeDocker,
-		ID: res.ID,
+		ID:   res.ID,
 		Name: res.Names[0],
 		Size: ignitemeta.NewSizeFromBytes(uint64(res.Size)),
 	}, nil

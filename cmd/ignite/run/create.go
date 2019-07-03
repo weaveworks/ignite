@@ -96,7 +96,7 @@ func (cf *CreateFlags) parseArgsAndConfig(args []string) error {
 	if len(cf.ConfigFile) != 0 {
 		// Marshal into a "clean" object, discard all flag input
 		cf.VM = &v1alpha1.VM{}
-		if err := scheme.DecodeFileInto(cf.ConfigFile, cf.VM); err != nil {
+		if err := scheme.Serializer.DecodeFileInto(cf.ConfigFile, cf.VM); err != nil {
 			return err
 		}
 	}
