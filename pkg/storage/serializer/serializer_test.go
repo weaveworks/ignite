@@ -7,15 +7,13 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage/serializer"
-
-	"k8s.io/apimachinery/pkg/types"
 )
 
 var s = serializer.NewSerializer(scheme.Scheme, nil)
 var sampleobj = &api.VM{
 	ObjectMeta: meta.ObjectMeta{
 		Name: "foo",
-		UID:  types.UID("1234"),
+		UID:  meta.UID("1234"),
 	},
 	Spec: api.VMSpec{
 		CPUs: 1,

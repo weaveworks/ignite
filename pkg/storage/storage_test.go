@@ -5,7 +5,6 @@ import (
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 var s = NewStorage("/tmp/foo")
@@ -13,7 +12,7 @@ var s = NewStorage("/tmp/foo")
 func TestStorageGet(t *testing.T) {
 	obj := &api.VM{
 		ObjectMeta: meta.ObjectMeta{
-			UID: types.UID("1234"),
+			UID: meta.UID("1234"),
 		},
 	}
 	err := s.Get(obj)
@@ -24,7 +23,7 @@ func TestStorageSet(t *testing.T) {
 	err := s.Set(&api.VM{
 		ObjectMeta: meta.ObjectMeta{
 			Name: "foo",
-			UID:  types.UID("1234"),
+			UID:  meta.UID("1234"),
 		},
 		Spec: api.VMSpec{
 			CPUs:   2,

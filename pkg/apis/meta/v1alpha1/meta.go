@@ -8,7 +8,6 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 )
 
 const (
@@ -31,7 +30,7 @@ type APITypeList []*APIType
 // implement the Object interface
 type ObjectMeta struct {
 	Name    string       `json:"name"`
-	UID     types.UID    `json:"uid,omitempty"`
+	UID     UID    `json:"uid,omitempty"`
 	Created *metav1.Time `json:"created,omitempty"`
 }
 
@@ -47,12 +46,12 @@ func (o *ObjectMeta) SetName(name string) {
 
 // GetUID returns the UID of the Object
 func (o *ObjectMeta) GetUID() string {
-	return string(o.UID)
+	return o.UID.String()
 }
 
 // SetUID sets the UID of the Object
 func (o *ObjectMeta) SetUID(uid string) {
-	o.UID = types.UID(uid)
+	o.UID = UID(uid)
 }
 
 // GetCreated returns when the Object was created
@@ -73,11 +72,20 @@ type Object interface {
 	GetName() string
 	SetName(string)
 
+	// TODO: Use UID
 	GetUID() string
 	SetUID(string)
 
 	GetCreated() *metav1.Time
 	SetCreated(t *metav1.Time)
+}
+
+// UID represents an unique ID for a type
+type UID string
+
+// String returns the UID in string representation
+func (u UID) String() string {
+	return string(u)
 }
 
 // Size specifies a common unit for data sizes
