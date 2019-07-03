@@ -77,7 +77,7 @@ type CreateFlags struct {
 type createOptions struct {
 	*CreateFlags
 	image        *imgmd.Image
-	kernel       *kernmd.KernelMetadata
+	kernel       *kernmd.Kernel
 	allVMs       []metadata.Metadata
 	newVM        *vmmd.VMMetadata
 	fileMappings map[string]string

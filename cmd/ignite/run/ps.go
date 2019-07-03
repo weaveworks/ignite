@@ -50,13 +50,13 @@ func Ps(po *psOptions) error {
 			return fmt.Errorf("failed to load image metadata for %s %q: %v", vm.Type(), vm.GetUID(), err)
 		}
 
-		kernelMD, err := kernmd.LoadKernelMetadata(vm.Spec.Kernel.ID)
+		kernelMD, err := kernmd.LoadKernel(vm.Spec.Kernel.ID)
 		if err != nil {
 			return fmt.Errorf("failed to load kernel metadata for %s %q: %v", vm.Type(), vm.GetUID(), err)
 		}
 
 		image := imgmd.ToImage(imageMD)
-		kernel := kernmd.ToKernelMetadata(kernelMD)
+		kernel := kernmd.ToKernel(kernelMD)
 
 		// TODO: Clean up this print
 		o.Write(vm.GetUID(), image.GetName(), kernel.GetName(), vm.Created, datasize.ByteSize(size).HR(), vm.Spec.CPUs,

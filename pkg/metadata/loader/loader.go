@@ -48,7 +48,7 @@ func (l *ResLoader) Images() (*allImages, error) {
 func (l *ResLoader) Kernels() (*allKernels, error) {
 	if l.kernel == nil {
 		var err error
-		if l.kernel, err = kernmd.LoadAllKernelMetadata(); err != nil {
+		if l.kernel, err = kernmd.LoadAllKernel(); err != nil {
 			return nil, err
 		}
 	}
@@ -154,17 +154,17 @@ func (l *allImages) MatchAll() []*imgmd.Image {
 }
 
 // Match a single kernel using the IDNameFilter
-func (l *allKernels) MatchSingle(match string) (*kernmd.KernelMetadata, error) {
+func (l *allKernels) MatchSingle(match string) (*kernmd.Kernel, error) {
 	md, err := single(metadata.NewIDNameFilter(match, api.PoolDeviceTypeKernel), *l)
 	if err != nil {
 		return nil, err
 	}
 
-	return kernmd.ToKernelMetadata(md), nil
+	return kernmd.ToKernel(md), nil
 }
 
 // Match multiple individual kernels with different filter strings
-func (l *allKernels) MatchMultiple(matches []string) ([]*kernmd.KernelMetadata, error) {
+func (l *allKernels) MatchMultiple(matches []string) ([]*kernmd.Kernel, error) {
 	filters := make([]metadata.Filter, 0, len(matches))
 	for _, match := range matches {
 		filters = append(filters, metadata.NewIDNameFilter(match, api.PoolDeviceTypeKernel))
@@ -175,9 +175,9 @@ func (l *allKernels) MatchMultiple(matches []string) ([]*kernmd.KernelMetadata, 
 		return nil, err
 	}
 
-	return kernmd.ToKernelMetadataAll(results), nil
+	return kernmd.ToKernelAll(results), nil
 }
 
-func (l *allKernels) MatchAll() []*kernmd.KernelMetadata {
-	return kernmd.ToKernelMetadataAll(*l)
+func (l *allKernels) MatchAll() []*kernmd.Kernel {
+	return kernmd.ToKernelAll(*l)
 }

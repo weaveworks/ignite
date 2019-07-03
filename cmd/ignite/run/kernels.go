@@ -10,7 +10,7 @@ import (
 )
 
 type kernelsOptions struct {
-	allKernels []*kernmd.KernelMetadata
+	allKernels []*kernmd.Kernel
 }
 
 func NewKernelsOptions(l *loader.ResLoader) (*kernelsOptions, error) {

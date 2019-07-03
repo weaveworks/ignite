@@ -4,8 +4,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
-func LoadKernelMetadata(id string) (metadata.Metadata, error) {
-	md, err := NewKernelMetadata(id, nil, nil)
+func LoadKernel(id string) (metadata.Metadata, error) {
+	md, err := NewKernel(id, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -17,19 +17,19 @@ func LoadKernelMetadata(id string) (metadata.Metadata, error) {
 	return md, nil
 }
 
-func LoadAllKernelMetadata() ([]metadata.Metadata, error) {
-	return metadata.LoadAllMetadata((&KernelMetadata{}).TypePath(), LoadKernelMetadata)
+func LoadAllKernel() ([]metadata.Metadata, error) {
+	return metadata.LoadAllMetadata((&Kernel{}).TypePath(), LoadKernel)
 }
 
-func ToKernelMetadata(md metadata.Metadata) *KernelMetadata {
-	return md.(*KernelMetadata) // This type assert is internal, we don't need to validate it
+func ToKernel(md metadata.Metadata) *Kernel {
+	return md.(*Kernel) // This type assert is internal, we don't need to validate it
 }
 
-func ToKernelMetadataAll(any []metadata.Metadata) []*KernelMetadata {
-	var mds []*KernelMetadata
+func ToKernelAll(any []metadata.Metadata) []*Kernel {
+	var mds []*Kernel
 
 	for _, md := range any {
-		mds = append(mds, ToKernelMetadata(md))
+		mds = append(mds, ToKernel(md))
 	}
 
 	return mds

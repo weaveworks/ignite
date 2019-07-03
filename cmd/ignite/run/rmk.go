@@ -16,7 +16,7 @@ type RmkFlags struct {
 
 type rmkOptions struct {
 	*RmkFlags
-	kernels []*kernmd.KernelMetadata
+	kernels []*kernmd.Kernel
 	allVMs  []*vmmd.VMMetadata
 }
 

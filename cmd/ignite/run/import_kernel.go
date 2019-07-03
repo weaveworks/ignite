@@ -57,7 +57,7 @@ func ImportKernel(ao *importKernelOptions) error {
 	}
 
 	// Create new kernel metadata
-	md, err := kernmd.NewKernelMetadata("", &name, kernel)
+	md, err := kernmd.NewKernel("", &name, kernel)
 	if err != nil {
 		return err
 	}

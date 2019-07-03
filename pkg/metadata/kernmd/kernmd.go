@@ -9,18 +9,18 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
-type KernelMetadata struct {
+type Kernel struct {
 	*api.Kernel
 }
 
-var _ metadata.Metadata = &KernelMetadata{}
+var _ metadata.Metadata = &Kernel{}
 
-func NewKernelMetadata(id string, name *string, object *api.Kernel) (*KernelMetadata, error) {
+func NewKernel(id string, name *string, object *api.Kernel) (*Kernel, error) {
 	if object == nil {
 		object = &api.Kernel{}
 	}
 
-	md := &KernelMetadata{
+	md := &Kernel{
 		Kernel: object,
 	}
 
@@ -33,23 +33,23 @@ func NewKernelMetadata(id string, name *string, object *api.Kernel) (*KernelMeta
 	return md, nil
 }
 
-func (md *KernelMetadata) Type() api.PoolDeviceType {
+func (md *Kernel) Type() api.PoolDeviceType {
 	return api.PoolDeviceTypeKernel
 }
 
-func (md *KernelMetadata) TypePath() string {
+func (md *Kernel) TypePath() string {
 	return constants.KERNEL_DIR
 }
 
-func (md *KernelMetadata) ObjectPath() string {
+func (md *Kernel) ObjectPath() string {
 	return path.Join(md.TypePath(), md.GetUID())
 }
 
-func (md *KernelMetadata) Load() (err error) {
+func (md *Kernel) Load() (err error) {
 	md.Kernel, err = client.Kernels().Get(md.GetUID())
 	return
 }
 
-func (md *KernelMetadata) Save() error {
+func (md *Kernel) Save() error {
 	return client.Kernels().Set(md.Kernel)
 }
