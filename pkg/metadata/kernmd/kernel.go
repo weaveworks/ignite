@@ -11,7 +11,7 @@ import (
 
 func (md *KernelMetadata) ImportKernel(p string) error {
 	if err := util.CopyFile(p, path.Join(md.ObjectPath(), constants.KERNEL_FILE)); err != nil {
-		return fmt.Errorf("failed to copy kernel file %q to kernel %q: %v", p, md.ID, err)
+		return fmt.Errorf("failed to copy kernel file %q to kernel %q: %v", p, md.GetUID(), err)
 	}
 
 	return nil

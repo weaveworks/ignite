@@ -63,7 +63,7 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	cmdutil.SizeVarP(fs, &cf.VM.Spec.DiskSize, "size", "s", cf.VM.Spec.DiskSize, "VM filesystem size, for example 5GB or 2048MB")
 	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", nil, "Copy files from the host to the created VM")
 	fs.StringVarP(&cf.KernelName, "kernel", "k", "", "Specify a kernel to use. By default this equals the image name")
-	fs.StringVar(&cf.KernelCmd, "kernel-args", constants.VM_DEFAULT_KERNEL_ARGS, "Set the command line for the kernel")
+	fs.StringVar(&cf.VM.Spec.Kernel.CmdLine, "kernel-args", constants.VM_DEFAULT_KERNEL_ARGS, "Set the command line for the kernel")
 
 	cf.SSH = &run.SSHFlag{}
 	fs.Var(cf.SSH, "ssh", "Enable SSH for the VM. If <path> is given, it will be imported as the public key. If just '--ssh' is specified, a new keypair will be generated.")

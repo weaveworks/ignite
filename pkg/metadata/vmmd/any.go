@@ -4,15 +4,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
-// Verify that VMMetadata implements AnyMetadata
-var _ metadata.AnyMetadata = &VMMetadata{}
-
-func (md *VMMetadata) GetMD() *metadata.Metadata {
-	return md.Metadata
-}
-
-func LoadVMMetadata(id *metadata.ID) (metadata.AnyMetadata, error) {
-	md, err := NewVMMetadata(id, nil, &VMObjectData{})
+func LoadVMMetadata(id string) (metadata.Metadata, error) {
+	md, err := NewVMMetadata(id, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -24,15 +17,15 @@ func LoadVMMetadata(id *metadata.ID) (metadata.AnyMetadata, error) {
 	return md, nil
 }
 
-func LoadAllVMMetadata() ([]metadata.AnyMetadata, error) {
-	return metadata.LoadAllMetadata(metadata.VM.Path(), LoadVMMetadata)
+func LoadAllVMMetadata() ([]metadata.Metadata, error) {
+	return metadata.LoadAllMetadata((&VMMetadata{}).TypePath(), LoadVMMetadata)
 }
 
-func ToVMMetadata(md metadata.AnyMetadata) *VMMetadata {
+func ToVMMetadata(md metadata.Metadata) *VMMetadata {
 	return md.(*VMMetadata) // This type assert is internal, we don't need to validate it
 }
 
-func ToVMMetadataAll(any []metadata.AnyMetadata) []*VMMetadata {
+func ToVMMetadataAll(any []metadata.Metadata) []*VMMetadata {
 	var mds []*VMMetadata
 
 	for _, md := range any {

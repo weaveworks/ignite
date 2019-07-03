@@ -9,6 +9,8 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+
 	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -34,7 +36,7 @@ func (md *VMMetadata) AllocateOverlay(requestedSize uint64) error {
 
 	size := int64(requestedSize)
 
-	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, md.VMOD().ImageID.String(), constants.IMAGE_FS))
+	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, md.Spec.Image.ID, constants.IMAGE_FS))
 	if err != nil {
 		return err
 	}
@@ -49,12 +51,12 @@ func (md *VMMetadata) AllocateOverlay(requestedSize uint64) error {
 
 	overlayFile, err := os.Create(path.Join(md.ObjectPath(), constants.OVERLAY_FILE))
 	if err != nil {
-		return fmt.Errorf("failed to create overlay file for %q, %v", md.ID, err)
+		return fmt.Errorf("failed to create overlay file for %q, %v", md.GetUID(), err)
 	}
 	defer overlayFile.Close()
 
 	if err := overlayFile.Truncate(size); err != nil {
-		return fmt.Errorf("failed to allocate overlay file for VM %q: %v", md.ID, err)
+		return fmt.Errorf("failed to allocate overlay file for VM %q: %v", md.GetUID(), err)
 	}
 
 	return nil
@@ -90,10 +92,11 @@ func (md *VMMetadata) CopyToOverlay(fileMappings map[string]string) error {
 	}
 
 	ip := net.IP{127, 0, 0, 1}
-	if len(md.VMOD().IPAddrs) > 0 {
-		ip = md.VMOD().IPAddrs[0]
+	if len(md.Status.IPAddresses) > 0 {
+		ip = md.Status.IPAddresses[0]
 	}
-	return md.WriteEtcHosts(mp.Path, md.ID.String(), ip)
+
+	return md.WriteEtcHosts(mp.Path, md.GetUID(), ip)
 }
 
 // WriteEtcHosts populates the /etc/hosts file to avoid errors like
@@ -111,8 +114,8 @@ func (md *VMMetadata) WriteEtcHosts(tmpDir, hostname string, primaryIP net.IP) e
 	return ioutil.WriteFile(hostFilePath, content, 0644)
 }
 
-func (md *VMMetadata) SetState(s state) error {
-	md.VMOD().State = s
+func (md *VMMetadata) SetState(s v1alpha1.VMState) error {
+	md.Status.State = s
 
 	if err := md.Save(); err != nil {
 		return err
@@ -122,11 +125,7 @@ func (md *VMMetadata) SetState(s state) error {
 }
 
 func (md *VMMetadata) Running() bool {
-	return md.VMOD().State == Running
-}
-
-func (md *VMMetadata) KernelID() string {
-	return md.VMOD().KernelID.String()
+	return md.Status.State == v1alpha1.VMStateRunning
 }
 
 func (md *VMMetadata) Size() (int64, error) {
@@ -139,21 +138,16 @@ func (md *VMMetadata) Size() (int64, error) {
 }
 
 func (md *VMMetadata) AddIPAddress(address net.IP) {
-	od := md.VMOD()
-	od.IPAddrs = append(od.IPAddrs, address)
+	md.Status.IPAddresses = append(md.Status.IPAddresses, address)
 }
 
 func (md *VMMetadata) ClearIPAddresses() {
-	md.VMOD().IPAddrs = nil
-}
-
-func (md *VMMetadata) ClearPortMappings() {
-	md.VMOD().PortMappings = nil
+	md.Status.IPAddresses = nil
 }
 
 // Generate a new SSH keypair for the vm
 func (md *VMMetadata) NewSSHKeypair() (string, error) {
-	privKeyPath := path.Join(md.ObjectPath(), fmt.Sprintf(constants.VM_SSH_KEY_TEMPLATE, md.ID))
+	privKeyPath := path.Join(md.ObjectPath(), fmt.Sprintf(constants.VM_SSH_KEY_TEMPLATE, md.GetUID()))
 
 	// Use ED25519 instead of RSA for performance (it's equally secure, but a lot faster to generate/authenticate)
 	_, err := util.ExecuteCommand("ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", privKeyPath)

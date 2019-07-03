@@ -56,7 +56,7 @@ func (sf *StartFlags) NewStartOptions(l *loader.ResLoader, vmMatch string) (*sta
 func Start(so *startOptions) error {
 	// Check if the given VM is already running
 	if so.vm.Running() {
-		return fmt.Errorf("VM %q is already running", so.vm.ID)
+		return fmt.Errorf("VM %q is already running", so.vm.GetUID())
 	}
 
 	// Setup the snapshot overlay filesystem
@@ -71,13 +71,13 @@ func Start(so *startOptions) error {
 	}
 	igniteBinary, _ := filepath.Abs(path)
 
-	vmDir := filepath.Join(constants.VM_DIR, so.vm.ID.String())
-	kernelDir := filepath.Join(constants.KERNEL_DIR, so.vm.KernelID())
+	vmDir := filepath.Join(constants.VM_DIR, so.vm.GetUID())
+	kernelDir := filepath.Join(constants.KERNEL_DIR, so.vm.Spec.Kernel.ID)
 
 	dockerArgs := []string{
 		"-itd",
-		fmt.Sprintf("--label=ignite.name=%s", so.vm.Name.String()),
-		fmt.Sprintf("--name=%s", constants.IGNITE_PREFIX+so.vm.ID.String()),
+		fmt.Sprintf("--label=ignite.name=%s", so.vm.GetName()),
+		fmt.Sprintf("--name=%s", constants.IGNITE_PREFIX+so.vm.GetUID()),
 		fmt.Sprintf("--volume=%s:/ignite/ignite", igniteBinary),
 		fmt.Sprintf("--volume=%s:%s", vmDir, vmDir),
 		fmt.Sprintf("--volume=%s:%s", kernelDir, kernelDir),
@@ -107,8 +107,8 @@ func Start(so *startOptions) error {
 	}
 
 	// Add the port mappings to Docker
-	for hostPort, vmPort := range so.vm.VMOD().PortMappings {
-		dockerArgs = append(dockerArgs, fmt.Sprintf("-p=%d:%d", hostPort, vmPort))
+	for _, portMapping := range so.vm.Spec.Ports {
+		dockerArgs = append(dockerArgs, fmt.Sprintf("-p=%d:%d", portMapping.HostPort, portMapping.VMPort))
 	}
 
 	// Save the port mappings into the VM metadata
@@ -122,12 +122,12 @@ func Start(so *startOptions) error {
 		imageTag = "dev"
 	}
 	dockerArgs = append(dockerArgs, fmt.Sprintf("weaveworks/ignite:%s", imageTag))
-	dockerArgs = append(dockerArgs, so.vm.ID.String())
+	dockerArgs = append(dockerArgs, so.vm.GetUID())
 
 	// Create the VM container in docker
 	containerID, err := util.ExecuteCommand("docker", append(dockerCmd, dockerArgs...)...)
 	if err != nil {
-		return fmt.Errorf("failed to start container for VM %q: %v", so.vm.ID, err)
+		return fmt.Errorf("failed to start container for VM %q: %v", so.vm.GetUID(), err)
 	}
 
 	if so.NetworkMode == NetworkModeCNI {

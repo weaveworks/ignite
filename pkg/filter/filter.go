@@ -6,10 +6,10 @@ import (
 
 type filterer struct {
 	filter  metadata.Filter
-	sources []metadata.AnyMetadata
+	sources []metadata.Metadata
 }
 
-func NewFilterer(filter metadata.Filter, sources []metadata.AnyMetadata) (*filterer, error) {
+func NewFilterer(filter metadata.Filter, sources []metadata.Metadata) (*filterer, error) {
 	return &filterer{
 		filter:  filter,
 		sources: sources,
@@ -33,7 +33,7 @@ func (f *filterer) match() []*metadata.Match {
 	return matches
 }
 
-func (f *filterer) Single() (metadata.AnyMetadata, error) {
+func (f *filterer) Single() (metadata.Metadata, error) {
 	matches := f.match()
 
 	if len(matches) == 0 {
@@ -47,10 +47,10 @@ func (f *filterer) Single() (metadata.AnyMetadata, error) {
 	return matches[0].Object, nil
 }
 
-func (f *filterer) All() []metadata.AnyMetadata {
+func (f *filterer) All() []metadata.Metadata {
 	matches := f.match()
 
-	objects := make([]metadata.AnyMetadata, 0, len(matches))
+	objects := make([]metadata.Metadata, 0, len(matches))
 	for _, match := range matches {
 		objects = append(objects, match.Object)
 	}

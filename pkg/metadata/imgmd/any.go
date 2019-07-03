@@ -4,15 +4,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
-// Verify that VMMetadata implements AnyMetadata
-var _ metadata.AnyMetadata = &ImageMetadata{}
-
-func (md *ImageMetadata) GetMD() *metadata.Metadata {
-	return md.Metadata
-}
-
-func LoadImageMetadata(id *metadata.ID) (metadata.AnyMetadata, error) {
-	md, err := NewImageMetadata(id, nil)
+func LoadImageMetadata(id string) (metadata.Metadata, error) {
+	md, err := NewImageMetadata(id, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -24,15 +17,15 @@ func LoadImageMetadata(id *metadata.ID) (metadata.AnyMetadata, error) {
 	return md, nil
 }
 
-func LoadAllImageMetadata() ([]metadata.AnyMetadata, error) {
-	return metadata.LoadAllMetadata(metadata.Image.Path(), LoadImageMetadata)
+func LoadAllImageMetadata() ([]metadata.Metadata, error) {
+	return metadata.LoadAllMetadata((&ImageMetadata{}).TypePath(), LoadImageMetadata)
 }
 
-func ToImageMetadata(md metadata.AnyMetadata) *ImageMetadata {
+func ToImageMetadata(md metadata.Metadata) *ImageMetadata {
 	return md.(*ImageMetadata) // This type assert is internal, we don't need to validate it
 }
 
-func ToImageMetadataAll(any []metadata.AnyMetadata) []*ImageMetadata {
+func ToImageMetadataAll(any []metadata.Metadata) []*ImageMetadata {
 	var mds []*ImageMetadata
 
 	for _, md := range any {

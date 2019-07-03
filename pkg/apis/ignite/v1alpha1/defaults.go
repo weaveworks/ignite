@@ -41,13 +41,18 @@ func SetDefaults_VMSpec(obj *VMSpec) {
 		obj.CPUs = constants.VM_DEFAULT_CPUS
 	}
 
-	// TODO: These might be nil instead of ignitemeta.EmptySize
 	if obj.Memory == ignitemeta.EmptySize {
 		obj.Memory = ignitemeta.NewSizeFromBytes(constants.VM_DEFAULT_MEMORY)
 	}
 
 	if obj.DiskSize == ignitemeta.EmptySize {
 		obj.DiskSize = ignitemeta.NewSizeFromBytes(constants.VM_DEFAULT_SIZE)
+	}
+
+	if obj.Kernel == nil {
+		obj.Kernel = &KernelClaim{
+			CmdLine: constants.VM_DEFAULT_KERNEL_ARGS,
+		}
 	}
 }
 

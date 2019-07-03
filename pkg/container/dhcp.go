@@ -33,7 +33,7 @@ func StartDHCPServers(vm *vmmd.VMMetadata, dhcpIfaces []DHCPInterface) error {
 	for i := range dhcpIfaces {
 		dhcpIface := &dhcpIfaces[i]
 		// Set the VM hostname to the VM ID
-		dhcpIface.Hostname = vm.ID.String()
+		dhcpIface.Hostname = vm.GetUID()
 
 		// Set the MAC address filter for the DHCP server
 		dhcpIface.MACFilter = macAddresses[i]

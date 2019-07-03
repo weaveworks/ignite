@@ -1,167 +1,32 @@
 package metadata
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
-	"path"
 
-	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/util"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
-type ObjectType int
-
-const (
-	Image ObjectType = iota + 1 // Reserve 0 for unset
-	Kernel
-	VM
-)
-
-var ObjectTypeLookup = map[ObjectType]string{
-	Image:  "image",
-	Kernel: "kernel",
-	VM:     "VM",
+type Metadata interface {
+	ignitemeta.Object
+	Type() v1alpha1.PoolDeviceType
+	TypePath() string
+	ObjectPath() string
+	Load() error
+	Save() error
 }
 
-func (x ObjectType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(x.String())
-}
-
-func (x *ObjectType) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
-		return err
-	}
-
-	for k, v := range ObjectTypeLookup {
-		if v == s {
-			*x = k
-			break
-		}
-	}
-
-	return nil
-}
-
-func (x ObjectType) String() string {
-	return ObjectTypeLookup[x]
-}
-
-func (x ObjectType) Path() string {
-	switch x {
-	case Image:
-		return constants.IMAGE_DIR
-	case Kernel:
-		return constants.KERNEL_DIR
-	case VM:
-		return constants.VM_DIR
-	}
-
-	return ""
-}
-
-type ObjectData interface{}
-
-type Metadata struct {
-	ID         *ID         `json:"ID"`
-	Name       Name        `json:"Name"`
-	Type       ObjectType  `json:"Type"`
-	Created    metav1.Time `json:"Created"`
-	ObjectData `json:"ObjectData"`
-}
-
-func NewMetadata(id *ID, name *Name, t ObjectType, data ObjectData) (*Metadata, error) {
-	if name == nil { // If the name is nil (for loading purposes), create a temporary unset one
-		name = newUnsetName()
-	} else {
-		name.randomize() // Otherwise if the name is unset, create a new random one
-	}
-
-	md := &Metadata{
-		ID:         id,
-		Name:       *name,
-		Type:       t,
-		Created:    metav1.Now(),
-		ObjectData: data,
-	}
-
-	if err := md.newID(); err != nil {
-		return nil, err
-	}
-
-	return md, nil
-}
-
-func (md *Metadata) ObjectPath() string {
-	return path.Join(md.Type.Path(), md.ID.String())
-}
-
-func (md *Metadata) Remove(quiet bool) error {
+func Remove(md Metadata, quiet bool) error {
 	if err := os.RemoveAll(md.ObjectPath()); err != nil {
-		return fmt.Errorf("unable to remove directory for %s %q: %v", md.Type, md.ID, err)
+		return fmt.Errorf("unable to remove directory for %s %q: %v", md.Type(), md.GetUID(), err)
 	}
 
 	if quiet {
-		fmt.Println(md.ID)
+		fmt.Println(md.GetUID())
 	} else {
-		log.Printf("Removed %s with name %q and ID %q", md.Type, md.Name.String(), md.ID)
-	}
-
-	return nil
-}
-
-func (md *Metadata) Save() error {
-	f, err := os.Create(path.Join(md.ObjectPath(), constants.METADATA))
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	y, err := json.MarshalIndent(&md, "", "    ")
-	if err != nil {
-		return err
-	}
-
-	if _, err := f.Write(append(y, '\n')); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (md *Metadata) Load() error {
-	if md.ID == nil {
-		return errors.New("cannot load metadata, ID not set")
-	}
-
-	if md.Type == 0 { // Type is unset
-		return errors.New("cannot load metadata, Type not set")
-	}
-
-	p := md.ObjectPath()
-
-	if !util.DirExists(p) {
-		return fmt.Errorf("nonexistent %s: %s", md.Type, md.ID)
-	}
-
-	f := path.Join(p, constants.METADATA)
-
-	if !util.FileExists(f) {
-		return fmt.Errorf("metadata file missing for %s: %s", md.Type, md.ID)
-	}
-
-	d, err := ioutil.ReadFile(f)
-	if err != nil {
-		return err
-	}
-
-	if err := json.Unmarshal(d, &md); err != nil {
-		return err
+		log.Printf("Removed %s with name %q and ID %q", md.Type(), md.GetName(), md.GetUID())
 	}
 
 	return nil

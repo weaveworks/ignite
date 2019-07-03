@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	SectorSize = 512
+	sectorSize = 512
 )
 
 // APIType is a struct implementing Object, used for
@@ -40,9 +40,19 @@ func (o *ObjectMeta) GetName() string {
 	return o.Name
 }
 
+// SetName sets the name of the Object
+func (o *ObjectMeta) SetName(name string) {
+	o.Name = name
+}
+
 // GetUID returns the UID of the Object
-func (o *ObjectMeta) GetUID() types.UID {
-	return o.UID
+func (o *ObjectMeta) GetUID() string {
+	return string(o.UID)
+}
+
+// SetUID sets the UID of the Object
+func (o *ObjectMeta) SetUID(uid string) {
+	o.UID = types.UID(uid)
 }
 
 // GetCreated returns when the Object was created
@@ -59,8 +69,13 @@ func (o *ObjectMeta) SetCreated(t *metav1.Time) {
 // extra GetName() and GetUID() methods from ObjectMeta
 type Object interface {
 	runtime.Object
+
 	GetName() string
-	GetUID() types.UID
+	SetName(string)
+
+	GetUID() string
+	SetUID(string)
+
 	GetCreated() *metav1.Time
 	SetCreated(t *metav1.Time)
 }
@@ -89,12 +104,12 @@ func NewSizeFromBytes(bytes uint64) Size {
 
 func NewSizeFromSectors(sectors uint64) Size {
 	return Size{
-		datasize.ByteSize(sectors * SectorSize),
+		datasize.ByteSize(sectors * sectorSize),
 	}
 }
 
 func (s *Size) Sectors() uint64 {
-	return s.Bytes() / SectorSize
+	return s.Bytes() / sectorSize
 }
 
 // Override ByteSize's default string implementation which results in something similar to HR()

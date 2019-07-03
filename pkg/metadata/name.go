@@ -1,35 +1,18 @@
 package metadata
 
 import (
-	"encoding/json"
 	"fmt"
-	"strings"
-
 	"regexp"
+	"strings"
 
 	"github.com/weaveworks/ignite/pkg/util"
 )
-
-type Name struct {
-	string
-}
 
 const (
 	nameRegex = `^[a-z-_0-9.:/]*$`
 )
 
-// Compile-time asserts to verify interface compatibility
-var _ fmt.Stringer = &Name{}
-var _ json.Marshaler = &Name{}
-var _ json.Unmarshaler = &Name{}
-
-func (n *Name) randomize() {
-	if n.string == "" {
-		n.string = util.RandomName()
-	}
-}
-
-func NewNameWithLatest(input string, matches *[]AnyMetadata) (*Name, error) {
+func NewNameWithLatest(input string, matches *[]Metadata) (string, error) {
 	// Enforce a latest tag for images and kernels
 	if !strings.Contains(input, ":") {
 		input += ":latest"
@@ -38,56 +21,34 @@ func NewNameWithLatest(input string, matches *[]AnyMetadata) (*Name, error) {
 	return NewName(input, matches)
 }
 
-func NewName(input string, matches *[]AnyMetadata) (*Name, error) {
+func NewName(input string, matches *[]Metadata) (string, error) {
 	matched, err := regexp.MatchString(nameRegex, input)
 	if err != nil {
-		return nil, fmt.Errorf("failed to validate name input %q: %v", input, err)
+		return "", fmt.Errorf("failed to validate name input %q: %v", input, err)
 	}
 
 	if !matched {
-		return nil, fmt.Errorf("invalid name %q: does not match required format %s", input, nameRegex)
+		return "", fmt.Errorf("invalid name %q: does not match required format %s", input, nameRegex)
 	}
 
 	// Check the given matches for uniqueness
 	if matches != nil {
 		for _, match := range *matches {
-			if input == match.GetMD().Name.string {
-				return nil, fmt.Errorf("invalid name %q: already exists", input)
+			if input == match.GetName() {
+				return "", fmt.Errorf("invalid name %q: already exists", input)
 			}
 		}
 	}
 
-	return &Name{
-		input,
-	}, nil
+	return input, nil
 }
 
-func newUnsetName() *Name {
-	return &Name{
-		"<unset>", // This should never be visible
+func InitName(md Metadata, input *string) {
+	if input == nil { // If the input is nil (for loading purposes), create a temporary unset name
+		md.SetName("<unset>")
+	} else if *input == "" {
+		md.SetName(util.RandomName()) // Otherwise if the input is unset, create a new random name
+	} else {
+		md.SetName(*input)
 	}
-}
-
-func (n *Name) String() string {
-	return n.string
-}
-
-func (n Name) MarshalJSON() ([]byte, error) {
-	return json.Marshal(n.string)
-}
-
-func (n *Name) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
-		return err
-	}
-
-	name, err := NewName(s, nil)
-	if err != nil {
-		return err
-	}
-
-	*n = *name
-
-	return nil
 }

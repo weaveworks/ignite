@@ -59,7 +59,9 @@ func NewCreateFlags() *CreateFlags {
 	cf := &CreateFlags{
 		VM: &v1alpha1.VM{},
 	}
+
 	scheme.Scheme.Default(cf.VM)
+
 	return cf
 }
 
@@ -67,7 +69,6 @@ type CreateFlags struct {
 	// TODO: Also respect CopyFiles, SSH, PortMappings, Networking mode, and kernel stuff from the config file
 	CopyFiles  []string
 	KernelName string
-	KernelCmd  string
 	SSH        *SSHFlag
 	ConfigFile string
 	VM         *v1alpha1.VM
@@ -77,7 +78,7 @@ type createOptions struct {
 	*CreateFlags
 	image        *imgmd.ImageMetadata
 	kernel       *kernmd.KernelMetadata
-	allVMs       []metadata.AnyMetadata
+	allVMs       []metadata.Metadata
 	newVM        *vmmd.VMMetadata
 	fileMappings map[string]string
 }
@@ -136,6 +137,11 @@ func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*cr
 		return nil, err
 	}
 
+	// The VM metadata needs the image and kernel IDs to be saved for now
+	// TODO: Replace with pool/snapshotter
+	cf.VM.Spec.Image.ID = co.image.GetUID()
+	cf.VM.Spec.Kernel.ID = co.kernel.GetUID()
+
 	if allVMs, err := l.VMs(); err == nil {
 		co.allVMs = *allVMs
 	} else {
@@ -157,11 +163,10 @@ func Create(co *createOptions) error {
 	}
 
 	// Create new metadata for the VM
-	if co.newVM, err = vmmd.NewVMMetadata(nil, name,
-		vmmd.NewVMObjectData(co.image.ID, co.kernel.ID, int64(co.VM.Spec.CPUs), int64(co.VM.Spec.Memory.MBytes()), co.KernelCmd)); err != nil {
+	if co.newVM, err = vmmd.NewVMMetadata("", &name, co.VM); err != nil {
 		return err
 	}
-	defer co.newVM.Cleanup(false) // TODO: Handle silent
+	defer metadata.Cleanup(co.newVM, false) // TODO: Handle silent
 
 	// Parse SSH key importing
 	if err := co.parseSSH(&co.fileMappings); err != nil {
@@ -183,7 +188,7 @@ func Create(co *createOptions) error {
 		return err
 	}
 
-	return co.newVM.Success()
+	return metadata.Success(co.newVM)
 }
 
 func parseFileMappings(fileMappings []string) (map[string]string, error) {

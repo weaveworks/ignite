@@ -1,6 +1,7 @@
 package vmmd
 
 import (
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
@@ -18,18 +19,18 @@ func NewVMFilter(p string) *VMFilter {
 
 func NewVMFilterAll(p string, all bool) *VMFilter {
 	return &VMFilter{
-		IDNameFilter: metadata.NewIDNameFilter(p, metadata.VM),
+		IDNameFilter: metadata.NewIDNameFilter(p, v1alpha1.PoolDeviceTypeVM),
 		all:          all,
 	}
 }
 
-func (n *VMFilter) Filter(any metadata.AnyMetadata) []string {
+func (n *VMFilter) Filter(md metadata.Metadata) []string {
 	// Option to list just running VMs
 	if !n.all {
-		if ToVMMetadata(any).VMOD().State != Running {
+		if !ToVMMetadata(md).Running() {
 			return nil
 		}
 	}
 
-	return n.IDNameFilter.Filter(any)
+	return n.IDNameFilter.Filter(md)
 }

@@ -2,12 +2,13 @@ package vmmd
 
 import (
 	"fmt"
-	"net"
 	"strconv"
 	"strings"
+
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 )
 
-type PortMappings map[uint64]uint64
+type PortMappings []v1alpha1.PortMapping
 
 var _ fmt.Stringer = &PortMappings{}
 
@@ -15,8 +16,8 @@ func (pm *PortMappings) String() string {
 	var sb strings.Builder
 	var index int
 
-	for hostPort, vmPort := range *pm {
-		sb.WriteString(fmt.Sprintf("0.0.0.0:%d->%d", hostPort, vmPort))
+	for _, portMapping := range *pm {
+		sb.WriteString(fmt.Sprintf("0.0.0.0:%d->%d", portMapping.HostPort, portMapping.VMPort))
 
 		index++
 		if index < len(*pm) {
@@ -28,7 +29,7 @@ func (pm *PortMappings) String() string {
 }
 
 func (md *VMMetadata) NewPortMappings(input []string) error {
-	result := map[uint64]uint64{}
+	result := PortMappings{}
 
 	for _, portMapping := range input {
 		ports := strings.Split(portMapping, ":")
@@ -46,31 +47,22 @@ func (md *VMMetadata) NewPortMappings(input []string) error {
 			return err
 		}
 
-		if _, ok := result[hostPort]; ok {
-			return fmt.Errorf("cannot use a port on the host twice")
+		for _, portMapping := range result {
+			if portMapping.HostPort == hostPort {
+				return fmt.Errorf("cannot use a port on the host twice")
+			}
 		}
 
-		result[hostPort] = vmPort
+		result[hostPort] = v1alpha1.PortMapping{
+			HostPort: hostPort,
+			VMPort:   vmPort,
+		}
 	}
 
-	md.VMOD().PortMappings = result
+	md.Spec.Ports = result
 	return nil
 }
 
-type IPAddrs []net.IP
-
-var _ fmt.Stringer = &IPAddrs{}
-
-func (ip *IPAddrs) String() string {
-	var sb strings.Builder
-
-	for i, ipAddr := range *ip {
-		sb.WriteString(fmt.Sprintf("%s", ipAddr))
-
-		if i+1 < len(*ip) {
-			sb.WriteString(", ")
-		}
-	}
-
-	return sb.String()
+func (md *VMMetadata) ClearPortMappings() {
+	md.Spec.Ports = nil
 }

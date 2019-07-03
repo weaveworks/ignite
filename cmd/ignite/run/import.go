@@ -5,6 +5,8 @@ import (
 	"os"
 	"path"
 
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
@@ -16,7 +18,7 @@ type importOptions struct {
 	source    string
 	resLoader *loader.ResLoader
 	newImage  *imgmd.ImageMetadata
-	allImages []metadata.AnyMetadata
+	allImages []metadata.Metadata
 }
 
 func NewImportOptions(l *loader.ResLoader, source string) (*importOptions, error) {
@@ -39,6 +41,12 @@ func Import(bo *importOptions) error {
 		return err
 	}
 
+	image := &v1alpha1.Image{
+		Spec: v1alpha1.ImageSpec{
+			Source: *src,
+		},
+	}
+
 	// Verify the name
 	name, err := metadata.NewNameWithLatest(bo.source, &bo.allImages)
 	if err != nil {
@@ -46,15 +54,15 @@ func Import(bo *importOptions) error {
 	}
 
 	// Create new image metadata
-	if bo.newImage, err = imgmd.NewImageMetadata(nil, name); err != nil {
+	if bo.newImage, err = imgmd.NewImageMetadata("", &name, image); err != nil {
 		return err
 	}
-	defer bo.newImage.Cleanup(false) // TODO: Handle silent
+	defer metadata.Cleanup(bo.newImage, false) // TODO: Handle silent
 
 	log.Println("Starting image import...")
 
 	// Create new file to host the filesystem and format it
-	if err := bo.newImage.AllocateAndFormat(src.Size.Int64()); err != nil {
+	if err := bo.newImage.AllocateAndFormat(); err != nil {
 		return err
 	}
 
@@ -66,14 +74,14 @@ func Import(bo *importOptions) error {
 	if err := bo.newImage.Save(); err != nil {
 		return err
 	}
-	log.Printf("Created a %s filesystem of the input", src.Size.HR())
+	log.Printf("Created imported a %s filesystem", image.Spec.Source.Size.HR())
 
 	// If the kernel already exists, don't try to import something with the same name
 	if allKernels, err := bo.resLoader.Kernels(); err != nil {
 		return err
 	} else {
-		if k, err := allKernels.MatchSingle(name.String()); k != nil && err == nil {
-			return bo.newImage.Success()
+		if k, err := allKernels.MatchSingle(name); k != nil && err == nil {
+			return metadata.Success(bo.newImage)
 		}
 	}
 
@@ -82,7 +90,7 @@ func Import(bo *importOptions) error {
 	if err == nil {
 		io, err := (&ImportKernelFlags{
 			Source: path.Join(tmpKernelDir, constants.KERNEL_FILE),
-			Name:   name.String(),
+			Name:   name,
 		}).NewImportKernelOptions(bo.resLoader)
 		if err != nil {
 			return err
@@ -104,5 +112,5 @@ func Import(bo *importOptions) error {
 		}
 	}
 
-	return bo.newImage.Success()
+	return metadata.Success(bo.newImage)
 }
