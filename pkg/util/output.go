@@ -30,13 +30,15 @@ func NewOutput() *output {
 func (o *output) Write(input ...interface{}) {
 	var sb strings.Builder
 	for i, data := range input {
-		switch data.(type) {
+		switch v := data.(type) {
 		case string:
 			sb.WriteString(fmt.Sprintf("%s", data))
 		case int64:
 			sb.WriteString(fmt.Sprintf("%d", data))
 		case metav1.Time:
-			sb.WriteString(fmt.Sprintf("%s ago", duration.HumanDuration(time.Now().Sub(data.(metav1.Time).Time))))
+			sb.WriteString(fmt.Sprintf("%s ago", duration.HumanDuration(time.Now().Sub(v.Time))))
+		case *metav1.Time:
+			sb.WriteString(fmt.Sprintf("%s ago", duration.HumanDuration(time.Now().Sub(v.Time))))
 		default:
 			sb.WriteString(fmt.Sprintf("%v", data))
 		}
