@@ -44,6 +44,7 @@ tidy:
 	go mod vendor
 	gofmt -s -w pkg cmd
 	goimports -w pkg cmd
+	hack/generate-client.sh
 	go run hack/cobra.go
 
 shell:
