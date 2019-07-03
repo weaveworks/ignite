@@ -33,7 +33,7 @@ const (
 // SchemeGroupVersion is group version used to register these objects
 var SchemeGroupVersion = schema.GroupVersion{
 	Group:   GroupName,
-	Version: "api",
+	Version: "v1alpha1",
 }
 var internalGV = schema.GroupVersion{
 	Group:   GroupName,

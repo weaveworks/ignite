@@ -21,8 +21,8 @@ var sampleobj = &api.VM{
 		CPUs: 1,
 	},
 }
-var samplejson = []byte(`{"kind":"VM","apiVersion":"ignite.weave.works/api","metadata":{"name":"foo","uid":"1234"},"spec":{"cpus":1}}`)
-var nonstrictjson = []byte(`{"kind":"VM","apiVersion":"ignite.weave.works/api","metadata":{"name":"foo","uid":"1234"},"spec":{"cpus":1, "foo": "bar"}}`)
+var samplejson = []byte(`{"kind":"VM","apiVersion":"ignite.weave.works/v1alpha1","metadata":{"name":"foo","uid":"1234"},"spec":{"cpus":1}}`)
+var nonstrictjson = []byte(`{"kind":"VM","apiVersion":"ignite.weave.works/v1alpha1","metadata":{"name":"foo","uid":"1234"},"spec":{"cpus":1, "foo": "bar"}}`)
 
 func TestEncodeJSON(t *testing.T) {
 	b, err := s.EncodeJSON(sampleobj)
