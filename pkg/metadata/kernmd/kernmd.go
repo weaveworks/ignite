@@ -1,27 +1,55 @@
 package kernmd
 
 import (
+	"path"
+
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
 type KernelMetadata struct {
-	*metadata.Metadata
+	*v1alpha1.Kernel
 }
 
-type KernelObjectData struct {
-	// TODO: Placeholder
-}
+var _ metadata.Metadata = &KernelMetadata{}
 
-func NewKernelMetadata(id *metadata.ID, name *metadata.Name) (*KernelMetadata, error) {
-	md, err := metadata.NewMetadata(id, name, metadata.Kernel, &KernelObjectData{})
-	if err != nil {
+func NewKernelMetadata(id string, name *string, object *v1alpha1.Kernel) (*KernelMetadata, error) {
+	if object == nil {
+		object = &v1alpha1.Kernel{}
+	}
+
+	md := &KernelMetadata{
+		Kernel: object,
+	}
+
+	metadata.InitName(md, name)
+
+	if err := metadata.NewID(md, id); err != nil {
 		return nil, err
 	}
 
-	return &KernelMetadata{Metadata: md}, nil
+	return md, nil
 }
 
-// The md.ObjectData.(*KernelObjectData) assert won't panic as this method can only receive *KernelMetadata objects
-func (md *KernelMetadata) KernelOD() *KernelObjectData {
-	return md.ObjectData.(*KernelObjectData)
+func (md *KernelMetadata) Type() v1alpha1.PoolDeviceType {
+	return v1alpha1.PoolDeviceTypeKernel
+}
+
+func (md *KernelMetadata) TypePath() string {
+	return constants.KERNEL_DIR
+}
+
+func (md *KernelMetadata) ObjectPath() string {
+	return path.Join(md.TypePath(), md.GetUID())
+}
+
+func (md *KernelMetadata) Load() (err error) {
+	md.Kernel, err = client.Kernels().Get(md.GetUID())
+	return
+}
+
+func (md *KernelMetadata) Save() error {
+	return client.Kernels().Set(md.Kernel)
 }

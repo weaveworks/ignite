@@ -1,6 +1,7 @@
 package loader
 
 import (
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
@@ -8,9 +9,9 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
-type allVMs []metadata.AnyMetadata
-type allImages []metadata.AnyMetadata
-type allKernels []metadata.AnyMetadata
+type allVMs []metadata.Metadata
+type allImages []metadata.Metadata
+type allKernels []metadata.Metadata
 
 type ResLoader struct {
 	vm     allVMs
@@ -55,8 +56,8 @@ func (l *ResLoader) Kernels() (*allKernels, error) {
 	return &l.kernel, nil
 }
 
-func single(f metadata.Filter, sources []metadata.AnyMetadata) (metadata.AnyMetadata, error) {
-	var result metadata.AnyMetadata
+func single(f metadata.Filter, sources []metadata.Metadata) (metadata.Metadata, error) {
+	var result metadata.Metadata
 
 	// Match a single AnyMetadata using the given filter
 	if matches, err := filter.NewFilterer(f, sources); err == nil {
@@ -70,8 +71,8 @@ func single(f metadata.Filter, sources []metadata.AnyMetadata) (metadata.AnyMeta
 	return result, nil
 }
 
-func matchIndividual(fs []metadata.Filter, sources []metadata.AnyMetadata) ([]metadata.AnyMetadata, error) {
-	results := make([]metadata.AnyMetadata, 0, len(sources))
+func matchIndividual(fs []metadata.Filter, sources []metadata.Metadata) ([]metadata.Metadata, error) {
+	results := make([]metadata.Metadata, 0, len(sources))
 
 	for _, f := range fs {
 		md, err := single(f, sources)
@@ -125,7 +126,7 @@ func (l *allVMs) MatchAll() []*vmmd.VMMetadata {
 
 // Match a single image using the IDNameFilter
 func (l *allImages) MatchSingle(match string) (*imgmd.ImageMetadata, error) {
-	md, err := single(metadata.NewIDNameFilter(match, metadata.Image), *l)
+	md, err := single(metadata.NewIDNameFilter(match, v1alpha1.PoolDeviceTypeImage), *l)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +138,7 @@ func (l *allImages) MatchSingle(match string) (*imgmd.ImageMetadata, error) {
 func (l *allImages) MatchMultiple(matches []string) ([]*imgmd.ImageMetadata, error) {
 	filters := make([]metadata.Filter, 0, len(matches))
 	for _, match := range matches {
-		filters = append(filters, metadata.NewIDNameFilter(match, metadata.Image))
+		filters = append(filters, metadata.NewIDNameFilter(match, v1alpha1.PoolDeviceTypeImage))
 	}
 
 	results, err := matchIndividual(filters, *l)
@@ -154,7 +155,7 @@ func (l *allImages) MatchAll() []*imgmd.ImageMetadata {
 
 // Match a single kernel using the IDNameFilter
 func (l *allKernels) MatchSingle(match string) (*kernmd.KernelMetadata, error) {
-	md, err := single(metadata.NewIDNameFilter(match, metadata.Kernel), *l)
+	md, err := single(metadata.NewIDNameFilter(match, v1alpha1.PoolDeviceTypeKernel), *l)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +167,7 @@ func (l *allKernels) MatchSingle(match string) (*kernmd.KernelMetadata, error) {
 func (l *allKernels) MatchMultiple(matches []string) ([]*kernmd.KernelMetadata, error) {
 	filters := make([]metadata.Filter, 0, len(matches))
 	for _, match := range matches {
-		filters = append(filters, metadata.NewIDNameFilter(match, metadata.Kernel))
+		filters = append(filters, metadata.NewIDNameFilter(match, v1alpha1.PoolDeviceTypeKernel))
 	}
 
 	results, err := matchIndividual(filters, *l)

@@ -42,7 +42,7 @@ func Stop(so *stopOptions) error {
 	for _, vm := range so.vms {
 		// Check if the VM is running
 		if !vm.Running() {
-			return fmt.Errorf("VM %q is not running", vm.ID)
+			return fmt.Errorf("VM %q is not running", vm.GetUID())
 		}
 
 		dockerArgs := stopArgs
@@ -52,18 +52,18 @@ func Stop(so *stopOptions) error {
 			dockerArgs = killArgs
 		}
 
-		dockerArgs = append(dockerArgs, constants.IGNITE_PREFIX+vm.ID.String())
+		dockerArgs = append(dockerArgs, constants.IGNITE_PREFIX+vm.GetUID())
 
 		// Stop/Kill the VM in docker
 		if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
-			return fmt.Errorf("failed to stop container for VM %q: %v", vm.ID, err)
+			return fmt.Errorf("failed to stop container for VM %q: %v", vm.GetUID(), err)
 		}
 
 		if so.silent {
 			continue
 		}
 
-		fmt.Println(vm.ID)
+		fmt.Println(vm.GetUID())
 	}
 	return nil
 }

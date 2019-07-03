@@ -5,10 +5,11 @@ import (
 	"os"
 	"path"
 
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+
 	"github.com/weaveworks/ignite/pkg/container"
 	"github.com/weaveworks/ignite/pkg/container/prometheus"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
 func main() {
@@ -50,10 +51,10 @@ func StartVM(co *options) error {
 	go prometheus.ServeMetrics(metricsSocket)
 
 	// VM state handling
-	if err := co.vm.SetState(vmmd.Running); err != nil {
+	if err := co.vm.SetState(v1alpha1.VMStateRunning); err != nil {
 		return fmt.Errorf("failed to update VM state: %v", err)
 	}
-	defer co.vm.SetState(vmmd.Stopped) // Performs a save, all other metadata-modifying defers need to be after this
+	defer co.vm.SetState(v1alpha1.VMStateStopped) // Performs a save, all other metadata-modifying defers need to be after this
 
 	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
 	defer co.vm.RemoveSnapshot()
@@ -66,7 +67,7 @@ func StartVM(co *options) error {
 
 	// Execute Firecracker
 	if err := container.ExecuteFirecracker(co.vm, dhcpIfaces); err != nil {
-		return fmt.Errorf("runtime error for VM %q: %v", co.vm.ID, err)
+		return fmt.Errorf("runtime error for VM %q: %v", co.vm.GetUID(), err)
 	}
 
 	return nil

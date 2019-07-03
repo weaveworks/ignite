@@ -27,7 +27,7 @@ ignite-spawn: bin/ignite-spawn image
 bin/ignite bin/ignite-spawn: bin/%:
 	CGO_ENABLED=0 go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/$* ./cmd/$*
 
-image:
+image: ignite-spawn
 	docker build -t ${DOCKER_USER}/ignite:${IMAGE_DEV_TAG} \
 		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} .
 ifeq ($(IS_DIRTY),0)

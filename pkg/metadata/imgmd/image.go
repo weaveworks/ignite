@@ -14,23 +14,23 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-func (md *ImageMetadata) AllocateAndFormat(size int64) error {
+func (md *ImageMetadata) AllocateAndFormat() error {
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 	imageFile, err := os.Create(p)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create image file for %s", md.ID)
+		return errors.Wrapf(err, "failed to create image file for %s", md.GetUID())
 	}
 	defer imageFile.Close()
 
 	// The base image is the size of the tar file, plus 100MB
-	if err := imageFile.Truncate(size + 100*1024*1024); err != nil {
-		return errors.Wrapf(err, "failed to allocate space for image %s", md.ID)
+	if err := imageFile.Truncate(int64(md.Spec.Source.Size.Bytes()) + 100*1024*1024); err != nil {
+		return errors.Wrapf(err, "failed to allocate space for image %s", md.GetUID())
 	}
 
 	// Use mkfs.ext4 to create the new image with an inode size of 256
 	// (gexto doesn't support anything but 128, but as long as we're not using that it's fine)
 	if _, err := util.ExecuteCommand("mkfs.ext4", "-I", "256", "-E", "lazy_itable_init=0,lazy_journal_init=0", p); err != nil {
-		return errors.Wrapf(err, "failed to format image %s", md.ID)
+		return errors.Wrapf(err, "failed to format image %s", md.GetUID())
 	}
 
 	return nil
@@ -123,7 +123,7 @@ func (md *ImageMetadata) ExportKernel() (string, error) {
 			return "", fmt.Errorf("failed to copy kernel file from %q to %q: %v", kernelSrc, kernelDest, err)
 		}
 	} else {
-		return "", &KernelNotFoundError{fmt.Errorf("no kernel found in image %q", md.ID)}
+		return "", &KernelNotFoundError{fmt.Errorf("no kernel found in image %q", md.GetUID())}
 	}
 
 	return kernelDir, nil

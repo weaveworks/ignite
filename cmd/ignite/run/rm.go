@@ -3,6 +3,8 @@ package run
 import (
 	"fmt"
 
+	"github.com/weaveworks/ignite/pkg/metadata"
+
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
@@ -51,7 +53,7 @@ func Rm(ro *rmOptions) error {
 			}
 		}
 
-		if err := vm.Remove(logs.Quiet); err != nil {
+		if err := metadata.Remove(vm, logs.Quiet); err != nil {
 			return err
 		}
 	}

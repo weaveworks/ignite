@@ -40,29 +40,27 @@ func Ps(po *psOptions) error {
 
 	o.Write("VM ID", "IMAGE", "KERNEL", "CREATED", "SIZE", "CPUS", "MEMORY", "STATE", "IPS", "PORTS", "NAME")
 	for _, vm := range po.allVMs {
-		od := vm.ObjectData.(*vmmd.VMObjectData)
 		size, err := vm.Size()
 		if err != nil {
-			return fmt.Errorf("failed to get size for %s %q: %v", vm.Type, vm.ID, err)
+			return fmt.Errorf("failed to get size for %s %q: %v", vm.Type(), vm.GetUID(), err)
 		}
 
-		imageAny, err := imgmd.LoadImageMetadata(od.ImageID)
+		imageMD, err := imgmd.LoadImageMetadata(vm.Spec.Image.ID)
 		if err != nil {
-			return fmt.Errorf("failed to load image metadata for %s %q: %v", vm.Type, vm.ID, err)
+			return fmt.Errorf("failed to load image metadata for %s %q: %v", vm.Type(), vm.GetUID(), err)
 		}
 
-		kernelAny, err := kernmd.LoadKernelMetadata(od.KernelID)
+		kernelMD, err := kernmd.LoadKernelMetadata(vm.Spec.Kernel.ID)
 		if err != nil {
-			return fmt.Errorf("failed to load kernel metadata for %s %q: %v", vm.Type, vm.ID, err)
+			return fmt.Errorf("failed to load kernel metadata for %s %q: %v", vm.Type(), vm.GetUID(), err)
 		}
 
-		image := imgmd.ToImageMetadata(imageAny)
-		kernel := kernmd.ToKernelMetadata(kernelAny)
+		image := imgmd.ToImageMetadata(imageMD)
+		kernel := kernmd.ToKernelMetadata(kernelMD)
 
 		// TODO: Clean up this print
-
-		o.Write(vm.ID, image.Name.String(), kernel.Name.String(), vm.Created, datasize.ByteSize(size).HR(), od.VCPUs,
-			(datasize.ByteSize(od.Memory) * datasize.MB).HR(), od.State, od.IPAddrs.String(), od.PortMappings.String(), vm.Name.String())
+		o.Write(vm.GetUID(), image.GetName(), kernel.GetName(), vm.Created, datasize.ByteSize(size).HR(), vm.Spec.CPUs,
+			vm.Spec.Memory.HR(), vm.Status.State, vm.Status.IPAddresses, vm.Spec.Ports, vm.GetName())
 	}
 
 	return nil

@@ -44,7 +44,7 @@ func Rmk(ro *rmkOptions) error {
 	for _, kernel := range ro.kernels {
 		for _, vm := range ro.allVMs {
 			// Check if there's any VM using this kernel
-			if vm.VMOD().KernelID.Equal(kernel.ID) {
+			if vm.Spec.Kernel.ID == kernel.GetUID() {
 				if ro.Force {
 					// Force-kill and remove the VM used by this kernel
 					if err := Rm(&rmOptions{
@@ -54,16 +54,16 @@ func Rmk(ro *rmkOptions) error {
 						return err
 					}
 				} else {
-					return fmt.Errorf("unable to remove, kernel %q is in use by VM %q", kernel.ID, vm.ID)
+					return fmt.Errorf("unable to remove, kernel %q is in use by VM %q", kernel.GetUID(), vm.GetUID())
 				}
 			}
 		}
 
 		if err := os.RemoveAll(kernel.ObjectPath()); err != nil {
-			return fmt.Errorf("unable to remove directory for %s %q: %v", kernel.Type, kernel.ID, err)
+			return fmt.Errorf("unable to remove directory for %s %q: %v", kernel.Type(), kernel.GetUID(), err)
 		}
 
-		fmt.Println(kernel.ID)
+		fmt.Println(kernel.GetUID())
 	}
 
 	return nil

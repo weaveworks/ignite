@@ -17,8 +17,8 @@ type Image struct {
 	// ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
 	ignitemeta.ObjectMeta `json:"metadata"`
 
-	Spec   ImageSpec   `json:"spec"`
-	Status ImageStatus `json:"status"`
+	Spec ImageSpec `json:"spec"`
+	//Status ImageStatus `json:"status"`
 }
 
 // ImageSpec declares what the image contains
@@ -47,10 +47,10 @@ type ImageSource struct {
 }
 
 // ImageStatus defines the status of the image
-type ImageStatus struct {
-	// LayerID points to the index of the device in the DM pool
-	LayerID ignitemeta.DMID `json:"layerID"`
-}
+//type ImageStatus struct {
+//	// LayerID points to the index of the device in the DM pool
+//	LayerID ignitemeta.DMID `json:"layerID"`
+//}
 
 // Pool defines device mapper pool database
 // This file is managed by the snapshotter part of Ignite, and the file (existing as a singleton)
@@ -146,7 +146,9 @@ type VM struct {
 
 // VMSpec describes the configuration of a VM
 type VMSpec struct {
-	Image    *ImageClaim     `json:"image"`
+	Image *ImageClaim `json:"image"`
+	// TODO: Temporary ID for the old metadata handling
+	Kernel   *KernelClaim    `json:"kernel"`
 	CPUs     uint64          `json:"cpus"`
 	Memory   ignitemeta.Size `json:"memory"`
 	DiskSize ignitemeta.Size `json:"diskSize"`
@@ -166,6 +168,14 @@ type VMSpec struct {
 type ImageClaim struct {
 	Type ImageSourceType `json:"type"`
 	Ref  string          `json:"ref"`
+	// TODO: Temporary ID for the old metadata handling
+	ID string `json:"ID"`
+}
+
+// TODO: Temporary helper for the old metadata handling
+type KernelClaim struct {
+	ID      string `json:"ID"`
+	CmdLine string `json:"cmdline"`
 }
 
 // PortMapping defines a port mapping between the VM and the host

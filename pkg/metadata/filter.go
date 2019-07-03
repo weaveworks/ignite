@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type Match struct {
-	Object  AnyMetadata
+	Object  Metadata
 	Strings []string
 }
 
@@ -28,7 +30,7 @@ type AmbiguousError struct {
 }
 
 type Filter interface {
-	Filter(AnyMetadata) []string
+	Filter(Metadata) []string
 	ErrNonexistent() error
 	ErrAmbiguous([]*Match) error
 }
@@ -38,19 +40,18 @@ var _ Filter = &IDNameFilter{}
 
 type IDNameFilter struct {
 	prefix     string
-	filterType ObjectType
+	filterType v1alpha1.PoolDeviceType
 }
 
-func NewIDNameFilter(p string, t ObjectType) *IDNameFilter {
+func NewIDNameFilter(p string, t v1alpha1.PoolDeviceType) *IDNameFilter {
 	return &IDNameFilter{
 		prefix:     p,
 		filterType: t,
 	}
 }
 
-func (f *IDNameFilter) Filter(any AnyMetadata) []string {
-	md := any.GetMD()
-	return util.MatchPrefix(f.prefix, md.ID.String(), md.Name.String())
+func (f *IDNameFilter) Filter(md Metadata) []string {
+	return util.MatchPrefix(f.prefix, md.GetUID(), md.GetName())
 }
 
 func (f *IDNameFilter) ErrNonexistent() error {

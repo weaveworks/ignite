@@ -9,6 +9,7 @@ package client
 
 import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 )
 
@@ -60,11 +61,11 @@ func newImageClient(s storage.Storage) ImageClient {
 // Get returns a Image object based on a reference string; which can either
 // match the Image's Name or UID, or be a prefix of the UID
 func (c *imageClient) Get(ref string) (*v1alpha1.Image, error) {
-	meta, err := c.MatchOne(ref)
-	if err != nil {
-		return nil, err
+	ob := ignitemeta.ObjectMeta{}
+	ob.SetUID(ref)
+	image := &v1alpha1.Image{
+		ObjectMeta: ob,
 	}
-	image := &v1alpha1.Image{ObjectMeta: meta.ObjectMeta}
 	if err := c.storage.Get(image); err != nil {
 		return nil, err
 	}

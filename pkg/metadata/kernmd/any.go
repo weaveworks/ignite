@@ -4,15 +4,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
-// Verify that VMMetadata implements AnyMetadata
-var _ metadata.AnyMetadata = &KernelMetadata{}
-
-func (md *KernelMetadata) GetMD() *metadata.Metadata {
-	return md.Metadata
-}
-
-func LoadKernelMetadata(id *metadata.ID) (metadata.AnyMetadata, error) {
-	md, err := NewKernelMetadata(id, nil)
+func LoadKernelMetadata(id string) (metadata.Metadata, error) {
+	md, err := NewKernelMetadata(id, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -24,15 +17,15 @@ func LoadKernelMetadata(id *metadata.ID) (metadata.AnyMetadata, error) {
 	return md, nil
 }
 
-func LoadAllKernelMetadata() ([]metadata.AnyMetadata, error) {
-	return metadata.LoadAllMetadata(metadata.Kernel.Path(), LoadKernelMetadata)
+func LoadAllKernelMetadata() ([]metadata.Metadata, error) {
+	return metadata.LoadAllMetadata((&KernelMetadata{}).TypePath(), LoadKernelMetadata)
 }
 
-func ToKernelMetadata(md metadata.AnyMetadata) *KernelMetadata {
+func ToKernelMetadata(md metadata.Metadata) *KernelMetadata {
 	return md.(*KernelMetadata) // This type assert is internal, we don't need to validate it
 }
 
-func ToKernelMetadataAll(any []metadata.AnyMetadata) []*KernelMetadata {
+func ToKernelMetadataAll(any []metadata.Metadata) []*KernelMetadata {
 	var mds []*KernelMetadata
 
 	for _, md := range any {

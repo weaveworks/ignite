@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/weaveworks/ignite/pkg/metadata"
@@ -17,7 +18,7 @@ type ImportKernelFlags struct {
 
 type importKernelOptions struct {
 	*ImportKernelFlags
-	allKernels []metadata.AnyMetadata
+	allKernels []metadata.Metadata
 }
 
 func (i *ImportKernelFlags) NewImportKernelOptions(l *loader.ResLoader) (*importKernelOptions, error) {
@@ -37,6 +38,18 @@ func ImportKernel(ao *importKernelOptions) error {
 		return fmt.Errorf("not a kernel image: %s", ao.Source)
 	}
 
+	// TODO: Kernel importing from docker when moving to pool/snapshotter
+	kernel := &v1alpha1.Kernel{
+		Spec: v1alpha1.KernelSpec{
+			Version: "unknown",
+			Source: v1alpha1.ImageSource{
+				Type: "file",
+				ID:   "-",
+				Name: "-",
+			},
+		},
+	}
+
 	// Verify the name
 	name, err := metadata.NewNameWithLatest(ao.Name, &ao.allKernels)
 	if err != nil {
@@ -44,11 +57,11 @@ func ImportKernel(ao *importKernelOptions) error {
 	}
 
 	// Create new kernel metadata
-	md, err := kernmd.NewKernelMetadata(nil, name)
+	md, err := kernmd.NewKernelMetadata("", &name, kernel)
 	if err != nil {
 		return err
 	}
-	defer md.Cleanup(false) // TODO: Handle silent
+	defer metadata.Cleanup(md, false) // TODO: Handle silent
 
 	// Save the metadata
 	if err := md.Save(); err != nil {
@@ -60,5 +73,5 @@ func ImportKernel(ao *importKernelOptions) error {
 		return err
 	}
 
-	return md.Success()
+	return metadata.Success(md)
 }

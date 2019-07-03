@@ -17,7 +17,6 @@ import (
 
 // ExecuteFirecracker executes the firecracker process using the Go SDK
 func ExecuteFirecracker(md *vmmd.VMMetadata, dhcpIfaces []DHCPInterface) error {
-	od := md.VMOD()
 	drivePath := md.SnapshotDev()
 
 	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(dhcpIfaces))
@@ -28,15 +27,13 @@ func ExecuteFirecracker(md *vmmd.VMMetadata, dhcpIfaces []DHCPInterface) error {
 		})
 	}
 
-	kernelCmd := od.KernelCmd
-	if len(kernelCmd) == 0 {
-		kernelCmd = constants.VM_DEFAULT_KERNEL_ARGS
-	}
+	vCPUCount := int64(md.Spec.CPUs)
+	memSizeMib := int64(md.Spec.Memory.MBytes())
 
 	cfg := firecracker.Config{
 		SocketPath:      constants.SOCKET_PATH,
-		KernelImagePath: path.Join(constants.KERNEL_DIR, od.KernelID.String(), constants.KERNEL_FILE),
-		KernelArgs:      kernelCmd,
+		KernelImagePath: path.Join(constants.KERNEL_DIR, md.Spec.Kernel.ID, constants.KERNEL_FILE),
+		KernelArgs:      md.Spec.Kernel.CmdLine,
 		Drives: []models.Drive{{
 			DriveID:      firecracker.String("1"),
 			PathOnHost:   &drivePath,
@@ -45,8 +42,8 @@ func ExecuteFirecracker(md *vmmd.VMMetadata, dhcpIfaces []DHCPInterface) error {
 		}},
 		NetworkInterfaces: networkInterfaces,
 		MachineCfg: models.MachineConfiguration{
-			VcpuCount:  &od.VCPUs,
-			MemSizeMib: &od.Memory,
+			VcpuCount:  &vCPUCount,
+			MemSizeMib: &memSizeMib,
 			HtEnabled:  boolPtr(true),
 		},
 		//JailerCfg: firecracker.JailerConfig{

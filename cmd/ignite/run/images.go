@@ -33,10 +33,10 @@ func Images(io *imagesOptions) error {
 	for _, md := range io.allImages {
 		size, err := md.Size()
 		if err != nil {
-			return fmt.Errorf("failed to get size for %s %q: %v", md.Type, md.ID, err)
+			return fmt.Errorf("failed to get size for %s %q: %v", md.Type(), md.GetUID(), err)
 		}
 
-		o.Write(md.ID, md.Created, datasize.ByteSize(size).HR(), md.Name.String())
+		o.Write(md.GetUID(), md.Created, datasize.ByteSize(size).HR(), md.GetName())
 	}
 
 	return nil

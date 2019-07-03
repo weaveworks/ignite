@@ -34,21 +34,21 @@ func NewAttachOptions(l *loader.ResLoader, vmMatch string) (*attachOptions, erro
 func Attach(ao *attachOptions) error {
 	// Check if the VM is running
 	if ao.checkRunning && !ao.vm.Running() {
-		return fmt.Errorf("VM %q is not running", ao.vm.ID)
+		return fmt.Errorf("VM %q is not running", ao.vm.GetUID())
 	}
 
 	// Print the ID before attaching
-	fmt.Println(ao.vm.ID)
+	fmt.Println(ao.vm.GetUID())
 
 	dockerArgs := []string{
 		"attach",
-		constants.IGNITE_PREFIX + ao.vm.ID.String(),
+		constants.IGNITE_PREFIX + ao.vm.GetUID(),
 	}
 
 	// Attach to the VM in Docker
 	if ec, err := util.ExecForeground("docker", dockerArgs...); err != nil {
 		if ec != 1 { // Docker's detach sequence (^P^Q) has an exit code of -1
-			return fmt.Errorf("failed to attach to container for VM %s: %v", ao.vm.ID, err)
+			return fmt.Errorf("failed to attach to container for VM %s: %v", ao.vm.GetUID(), err)
 		}
 	}
 

@@ -10,6 +10,7 @@ package client
 
 import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 )
 
@@ -61,11 +62,11 @@ func newResourceClient(s storage.Storage) ResourceClient {
 // Get returns a Resource object based on a reference string; which can either
 // match the Resource's Name or UID, or be a prefix of the UID
 func (c *resourceClient) Get(ref string) (*v1alpha1.Resource, error) {
-	meta, err := c.MatchOne(ref)
-	if err != nil {
-		return nil, err
+	ob := ignitemeta.ObjectMeta{}
+	ob.SetUID(ref)
+	resource := &v1alpha1.Resource{
+		ObjectMeta: ob,
 	}
-	resource := &v1alpha1.Resource{ObjectMeta: meta.ObjectMeta}
 	if err := c.storage.Get(resource); err != nil {
 		return nil, err
 	}

@@ -13,11 +13,11 @@ import (
 )
 
 func (md *VMMetadata) SnapshotDev() string {
-	return path.Join("/dev/mapper", constants.IGNITE_PREFIX+md.ID.String())
+	return path.Join("/dev/mapper", constants.IGNITE_PREFIX+md.GetUID())
 }
 
 func (md *VMMetadata) SetupSnapshot() error {
-	device := constants.IGNITE_PREFIX + md.ID.String()
+	device := constants.IGNITE_PREFIX + md.GetUID()
 	devicePath := md.SnapshotDev()
 
 	// Return if the snapshot is already setup
@@ -26,7 +26,7 @@ func (md *VMMetadata) SetupSnapshot() error {
 	}
 
 	// Setup loop device for the image
-	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, md.VMOD().ImageID.String(), constants.IMAGE_FS), true)
+	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, md.Spec.Image.ID, constants.IMAGE_FS), true)
 	if err != nil {
 		return err
 	}
@@ -107,7 +107,7 @@ func (md *VMMetadata) RemoveSnapshot() error {
 	// If the base device is visible in "dmsetup", we should remove it
 	// The device itself is not forwarded to docker, so we can't query its path
 	// TODO: Improve this detection
-	baseDev := fmt.Sprintf("%s-base", constants.IGNITE_PREFIX+md.ID.String())
+	baseDev := fmt.Sprintf("%s-base", constants.IGNITE_PREFIX+md.GetUID())
 	if _, err := util.ExecuteCommand("dmsetup", "info", baseDev); err == nil {
 		dmArgs = append(dmArgs, baseDev)
 	}

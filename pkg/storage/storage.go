@@ -41,6 +41,9 @@ type Storage interface {
 	GetCache(kind string) (Cache, error)
 }
 
+// DefaultStorage is the default storage impl
+var DefaultStorage = NewStorage(constants.DATA_DIR)
+
 // NewStorage constructs a new Storage using the default implementation, for the specified dataDir
 func NewStorage(dataDir string) Storage {
 	return &storage{
@@ -85,12 +88,11 @@ func (s *storage) Set(obj ignitemeta.Object) error {
 	if err != nil {
 		return err
 	}
+	// Make sure the parent directories exist
+	if err := os.MkdirAll(path.Dir(storagePath), 0755); err != nil {
+		return err
+	}
 	if _, err := os.Stat(storagePath); os.IsNotExist(err) {
-		// Make sure the parent directories exist
-		if err := os.MkdirAll(path.Dir(storagePath), 0755); err != nil {
-			return err
-		}
-
 		// Register that the object was created now
 		obj.SetCreated(&metav1.Time{time.Now().UTC()})
 	}
@@ -146,6 +148,7 @@ func (s *storage) ListMeta(kind string) (ignitemeta.APITypeList, error) {
 		return nil
 	})
 	if err != nil {
+		fmt.Println("listmeta error", err)
 		return nil, err
 	}
 	return result, nil
@@ -168,6 +171,13 @@ func (s *storage) walkDir(kind string, fn func(content []byte) error) error {
 	}
 	for _, entry := range entries {
 		entryPath := path.Join(storageDir, entry.Name(), constants.METADATA)
+		// Allow metadata.json to not exist, although the directory does exist
+		// TODO: The ID handler should work well with this in the future
+		if _, err := os.Stat(entryPath); os.IsNotExist(err) {
+			continue
+		} else if err != nil {
+			return err
+		}
 		content, err := ioutil.ReadFile(entryPath)
 		if err != nil {
 			return err

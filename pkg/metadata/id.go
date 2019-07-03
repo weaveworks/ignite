@@ -2,7 +2,6 @@ package metadata
 
 import (
 	"crypto/rand"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -12,43 +11,13 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-type ID struct {
-	string
-	success bool
-}
-
-// Compile-time asserts to verify interface compatibility
-var _ fmt.Stringer = &ID{}
-var _ json.Marshaler = &ID{}
-var _ json.Unmarshaler = &ID{}
-
-func (id *ID) String() string {
-	return id.string
-}
-
-func (id *ID) MarshalJSON() ([]byte, error) {
-	return json.Marshal(id.string)
-}
-
-func (id *ID) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := json.Unmarshal(b, &s); err != nil {
-		return err
-	}
-
-	*id = ID{string: s}
-
-	return nil
-}
-
-func (id *ID) Equal(other *ID) bool {
-	return id.string == other.string
-}
+var success = make(map[Metadata]bool)
 
 // Creates a new 8-byte ID and handles directory creation/deletion
-func (md *Metadata) newID() error {
-	// If there's already an ID set, don't overwrite it
-	if md.ID != nil {
+func NewID(md Metadata, input string) error {
+	// If a valid ID is given, don't overwrite it
+	md.SetUID(input)
+	if input != "" {
 		return nil
 	}
 
@@ -66,7 +35,7 @@ func (md *Metadata) newID() error {
 		id = fmt.Sprintf("%x", idBytes)
 
 		// If the generated ID is unique break the generator loop
-		idPath = path.Join(md.Type.Path(), id)
+		idPath = path.Join(md.TypePath(), id)
 		if exists, _ := util.PathExists(idPath); !exists {
 			break
 		}
@@ -78,29 +47,29 @@ func (md *Metadata) newID() error {
 	}
 
 	// Set the generated ID
-	md.ID = &ID{string: id}
+	md.SetUID(id)
 	return nil
 }
 
 // silent specifies if the ID should be printed, when chaining commands
 // silence all but the last command to print the ID only once
-func (md *Metadata) Cleanup(silent bool) error {
+func Cleanup(md Metadata, silent bool) error {
 	// If success has not been confirmed, remove the generated directory
-	if !md.ID.success {
-		return md.Remove(logs.Quiet)
+	if !success[md] {
+		return Remove(md, logs.Quiet)
 	}
 
 	if !logs.Quiet {
-		log.Printf("Created %s with ID %q and name %q", md.Type, md.ID, md.Name)
+		log.Printf("Created %s with ID %q and name %q", md.Type(), md.GetUID(), md.GetName())
 	} else if !silent {
-		fmt.Println(md.ID)
+		fmt.Println(md.GetUID())
 	}
 
 	return nil
 }
 
 // Should be returned as the last command when creating objects
-func (md *Metadata) Success() error {
-	md.ID.success = true
+func Success(md Metadata) error {
+	success[md] = true
 	return nil
 }

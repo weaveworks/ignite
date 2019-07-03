@@ -9,6 +9,7 @@ package client
 
 import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 )
 
@@ -60,11 +61,11 @@ func newKernelClient(s storage.Storage) KernelClient {
 // Get returns a Kernel object based on a reference string; which can either
 // match the Kernel's Name or UID, or be a prefix of the UID
 func (c *kernelClient) Get(ref string) (*v1alpha1.Kernel, error) {
-	meta, err := c.MatchOne(ref)
-	if err != nil {
-		return nil, err
+	ob := ignitemeta.ObjectMeta{}
+	ob.SetUID(ref)
+	kernel := &v1alpha1.Kernel{
+		ObjectMeta: ob,
 	}
-	kernel := &v1alpha1.Kernel{ObjectMeta: meta.ObjectMeta}
 	if err := c.storage.Get(kernel); err != nil {
 		return nil, err
 	}
