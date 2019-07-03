@@ -16,7 +16,7 @@ type RmiFlags struct {
 
 type rmiOptions struct {
 	*RmiFlags
-	images []*imgmd.ImageMetadata
+	images []*imgmd.Image
 	allVMs []*vmmd.VMMetadata
 }
 

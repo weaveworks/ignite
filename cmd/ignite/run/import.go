@@ -17,7 +17,7 @@ import (
 type importOptions struct {
 	source    string
 	resLoader *loader.ResLoader
-	newImage  *imgmd.ImageMetadata
+	newImage  *imgmd.Image
 	allImages []metadata.Metadata
 }
 
@@ -54,7 +54,7 @@ func Import(bo *importOptions) error {
 	}
 
 	// Create new image metadata
-	if bo.newImage, err = imgmd.NewImageMetadata("", &name, image); err != nil {
+	if bo.newImage, err = imgmd.NewImage("", &name, image); err != nil {
 		return err
 	}
 	defer metadata.Cleanup(bo.newImage, false) // TODO: Handle silent

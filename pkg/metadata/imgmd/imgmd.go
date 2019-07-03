@@ -9,18 +9,18 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
-type ImageMetadata struct {
+type Image struct {
 	*api.Image
 }
 
-var _ metadata.Metadata = &ImageMetadata{}
+var _ metadata.Metadata = &Image{}
 
-func NewImageMetadata(id string, name *string, object *api.Image) (*ImageMetadata, error) {
+func NewImage(id string, name *string, object *api.Image) (*Image, error) {
 	if object == nil {
 		object = &api.Image{}
 	}
 
-	md := &ImageMetadata{
+	md := &Image{
 		Image: object,
 	}
 
@@ -33,23 +33,23 @@ func NewImageMetadata(id string, name *string, object *api.Image) (*ImageMetadat
 	return md, nil
 }
 
-func (md *ImageMetadata) Type() api.PoolDeviceType {
+func (md *Image) Type() api.PoolDeviceType {
 	return api.PoolDeviceTypeImage
 }
 
-func (md *ImageMetadata) TypePath() string {
+func (md *Image) TypePath() string {
 	return constants.IMAGE_DIR
 }
 
-func (md *ImageMetadata) ObjectPath() string {
+func (md *Image) ObjectPath() string {
 	return path.Join(md.TypePath(), md.GetUID())
 }
 
-func (md *ImageMetadata) Load() (err error) {
+func (md *Image) Load() (err error) {
 	md.Image, err = client.Images().Get(md.GetUID())
 	return
 }
 
-func (md *ImageMetadata) Save() error {
+func (md *Image) Save() error {
 	return client.Images().Set(md.Image)
 }

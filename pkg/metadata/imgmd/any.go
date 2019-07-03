@@ -4,8 +4,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
-func LoadImageMetadata(id string) (metadata.Metadata, error) {
-	md, err := NewImageMetadata(id, nil, nil)
+func LoadImage(id string) (metadata.Metadata, error) {
+	md, err := NewImage(id, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -17,19 +17,19 @@ func LoadImageMetadata(id string) (metadata.Metadata, error) {
 	return md, nil
 }
 
-func LoadAllImageMetadata() ([]metadata.Metadata, error) {
-	return metadata.LoadAllMetadata((&ImageMetadata{}).TypePath(), LoadImageMetadata)
+func LoadAllImage() ([]metadata.Metadata, error) {
+	return metadata.LoadAllMetadata((&Image{}).TypePath(), LoadImage)
 }
 
-func ToImageMetadata(md metadata.Metadata) *ImageMetadata {
-	return md.(*ImageMetadata) // This type assert is internal, we don't need to validate it
+func ToImage(md metadata.Metadata) *Image {
+	return md.(*Image) // This type assert is internal, we don't need to validate it
 }
 
-func ToImageMetadataAll(any []metadata.Metadata) []*ImageMetadata {
-	var mds []*ImageMetadata
+func ToImageAll(any []metadata.Metadata) []*Image {
+	var mds []*Image
 
 	for _, md := range any {
-		mds = append(mds, ToImageMetadata(md))
+		mds = append(mds, ToImage(md))
 	}
 
 	return mds

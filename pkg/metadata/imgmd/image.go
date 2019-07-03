@@ -14,7 +14,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-func (md *ImageMetadata) AllocateAndFormat() error {
+func (md *Image) AllocateAndFormat() error {
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 	imageFile, err := os.Create(p)
 	if err != nil {
@@ -37,7 +37,7 @@ func (md *ImageMetadata) AllocateAndFormat() error {
 }
 
 // AddFiles copies the contents of the tar file into the ext4 filesystem
-func (md *ImageMetadata) AddFiles(src source.Source) error {
+func (md *Image) AddFiles(src source.Source) error {
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 	tempDir, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -76,7 +76,7 @@ func (md *ImageMetadata) AddFiles(src source.Source) error {
 // name resolution won't work. The kernel uses DHCP by default, and
 // puts the nameservers in /proc/net/pnp at runtime. Hence, as a default,
 // if /etc/resolv.conf doesn't exist, we can use /proc/net/pnp as /etc/resolv.conf
-func (md *ImageMetadata) SetupResolvConf(tempDir string) error {
+func (md *Image) SetupResolvConf(tempDir string) error {
 	resolvConf := filepath.Join(tempDir, "/etc/resolv.conf")
 	empty, err := util.FileIsEmpty(resolvConf)
 	if err != nil {
@@ -95,7 +95,7 @@ type KernelNotFoundError struct {
 	error
 }
 
-func (md *ImageMetadata) ExportKernel() (string, error) {
+func (md *Image) ExportKernel() (string, error) {
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 	tempDir, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -129,7 +129,7 @@ func (md *ImageMetadata) ExportKernel() (string, error) {
 	return kernelDir, nil
 }
 
-func (md *ImageMetadata) Size() (int64, error) {
+func (md *Image) Size() (int64, error) {
 	fi, err := os.Stat(path.Join(md.ObjectPath(), constants.IMAGE_FS))
 	if err != nil {
 		return 0, err

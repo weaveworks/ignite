@@ -37,7 +37,7 @@ func (l *ResLoader) VMs() (*allVMs, error) {
 func (l *ResLoader) Images() (*allImages, error) {
 	if l.image == nil {
 		var err error
-		if l.image, err = imgmd.LoadAllImageMetadata(); err != nil {
+		if l.image, err = imgmd.LoadAllImage(); err != nil {
 			return nil, err
 		}
 	}
@@ -125,17 +125,17 @@ func (l *allVMs) MatchAll() []*vmmd.VMMetadata {
 }
 
 // Match a single image using the IDNameFilter
-func (l *allImages) MatchSingle(match string) (*imgmd.ImageMetadata, error) {
+func (l *allImages) MatchSingle(match string) (*imgmd.Image, error) {
 	md, err := single(metadata.NewIDNameFilter(match, api.PoolDeviceTypeImage), *l)
 	if err != nil {
 		return nil, err
 	}
 
-	return imgmd.ToImageMetadata(md), nil
+	return imgmd.ToImage(md), nil
 }
 
 // Match multiple individual images with different filter strings
-func (l *allImages) MatchMultiple(matches []string) ([]*imgmd.ImageMetadata, error) {
+func (l *allImages) MatchMultiple(matches []string) ([]*imgmd.Image, error) {
 	filters := make([]metadata.Filter, 0, len(matches))
 	for _, match := range matches {
 		filters = append(filters, metadata.NewIDNameFilter(match, api.PoolDeviceTypeImage))
@@ -146,11 +146,11 @@ func (l *allImages) MatchMultiple(matches []string) ([]*imgmd.ImageMetadata, err
 		return nil, err
 	}
 
-	return imgmd.ToImageMetadataAll(results), nil
+	return imgmd.ToImageAll(results), nil
 }
 
-func (l *allImages) MatchAll() []*imgmd.ImageMetadata {
-	return imgmd.ToImageMetadataAll(*l)
+func (l *allImages) MatchAll() []*imgmd.Image {
+	return imgmd.ToImageAll(*l)
 }
 
 // Match a single kernel using the IDNameFilter

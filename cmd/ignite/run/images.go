@@ -10,7 +10,7 @@ import (
 )
 
 type imagesOptions struct {
-	allImages []*imgmd.ImageMetadata
+	allImages []*imgmd.Image
 }
 
 func NewImagesOptions(l *loader.ResLoader) (*imagesOptions, error) {
