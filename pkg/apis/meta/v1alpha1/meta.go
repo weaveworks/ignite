@@ -30,7 +30,7 @@ type APITypeList []*APIType
 // implement the Object interface
 type ObjectMeta struct {
 	Name    string       `json:"name"`
-	UID     UID    `json:"uid,omitempty"`
+	UID     UID          `json:"uid,omitempty"`
 	Created *metav1.Time `json:"created,omitempty"`
 }
 

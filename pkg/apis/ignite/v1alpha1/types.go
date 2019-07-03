@@ -148,11 +148,11 @@ type VM struct {
 type VMSpec struct {
 	Image *ImageClaim `json:"image"`
 	// TODO: Temporary ID for the old metadata handling
-	Kernel   *KernelClaim    `json:"kernel"`
-	CPUs     uint64          `json:"cpus"`
-	Memory   meta.Size `json:"memory"`
-	DiskSize meta.Size `json:"diskSize"`
-	Ports    []PortMapping   `json:"ports,omitempty"`
+	Kernel   *KernelClaim  `json:"kernel"`
+	CPUs     uint64        `json:"cpus"`
+	Memory   meta.Size     `json:"memory"`
+	DiskSize meta.Size     `json:"diskSize"`
+	Ports    []PortMapping `json:"ports,omitempty"`
 	// This will be done at either "ignite start" or "ignite create" time
 	// TODO: We might to revisit this later
 	CopyFiles []FileMapping `json:"copyFiles,omitempty"`
