@@ -30,7 +30,7 @@ func (in *FileMapping) DeepCopy() *FileMapping {
 func (in *Image) DeepCopyInto(out *Image) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ObjectMeta = in.ObjectMeta
+	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
 	out.Spec = in.Spec
 	out.Status = in.Status
 	return
@@ -125,7 +125,7 @@ func (in *ImageStatus) DeepCopy() *ImageStatus {
 func (in *Kernel) DeepCopyInto(out *Kernel) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ObjectMeta = in.ObjectMeta
+	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
 	out.Spec = in.Spec
 	return
 }
@@ -292,7 +292,7 @@ func (in *SSH) DeepCopy() *SSH {
 func (in *VM) DeepCopyInto(out *VM) {
 	*out = *in
 	out.TypeMeta = in.TypeMeta
-	out.ObjectMeta = in.ObjectMeta
+	in.ObjectMeta.DeepCopyInto(&out.ObjectMeta)
 	in.Spec.DeepCopyInto(&out.Spec)
 	in.Status.DeepCopyInto(&out.Status)
 	return
