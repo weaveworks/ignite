@@ -9,6 +9,7 @@ package client
 
 import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 )
 
@@ -60,11 +61,11 @@ func newVMClient(s storage.Storage) VMClient {
 // Get returns a VM object based on a reference string; which can either
 // match the VM's Name or UID, or be a prefix of the UID
 func (c *vmClient) Get(ref string) (*v1alpha1.VM, error) {
-	meta, err := c.MatchOne(ref)
-	if err != nil {
-		return nil, err
+	ob := ignitemeta.ObjectMeta{}
+	ob.SetUID(ref)
+	vm := &v1alpha1.VM{
+		ObjectMeta: ob,
 	}
-	vm := &v1alpha1.VM{ObjectMeta: meta.ObjectMeta}
 	if err := c.storage.Get(vm); err != nil {
 		return nil, err
 	}
