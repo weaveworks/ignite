@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/containerruntime/docker"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/network/cni"
+	"github.com/weaveworks/ignite/pkg/runtime/docker"
 	"github.com/weaveworks/ignite/pkg/util"
 	"github.com/weaveworks/ignite/pkg/version"
 )

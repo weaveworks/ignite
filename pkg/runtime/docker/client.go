@@ -7,13 +7,13 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"github.com/weaveworks/ignite/pkg/containerruntime"
+	"github.com/weaveworks/ignite/pkg/runtime"
 )
 
 const dockerNetNSFmt = "/proc/%v/ns/net"
 
 // GetDockerClient builds a client for talking to docker
-func GetDockerClient() (containerruntime.Interface, error) {
+func GetDockerClient() (runtime.Interface, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithVersion("1.35"))
 	if err != nil {
 		return nil, err
@@ -31,12 +31,12 @@ func (dc *dockerClient) RawClient() interface{} {
 	return dc.client
 }
 
-func (dc *dockerClient) InspectImage(image string) (*containerruntime.ImageInspectResult, error) {
+func (dc *dockerClient) InspectImage(image string) (*runtime.ImageInspectResult, error) {
 	res, _, err := dc.client.ImageInspectWithRaw(context.Background(), image)
 	if err != nil {
 		return nil, err
 	}
-	return &containerruntime.ImageInspectResult{
+	return &runtime.ImageInspectResult{
 		ID:    res.ID,
 		Names: res.RepoTags,
 		Size:  res.Size,

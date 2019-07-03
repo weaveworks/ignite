@@ -1,4 +1,4 @@
-package containerruntime
+package runtime
 
 import "io"
 

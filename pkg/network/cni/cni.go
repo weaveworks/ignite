@@ -11,7 +11,7 @@ import (
 	"github.com/containernetworking/cni/libcni"
 	cnitypes "github.com/containernetworking/cni/pkg/types"
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/ignite/pkg/containerruntime"
+	"github.com/weaveworks/ignite/pkg/runtime"
 )
 
 // Disclaimer: This package is heavily influenced by
@@ -23,9 +23,9 @@ type cniNetworkPlugin struct {
 	loNetwork      *cniNetwork
 	defaultNetwork *cniNetwork
 
-	containerruntime containerruntime.Interface
-	confDir          string
-	binDirs          []string
+	runtime runtime.Interface
+	confDir string
+	binDirs []string
 }
 
 type cniNetwork struct {
@@ -34,14 +34,14 @@ type cniNetwork struct {
 	CNIConfig     libcni.CNI
 }
 
-func GetCNINetworkPlugin(runtime containerruntime.Interface) (NetworkPlugin, error) {
+func GetCNINetworkPlugin(runtime runtime.Interface) (NetworkPlugin, error) {
 	binDirs := []string{CNIBinDir}
 	plugin := &cniNetworkPlugin{
-		containerruntime: runtime,
-		defaultNetwork:   nil,
-		loNetwork:        getLoNetwork(binDirs),
-		confDir:          CNIConfDir,
-		binDirs:          binDirs,
+		runtime:        runtime,
+		defaultNetwork: nil,
+		loNetwork:      getLoNetwork(binDirs),
+		confDir:        CNIConfDir,
+		binDirs:        binDirs,
 	}
 	if err := plugin.syncNetworkConfig(); err != nil {
 		return nil, err
@@ -158,7 +158,7 @@ func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string) error 
 	if err := plugin.checkInitialized(); err != nil {
 		return err
 	}
-	netnsPath, err := plugin.containerruntime.GetNetNS(containerid)
+	netnsPath, err := plugin.runtime.GetNetNS(containerid)
 	if err != nil {
 		return fmt.Errorf("CNI failed to retrieve network namespace path: %v", err)
 	}
@@ -177,7 +177,7 @@ func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerid string) error
 	}
 
 	// Lack of namespace should not be fatal on teardown
-	netnsPath, err := plugin.containerruntime.GetNetNS(containerid)
+	netnsPath, err := plugin.runtime.GetNetNS(containerid)
 	if err != nil {
 		log.Infof("CNI failed to retrieve network namespace path: %v", err)
 	}

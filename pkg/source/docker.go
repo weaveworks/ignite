@@ -9,7 +9,7 @@ import (
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/containerruntime/docker"
+	"github.com/weaveworks/ignite/pkg/runtime/docker"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
