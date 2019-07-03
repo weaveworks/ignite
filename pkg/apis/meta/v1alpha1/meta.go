@@ -6,6 +6,7 @@ import (
 
 	"github.com/c2h5oh/datasize"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -14,25 +15,54 @@ const (
 	SectorSize = 512
 )
 
-type ObjectMeta struct {
-	Name string    `json:"name"`
-	UID  types.UID `json:"uid,omitempty"`
+// APIType is a struct implementing Object, used for
+// unmarshalling unknown objects into this intermediate type
+// where .Name, .UID, .Kind and .APIVersion become easily available
+type APIType struct {
+	metav1.TypeMeta `json:",inline"`
+	ObjectMeta      `json:"metadata"`
 }
 
+// APITypeList is a list of many pointers APIType objects
+type APITypeList []*APIType
+
+// ObjectMeta have to be embedded into any serializable object.
+// It provides the .GetName() and .GetUID() methods that help
+// implement the Object interface
+type ObjectMeta struct {
+	Name    string       `json:"name"`
+	UID     types.UID    `json:"uid,omitempty"`
+	Created *metav1.Time `json:"created,omitempty"`
+}
+
+// GetName returns the name of the Object
 func (o *ObjectMeta) GetName() string {
 	return o.Name
 }
 
+// GetUID returns the UID of the Object
 func (o *ObjectMeta) GetUID() types.UID {
 	return o.UID
 }
 
-// All types implementing Object conform to this
-// interface, it's mainly used for filtering
+// GetCreated returns when the Object was created
+func (o *ObjectMeta) GetCreated() *metav1.Time {
+	return o.Created
+}
+
+// SetCreated returns when the Object was created
+func (o *ObjectMeta) SetCreated(t *metav1.Time) {
+	o.Created = t
+}
+
+// Object extends k8s.io/apimachinery's runtime.Object with
+// extra GetName() and GetUID() methods from ObjectMeta
 type Object interface {
 	runtime.Object
 	GetName() string
 	GetUID() types.UID
+	GetCreated() *metav1.Time
+	SetCreated(t *metav1.Time)
 }
 
 // Size specifies a common unit for data sizes

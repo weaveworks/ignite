@@ -8,14 +8,11 @@ Import a new base image for VMs
 Import a new base image for VMs, takes in a Docker image as the source.
 The base image is an ext4 block device file, which contains a root filesystem.
 
-If the import kernel flag (-k, --import-kernel) is specified,
-/boot/vmlinux is extracted from the image and added to a new
-VM kernel object named after the flag.
+If a kernel is found in the image, /boot/vmlinux is extracted from it
+and imported to a kernel with the same name.
 
 Example usage:
-    $ ignite build luxas/ubuntu-base:18.04 \
-		--name my-image \
-		--import-kernel my-kernel
+    $ ignite image import luxas/ubuntu-base:18.04
 
 
 ```
@@ -25,9 +22,7 @@ ignite image import <source> [flags]
 ### Options
 
 ```
-  -h, --help                   help for import
-  -k, --import-kernel string   Import a new kernel from /boot/vmlinux in the image with the specified name
-  -n, --name string            Specify the name
+  -h, --help   help for import
 ```
 
 ### Options inherited from parent commands
