@@ -1,9 +1,9 @@
-package v1alpha1
+package api
 
 import (
 	"net"
 
-	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -12,10 +12,10 @@ import (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Image struct {
 	metav1.TypeMeta `json:",inline"`
-	// ignitemeta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
+	// meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
 	// Name is available at the .metadata.name JSON path
 	// ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
-	ignitemeta.ObjectMeta `json:"metadata"`
+	meta.ObjectMeta `json:"metadata"`
 
 	Spec ImageSpec `json:"spec"`
 	//Status ImageStatus `json:"status"`
@@ -43,13 +43,13 @@ type ImageSource struct {
 	// Name defines the user-friendly name of the imported source
 	Name string `json:"name"`
 	// Size defines the size of the source in bytes
-	Size ignitemeta.Size `json:"size"`
+	Size meta.Size `json:"size"`
 }
 
 // ImageStatus defines the status of the image
 //type ImageStatus struct {
 //	// LayerID points to the index of the device in the DM pool
-//	LayerID ignitemeta.DMID `json:"layerID"`
+//	LayerID meta.DMID `json:"layerID"`
 //}
 
 // Pool defines device mapper pool database
@@ -59,7 +59,7 @@ type ImageSource struct {
 type Pool struct {
 	metav1.TypeMeta `json:",inline"`
 	// Not needed (yet)
-	// ignitemeta.ObjectMeta `json:"metadata"`
+	// meta.ObjectMeta `json:"metadata"`
 
 	Spec   PoolSpec   `json:"spec"`
 	Status PoolStatus `json:"status"`
@@ -68,11 +68,11 @@ type Pool struct {
 // PoolSpec defines the Pool's specification
 type PoolSpec struct {
 	// MetadataSize specifies the size of the pool's metadata
-	MetadataSize ignitemeta.Size `json:"metadataSize"`
+	MetadataSize meta.Size `json:"metadataSize"`
 	// DataSize specifies the size of the pool's data
-	DataSize ignitemeta.Size `json:"dataSize"`
+	DataSize meta.Size `json:"dataSize"`
 	// AllocationSize specifies the smallest size that can be allocated at a time
-	AllocationSize ignitemeta.Size `json:"allocationSize"`
+	AllocationSize meta.Size `json:"allocationSize"`
 	// MetadataPath points to the file where device mapper stores all metadata information
 	// Defaults to constants.SNAPSHOTTER_METADATA_PATH
 	MetadataPath string `json:"metadataPath"`
@@ -99,8 +99,8 @@ const (
 
 // PoolDevice defines one device in the pool
 type PoolDevice struct {
-	Size   ignitemeta.Size `json:"size"`
-	Parent ignitemeta.DMID `json:"parent"`
+	Size   meta.Size `json:"size"`
+	Parent meta.DMID `json:"parent"`
 	// Type specifies the type of the contents of the device
 	Type PoolDeviceType `json:"type"`
 	// MetadataPath points to the JSON/YAML file with metadata about this device
@@ -113,10 +113,10 @@ type PoolDevice struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Kernel struct {
 	metav1.TypeMeta `json:",inline"`
-	// ignitemeta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
+	// meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
 	// Name is available at the .metadata.name JSON path
 	// ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
-	ignitemeta.ObjectMeta `json:"metadata"`
+	meta.ObjectMeta `json:"metadata"`
 
 	Spec KernelSpec `json:"spec"`
 	//Status KernelStatus `json:"status"`
@@ -135,10 +135,10 @@ type KernelSpec struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type VM struct {
 	metav1.TypeMeta `json:",inline"`
-	// ignitemeta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
+	// meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
 	// Name is available at the .metadata.name JSON path
 	// ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
-	ignitemeta.ObjectMeta `json:"metadata"`
+	meta.ObjectMeta `json:"metadata"`
 
 	Spec   VMSpec   `json:"spec"`
 	Status VMStatus `json:"status"`
@@ -150,8 +150,8 @@ type VMSpec struct {
 	// TODO: Temporary ID for the old metadata handling
 	Kernel   *KernelClaim    `json:"kernel"`
 	CPUs     uint64          `json:"cpus"`
-	Memory   ignitemeta.Size `json:"memory"`
-	DiskSize ignitemeta.Size `json:"diskSize"`
+	Memory   meta.Size `json:"memory"`
+	DiskSize meta.Size `json:"diskSize"`
 	Ports    []PortMapping   `json:"ports,omitempty"`
 	// This will be done at either "ignite start" or "ignite create" time
 	// TODO: We might to revisit this later

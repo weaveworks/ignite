@@ -3,21 +3,21 @@ package kernmd
 import (
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
 type KernelMetadata struct {
-	*v1alpha1.Kernel
+	*api.Kernel
 }
 
 var _ metadata.Metadata = &KernelMetadata{}
 
-func NewKernelMetadata(id string, name *string, object *v1alpha1.Kernel) (*KernelMetadata, error) {
+func NewKernelMetadata(id string, name *string, object *api.Kernel) (*KernelMetadata, error) {
 	if object == nil {
-		object = &v1alpha1.Kernel{}
+		object = &api.Kernel{}
 	}
 
 	md := &KernelMetadata{
@@ -33,8 +33,8 @@ func NewKernelMetadata(id string, name *string, object *v1alpha1.Kernel) (*Kerne
 	return md, nil
 }
 
-func (md *KernelMetadata) Type() v1alpha1.PoolDeviceType {
-	return v1alpha1.PoolDeviceTypeKernel
+func (md *KernelMetadata) Type() api.PoolDeviceType {
+	return api.PoolDeviceTypeKernel
 }
 
 func (md *KernelMetadata) TypePath() string {

@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 )
 
-type PortMappings []v1alpha1.PortMapping
+type PortMappings []api.PortMapping
 
 var _ fmt.Stringer = &PortMappings{}
 
@@ -53,7 +53,7 @@ func (md *VMMetadata) NewPortMappings(input []string) error {
 			}
 		}
 
-		result[hostPort] = v1alpha1.PortMapping{
+		result[hostPort] = api.PortMapping{
 			HostPort: hostPort,
 			VMPort:   vmPort,
 		}

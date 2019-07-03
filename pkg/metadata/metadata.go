@@ -5,13 +5,13 @@ import (
 	"log"
 	"os"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
 type Metadata interface {
-	ignitemeta.Object
-	Type() v1alpha1.PoolDeviceType
+	meta.Object
+	Type() api.PoolDeviceType
 	TypePath() string
 	ObjectPath() string
 	Load() error

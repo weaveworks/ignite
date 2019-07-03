@@ -9,7 +9,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 
 	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -114,7 +114,7 @@ func (md *VMMetadata) WriteEtcHosts(tmpDir, hostname string, primaryIP net.IP) e
 	return ioutil.WriteFile(hostFilePath, content, 0644)
 }
 
-func (md *VMMetadata) SetState(s v1alpha1.VMState) error {
+func (md *VMMetadata) SetState(s api.VMState) error {
 	md.Status.State = s
 
 	if err := md.Save(); err != nil {
@@ -125,7 +125,7 @@ func (md *VMMetadata) SetState(s v1alpha1.VMState) error {
 }
 
 func (md *VMMetadata) Running() bool {
-	return md.Status.State == v1alpha1.VMStateRunning
+	return md.Status.State == api.VMStateRunning
 }
 
 func (md *VMMetadata) Size() (int64, error) {

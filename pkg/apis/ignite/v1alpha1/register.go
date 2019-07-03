@@ -1,4 +1,4 @@
-package v1alpha1
+package api
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"
@@ -33,7 +33,7 @@ const (
 // SchemeGroupVersion is group version used to register these objects
 var SchemeGroupVersion = schema.GroupVersion{
 	Group:   GroupName,
-	Version: "v1alpha1",
+	Version: "api",
 }
 var internalGV = schema.GroupVersion{
 	Group:   GroupName,

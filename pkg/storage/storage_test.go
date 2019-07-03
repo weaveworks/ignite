@@ -3,16 +3,16 @@ package storage
 import (
 	"testing"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 var s = NewStorage("/tmp/foo")
 
 func TestStorageGet(t *testing.T) {
-	obj := &v1alpha1.VM{
-		ObjectMeta: ignitemeta.ObjectMeta{
+	obj := &api.VM{
+		ObjectMeta: meta.ObjectMeta{
 			UID: types.UID("1234"),
 		},
 	}
@@ -21,14 +21,14 @@ func TestStorageGet(t *testing.T) {
 }
 
 func TestStorageSet(t *testing.T) {
-	err := s.Set(&v1alpha1.VM{
-		ObjectMeta: ignitemeta.ObjectMeta{
+	err := s.Set(&api.VM{
+		ObjectMeta: meta.ObjectMeta{
 			Name: "foo",
 			UID:  types.UID("1234"),
 		},
-		Spec: v1alpha1.VMSpec{
+		Spec: api.VMSpec{
 			CPUs:   2,
-			Memory: ignitemeta.NewSizeFromBytes(4 * 1024 * 1024),
+			Memory: meta.NewSizeFromBytes(4 * 1024 * 1024),
 		},
 	})
 	if err != nil {
@@ -47,7 +47,7 @@ func TestStorageList(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, vmobj := range list {
-		vm, ok := vmobj.(*v1alpha1.VM)
+		vm, ok := vmobj.(*api.VM)
 		if !ok {
 			t.Fatalf("can't convert")
 		}

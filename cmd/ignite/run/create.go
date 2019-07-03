@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
@@ -57,7 +57,7 @@ const vmAuthorizedKeys = "/root/.ssh/authorized_keys"
 
 func NewCreateFlags() *CreateFlags {
 	cf := &CreateFlags{
-		VM: &v1alpha1.VM{},
+		VM: &api.VM{},
 	}
 
 	scheme.Scheme.Default(cf.VM)
@@ -71,7 +71,7 @@ type CreateFlags struct {
 	KernelName string
 	SSH        *SSHFlag
 	ConfigFile string
-	VM         *v1alpha1.VM
+	VM         *api.VM
 }
 
 type createOptions struct {
@@ -87,8 +87,8 @@ type createOptions struct {
 // and the config file, if it needs to be loaded
 func (cf *CreateFlags) parseArgsAndConfig(args []string) error {
 	if len(args) == 1 {
-		cf.VM.Spec.Image = &v1alpha1.ImageClaim{
-			Type: v1alpha1.ImageSourceTypeDocker,
+		cf.VM.Spec.Image = &api.ImageClaim{
+			Type: api.ImageSourceTypeDocker,
 			Ref:  args[0],
 		}
 	}
@@ -96,7 +96,7 @@ func (cf *CreateFlags) parseArgsAndConfig(args []string) error {
 	// Decode the config file if given
 	if len(cf.ConfigFile) != 0 {
 		// Marshal into a "clean" object, discard all flag input
-		cf.VM = &v1alpha1.VM{}
+		cf.VM = &api.VM{}
 		if err := scheme.Serializer.DecodeFileInto(cf.ConfigFile, cf.VM); err != nil {
 			return err
 		}

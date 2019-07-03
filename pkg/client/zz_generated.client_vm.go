@@ -8,8 +8,8 @@
 package client
 
 import (
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 )
 
@@ -19,13 +19,13 @@ type VMClient interface {
 
 	// Get returns a VM object based on a reference string; which can either
 	// match the VM's Name or UID, or be a prefix of the UID
-	Get(ref string) (*v1alpha1.VM, error)
+	Get(ref string) (*api.VM, error)
 	// Set saves a VM into the persistent storage
-	Set(vm *v1alpha1.VM) error
+	Set(vm *api.VM) error
 	// Delete deletes the API object from the storage
 	Delete(uid string) error
 	// List returns a list of all VMs available
-	List() ([]*v1alpha1.VM, error)
+	List() ([]*api.VM, error)
 }
 
 // VMs returns the VMClient for the Client instance
@@ -51,7 +51,7 @@ type vmClient struct {
 // newVMClient builds the vmClient struct using the storage implementation
 // It automatically fetches all metadata for all API types of the specific kind into the cache
 func newVMClient(s storage.Storage) VMClient {
-	c, err := s.GetCache(v1alpha1.VMKind)
+	c, err := s.GetCache(api.VMKind)
 	if err != nil {
 		panic(err)
 	}
@@ -60,10 +60,10 @@ func newVMClient(s storage.Storage) VMClient {
 
 // Get returns a VM object based on a reference string; which can either
 // match the VM's Name or UID, or be a prefix of the UID
-func (c *vmClient) Get(ref string) (*v1alpha1.VM, error) {
-	ob := ignitemeta.ObjectMeta{}
+func (c *vmClient) Get(ref string) (*api.VM, error) {
+	ob := meta.ObjectMeta{}
 	ob.SetUID(ref)
-	vm := &v1alpha1.VM{
+	vm := &api.VM{
 		ObjectMeta: ob,
 	}
 	if err := c.storage.Get(vm); err != nil {
@@ -73,24 +73,24 @@ func (c *vmClient) Get(ref string) (*v1alpha1.VM, error) {
 }
 
 // Set saves a VM into the persistent storage
-func (c *vmClient) Set(vm *v1alpha1.VM) error {
+func (c *vmClient) Set(vm *api.VM) error {
 	return c.storage.Set(vm)
 }
 
 // Delete deletes the API object from the storage
 func (c *vmClient) Delete(uid string) error {
-	return c.storage.Delete(v1alpha1.VMKind, uid)
+	return c.storage.Delete(api.VMKind, uid)
 }
 
 // List returns a list of all VMs available
-func (c *vmClient) List() ([]*v1alpha1.VM, error) {
-	list, err := c.storage.List(v1alpha1.VMKind)
+func (c *vmClient) List() ([]*api.VM, error) {
+	list, err := c.storage.List(api.VMKind)
 	if err != nil {
 		return nil, err
 	}
-	result := []*v1alpha1.VM{}
+	result := []*api.VM{}
 	for _, item := range list {
-		result = append(result, item.(*v1alpha1.VM))
+		result = append(result, item.(*api.VM))
 	}
 	return result, nil
 }

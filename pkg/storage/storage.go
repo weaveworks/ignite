@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/storage/serializer"
 
@@ -22,21 +22,21 @@ import (
 // Storage is an interface for persisting and retrieving API objects to/from a backend
 type Storage interface {
 	// Get populates the pointer to the Object given, based on the file content
-	Get(obj ignitemeta.Object) error
+	Get(obj meta.Object) error
 	// GetByID returns a new Object for the resource at the specified kind/uid path, based on the file content
-	GetByID(kind, uid string) (ignitemeta.Object, error)
+	GetByID(kind, uid string) (meta.Object, error)
 	// Set saves the Object to disk. If the object does not exist, the
 	// ObjectMeta.Created field is set automatically
-	Set(obj ignitemeta.Object) error
+	Set(obj meta.Object) error
 	// Delete removes an object from the storage
 	Delete(kind, uid string) error
 	// List lists objects for the specific kind
-	List(kind string) ([]ignitemeta.Object, error)
+	List(kind string) ([]meta.Object, error)
 	// ListMeta lists all objects' APIType representation. In other words,
 	// only metadata about each object is unmarshalled (uid/name/kind/apiVersion).
 	// This allows for faster runs (no need to unmarshal "the world"), and less
 	// resource usage, when only metadata is unmarshalled into memory
-	ListMeta(kind string) (ignitemeta.APITypeList, error)
+	ListMeta(kind string) (meta.APITypeList, error)
 	// GetCache gets a new Cache implementation for the specified kind
 	GetCache(kind string) (Cache, error)
 }
@@ -59,7 +59,7 @@ type storage struct {
 }
 
 // Get populates the pointer to the Object given, based on the file content
-func (s *storage) Get(obj ignitemeta.Object) error {
+func (s *storage) Get(obj meta.Object) error {
 	storagePath, err := s.storagePathForObj(obj)
 	if err != nil {
 		return err
@@ -68,13 +68,13 @@ func (s *storage) Get(obj ignitemeta.Object) error {
 }
 
 // GetByID returns a new Object for the resource at the specified kind/uid path, based on the file content
-func (s *storage) GetByID(kind, uid string) (ignitemeta.Object, error) {
+func (s *storage) GetByID(kind, uid string) (meta.Object, error) {
 	storagePath := s.storagePathForID(kind, uid)
 	obj, err := s.serializer.DecodeFile(storagePath)
 	if err != nil {
 		return nil, err
 	}
-	igniteObj, ok := obj.(ignitemeta.Object)
+	igniteObj, ok := obj.(meta.Object)
 	if !ok {
 		return nil, fmt.Errorf("cannot convert ignite Object")
 	}
@@ -83,7 +83,7 @@ func (s *storage) GetByID(kind, uid string) (ignitemeta.Object, error) {
 
 // Set saves the Object to disk. If the object does not exist, the
 // ObjectMeta.Created field is set automatically
-func (s *storage) Set(obj ignitemeta.Object) error {
+func (s *storage) Set(obj meta.Object) error {
 	storagePath, err := s.storagePathForObj(obj)
 	if err != nil {
 		return err
@@ -113,14 +113,14 @@ func (s *storage) Delete(kind, uid string) error {
 }
 
 // List lists objects for the specific kind
-func (s *storage) List(kind string) ([]ignitemeta.Object, error) {
-	result := []ignitemeta.Object{}
+func (s *storage) List(kind string) ([]meta.Object, error) {
+	result := []meta.Object{}
 	err := s.walkDir(kind, func(content []byte) error {
 		runtimeobj, err := s.serializer.Decode(content)
 		if err != nil {
 			return err
 		}
-		obj, ok := runtimeobj.(ignitemeta.Object)
+		obj, ok := runtimeobj.(meta.Object)
 		if !ok {
 			return fmt.Errorf("can't convert to ignite object")
 		}
@@ -137,10 +137,10 @@ func (s *storage) List(kind string) ([]ignitemeta.Object, error) {
 // only metadata about each object is unmarshalled (uid/name/kind/apiVersion).
 // This allows for faster runs (no need to unmarshal "the world"), and less
 // resource usage, when only metadata is unmarshalled into memory
-func (s *storage) ListMeta(kind string) (ignitemeta.APITypeList, error) {
-	result := ignitemeta.APITypeList{}
+func (s *storage) ListMeta(kind string) (meta.APITypeList, error) {
+	result := meta.APITypeList{}
 	err := s.walkDir(kind, func(content []byte) error {
-		obj := &ignitemeta.APIType{}
+		obj := &meta.APIType{}
 		if err := json.Unmarshal(content, obj); err != nil {
 			return err
 		}
@@ -189,7 +189,7 @@ func (s *storage) walkDir(kind string, fn func(content []byte) error) error {
 	return nil
 }
 
-func (s *storage) storagePathForObj(obj ignitemeta.Object) (string, error) {
+func (s *storage) storagePathForObj(obj meta.Object) (string, error) {
 	gvk, err := s.gvkFromObj(obj)
 	if err != nil {
 		return "", err

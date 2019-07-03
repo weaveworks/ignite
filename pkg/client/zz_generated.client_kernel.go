@@ -8,8 +8,8 @@
 package client
 
 import (
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 )
 
@@ -19,13 +19,13 @@ type KernelClient interface {
 
 	// Get returns a Kernel object based on a reference string; which can either
 	// match the Kernel's Name or UID, or be a prefix of the UID
-	Get(ref string) (*v1alpha1.Kernel, error)
+	Get(ref string) (*api.Kernel, error)
 	// Set saves a Kernel into the persistent storage
-	Set(kernel *v1alpha1.Kernel) error
+	Set(kernel *api.Kernel) error
 	// Delete deletes the API object from the storage
 	Delete(uid string) error
 	// List returns a list of all Kernels available
-	List() ([]*v1alpha1.Kernel, error)
+	List() ([]*api.Kernel, error)
 }
 
 // Kernels returns the KernelClient for the Client instance
@@ -51,7 +51,7 @@ type kernelClient struct {
 // newKernelClient builds the kernelClient struct using the storage implementation
 // It automatically fetches all metadata for all API types of the specific kind into the cache
 func newKernelClient(s storage.Storage) KernelClient {
-	c, err := s.GetCache(v1alpha1.KernelKind)
+	c, err := s.GetCache(api.KernelKind)
 	if err != nil {
 		panic(err)
 	}
@@ -60,10 +60,10 @@ func newKernelClient(s storage.Storage) KernelClient {
 
 // Get returns a Kernel object based on a reference string; which can either
 // match the Kernel's Name or UID, or be a prefix of the UID
-func (c *kernelClient) Get(ref string) (*v1alpha1.Kernel, error) {
-	ob := ignitemeta.ObjectMeta{}
+func (c *kernelClient) Get(ref string) (*api.Kernel, error) {
+	ob := meta.ObjectMeta{}
 	ob.SetUID(ref)
-	kernel := &v1alpha1.Kernel{
+	kernel := &api.Kernel{
 		ObjectMeta: ob,
 	}
 	if err := c.storage.Get(kernel); err != nil {
@@ -73,24 +73,24 @@ func (c *kernelClient) Get(ref string) (*v1alpha1.Kernel, error) {
 }
 
 // Set saves a Kernel into the persistent storage
-func (c *kernelClient) Set(kernel *v1alpha1.Kernel) error {
+func (c *kernelClient) Set(kernel *api.Kernel) error {
 	return c.storage.Set(kernel)
 }
 
 // Delete deletes the API object from the storage
 func (c *kernelClient) Delete(uid string) error {
-	return c.storage.Delete(v1alpha1.KernelKind, uid)
+	return c.storage.Delete(api.KernelKind, uid)
 }
 
 // List returns a list of all Kernels available
-func (c *kernelClient) List() ([]*v1alpha1.Kernel, error) {
-	list, err := c.storage.List(v1alpha1.KernelKind)
+func (c *kernelClient) List() ([]*api.Kernel, error) {
+	list, err := c.storage.List(api.KernelKind)
 	if err != nil {
 		return nil, err
 	}
-	result := []*v1alpha1.Kernel{}
+	result := []*api.Kernel{}
 	for _, item := range list {
-		result = append(result, item.(*v1alpha1.Kernel))
+		result = append(result, item.(*api.Kernel))
 	}
 	return result, nil
 }

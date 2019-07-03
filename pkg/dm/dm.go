@@ -7,7 +7,7 @@ import (
 
 	"github.com/weaveworks/ignite/pkg/util"
 
-	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
 type blockDevice interface {
@@ -41,7 +41,7 @@ func resize2fs(device blockDevice) error {
 	return err
 }
 
-func allocateBackingFile(p string, size ignitemeta.Size) error {
+func allocateBackingFile(p string, size meta.Size) error {
 	if !util.FileExists(p) {
 		file, err := os.Create(p)
 		if err != nil {

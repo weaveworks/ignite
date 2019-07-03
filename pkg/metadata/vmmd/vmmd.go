@@ -3,21 +3,21 @@ package vmmd
 import (
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
 type VMMetadata struct {
-	*v1alpha1.VM
+	*api.VM
 }
 
 var _ metadata.Metadata = &VMMetadata{}
 
-func NewVMMetadata(id string, name *string, object *v1alpha1.VM) (*VMMetadata, error) {
+func NewVMMetadata(id string, name *string, object *api.VM) (*VMMetadata, error) {
 	if object == nil {
-		object = &v1alpha1.VM{}
+		object = &api.VM{}
 	}
 
 	md := &VMMetadata{
@@ -33,8 +33,8 @@ func NewVMMetadata(id string, name *string, object *v1alpha1.VM) (*VMMetadata, e
 	return md, nil
 }
 
-func (md *VMMetadata) Type() v1alpha1.PoolDeviceType {
-	return v1alpha1.PoolDeviceTypeVM
+func (md *VMMetadata) Type() api.PoolDeviceType {
+	return api.PoolDeviceTypeVM
 }
 
 func (md *VMMetadata) TypePath() string {

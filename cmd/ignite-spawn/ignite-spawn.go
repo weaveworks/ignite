@@ -5,7 +5,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 
 	"github.com/weaveworks/ignite/pkg/container"
 	"github.com/weaveworks/ignite/pkg/container/prometheus"
@@ -51,10 +51,10 @@ func StartVM(co *options) error {
 	go prometheus.ServeMetrics(metricsSocket)
 
 	// VM state handling
-	if err := co.vm.SetState(v1alpha1.VMStateRunning); err != nil {
+	if err := co.vm.SetState(api.VMStateRunning); err != nil {
 		return fmt.Errorf("failed to update VM state: %v", err)
 	}
-	defer co.vm.SetState(v1alpha1.VMStateStopped) // Performs a save, all other metadata-modifying defers need to be after this
+	defer co.vm.SetState(api.VMStateStopped) // Performs a save, all other metadata-modifying defers need to be after this
 
 	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
 	defer co.vm.RemoveSnapshot()

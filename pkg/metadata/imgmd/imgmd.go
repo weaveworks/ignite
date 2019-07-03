@@ -3,21 +3,21 @@ package imgmd
 import (
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
 type ImageMetadata struct {
-	*v1alpha1.Image
+	*api.Image
 }
 
 var _ metadata.Metadata = &ImageMetadata{}
 
-func NewImageMetadata(id string, name *string, object *v1alpha1.Image) (*ImageMetadata, error) {
+func NewImageMetadata(id string, name *string, object *api.Image) (*ImageMetadata, error) {
 	if object == nil {
-		object = &v1alpha1.Image{}
+		object = &api.Image{}
 	}
 
 	md := &ImageMetadata{
@@ -33,8 +33,8 @@ func NewImageMetadata(id string, name *string, object *v1alpha1.Image) (*ImageMe
 	return md, nil
 }
 
-func (md *ImageMetadata) Type() v1alpha1.PoolDeviceType {
-	return v1alpha1.PoolDeviceTypeImage
+func (md *ImageMetadata) Type() api.PoolDeviceType {
+	return api.PoolDeviceTypeImage
 }
 
 func (md *ImageMetadata) TypePath() string {

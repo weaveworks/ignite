@@ -1,7 +1,7 @@
 package client
 
 import (
-	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 )
 
@@ -11,13 +11,13 @@ type DynamicClient interface {
 
 	// Get returns a Resource object based on a reference string; which can either
 	// match the Resource's Name or UID, or be a prefix of the UID
-	Get(ref string) (ignitemeta.Object, error)
+	Get(ref string) (meta.Object, error)
 	// Set saves a Resource into the persistent storage
-	Set(ignitemeta.Object) error
+	Set(meta.Object) error
 	// Delete deletes the API object from the storage
 	Delete(uid string) error
 	// List returns a list of all Resources available
-	List() ([]ignitemeta.Object, error)
+	List() ([]meta.Object, error)
 }
 
 // Dynamic returns the DynamicClient for the Client instance, for the specific kind
@@ -55,7 +55,7 @@ func newDynamicClient(s storage.Storage, kind string) DynamicClient {
 
 // Get returns a Resource object based on a reference string; which can either
 // match the Resource's Name or UID, or be a prefix of the UID
-func (c *dynamicClient) Get(ref string) (ignitemeta.Object, error) {
+func (c *dynamicClient) Get(ref string) (meta.Object, error) {
 	meta, err := c.MatchOne(ref)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (c *dynamicClient) Get(ref string) (ignitemeta.Object, error) {
 }
 
 // Set saves a Resource into the persistent storage
-func (c *dynamicClient) Set(resource ignitemeta.Object) error {
+func (c *dynamicClient) Set(resource meta.Object) error {
 	return c.storage.Set(resource)
 }
 
@@ -78,6 +78,6 @@ func (c *dynamicClient) Delete(uid string) error {
 }
 
 // List returns a list of all Resources available
-func (c *dynamicClient) List() ([]ignitemeta.Object, error) {
+func (c *dynamicClient) List() ([]meta.Object, error) {
 	return c.storage.List(c.kind)
 }

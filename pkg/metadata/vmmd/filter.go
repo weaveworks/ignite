@@ -1,7 +1,7 @@
 package vmmd
 
 import (
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
@@ -19,7 +19,7 @@ func NewVMFilter(p string) *VMFilter {
 
 func NewVMFilterAll(p string, all bool) *VMFilter {
 	return &VMFilter{
-		IDNameFilter: metadata.NewIDNameFilter(p, v1alpha1.PoolDeviceTypeVM),
+		IDNameFilter: metadata.NewIDNameFilter(p, api.PoolDeviceTypeVM),
 		all:          all,
 	}
 }

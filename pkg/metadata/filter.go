@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -40,10 +40,10 @@ var _ Filter = &IDNameFilter{}
 
 type IDNameFilter struct {
 	prefix     string
-	filterType v1alpha1.PoolDeviceType
+	filterType api.PoolDeviceType
 }
 
-func NewIDNameFilter(p string, t v1alpha1.PoolDeviceType) *IDNameFilter {
+func NewIDNameFilter(p string, t api.PoolDeviceType) *IDNameFilter {
 	return &IDNameFilter{
 		prefix:     p,
 		filterType: t,

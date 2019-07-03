@@ -5,7 +5,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
@@ -41,8 +41,8 @@ func Import(bo *importOptions) error {
 		return err
 	}
 
-	image := &v1alpha1.Image{
-		Spec: v1alpha1.ImageSpec{
+	image := &api.Image{
+		Spec: api.ImageSpec{
 			Source: *src,
 		},
 	}

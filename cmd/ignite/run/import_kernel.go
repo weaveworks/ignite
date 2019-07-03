@@ -3,7 +3,7 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/weaveworks/ignite/pkg/metadata"
@@ -39,10 +39,10 @@ func ImportKernel(ao *importKernelOptions) error {
 	}
 
 	// TODO: Kernel importing from docker when moving to pool/snapshotter
-	kernel := &v1alpha1.Kernel{
-		Spec: v1alpha1.KernelSpec{
+	kernel := &api.Kernel{
+		Spec: api.KernelSpec{
 			Version: "unknown",
-			Source: v1alpha1.ImageSource{
+			Source: api.ImageSource{
 				Type: "file",
 				ID:   "-",
 				Name: "-",

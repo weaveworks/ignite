@@ -7,8 +7,8 @@ import (
 	"log"
 	"os/exec"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/containerruntime/docker"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -30,7 +30,7 @@ func (ds *DockerSource) ID() string {
 	return ds.imageID
 }
 
-func (ds *DockerSource) Parse(source string) (*v1alpha1.ImageSource, error) {
+func (ds *DockerSource) Parse(source string) (*api.ImageSource, error) {
 	client, err := docker.GetDockerClient()
 	if err != nil {
 		return nil, err
@@ -57,11 +57,11 @@ func (ds *DockerSource) Parse(source string) (*v1alpha1.ImageSource, error) {
 	}
 
 	ds.imageID = res.ID
-	return &v1alpha1.ImageSource{
-		Type: v1alpha1.ImageSourceTypeDocker,
+	return &api.ImageSource{
+		Type: api.ImageSourceTypeDocker,
 		ID:   res.ID,
 		Name: res.Names[0],
-		Size: ignitemeta.NewSizeFromBytes(uint64(res.Size)),
+		Size: meta.NewSizeFromBytes(uint64(res.Size)),
 	}, nil
 }
 

@@ -1,7 +1,7 @@
-package v1alpha1
+package api
 
 import (
-	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -15,15 +15,15 @@ func SetDefaults_ImageSource(obj *ImageSource) {
 }
 
 func SetDefaults_PoolSpec(obj *PoolSpec) {
-	if obj.AllocationSize == ignitemeta.EmptySize {
-		obj.AllocationSize = ignitemeta.NewSizeFromSectors(constants.POOL_ALLOCATION_SIZE_SECTORS)
+	if obj.AllocationSize == meta.EmptySize {
+		obj.AllocationSize = meta.NewSizeFromSectors(constants.POOL_ALLOCATION_SIZE_SECTORS)
 	}
 
-	if obj.DataSize == ignitemeta.EmptySize {
-		obj.AllocationSize = ignitemeta.NewSizeFromBytes(constants.POOL_DATA_SIZE_BYTES)
+	if obj.DataSize == meta.EmptySize {
+		obj.AllocationSize = meta.NewSizeFromBytes(constants.POOL_DATA_SIZE_BYTES)
 	}
 
-	if obj.MetadataSize == ignitemeta.EmptySize {
+	if obj.MetadataSize == meta.EmptySize {
 		obj.AllocationSize = calcMetadataDevSize(obj)
 	}
 
@@ -41,12 +41,12 @@ func SetDefaults_VMSpec(obj *VMSpec) {
 		obj.CPUs = constants.VM_DEFAULT_CPUS
 	}
 
-	if obj.Memory == ignitemeta.EmptySize {
-		obj.Memory = ignitemeta.NewSizeFromBytes(constants.VM_DEFAULT_MEMORY)
+	if obj.Memory == meta.EmptySize {
+		obj.Memory = meta.NewSizeFromBytes(constants.VM_DEFAULT_MEMORY)
 	}
 
-	if obj.DiskSize == ignitemeta.EmptySize {
-		obj.DiskSize = ignitemeta.NewSizeFromBytes(constants.VM_DEFAULT_SIZE)
+	if obj.DiskSize == meta.EmptySize {
+		obj.DiskSize = meta.NewSizeFromBytes(constants.VM_DEFAULT_SIZE)
 	}
 
 	if obj.Kernel == nil {
@@ -62,10 +62,10 @@ func SetDefaults_VMStatus(obj *VMStatus) {
 	}
 }
 
-func calcMetadataDevSize(obj *PoolSpec) ignitemeta.Size {
+func calcMetadataDevSize(obj *PoolSpec) meta.Size {
 	// The minimum size is 2 MB and the maximum size is 16 GB
-	minSize := ignitemeta.NewSizeFromBytes(2 * constants.MB)
-	maxSize := ignitemeta.NewSizeFromBytes(16 * constants.GB)
+	minSize := meta.NewSizeFromBytes(2 * constants.MB)
+	maxSize := meta.NewSizeFromBytes(16 * constants.GB)
 
-	return ignitemeta.NewSizeFromBytes(48 * obj.DataSize.Bytes() / obj.AllocationSize.Bytes()).Min(maxSize).Max(minSize)
+	return meta.NewSizeFromBytes(48 * obj.DataSize.Bytes() / obj.AllocationSize.Bytes()).Min(maxSize).Max(minSize)
 }

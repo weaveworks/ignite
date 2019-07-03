@@ -1,7 +1,7 @@
 package loader
 
 import (
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
@@ -126,7 +126,7 @@ func (l *allVMs) MatchAll() []*vmmd.VMMetadata {
 
 // Match a single image using the IDNameFilter
 func (l *allImages) MatchSingle(match string) (*imgmd.ImageMetadata, error) {
-	md, err := single(metadata.NewIDNameFilter(match, v1alpha1.PoolDeviceTypeImage), *l)
+	md, err := single(metadata.NewIDNameFilter(match, api.PoolDeviceTypeImage), *l)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func (l *allImages) MatchSingle(match string) (*imgmd.ImageMetadata, error) {
 func (l *allImages) MatchMultiple(matches []string) ([]*imgmd.ImageMetadata, error) {
 	filters := make([]metadata.Filter, 0, len(matches))
 	for _, match := range matches {
-		filters = append(filters, metadata.NewIDNameFilter(match, v1alpha1.PoolDeviceTypeImage))
+		filters = append(filters, metadata.NewIDNameFilter(match, api.PoolDeviceTypeImage))
 	}
 
 	results, err := matchIndividual(filters, *l)
@@ -155,7 +155,7 @@ func (l *allImages) MatchAll() []*imgmd.ImageMetadata {
 
 // Match a single kernel using the IDNameFilter
 func (l *allKernels) MatchSingle(match string) (*kernmd.KernelMetadata, error) {
-	md, err := single(metadata.NewIDNameFilter(match, v1alpha1.PoolDeviceTypeKernel), *l)
+	md, err := single(metadata.NewIDNameFilter(match, api.PoolDeviceTypeKernel), *l)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func (l *allKernels) MatchSingle(match string) (*kernmd.KernelMetadata, error) {
 func (l *allKernels) MatchMultiple(matches []string) ([]*kernmd.KernelMetadata, error) {
 	filters := make([]metadata.Filter, 0, len(matches))
 	for _, match := range matches {
-		filters = append(filters, metadata.NewIDNameFilter(match, v1alpha1.PoolDeviceTypeKernel))
+		filters = append(filters, metadata.NewIDNameFilter(match, api.PoolDeviceTypeKernel))
 	}
 
 	results, err := matchIndividual(filters, *l)

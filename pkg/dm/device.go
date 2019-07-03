@@ -6,15 +6,15 @@ import (
 	"os/exec"
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-	ignitemeta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type Device struct {
-	*v1alpha1.PoolDevice
+	*api.PoolDevice
 	pool *Pool
 
 	// These flags are for filesystem and snapshot creation
@@ -25,21 +25,21 @@ type Device struct {
 var _ blockDevice = &Device{}
 
 // Additional space to add to volumes to compensate for the ext4 partition
-var extraSize = ignitemeta.NewSizeFromBytes(constants.POOL_VOLUME_EXTRA_SIZE)
+var extraSize = meta.NewSizeFromBytes(constants.POOL_VOLUME_EXTRA_SIZE)
 
-func (p *Pool) CreateVolume(size ignitemeta.Size, metadataPath string) (*Device, error) {
+func (p *Pool) CreateVolume(size meta.Size, metadataPath string) (*Device, error) {
 	// The pool needs to be active for this
 	if err := p.activate(); err != nil {
 		return nil, err
 	}
 
-	if volume, err := p.newDevice(func(id ignitemeta.DMID) (*Device, error) {
+	if volume, err := p.newDevice(func(id meta.DMID) (*Device, error) {
 		if err := dmsetup("message", p.Path(), "0", fmt.Sprintf("create_thin %s", id)); err != nil {
 			return nil, err
 		}
 
 		return &Device{
-			PoolDevice: &v1alpha1.PoolDevice{
+			PoolDevice: &api.PoolDevice{
 				Size:         size.Add(extraSize),
 				Parent:       nil,
 				MetadataPath: metadataPath,
@@ -54,13 +54,13 @@ func (p *Pool) CreateVolume(size ignitemeta.Size, metadataPath string) (*Device,
 	}
 }
 
-func (d *Device) CreateSnapshot(size ignitemeta.Size, metadataPath string) (*Device, error) {
+func (d *Device) CreateSnapshot(size meta.Size, metadataPath string) (*Device, error) {
 	// The device needs to be active for this
 	if err := d.activate(); err != nil {
 		return nil, err
 	}
 
-	if snapshot, err := d.pool.newDevice(func(id ignitemeta.DMID) (*Device, error) {
+	if snapshot, err := d.pool.newDevice(func(id meta.DMID) (*Device, error) {
 		if err := dmsetup("suspend", d.Path()); err != nil {
 			return nil, err
 		}
@@ -76,7 +76,7 @@ func (d *Device) CreateSnapshot(size ignitemeta.Size, metadataPath string) (*Dev
 
 		// TODO: Prevent snapshots smaller than their parents?
 		return &Device{
-			PoolDevice: &v1alpha1.PoolDevice{
+			PoolDevice: &api.PoolDevice{
 				Size:         size,
 				Parent:       d.pool.getID(d),
 				MetadataPath: metadataPath,
@@ -167,7 +167,7 @@ func (d *Device) Import(src source.Source) (*util.MountPoint, error) {
 	return mountPoint, nil
 }
 
-func (d *Device) name(id ignitemeta.DMID) string {
+func (d *Device) name(id meta.DMID) string {
 	return util.NewPrefixer().Prefix(id.String())
 }
 
