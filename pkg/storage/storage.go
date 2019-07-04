@@ -58,6 +58,8 @@ type storage struct {
 	serializer serializer.Serializer
 }
 
+var _ Storage = &storage{}
+
 // Get populates the pointer to the Object given, based on the file content
 func (s *storage) Get(obj meta.Object) error {
 	storagePath, err := s.storagePathForObj(obj)

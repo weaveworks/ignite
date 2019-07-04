@@ -34,6 +34,8 @@ type cache struct {
 	byName map[string]*meta.APIType
 }
 
+var _ Cache = &cache{}
+
 func (c *cache) ListMeta() meta.APITypeList {
 	return c.list
 }
