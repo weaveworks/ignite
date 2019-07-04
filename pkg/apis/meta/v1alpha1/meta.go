@@ -13,12 +13,17 @@ const (
 // unmarshalling unknown objects into this intermediate type
 // where .Name, .UID, .Kind and .APIVersion become easily available
 type APIType struct {
-	metav1.TypeMeta `json:",inline"`
-	ObjectMeta      `json:"metadata"`
+	TypeMeta   `json:",inline"`
+	ObjectMeta `json:"metadata"`
 }
 
 // APITypeList is a list of many pointers APIType objects
 type APITypeList []*APIType
+
+// TypeMeta is an alias for the k8s/apimachinery TypeMeta with some additional methods
+type TypeMeta struct {
+	metav1.TypeMeta
+}
 
 // ObjectMeta have to be embedded into any serializable object.
 // It provides the .GetName() and .GetUID() methods that help

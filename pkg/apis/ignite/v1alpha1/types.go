@@ -2,14 +2,12 @@ package v1alpha1
 
 import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Image represents a cached OCI image ready to be used with Ignite
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Image struct {
-	metav1.TypeMeta `json:",inline"`
+	meta.TypeMeta `json:",inline"`
 	// meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
 	// Name is available at the .metadata.name JSON path
 	// ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
@@ -55,7 +53,7 @@ type ImageSource struct {
 // is present at /var/lib/firecracker/snapshotter/pool.json
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Pool struct {
-	metav1.TypeMeta `json:",inline"`
+	meta.TypeMeta `json:",inline"`
 	// Not needed (yet)
 	// meta.ObjectMeta `json:"metadata"`
 
@@ -110,7 +108,7 @@ type PoolDevice struct {
 // This file is stored in /var/lib/firecracker/kernels/{oci-image-digest}/metadata.json
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Kernel struct {
-	metav1.TypeMeta `json:",inline"`
+	meta.TypeMeta `json:",inline"`
 	// meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
 	// Name is available at the .metadata.name JSON path
 	// ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
@@ -132,7 +130,7 @@ type KernelSpec struct {
 // These files are stored in /var/lib/firecracker/vm/{vm-id}/metadata.json
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type VM struct {
-	metav1.TypeMeta `json:",inline"`
+	meta.TypeMeta `json:",inline"`
 	// meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
 	// Name is available at the .metadata.name JSON path
 	// ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
