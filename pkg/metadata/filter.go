@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -40,26 +40,26 @@ var _ Filter = &IDNameFilter{}
 
 type IDNameFilter struct {
 	prefix     string
-	filterType api.PoolDeviceType
+	filterKind meta.Kind
 }
 
-func NewIDNameFilter(p string, t api.PoolDeviceType) *IDNameFilter {
+func NewIDNameFilter(p string, t meta.Kind) *IDNameFilter {
 	return &IDNameFilter{
 		prefix:     p,
-		filterType: t,
+		filterKind: t,
 	}
 }
 
 func (f *IDNameFilter) Filter(md Metadata) []string {
-	return util.MatchPrefix(f.prefix, md.GetUID(), md.GetName())
+	return util.MatchPrefix(f.prefix, md.GetUID().String(), md.GetName())
 }
 
 func (f *IDNameFilter) ErrNonexistent() error {
-	return &NonexistentError{fmt.Errorf("can't find %s: no ID/name matches for %q", f.filterType, f.prefix)}
+	return &NonexistentError{fmt.Errorf("can't find %s: no ID/name matches for %q", f.filterKind, f.prefix)}
 }
 
 func (f *IDNameFilter) ErrAmbiguous(matches []*Match) error {
-	return &AmbiguousError{fmt.Errorf("ambiguous %s query: %q matched the following IDs/names: %s", f.filterType, f.prefix, formatMatches(matches))}
+	return &AmbiguousError{fmt.Errorf("ambiguous %s query: %q matched the following IDs/names: %s", f.filterKind, f.prefix, formatMatches(matches))}
 }
 
 func formatMatches(matches []*Match) string {

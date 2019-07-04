@@ -28,7 +28,7 @@ ignite-spawn: bin/ignite-spawn image
 bin/ignite bin/ignite-spawn: bin/%:
 	CGO_ENABLED=0 go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/$* ./cmd/$*
 
-image: ignite-spawn
+image:
 	docker build -t ${DOCKER_USER}/ignite:${IMAGE_DEV_TAG} \
 		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} .
 ifeq ($(IS_DIRTY),0)
@@ -62,7 +62,7 @@ $(CACHE_DIR)/go/bin/godoc2md:
 
 shell:
 	mkdir -p $(CACHE_DIR)/go $(CACHE_DIR)/cache
-	docker run -it \
+	docker run -it --rm \
 		-v $(CACHE_DIR)/go:/go \
 		-v $(CACHE_DIR)/cache:/.cache/go-build \
 		-v $(shell pwd):/go/src/github.com/weaveworks/ignite \

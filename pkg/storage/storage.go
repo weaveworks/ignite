@@ -3,18 +3,15 @@ package storage
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path"
-	"strings"
-	"time"
-
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/storage/serializer"
+	"io/ioutil"
+	"os"
+	"path"
+	"strings"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -24,12 +21,12 @@ type Storage interface {
 	// Get populates the pointer to the Object given, based on the file content
 	Get(obj meta.Object) error
 	// GetByID returns a new Object for the resource at the specified kind/uid path, based on the file content
-	GetByID(kind, uid string) (meta.Object, error)
+	GetByID(kind string, uid meta.UID) (meta.Object, error)
 	// Set saves the Object to disk. If the object does not exist, the
 	// ObjectMeta.Created field is set automatically
 	Set(obj meta.Object) error
 	// Delete removes an object from the storage
-	Delete(kind, uid string) error
+	Delete(kind string, uid meta.UID) error
 	// List lists objects for the specific kind
 	List(kind string) ([]meta.Object, error)
 	// ListMeta lists all objects' APIType representation. In other words,
@@ -58,6 +55,8 @@ type storage struct {
 	serializer serializer.Serializer
 }
 
+var _ Storage = &storage{}
+
 // Get populates the pointer to the Object given, based on the file content
 func (s *storage) Get(obj meta.Object) error {
 	storagePath, err := s.storagePathForObj(obj)
@@ -68,7 +67,7 @@ func (s *storage) Get(obj meta.Object) error {
 }
 
 // GetByID returns a new Object for the resource at the specified kind/uid path, based on the file content
-func (s *storage) GetByID(kind, uid string) (meta.Object, error) {
+func (s *storage) GetByID(kind string, uid meta.UID) (meta.Object, error) {
 	storagePath := s.storagePathForID(kind, uid)
 	obj, err := s.serializer.DecodeFile(storagePath)
 	if err != nil {
@@ -94,7 +93,8 @@ func (s *storage) Set(obj meta.Object) error {
 	}
 	if _, err := os.Stat(storagePath); os.IsNotExist(err) {
 		// Register that the object was created now
-		obj.SetCreated(&metav1.Time{time.Now().UTC()})
+		ts := meta.Timestamp()
+		obj.SetCreated(&ts)
 	}
 
 	b, err := s.serializer.EncodeJSON(obj)
@@ -105,7 +105,7 @@ func (s *storage) Set(obj meta.Object) error {
 }
 
 // Delete removes an object from the storage
-func (s *storage) Delete(kind, uid string) error {
+func (s *storage) Delete(kind string, uid meta.UID) error {
 	storagePath := s.storagePathForID(kind, uid)
 	// remove the whole directory, not only metadata.json
 	storageDir := path.Dir(storagePath)
@@ -194,11 +194,11 @@ func (s *storage) storagePathForObj(obj meta.Object) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return s.storagePathForID(gvk.Kind, string(obj.GetUID())), nil
+	return s.storagePathForID(gvk.Kind, obj.GetUID()), nil
 }
 
-func (s *storage) storagePathForID(kind, uid string) string {
-	return path.Join(s.dataDir, strings.ToLower(kind), uid, constants.METADATA)
+func (s *storage) storagePathForID(kind string, uid meta.UID) string {
+	return path.Join(s.dataDir, strings.ToLower(kind), uid.String(), constants.METADATA)
 }
 
 func (s *storage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKind, error) {

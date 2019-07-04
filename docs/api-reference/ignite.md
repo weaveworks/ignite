@@ -34,7 +34,6 @@
 * [type PoolDeviceType](#PoolDeviceType)
 * [type PoolSpec](#PoolSpec)
 * [type PoolStatus](#PoolStatus)
-* [type PortMapping](#PortMapping)
 * [type SSH](#SSH)
 * [type VM](#VM)
 * [type VMSpec](#VMSpec)
@@ -110,7 +109,7 @@ func SetDefaults_VMStatus(obj *VMStatus)
 
 
 
-## <a name="FileMapping">type</a> [FileMapping](/src/target/types.go?s=6878:6973#L188)
+## <a name="FileMapping">type</a> [FileMapping](/src/target/types.go?s=6680:6775#L178)
 ``` go
 type FileMapping struct {
     HostPath string `json:"hostPath"`
@@ -129,10 +128,10 @@ FileMapping defines mappings between files on the host and VM
 
 
 
-## <a name="Image">type</a> [Image](/src/target/types.go?s=285:749#L13)
+## <a name="Image">type</a> [Image](/src/target/types.go?s=229:691#L9)
 ``` go
 type Image struct {
-    metav1.TypeMeta `json:",inline"`
+    meta.TypeMeta `json:",inline"`
     // meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
     // Name is available at the .metadata.name JSON path
     // ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
@@ -154,13 +153,13 @@ Image represents a cached OCI image ready to be used with Ignite
 
 
 
-## <a name="ImageClaim">type</a> [ImageClaim](/src/target/types.go?s=6329:6502#L168)
+## <a name="ImageClaim">type</a> [ImageClaim](/src/target/types.go?s=6285:6462#L164)
 ``` go
 type ImageClaim struct {
     Type ImageSourceType `json:"type"`
     Ref  string          `json:"ref"`
     // TODO: Temporary ID for the old metadata handling
-    ID string `json:"ID"`
+    UID meta.UID `json:"uid"`
 }
 
 ```
@@ -175,7 +174,7 @@ ImageClaim specifies a claim to import an image
 
 
 
-## <a name="ImageSource">type</a> [ImageSource](/src/target/types.go?s=1152:1509#L38)
+## <a name="ImageSource">type</a> [ImageSource](/src/target/types.go?s=1094:1451#L34)
 ``` go
 type ImageSource struct {
     // Type defines how the image was imported
@@ -200,7 +199,7 @@ ImageSource defines where the image was imported from
 
 
 
-## <a name="ImageSourceType">type</a> [ImageSourceType](/src/target/types.go?s=932:959#L30)
+## <a name="ImageSourceType">type</a> [ImageSourceType](/src/target/types.go?s=874:901#L26)
 ``` go
 type ImageSourceType string
 ```
@@ -222,7 +221,7 @@ const (
 
 
 
-## <a name="ImageSpec">type</a> [ImageSpec](/src/target/types.go?s=797:858#L25)
+## <a name="ImageSpec">type</a> [ImageSpec](/src/target/types.go?s=739:800#L21)
 ``` go
 type ImageSpec struct {
     Source ImageSource `json:"source"`
@@ -240,10 +239,10 @@ ImageSpec declares what the image contains
 
 
 
-## <a name="Kernel">type</a> [Kernel](/src/target/types.go?s=4071:4538#L114)
+## <a name="Kernel">type</a> [Kernel](/src/target/types.go?s=4011:4476#L110)
 ``` go
 type Kernel struct {
-    metav1.TypeMeta `json:",inline"`
+    meta.TypeMeta `json:",inline"`
     // meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
     // Name is available at the .metadata.name JSON path
     // ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
@@ -266,11 +265,11 @@ This file is stored in /var/lib/firecracker/kernels/{oci-image-digest}/metadata.
 
 
 
-## <a name="KernelClaim">type</a> [KernelClaim](/src/target/types.go?s=6560:6648#L176)
+## <a name="KernelClaim">type</a> [KernelClaim](/src/target/types.go?s=6520:6613#L172)
 ``` go
 type KernelClaim struct {
-    ID      string `json:"ID"`
-    CmdLine string `json:"cmdline"`
+    UID     meta.UID `json:"uid"`
+    CmdLine string   `json:"cmdline"`
 }
 
 ```
@@ -285,7 +284,7 @@ TODO: Temporary helper for the old metadata handling
 
 
 
-## <a name="KernelSpec">type</a> [KernelSpec](/src/target/types.go?s=4591:4797#L126)
+## <a name="KernelSpec">type</a> [KernelSpec](/src/target/types.go?s=4529:4735#L122)
 ``` go
 type KernelSpec struct {
     Version string      `json:"version"`
@@ -304,10 +303,10 @@ KernelSpec describes the properties of a kernel
 
 
 
-## <a name="Pool">type</a> [Pool](/src/target/types.go?s=1965:2147#L59)
+## <a name="Pool">type</a> [Pool](/src/target/types.go?s=1907:2087#L55)
 ``` go
 type Pool struct {
-    metav1.TypeMeta `json:",inline"`
+    meta.TypeMeta `json:",inline"`
 
     Spec   PoolSpec   `json:"spec"`
     Status PoolStatus `json:"status"`
@@ -328,7 +327,7 @@ is present at /var/lib/firecracker/snapshotter/pool.json
 
 
 
-## <a name="PoolDevice">type</a> [PoolDevice](/src/target/types.go?s=3438:3828#L101)
+## <a name="PoolDevice">type</a> [PoolDevice](/src/target/types.go?s=3378:3768#L97)
 ``` go
 type PoolDevice struct {
     Size   meta.Size `json:"size"`
@@ -352,7 +351,7 @@ PoolDevice defines one device in the pool
 
 
 
-## <a name="PoolDeviceType">type</a> [PoolDeviceType](/src/target/types.go?s=3167:3193#L91)
+## <a name="PoolDeviceType">type</a> [PoolDeviceType](/src/target/types.go?s=3107:3133#L87)
 ``` go
 type PoolDeviceType string
 ```
@@ -374,7 +373,7 @@ const (
 
 
 
-## <a name="PoolSpec">type</a> [PoolSpec](/src/target/types.go?s=2194:2907#L69)
+## <a name="PoolSpec">type</a> [PoolSpec](/src/target/types.go?s=2134:2847#L65)
 ``` go
 type PoolSpec struct {
     // MetadataSize specifies the size of the pool's metadata
@@ -403,7 +402,7 @@ PoolSpec defines the Pool's specification
 
 
 
-## <a name="PoolStatus">type</a> [PoolStatus](/src/target/types.go?s=2957:3165#L85)
+## <a name="PoolStatus">type</a> [PoolStatus](/src/target/types.go?s=2897:3105#L81)
 ``` go
 type PoolStatus struct {
     // The Devices array needs to contain pointers to accommodate "holes" in the mapping
@@ -423,26 +422,7 @@ PoolStatus defines the Pool's current status
 
 
 
-## <a name="PortMapping">type</a> [PortMapping](/src/target/types.go?s=6716:6811#L182)
-``` go
-type PortMapping struct {
-    HostPort uint64 `json:"hostPort"`
-    VMPort   uint64 `json:"vmPort"`
-}
-
-```
-PortMapping defines a port mapping between the VM and the host
-
-
-
-
-
-
-
-
-
-
-## <a name="SSH">type</a> [SSH](/src/target/types.go?s=7036:7092#L194)
+## <a name="SSH">type</a> [SSH](/src/target/types.go?s=6838:6894#L184)
 ``` go
 type SSH struct {
     PublicKey string `json:"publicKey"`
@@ -460,10 +440,10 @@ SSH specifies different ways to connect via SSH to the VM
 
 
 
-## <a name="VM">type</a> [VM](/src/target/types.go?s=4999:5456#L136)
+## <a name="VM">type</a> [VM](/src/target/types.go?s=4937:5392#L132)
 ``` go
 type VM struct {
-    metav1.TypeMeta `json:",inline"`
+    meta.TypeMeta `json:",inline"`
     // meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
     // Name is available at the .metadata.name JSON path
     // ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
@@ -487,16 +467,16 @@ These files are stored in /var/lib/firecracker/vm/{vm-id}/metadata.json
 
 
 
-## <a name="VMSpec">type</a> [VMSpec](/src/target/types.go?s=5504:6276#L148)
+## <a name="VMSpec">type</a> [VMSpec](/src/target/types.go?s=5440:6232#L144)
 ``` go
 type VMSpec struct {
     Image *ImageClaim `json:"image"`
     // TODO: Temporary ID for the old metadata handling
-    Kernel   *KernelClaim  `json:"kernel"`
-    CPUs     uint64        `json:"cpus"`
-    Memory   meta.Size     `json:"memory"`
-    DiskSize meta.Size     `json:"diskSize"`
-    Ports    []PortMapping `json:"ports,omitempty"`
+    Kernel   *KernelClaim      `json:"kernel"`
+    CPUs     uint64            `json:"cpus"`
+    Memory   meta.Size         `json:"memory"`
+    DiskSize meta.Size         `json:"diskSize"`
+    Ports    meta.PortMappings `json:"ports,omitempty"`
     // This will be done at either "ignite start" or "ignite create" time
     // TODO: We might to revisit this later
     CopyFiles []FileMapping `json:"copyFiles,omitempty"`
@@ -520,7 +500,7 @@ VMSpec describes the configuration of a VM
 
 
 
-## <a name="VMState">type</a> [VMState](/src/target/types.go?s=7145:7164#L199)
+## <a name="VMState">type</a> [VMState](/src/target/types.go?s=6947:6966#L189)
 ``` go
 type VMState string
 ```
@@ -543,11 +523,11 @@ const (
 
 
 
-## <a name="VMStatus">type</a> [VMStatus](/src/target/types.go?s=7324:7428#L208)
+## <a name="VMStatus">type</a> [VMStatus](/src/target/types.go?s=7126:7246#L198)
 ``` go
 type VMStatus struct {
-    State       VMState  `json:"state"`
-    IPAddresses []net.IP `json:"ipAddresses"`
+    State       VMState          `json:"state"`
+    IPAddresses meta.IPAddresses `json:"ipAddresses"`
 }
 
 ```

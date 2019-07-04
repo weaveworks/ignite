@@ -1,11 +1,12 @@
 package kernmd
 
 import (
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
-func LoadKernel(id string) (metadata.Metadata, error) {
-	md, err := NewKernel(id, nil, nil)
+func LoadKernel(uid meta.UID) (metadata.Metadata, error) {
+	md, err := NewKernel(uid, nil, nil)
 	if err != nil {
 		return nil, err
 	}

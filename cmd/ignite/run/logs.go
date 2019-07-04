@@ -36,7 +36,7 @@ func Logs(lo *logsOptions) error {
 
 	dockerArgs := []string{
 		"logs",
-		constants.IGNITE_PREFIX + lo.vm.GetUID(),
+		constants.IGNITE_PREFIX + lo.vm.GetUID().String(),
 	}
 
 	// Fetch the VM logs from docker

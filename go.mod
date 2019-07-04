@@ -25,10 +25,10 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
-	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/grpc v1.21.1 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
 	k8s.io/apimachinery v0.0.0-20190612205821-1799e75a0719
+	k8s.io/code-generator v0.0.0-20190703204957-583809a49343 // indirect
 	sigs.k8s.io/yaml v1.1.0
 )

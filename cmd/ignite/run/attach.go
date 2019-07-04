@@ -42,7 +42,7 @@ func Attach(ao *attachOptions) error {
 
 	dockerArgs := []string{
 		"attach",
-		constants.IGNITE_PREFIX + ao.vm.GetUID(),
+		constants.IGNITE_PREFIX + ao.vm.GetUID().String(),
 	}
 
 	// Attach to the VM in Docker

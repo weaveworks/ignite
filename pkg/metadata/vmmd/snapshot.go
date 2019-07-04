@@ -13,11 +13,11 @@ import (
 )
 
 func (md *VM) SnapshotDev() string {
-	return path.Join("/dev/mapper", constants.IGNITE_PREFIX+md.GetUID())
+	return path.Join("/dev/mapper", constants.IGNITE_PREFIX+md.GetUID().String())
 }
 
 func (md *VM) SetupSnapshot() error {
-	device := constants.IGNITE_PREFIX + md.GetUID()
+	device := constants.IGNITE_PREFIX + md.GetUID().String()
 	devicePath := md.SnapshotDev()
 
 	// Return if the snapshot is already setup
@@ -26,7 +26,7 @@ func (md *VM) SetupSnapshot() error {
 	}
 
 	// Setup loop device for the image
-	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, md.Spec.Image.ID, constants.IMAGE_FS), true)
+	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, md.Spec.Image.UID.String(), constants.IMAGE_FS), true)
 	if err != nil {
 		return err
 	}

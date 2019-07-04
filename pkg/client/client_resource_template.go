@@ -24,7 +24,7 @@ type ResourceClient interface {
 	// Set saves a Resource into the persistent storage
 	Set(resource *api.Resource) error
 	// Delete deletes the API object from the storage
-	Delete(uid string) error
+	Delete(uid meta.UID) error
 	// List returns a list of all Resources available
 	List() ([]*api.Resource, error)
 }
@@ -63,7 +63,7 @@ func newResourceClient(s storage.Storage) ResourceClient {
 // match the Resource's Name or UID, or be a prefix of the UID
 func (c *resourceClient) Get(ref string) (*api.Resource, error) {
 	ob := meta.ObjectMeta{}
-	ob.SetUID(ref)
+	ob.SetUID(meta.UID(ref))
 	resource := &api.Resource{
 		ObjectMeta: ob,
 	}
@@ -79,7 +79,7 @@ func (c *resourceClient) Set(resource *api.Resource) error {
 }
 
 // Delete deletes the API object from the storage
-func (c *resourceClient) Delete(uid string) error {
+func (c *resourceClient) Delete(uid meta.UID) error {
 	return c.storage.Delete(api.ResourceKind, uid)
 }
 

@@ -36,7 +36,7 @@ func (md *VM) AllocateOverlay(requestedSize uint64) error {
 
 	size := int64(requestedSize)
 
-	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, md.Spec.Image.ID, constants.IMAGE_FS))
+	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, md.Spec.Image.UID.String(), constants.IMAGE_FS))
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (md *VM) CopyToOverlay(fileMappings map[string]string) error {
 		ip = md.Status.IPAddresses[0]
 	}
 
-	return md.WriteEtcHosts(mp.Path, md.GetUID(), ip)
+	return md.WriteEtcHosts(mp.Path, md.GetUID().String(), ip)
 }
 
 // WriteEtcHosts populates the /etc/hosts file to avoid errors like
@@ -143,6 +143,10 @@ func (md *VM) AddIPAddress(address net.IP) {
 
 func (md *VM) ClearIPAddresses() {
 	md.Status.IPAddresses = nil
+}
+
+func (md *VM) ClearPortMappings() {
+	md.Spec.Ports = nil
 }
 
 // Generate a new SSH keypair for the vm

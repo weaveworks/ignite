@@ -7,6 +7,8 @@ import (
 	"os"
 	"path"
 
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -14,7 +16,7 @@ import (
 var success = make(map[Metadata]bool)
 
 // Creates a new 8-byte ID and handles directory creation/deletion
-func NewID(md Metadata, input string) error {
+func NewUID(md Metadata, input meta.UID) error {
 	// If a valid ID is given, don't overwrite it
 	md.SetUID(input)
 	if input != "" {
@@ -47,7 +49,7 @@ func NewID(md Metadata, input string) error {
 	}
 
 	// Set the generated ID
-	md.SetUID(id)
+	md.SetUID(meta.UID(id))
 	return nil
 }
 
@@ -60,7 +62,7 @@ func Cleanup(md Metadata, silent bool) error {
 	}
 
 	if !logs.Quiet {
-		log.Printf("Created %s with ID %q and name %q", md.Type(), md.GetUID(), md.GetName())
+		log.Printf("Created %s with ID %q and name %q", md.GetKind(), md.GetUID(), md.GetName())
 	} else if !silent {
 		fmt.Println(md.GetUID())
 	}

@@ -1,17 +1,13 @@
 package v1alpha1
 
 import (
-	"net"
-
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Image represents a cached OCI image ready to be used with Ignite
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Image struct {
-	metav1.TypeMeta `json:",inline"`
+	meta.TypeMeta `json:",inline"`
 	// meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
 	// Name is available at the .metadata.name JSON path
 	// ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
@@ -57,7 +53,7 @@ type ImageSource struct {
 // is present at /var/lib/firecracker/snapshotter/pool.json
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Pool struct {
-	metav1.TypeMeta `json:",inline"`
+	meta.TypeMeta `json:",inline"`
 	// Not needed (yet)
 	// meta.ObjectMeta `json:"metadata"`
 
@@ -112,7 +108,7 @@ type PoolDevice struct {
 // This file is stored in /var/lib/firecracker/kernels/{oci-image-digest}/metadata.json
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Kernel struct {
-	metav1.TypeMeta `json:",inline"`
+	meta.TypeMeta `json:",inline"`
 	// meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
 	// Name is available at the .metadata.name JSON path
 	// ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
@@ -134,7 +130,7 @@ type KernelSpec struct {
 // These files are stored in /var/lib/firecracker/vm/{vm-id}/metadata.json
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type VM struct {
-	metav1.TypeMeta `json:",inline"`
+	meta.TypeMeta `json:",inline"`
 	// meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID
 	// Name is available at the .metadata.name JSON path
 	// ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
@@ -148,11 +144,11 @@ type VM struct {
 type VMSpec struct {
 	Image *ImageClaim `json:"image"`
 	// TODO: Temporary ID for the old metadata handling
-	Kernel   *KernelClaim  `json:"kernel"`
-	CPUs     uint64        `json:"cpus"`
-	Memory   meta.Size     `json:"memory"`
-	DiskSize meta.Size     `json:"diskSize"`
-	Ports    []PortMapping `json:"ports,omitempty"`
+	Kernel   *KernelClaim      `json:"kernel"`
+	CPUs     uint64            `json:"cpus"`
+	Memory   meta.Size         `json:"memory"`
+	DiskSize meta.Size         `json:"diskSize"`
+	Ports    meta.PortMappings `json:"ports,omitempty"`
 	// This will be done at either "ignite start" or "ignite create" time
 	// TODO: We might to revisit this later
 	CopyFiles []FileMapping `json:"copyFiles,omitempty"`
@@ -169,19 +165,13 @@ type ImageClaim struct {
 	Type ImageSourceType `json:"type"`
 	Ref  string          `json:"ref"`
 	// TODO: Temporary ID for the old metadata handling
-	ID string `json:"ID"`
+	UID meta.UID `json:"uid"`
 }
 
 // TODO: Temporary helper for the old metadata handling
 type KernelClaim struct {
-	ID      string `json:"ID"`
-	CmdLine string `json:"cmdline"`
-}
-
-// PortMapping defines a port mapping between the VM and the host
-type PortMapping struct {
-	HostPort uint64 `json:"hostPort"`
-	VMPort   uint64 `json:"vmPort"`
+	UID     meta.UID `json:"uid"`
+	CmdLine string   `json:"cmdline"`
 }
 
 // FileMapping defines mappings between files on the host and VM
@@ -206,6 +196,6 @@ const (
 
 // VMStatus defines the status of a VM
 type VMStatus struct {
-	State       VMState  `json:"state"`
-	IPAddresses []net.IP `json:"ipAddresses"`
+	State       VMState          `json:"state"`
+	IPAddresses meta.IPAddresses `json:"ipAddresses"`
 }

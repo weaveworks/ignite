@@ -15,32 +15,34 @@ type Cache interface {
 }
 
 func NewCache(list meta.APITypeList) Cache {
-	byID := map[string]*meta.APIType{}
+	byID := map[meta.UID]*meta.APIType{}
 	byName := map[string]*meta.APIType{}
 	for _, item := range list {
-		byID[string(item.UID)] = item
-		byName[string(item.Name)] = item
+		byID[item.GetUID()] = item
+		byName[item.GetName()] = item
 	}
 	return &cache{
 		list:   list,
-		byID:   byID,
+		byUID:  byID,
 		byName: byName,
 	}
 }
 
 type cache struct {
 	list   meta.APITypeList
-	byID   map[string]*meta.APIType
+	byUID  map[meta.UID]*meta.APIType
 	byName map[string]*meta.APIType
 }
+
+var _ Cache = &cache{}
 
 func (c *cache) ListMeta() meta.APITypeList {
 	return c.list
 }
 
 func (c *cache) byIDOrName(ref string) *meta.APIType {
-	if _, ok := c.byID[ref]; ok {
-		return c.byID[ref]
+	if _, ok := c.byUID[meta.UID(ref)]; ok {
+		return c.byUID[meta.UID(ref)]
 	}
 	if _, ok := c.byName[ref]; ok {
 		return c.byName[ref]
@@ -70,7 +72,7 @@ func (c *cache) MatchOne(ref string) (*meta.APIType, error) {
 
 	matches := c.prefixFilter(ref)
 	if len(*matches) == 1 {
-		return c.byID[(*matches)[0]], nil
+		return c.byUID[meta.UID((*matches)[0])], nil
 	}
 	if len(*matches) > 1 {
 		return nil, fmt.Errorf("multiple matches: %v", *matches)

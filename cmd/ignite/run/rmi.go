@@ -44,7 +44,7 @@ func Rmi(ro *rmiOptions) error {
 	for _, image := range ro.images {
 		for _, vm := range ro.allVMs {
 			// Check if there's any VM using this image
-			if vm.Spec.Image.ID == image.GetUID() {
+			if vm.Spec.Image.UID == image.GetUID() {
 				if ro.Force {
 					// Force-kill and remove the VM used by this image
 					if err := Rm(&rmOptions{
@@ -60,7 +60,7 @@ func Rmi(ro *rmiOptions) error {
 		}
 
 		if err := os.RemoveAll(image.ObjectPath()); err != nil {
-			return fmt.Errorf("unable to remove directory for %s %q: %v", image.Type(), image.GetUID(), err)
+			return fmt.Errorf("unable to remove directory for %s %q: %v", image.GetKind(), image.GetUID(), err)
 		}
 
 		fmt.Println(image.GetUID())

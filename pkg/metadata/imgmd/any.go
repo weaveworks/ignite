@@ -1,11 +1,12 @@
 package imgmd
 
 import (
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
-func LoadImage(id string) (metadata.Metadata, error) {
-	md, err := NewImage(id, nil, nil)
+func LoadImage(uid meta.UID) (metadata.Metadata, error) {
+	md, err := NewImage(uid, nil, nil)
 	if err != nil {
 		return nil, err
 	}
