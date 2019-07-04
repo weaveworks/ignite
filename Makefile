@@ -48,10 +48,9 @@ tidy:
 	go run hack/cobra.go
 
 shell:
-	mkdir -p $(CACHE_DIR)/bin $(CACHE_DIR)/src $(CACHE_DIR)/cache bin/cache
+	mkdir -p $(CACHE_DIR)/go $(CACHE_DIR)/cache
 	docker run -it \
-		-v $(CACHE_DIR)/bin:/go/bin \
-		-v $(CACHE_DIR)/src:/go/src \
+		-v $(CACHE_DIR)/go:/go \
 		-v $(CACHE_DIR)/cache:/.cache/go-build \
 		-v $(shell pwd):/go/src/github.com/weaveworks/ignite \
 		-w /go/src/github.com/weaveworks/ignite \
