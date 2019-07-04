@@ -2,10 +2,11 @@ package util
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/logs"
 	"os"
 	"strings"
 	"text/tabwriter"
+
+	"github.com/weaveworks/ignite/pkg/logs"
 )
 
 type output struct {

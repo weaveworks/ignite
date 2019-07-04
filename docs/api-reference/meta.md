@@ -29,10 +29,10 @@
   * [func (k Kind) Upper() string](#Kind.Upper)
 * [type Object](#Object)
 * [type ObjectMeta](#ObjectMeta)
-  * [func (o *ObjectMeta) GetCreated() *metav1.Time](#ObjectMeta.GetCreated)
+  * [func (o *ObjectMeta) GetCreated() *Time](#ObjectMeta.GetCreated)
   * [func (o *ObjectMeta) GetName() string](#ObjectMeta.GetName)
   * [func (o *ObjectMeta) GetUID() UID](#ObjectMeta.GetUID)
-  * [func (o *ObjectMeta) SetCreated(t *metav1.Time)](#ObjectMeta.SetCreated)
+  * [func (o *ObjectMeta) SetCreated(t *Time)](#ObjectMeta.SetCreated)
   * [func (o *ObjectMeta) SetName(name string)](#ObjectMeta.SetName)
   * [func (o *ObjectMeta) SetUID(uid UID)](#ObjectMeta.SetUID)
 * [type PortMapping](#PortMapping)
@@ -51,6 +51,9 @@
   * [func (s *Size) Sectors() uint64](#Size.Sectors)
   * [func (s *Size) String() string](#Size.String)
   * [func (s *Size) UnmarshalJSON(b []byte) error](#Size.UnmarshalJSON)
+* [type Time](#Time)
+  * [func Timestamp() Time](#Timestamp)
+  * [func (t *Time) String() string](#Time.String)
 * [type TypeMeta](#TypeMeta)
   * [func (t *TypeMeta) GetKind() Kind](#TypeMeta.GetKind)
 * [type UID](#UID)
@@ -58,7 +61,7 @@
 
 
 #### <a name="pkg-files">Package files</a>
-[dmid.go](/src/target/dmid.go) [doc.go](/src/target/doc.go) [meta.go](/src/target/meta.go) [net.go](/src/target/net.go) [size.go](/src/target/size.go) [uid.go](/src/target/uid.go) 
+[dmid.go](/src/target/dmid.go) [doc.go](/src/target/doc.go) [meta.go](/src/target/meta.go) [net.go](/src/target/net.go) [size.go](/src/target/size.go) [time.go](/src/target/time.go) [uid.go](/src/target/uid.go) 
 
 
 
@@ -215,7 +218,7 @@ Returns a uppercase string representation of the Kind
 
 
 
-## <a name="Object">type</a> [Object](/src/target/meta.go?s=2204:2382#L103)
+## <a name="Object">type</a> [Object](/src/target/meta.go?s=2172:2336#L103)
 ``` go
 type Object interface {
     runtime.Object
@@ -228,8 +231,8 @@ type Object interface {
     GetUID() UID
     SetUID(UID)
 
-    GetCreated() *metav1.Time
-    SetCreated(t *metav1.Time)
+    GetCreated() *Time
+    SetCreated(t *Time)
 }
 ```
 Object extends k8s.io/apimachinery's runtime.Object with
@@ -244,12 +247,12 @@ extra GetName() and GetUID() methods from ObjectMeta
 
 
 
-## <a name="ObjectMeta">type</a> [ObjectMeta](/src/target/meta.go?s=1306:1462#L65)
+## <a name="ObjectMeta">type</a> [ObjectMeta](/src/target/meta.go?s=1306:1444#L65)
 ``` go
 type ObjectMeta struct {
-    Name    string       `json:"name"`
-    UID     UID          `json:"uid,omitempty"`
-    Created *metav1.Time `json:"created,omitempty"`
+    Name    string `json:"name"`
+    UID     UID    `json:"uid,omitempty"`
+    Created *Time  `json:"created,omitempty"`
 }
 
 ```
@@ -266,16 +269,16 @@ implement the Object interface
 
 
 
-### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/src/target/meta.go?s=1900:1946#L92)
+### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/src/target/meta.go?s=1882:1921#L92)
 ``` go
-func (o *ObjectMeta) GetCreated() *metav1.Time
+func (o *ObjectMeta) GetCreated() *Time
 ```
 GetCreated returns when the Object was created
 
 
 
 
-### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/src/target/meta.go?s=1506:1543#L72)
+### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/src/target/meta.go?s=1488:1525#L72)
 ``` go
 func (o *ObjectMeta) GetName() string
 ```
@@ -284,7 +287,7 @@ GetName returns the name of the Object
 
 
 
-### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/src/target/meta.go?s=1705:1738#L82)
+### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/src/target/meta.go?s=1687:1720#L82)
 ``` go
 func (o *ObjectMeta) GetUID() UID
 ```
@@ -293,16 +296,16 @@ GetUID returns the UID of the Object
 
 
 
-### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/src/target/meta.go?s=2020:2067#L97)
+### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/src/target/meta.go?s=1995:2035#L97)
 ``` go
-func (o *ObjectMeta) SetCreated(t *metav1.Time)
+func (o *ObjectMeta) SetCreated(t *Time)
 ```
 SetCreated returns when the Object was created
 
 
 
 
-### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/src/target/meta.go?s=1603:1644#L77)
+### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/src/target/meta.go?s=1585:1626#L77)
 ``` go
 func (o *ObjectMeta) SetName(name string)
 ```
@@ -311,7 +314,7 @@ SetName sets the name of the Object
 
 
 
-### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/src/target/meta.go?s=1795:1831#L87)
+### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/src/target/meta.go?s=1777:1813#L87)
 ``` go
 func (o *ObjectMeta) SetUID(uid UID)
 ```
@@ -456,6 +459,38 @@ Override ByteSize's default string implementation which results in .HR() without
 ``` go
 func (s *Size) UnmarshalJSON(b []byte) error
 ```
+
+
+
+## <a name="Time">type</a> [Time](/src/target/time.go?s=134:167#L11)
+``` go
+type Time struct {
+    metav1.Time
+}
+
+```
+
+
+
+
+
+
+### <a name="Timestamp">func</a> [Timestamp](/src/target/time.go?s=460:481#L23)
+``` go
+func Timestamp() Time
+```
+Timestamp returns the current UTC time
+
+
+
+
+
+### <a name="Time.String">func</a> (\*Time) [String](/src/target/time.go?s=299:329#L18)
+``` go
+func (t *Time) String() string
+```
+The default string for Time is a human readable difference between the Time and the current time
+
 
 
 
