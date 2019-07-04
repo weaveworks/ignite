@@ -45,14 +45,13 @@ VM with a new IP address:
 package client
 
 import (
-	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/storage"
 )
 
 // NewClient constructs a new Client for the specified data directory
-func NewClient(dataDir string) *Client {
+func NewClient(s storage.Storage) *Client {
 	return &Client{
-		storage:        storage.NewStorage(dataDir),
+		storage:        s,
 		dynamicClients: map[string]DynamicClient{},
 	}
 }
@@ -69,4 +68,4 @@ type Client struct {
 }
 
 // DefaultClient is the default client that can be easily used
-var DefaultClient = NewClient(constants.DATA_DIR)
+var DefaultClient = NewClient(storage.DefaultStorage)
