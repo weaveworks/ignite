@@ -2,15 +2,10 @@ package util
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/logs"
 	"os"
 	"strings"
 	"text/tabwriter"
-	"time"
-
-	"github.com/weaveworks/ignite/pkg/logs"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/duration"
 )
 
 type output struct {
@@ -30,17 +25,18 @@ func NewOutput() *output {
 func (o *output) Write(input ...interface{}) {
 	var sb strings.Builder
 	for i, data := range input {
-		switch v := data.(type) {
-		case string:
-			sb.WriteString(fmt.Sprintf("%s", data))
-		case int64:
-			sb.WriteString(fmt.Sprintf("%d", data))
-		case metav1.Time:
-			sb.WriteString(fmt.Sprintf("%s ago", duration.HumanDuration(time.Now().Sub(v.Time))))
-		case *metav1.Time:
-			sb.WriteString(fmt.Sprintf("%s ago", duration.HumanDuration(time.Now().Sub(v.Time))))
-		default:
-			sb.WriteString(fmt.Sprintf("%v", data))
+		// If the data conforms to fmt.Stringer, use .String()
+		if stringer, ok := data.(fmt.Stringer); ok {
+			sb.WriteString(stringer.String())
+		} else {
+			switch data.(type) {
+			case string:
+				sb.WriteString(fmt.Sprintf("%s", data))
+			case int64:
+				sb.WriteString(fmt.Sprintf("%d", data))
+			default:
+				sb.WriteString(fmt.Sprintf("%v", data))
+			}
 		}
 
 		if i+1 < len(input) {

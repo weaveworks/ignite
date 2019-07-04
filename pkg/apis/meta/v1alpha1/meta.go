@@ -1,6 +1,9 @@
 package v1alpha1
 
 import (
+	"bytes"
+	"fmt"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -25,13 +28,44 @@ type TypeMeta struct {
 	metav1.TypeMeta
 }
 
+func (t *TypeMeta) GetKind() Kind {
+	return Kind(t.Kind)
+}
+
+type Kind string
+
+var _ fmt.Stringer = Kind("")
+
+const (
+	KindImage  Kind = "Image"
+	KindKernel Kind = "Kernel"
+	KindVM     Kind = "VM"
+)
+
+// Returns a lowercase string representation of the Kind
+func (k Kind) String() string {
+	b := []byte(k)
+
+	// Ignore TLAs
+	if len(b) > 3 {
+		b[0] = bytes.ToLower(b[:1])[0]
+	}
+
+	return string(b)
+}
+
+// Returns a uppercase string representation of the Kind
+func (k Kind) Upper() string {
+	return string(k)
+}
+
 // ObjectMeta have to be embedded into any serializable object.
 // It provides the .GetName() and .GetUID() methods that help
 // implement the Object interface
 type ObjectMeta struct {
-	Name    string       `json:"name"`
-	UID     UID          `json:"uid,omitempty"`
-	Created *metav1.Time `json:"created,omitempty"`
+	Name    string `json:"name"`
+	UID     UID    `json:"uid,omitempty"`
+	Created *Time  `json:"created,omitempty"`
 }
 
 // GetName returns the name of the Object
@@ -55,12 +89,12 @@ func (o *ObjectMeta) SetUID(uid UID) {
 }
 
 // GetCreated returns when the Object was created
-func (o *ObjectMeta) GetCreated() *metav1.Time {
+func (o *ObjectMeta) GetCreated() *Time {
 	return o.Created
 }
 
 // SetCreated returns when the Object was created
-func (o *ObjectMeta) SetCreated(t *metav1.Time) {
+func (o *ObjectMeta) SetCreated(t *Time) {
 	o.Created = t
 }
 
@@ -69,12 +103,14 @@ func (o *ObjectMeta) SetCreated(t *metav1.Time) {
 type Object interface {
 	runtime.Object
 
+	GetKind() Kind
+
 	GetName() string
 	SetName(string)
 
 	GetUID() UID
 	SetUID(UID)
 
-	GetCreated() *metav1.Time
-	SetCreated(t *metav1.Time)
+	GetCreated() *Time
+	SetCreated(t *Time)
 }

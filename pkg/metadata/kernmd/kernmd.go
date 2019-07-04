@@ -35,10 +35,7 @@ func NewKernel(id meta.UID, name *string, object *api.Kernel) (*Kernel, error) {
 	return md, nil
 }
 
-func (md *Kernel) Type() api.PoolDeviceType {
-	return api.PoolDeviceTypeKernel
-}
-
+// TODO: Remove
 func (md *Kernel) TypePath() string {
 	return constants.KERNEL_DIR
 }

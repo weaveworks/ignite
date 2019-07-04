@@ -35,10 +35,7 @@ func NewImage(id meta.UID, name *string, object *api.Image) (*Image, error) {
 	return md, nil
 }
 
-func (md *Image) Type() api.PoolDeviceType {
-	return api.PoolDeviceTypeImage
-}
-
+// TODO: Remove
 func (md *Image) TypePath() string {
 	return constants.IMAGE_DIR
 }

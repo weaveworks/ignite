@@ -1,7 +1,7 @@
 package loader
 
 import (
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
@@ -126,7 +126,7 @@ func (l *allVMs) MatchAll() []*vmmd.VM {
 
 // Match a single image using the IDNameFilter
 func (l *allImages) MatchSingle(match string) (*imgmd.Image, error) {
-	md, err := single(metadata.NewIDNameFilter(match, api.PoolDeviceTypeImage), *l)
+	md, err := single(metadata.NewIDNameFilter(match, meta.KindImage), *l)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func (l *allImages) MatchSingle(match string) (*imgmd.Image, error) {
 func (l *allImages) MatchMultiple(matches []string) ([]*imgmd.Image, error) {
 	filters := make([]metadata.Filter, 0, len(matches))
 	for _, match := range matches {
-		filters = append(filters, metadata.NewIDNameFilter(match, api.PoolDeviceTypeImage))
+		filters = append(filters, metadata.NewIDNameFilter(match, meta.KindImage))
 	}
 
 	results, err := matchIndividual(filters, *l)
@@ -155,7 +155,7 @@ func (l *allImages) MatchAll() []*imgmd.Image {
 
 // Match a single kernel using the IDNameFilter
 func (l *allKernels) MatchSingle(match string) (*kernmd.Kernel, error) {
-	md, err := single(metadata.NewIDNameFilter(match, api.PoolDeviceTypeKernel), *l)
+	md, err := single(metadata.NewIDNameFilter(match, meta.KindKernel), *l)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func (l *allKernels) MatchSingle(match string) (*kernmd.Kernel, error) {
 func (l *allKernels) MatchMultiple(matches []string) ([]*kernmd.Kernel, error) {
 	filters := make([]metadata.Filter, 0, len(matches))
 	for _, match := range matches {
-		filters = append(filters, metadata.NewIDNameFilter(match, api.PoolDeviceTypeKernel))
+		filters = append(filters, metadata.NewIDNameFilter(match, meta.KindKernel))
 	}
 
 	results, err := matchIndividual(filters, *l)

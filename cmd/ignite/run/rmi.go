@@ -60,7 +60,7 @@ func Rmi(ro *rmiOptions) error {
 		}
 
 		if err := os.RemoveAll(image.ObjectPath()); err != nil {
-			return fmt.Errorf("unable to remove directory for %s %q: %v", image.Type(), image.GetUID(), err)
+			return fmt.Errorf("unable to remove directory for %s %q: %v", image.GetKind(), image.GetUID(), err)
 		}
 
 		fmt.Println(image.GetUID())

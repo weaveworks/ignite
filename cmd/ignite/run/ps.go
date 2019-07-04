@@ -42,17 +42,17 @@ func Ps(po *psOptions) error {
 	for _, vm := range po.allVMs {
 		size, err := vm.Size()
 		if err != nil {
-			return fmt.Errorf("failed to get size for %s %q: %v", vm.Type(), vm.GetUID(), err)
+			return fmt.Errorf("failed to get size for %s %q: %v", vm.GetKind(), vm.GetUID(), err)
 		}
 
 		imageMD, err := imgmd.LoadImage(vm.Spec.Image.UID)
 		if err != nil {
-			return fmt.Errorf("failed to load image metadata for %s %q: %v", vm.Type(), vm.GetUID(), err)
+			return fmt.Errorf("failed to load image metadata for %s %q: %v", vm.GetKind(), vm.GetUID(), err)
 		}
 
 		kernelMD, err := kernmd.LoadKernel(vm.Spec.Kernel.UID)
 		if err != nil {
-			return fmt.Errorf("failed to load kernel metadata for %s %q: %v", vm.Type(), vm.GetUID(), err)
+			return fmt.Errorf("failed to load kernel metadata for %s %q: %v", vm.GetKind(), vm.GetUID(), err)
 		}
 
 		image := imgmd.ToImage(imageMD)

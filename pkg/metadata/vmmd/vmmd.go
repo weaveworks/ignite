@@ -35,10 +35,7 @@ func NewVM(id meta.UID, name *string, object *api.VM) (*VM, error) {
 	return md, nil
 }
 
-func (md *VM) Type() api.PoolDeviceType {
-	return api.PoolDeviceTypeVM
-}
-
+// TODO: Remove
 func (md *VM) TypePath() string {
 	return constants.VM_DIR
 }

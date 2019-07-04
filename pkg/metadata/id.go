@@ -62,7 +62,7 @@ func Cleanup(md Metadata, silent bool) error {
 	}
 
 	if !logs.Quiet {
-		log.Printf("Created %s with ID %q and name %q", md.Type(), md.GetUID(), md.GetName())
+		log.Printf("Created %s with ID %q and name %q", md.GetKind(), md.GetUID(), md.GetName())
 	} else if !silent {
 		fmt.Println(md.GetUID())
 	}

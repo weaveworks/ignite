@@ -3,18 +3,15 @@ package storage
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path"
-	"strings"
-	"time"
-
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/storage/serializer"
+	"io/ioutil"
+	"os"
+	"path"
+	"strings"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -96,7 +93,8 @@ func (s *storage) Set(obj meta.Object) error {
 	}
 	if _, err := os.Stat(storagePath); os.IsNotExist(err) {
 		// Register that the object was created now
-		obj.SetCreated(&metav1.Time{time.Now().UTC()})
+		ts := meta.Timestamp()
+		obj.SetCreated(&ts)
 	}
 
 	b, err := s.serializer.EncodeJSON(obj)
