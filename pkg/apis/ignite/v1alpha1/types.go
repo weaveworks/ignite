@@ -1,8 +1,6 @@
 package v1alpha1
 
 import (
-	"net"
-
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -148,11 +146,11 @@ type VM struct {
 type VMSpec struct {
 	Image *ImageClaim `json:"image"`
 	// TODO: Temporary ID for the old metadata handling
-	Kernel   *KernelClaim  `json:"kernel"`
-	CPUs     uint64        `json:"cpus"`
-	Memory   meta.Size     `json:"memory"`
-	DiskSize meta.Size     `json:"diskSize"`
-	Ports    []PortMapping `json:"ports,omitempty"`
+	Kernel   *KernelClaim      `json:"kernel"`
+	CPUs     uint64            `json:"cpus"`
+	Memory   meta.Size         `json:"memory"`
+	DiskSize meta.Size         `json:"diskSize"`
+	Ports    meta.PortMappings `json:"ports,omitempty"`
 	// This will be done at either "ignite start" or "ignite create" time
 	// TODO: We might to revisit this later
 	CopyFiles []FileMapping `json:"copyFiles,omitempty"`
@@ -178,12 +176,6 @@ type KernelClaim struct {
 	CmdLine string   `json:"cmdline"`
 }
 
-// PortMapping defines a port mapping between the VM and the host
-type PortMapping struct {
-	HostPort uint64 `json:"hostPort"`
-	VMPort   uint64 `json:"vmPort"`
-}
-
 // FileMapping defines mappings between files on the host and VM
 type FileMapping struct {
 	HostPath string `json:"hostPath"`
@@ -206,6 +198,6 @@ const (
 
 // VMStatus defines the status of a VM
 type VMStatus struct {
-	State       VMState  `json:"state"`
-	IPAddresses []net.IP `json:"ipAddresses"`
+	State       VMState          `json:"state"`
+	IPAddresses meta.IPAddresses `json:"ipAddresses"`
 }

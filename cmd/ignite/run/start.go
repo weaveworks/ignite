@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/network/cni"
@@ -102,7 +104,7 @@ func Start(so *startOptions) error {
 	}
 
 	// Parse the given port mappings
-	if err := so.vm.NewPortMappings(so.PortMappings); err != nil {
+	if so.vm.Spec.Ports, err = meta.ParsePortMappings(so.PortMappings); err != nil {
 		return err
 	}
 

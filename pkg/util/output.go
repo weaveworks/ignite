@@ -48,6 +48,7 @@ func (o *output) Write(input ...interface{}) {
 		} else {
 			sb.WriteString("\n")
 		}
+
 		// Just output the first column in quiet mode
 		if logs.Quiet && i == 0 {
 			sb.WriteString("\n")
