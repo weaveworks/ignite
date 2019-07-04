@@ -11,6 +11,7 @@ PROJECT = github.com/weaveworks/ignite
 APIS_DIR = ${PROJECT}/pkg/apis
 API_DIRS = ${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/meta/v1alpha1
 CACHE_DIR = $(shell pwd)/bin/cache
+API_DOCS = docs/api-reference/ignite.md docs/api-reference/meta.md
 
 all: binary
 binary:
@@ -39,13 +40,25 @@ ifeq ($(IS_DIRTY),0)
 	docker push ${DOCKER_USER}/ignite:${GIT_VERSION}
 endif
 
-tidy:
+tidy: $(API_DOCS)
 	go mod tidy
 	go mod vendor
 	gofmt -s -w pkg cmd
 	goimports -w pkg cmd
 	hack/generate-client.sh
 	go run hack/cobra.go
+
+.PHONY: $(API_DOCS)
+$(API_DOCS): docs/api-reference/%.md: $(CACHE_DIR)/go/bin/godoc2md
+	mkdir -p $$(dirname $@) bin/tmp/$*
+	mv $(shell pwd)/pkg/apis/$*/v1alpha1/zz_generated* bin/tmp/$*
+	$(MAKE) shell COMMAND="/go/bin/godoc2md /go/src/${PROJECT}/pkg/apis/$*/v1alpha1 > $@"
+	mv bin/tmp/$*/*.go $(shell pwd)/pkg/apis/$*/v1alpha1/
+	rm -r bin/tmp/$*
+
+$(CACHE_DIR)/go/bin/godoc2md:
+	curl -sSL https://github.com/luxas/godoc2md/releases/download/v0.1.0/godoc2md > $@
+	chmod +x $@
 
 shell:
 	mkdir -p $(CACHE_DIR)/go $(CACHE_DIR)/cache
