@@ -1,4 +1,4 @@
-package api
+package v1alpha1
 
 import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
