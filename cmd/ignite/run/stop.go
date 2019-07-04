@@ -52,7 +52,7 @@ func Stop(so *stopOptions) error {
 			dockerArgs = killArgs
 		}
 
-		dockerArgs = append(dockerArgs, constants.IGNITE_PREFIX+vm.GetUID())
+		dockerArgs = append(dockerArgs, constants.IGNITE_PREFIX+vm.GetUID().String())
 
 		// Stop/Kill the VM in docker
 		if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {

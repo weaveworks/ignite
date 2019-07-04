@@ -1,11 +1,12 @@
 package vmmd
 
 import (
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
-func LoadVM(id string) (metadata.Metadata, error) {
-	md, err := NewVM(id, nil, nil)
+func LoadVM(uid meta.UID) (metadata.Metadata, error) {
+	md, err := NewVM(uid, nil, nil)
 	if err != nil {
 		return nil, err
 	}

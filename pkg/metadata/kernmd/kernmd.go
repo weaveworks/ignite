@@ -4,6 +4,8 @@ import (
 	"path"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
@@ -15,7 +17,7 @@ type Kernel struct {
 
 var _ metadata.Metadata = &Kernel{}
 
-func NewKernel(id string, name *string, object *api.Kernel) (*Kernel, error) {
+func NewKernel(id meta.UID, name *string, object *api.Kernel) (*Kernel, error) {
 	if object == nil {
 		object = &api.Kernel{}
 	}
@@ -26,7 +28,7 @@ func NewKernel(id string, name *string, object *api.Kernel) (*Kernel, error) {
 
 	metadata.InitName(md, name)
 
-	if err := metadata.NewID(md, id); err != nil {
+	if err := metadata.NewUID(md, id); err != nil {
 		return nil, err
 	}
 
@@ -42,11 +44,11 @@ func (md *Kernel) TypePath() string {
 }
 
 func (md *Kernel) ObjectPath() string {
-	return path.Join(md.TypePath(), md.GetUID())
+	return path.Join(md.TypePath(), md.GetUID().String())
 }
 
 func (md *Kernel) Load() (err error) {
-	md.Kernel, err = client.Kernels().Get(md.GetUID())
+	md.Kernel, err = client.Kernels().Get(md.GetUID().String())
 	return
 }
 

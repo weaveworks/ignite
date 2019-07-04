@@ -15,7 +15,7 @@ type DynamicClient interface {
 	// Set saves a Resource into the persistent storage
 	Set(meta.Object) error
 	// Delete deletes the API object from the storage
-	Delete(uid string) error
+	Delete(uid meta.UID) error
 	// List returns a list of all Resources available
 	List() ([]meta.Object, error)
 }
@@ -60,7 +60,7 @@ func (c *dynamicClient) Get(ref string) (meta.Object, error) {
 	if err != nil {
 		return nil, err
 	}
-	obj, err := c.storage.GetByID(meta.Kind, string(meta.UID))
+	obj, err := c.storage.GetByID(meta.Kind, meta.UID)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func (c *dynamicClient) Set(resource meta.Object) error {
 }
 
 // Delete deletes the API object from the storage
-func (c *dynamicClient) Delete(uid string) error {
+func (c *dynamicClient) Delete(uid meta.UID) error {
 	return c.storage.Delete(c.kind, uid)
 }
 

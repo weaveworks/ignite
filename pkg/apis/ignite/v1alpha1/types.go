@@ -169,13 +169,13 @@ type ImageClaim struct {
 	Type ImageSourceType `json:"type"`
 	Ref  string          `json:"ref"`
 	// TODO: Temporary ID for the old metadata handling
-	ID string `json:"ID"`
+	UID meta.UID `json:"uid"`
 }
 
 // TODO: Temporary helper for the old metadata handling
 type KernelClaim struct {
-	ID      string `json:"ID"`
-	CmdLine string `json:"cmdline"`
+	UID     meta.UID `json:"uid"`
+	CmdLine string   `json:"cmdline"`
 }
 
 // PortMapping defines a port mapping between the VM and the host

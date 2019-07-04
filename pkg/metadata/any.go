@@ -1,8 +1,12 @@
 package metadata
 
-import "io/ioutil"
+import (
+	"io/ioutil"
 
-func LoadAllMetadata(path string, loadFunc func(string) (Metadata, error)) ([]Metadata, error) {
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+)
+
+func LoadAllMetadata(path string, loadFunc func(meta.UID) (Metadata, error)) ([]Metadata, error) {
 	var mds []Metadata
 
 	entries, err := ioutil.ReadDir(path)
@@ -12,7 +16,7 @@ func LoadAllMetadata(path string, loadFunc func(string) (Metadata, error)) ([]Me
 
 	for _, entry := range entries {
 		if entry.IsDir() {
-			md, err := loadFunc(entry.Name())
+			md, err := loadFunc(meta.UID(entry.Name()))
 			if err != nil {
 				return nil, err
 			}

@@ -110,7 +110,7 @@ func SetDefaults_VMStatus(obj *VMStatus)
 
 
 
-## <a name="FileMapping">type</a> [FileMapping](/src/target/types.go?s=6878:6973#L188)
+## <a name="FileMapping">type</a> [FileMapping](/src/target/types.go?s=6887:6982#L188)
 ``` go
 type FileMapping struct {
     HostPath string `json:"hostPath"`
@@ -154,13 +154,13 @@ Image represents a cached OCI image ready to be used with Ignite
 
 
 
-## <a name="ImageClaim">type</a> [ImageClaim](/src/target/types.go?s=6329:6502#L168)
+## <a name="ImageClaim">type</a> [ImageClaim](/src/target/types.go?s=6329:6506#L168)
 ``` go
 type ImageClaim struct {
     Type ImageSourceType `json:"type"`
     Ref  string          `json:"ref"`
     // TODO: Temporary ID for the old metadata handling
-    ID string `json:"ID"`
+    UID meta.UID `json:"uid"`
 }
 
 ```
@@ -266,11 +266,11 @@ This file is stored in /var/lib/firecracker/kernels/{oci-image-digest}/metadata.
 
 
 
-## <a name="KernelClaim">type</a> [KernelClaim](/src/target/types.go?s=6560:6648#L176)
+## <a name="KernelClaim">type</a> [KernelClaim](/src/target/types.go?s=6564:6657#L176)
 ``` go
 type KernelClaim struct {
-    ID      string `json:"ID"`
-    CmdLine string `json:"cmdline"`
+    UID     meta.UID `json:"uid"`
+    CmdLine string   `json:"cmdline"`
 }
 
 ```
@@ -423,7 +423,7 @@ PoolStatus defines the Pool's current status
 
 
 
-## <a name="PortMapping">type</a> [PortMapping](/src/target/types.go?s=6716:6811#L182)
+## <a name="PortMapping">type</a> [PortMapping](/src/target/types.go?s=6725:6820#L182)
 ``` go
 type PortMapping struct {
     HostPort uint64 `json:"hostPort"`
@@ -442,7 +442,7 @@ PortMapping defines a port mapping between the VM and the host
 
 
 
-## <a name="SSH">type</a> [SSH](/src/target/types.go?s=7036:7092#L194)
+## <a name="SSH">type</a> [SSH](/src/target/types.go?s=7045:7101#L194)
 ``` go
 type SSH struct {
     PublicKey string `json:"publicKey"`
@@ -520,7 +520,7 @@ VMSpec describes the configuration of a VM
 
 
 
-## <a name="VMState">type</a> [VMState](/src/target/types.go?s=7145:7164#L199)
+## <a name="VMState">type</a> [VMState](/src/target/types.go?s=7154:7173#L199)
 ``` go
 type VMState string
 ```
@@ -543,7 +543,7 @@ const (
 
 
 
-## <a name="VMStatus">type</a> [VMStatus](/src/target/types.go?s=7324:7428#L208)
+## <a name="VMStatus">type</a> [VMStatus](/src/target/types.go?s=7333:7437#L208)
 ``` go
 type VMStatus struct {
     State       VMState  `json:"state"`

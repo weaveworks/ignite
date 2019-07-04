@@ -51,7 +51,7 @@ func NewIDNameFilter(p string, t api.PoolDeviceType) *IDNameFilter {
 }
 
 func (f *IDNameFilter) Filter(md Metadata) []string {
-	return util.MatchPrefix(f.prefix, md.GetUID(), md.GetName())
+	return util.MatchPrefix(f.prefix, md.GetUID().String(), md.GetName())
 }
 
 func (f *IDNameFilter) ErrNonexistent() error {

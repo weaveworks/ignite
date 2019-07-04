@@ -71,8 +71,8 @@ func Start(so *startOptions) error {
 	}
 	igniteBinary, _ := filepath.Abs(path)
 
-	vmDir := filepath.Join(constants.VM_DIR, so.vm.GetUID())
-	kernelDir := filepath.Join(constants.KERNEL_DIR, so.vm.Spec.Kernel.ID)
+	vmDir := filepath.Join(constants.VM_DIR, so.vm.GetUID().String())
+	kernelDir := filepath.Join(constants.KERNEL_DIR, so.vm.Spec.Kernel.UID.String())
 
 	dockerArgs := []string{
 		"-itd",
@@ -122,7 +122,7 @@ func Start(so *startOptions) error {
 		imageTag = "dev"
 	}
 	dockerArgs = append(dockerArgs, fmt.Sprintf("weaveworks/ignite:%s", imageTag))
-	dockerArgs = append(dockerArgs, so.vm.GetUID())
+	dockerArgs = append(dockerArgs, so.vm.GetUID().String())
 
 	// Create the VM container in docker
 	containerID, err := util.ExecuteCommand("docker", append(dockerCmd, dockerArgs...)...)
