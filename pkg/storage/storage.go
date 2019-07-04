@@ -1,19 +1,18 @@
 package storage
 
 import (
-	"encoding/json"
 	"fmt"
+	"path"
+	"strings"
+
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/storage/serializer"
-	"io/ioutil"
-	"os"
-	"path"
-	"strings"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"sigs.k8s.io/yaml"
 )
 
 // Storage is an interface for persisting and retrieving API objects to/from a backend
@@ -39,37 +38,40 @@ type Storage interface {
 }
 
 // DefaultStorage is the default storage impl
-var DefaultStorage = NewStorage(constants.DATA_DIR)
+var DefaultStorage = NewGenericStorage(NewDefaultRawStorage(constants.DATA_DIR), scheme.Serializer)
 
-// NewStorage constructs a new Storage using the default implementation, for the specified dataDir
-func NewStorage(dataDir string) Storage {
-	return &storage{
-		dataDir:    dataDir,
-		serializer: scheme.Serializer,
-	}
+// NewGenericStorage constructs a new Storage
+func NewGenericStorage(rawStorage RawStorage, serializer serializer.Serializer) Storage {
+	return &GenericStorage{rawStorage, serializer}
 }
 
-// storage implements the Storage interface
-type storage struct {
-	dataDir    string
+// GenericStorage implements the Storage interface
+type GenericStorage struct {
+	raw        RawStorage
 	serializer serializer.Serializer
 }
 
-var _ Storage = &storage{}
-
 // Get populates the pointer to the Object given, based on the file content
-func (s *storage) Get(obj meta.Object) error {
-	storagePath, err := s.storagePathForObj(obj)
+func (s *GenericStorage) Get(obj meta.Object) error {
+	storageKey, err := s.keyForObj(obj)
 	if err != nil {
 		return err
 	}
-	return s.serializer.DecodeFileInto(storagePath, obj)
+	content, err := s.raw.Read(storageKey)
+	if err != nil {
+		return err
+	}
+	return s.serializer.DecodeInto(content, obj)
 }
 
 // GetByID returns a new Object for the resource at the specified kind/uid path, based on the file content
-func (s *storage) GetByID(kind string, uid meta.UID) (meta.Object, error) {
-	storagePath := s.storagePathForID(kind, uid)
-	obj, err := s.serializer.DecodeFile(storagePath)
+func (s *GenericStorage) GetByID(kind string, uid meta.UID) (meta.Object, error) {
+	storageKey := s.keyForID(kind, uid.String())
+	content, err := s.raw.Read(storageKey)
+	if err != nil {
+		return nil, err
+	}
+	obj, err := s.serializer.Decode(content)
 	if err != nil {
 		return nil, err
 	}
@@ -82,16 +84,12 @@ func (s *storage) GetByID(kind string, uid meta.UID) (meta.Object, error) {
 
 // Set saves the Object to disk. If the object does not exist, the
 // ObjectMeta.Created field is set automatically
-func (s *storage) Set(obj meta.Object) error {
-	storagePath, err := s.storagePathForObj(obj)
+func (s *GenericStorage) Set(obj meta.Object) error {
+	storageKey, err := s.keyForObj(obj)
 	if err != nil {
 		return err
 	}
-	// Make sure the parent directories exist
-	if err := os.MkdirAll(path.Dir(storagePath), 0755); err != nil {
-		return err
-	}
-	if _, err := os.Stat(storagePath); os.IsNotExist(err) {
+	if !s.raw.Exists(storageKey) {
 		// Register that the object was created now
 		ts := meta.Timestamp()
 		obj.SetCreated(&ts)
@@ -101,21 +99,19 @@ func (s *storage) Set(obj meta.Object) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(storagePath, b, 0644)
+	return s.raw.Write(storageKey, b)
 }
 
 // Delete removes an object from the storage
-func (s *storage) Delete(kind string, uid meta.UID) error {
-	storagePath := s.storagePathForID(kind, uid)
-	// remove the whole directory, not only metadata.json
-	storageDir := path.Dir(storagePath)
-	return os.RemoveAll(storageDir)
+func (s *GenericStorage) Delete(kind string, uid meta.UID) error {
+	storageKey := s.keyForID(kind, uid.String())
+	return s.raw.Delete(storageKey)
 }
 
 // List lists objects for the specific kind
-func (s *storage) List(kind string) ([]meta.Object, error) {
+func (s *GenericStorage) List(kind string) ([]meta.Object, error) {
 	result := []meta.Object{}
-	err := s.walkDir(kind, func(content []byte) error {
+	err := s.walkKind(kind, func(content []byte) error {
 		runtimeobj, err := s.serializer.Decode(content)
 		if err != nil {
 			return err
@@ -137,25 +133,25 @@ func (s *storage) List(kind string) ([]meta.Object, error) {
 // only metadata about each object is unmarshalled (uid/name/kind/apiVersion).
 // This allows for faster runs (no need to unmarshal "the world"), and less
 // resource usage, when only metadata is unmarshalled into memory
-func (s *storage) ListMeta(kind string) (meta.APITypeList, error) {
+func (s *GenericStorage) ListMeta(kind string) (meta.APITypeList, error) {
 	result := meta.APITypeList{}
-	err := s.walkDir(kind, func(content []byte) error {
+	err := s.walkKind(kind, func(content []byte) error {
 		obj := &meta.APIType{}
-		if err := json.Unmarshal(content, obj); err != nil {
+		// The yaml package supports both YAML and JSON
+		if err := yaml.Unmarshal(content, obj); err != nil {
 			return err
 		}
 		result = append(result, obj)
 		return nil
 	})
 	if err != nil {
-		fmt.Println("listmeta error", err)
 		return nil, err
 	}
 	return result, nil
 }
 
 // GetCache gets a new Cache implementation for the specified kind
-func (s *storage) GetCache(kind string) (Cache, error) {
+func (s *GenericStorage) GetCache(kind string) (Cache, error) {
 	list, err := s.ListMeta(kind)
 	if err != nil {
 		return nil, err
@@ -163,22 +159,19 @@ func (s *storage) GetCache(kind string) (Cache, error) {
 	return NewCache(list), nil
 }
 
-func (s *storage) walkDir(kind string, fn func(content []byte) error) error {
-	storageDir := path.Join(s.dataDir, strings.ToLower(kind))
-	entries, err := ioutil.ReadDir(storageDir)
+func (s *GenericStorage) walkKind(kind string, fn func(content []byte) error) error {
+	kindKey := s.keyForKind(kind)
+	entries, err := s.raw.List(kindKey)
 	if err != nil {
 		return err
 	}
 	for _, entry := range entries {
-		entryPath := path.Join(storageDir, entry.Name(), constants.METADATA)
 		// Allow metadata.json to not exist, although the directory does exist
-		// TODO: The ID handler should work well with this in the future
-		if _, err := os.Stat(entryPath); os.IsNotExist(err) {
+		if !s.raw.Exists(entry) {
 			continue
-		} else if err != nil {
-			return err
 		}
-		content, err := ioutil.ReadFile(entryPath)
+
+		content, err := s.raw.Read(entry)
 		if err != nil {
 			return err
 		}
@@ -189,19 +182,23 @@ func (s *storage) walkDir(kind string, fn func(content []byte) error) error {
 	return nil
 }
 
-func (s *storage) storagePathForObj(obj meta.Object) (string, error) {
+func (s *GenericStorage) keyForObj(obj meta.Object) (string, error) {
 	gvk, err := s.gvkFromObj(obj)
 	if err != nil {
 		return "", err
 	}
-	return s.storagePathForID(gvk.Kind, obj.GetUID()), nil
+	return s.keyForID(gvk.Kind, obj.GetUID().String()), nil
 }
 
-func (s *storage) storagePathForID(kind string, uid meta.UID) string {
-	return path.Join(s.dataDir, strings.ToLower(kind), uid.String(), constants.METADATA)
+func (s *GenericStorage) keyForID(kind, uid string) string {
+	return strings.ToLower("/" + path.Join(kind, uid))
 }
 
-func (s *storage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKind, error) {
+func (s *GenericStorage) keyForKind(kind string) string {
+	return strings.ToLower("/" + kind)
+}
+
+func (s *GenericStorage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKind, error) {
 	gvks, unversioned, err := s.serializer.Scheme().ObjectKinds(obj.(runtime.Object))
 	if err != nil {
 		return nil, err
