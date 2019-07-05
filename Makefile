@@ -2,8 +2,9 @@ UID_GID?=$(shell id -u):$(shell id -g)
 FIRECRACKER_VERSION:=$(shell cat hack/FIRECRACKER_VERSION)
 GO_VERSION=1.12.6
 DOCKER_USER=weaveworks
-IMAGE_DEV_TAG=dev
 GIT_VERSION:=$(shell hack/ldflags.sh --version-only)
+IMAGE_DEV_TAG=dev
+IMAGE_TAG:=$(shell hack/ldflags.sh --image-tag-only)
 # IS_DIRTY is 1 if the tree state is dirty, otherwise 0
 IS_DIRTY:=$(shell echo ${GIT_VERSION} | grep -o dirty | wc -l)
 WHAT?=ignite
@@ -32,12 +33,12 @@ image:
 	docker build -t ${DOCKER_USER}/ignite:${IMAGE_DEV_TAG} \
 		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} .
 ifeq ($(IS_DIRTY),0)
-	docker tag ${DOCKER_USER}/ignite:${IMAGE_DEV_TAG} ${DOCKER_USER}/ignite:${GIT_VERSION}
+	docker tag ${DOCKER_USER}/ignite:${IMAGE_DEV_TAG} ${DOCKER_USER}/ignite:${IMAGE_TAG}
 endif
 
 image-push: image
 ifeq ($(IS_DIRTY),0)
-	docker push ${DOCKER_USER}/ignite:${GIT_VERSION}
+	docker push ${DOCKER_USER}/ignite:${IMAGE_TAG}
 endif
 
 tidy: $(API_DOCS)

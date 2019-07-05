@@ -3,6 +3,7 @@ package version
 import (
 	"fmt"
 	"runtime"
+	"strings"
 )
 
 var (
@@ -31,6 +32,17 @@ type Info struct {
 // String returns info as a human-friendly version string.
 func (info Info) String() string {
 	return info.GitVersion
+}
+
+// ImageTag returns .GitVersion, but without "+" signs which are disallowed in docker image tags
+// Also, if the binary was built from a dirty commit, always use the :dev tag of the ignite-spawn image
+func (info Info) ImageTag() string {
+	// Use the :dev image tag for non-release builds
+	if GetIgnite().GitTreeState == "dirty" {
+		return "dev"
+	}
+	// Replace plus signs
+	return strings.ReplaceAll(GetIgnite().GitVersion, "+", "-")
 }
 
 // GetIgnite gets ignite's version

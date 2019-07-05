@@ -66,12 +66,7 @@ func StartVM(vm *vmmd.VM, networkMode string, debug bool) error {
 		dockerArgs = append(dockerArgs, fmt.Sprintf("-p=%d:%d", portMapping.HostPort, portMapping.VMPort))
 	}
 
-	// Use the :dev image tag for non-release builds
-	imageTag := version.GetIgnite().GitVersion
-	if version.GetIgnite().GitTreeState == "dirty" {
-		imageTag = "dev"
-	}
-	dockerArgs = append(dockerArgs, fmt.Sprintf("weaveworks/ignite:%s", imageTag))
+	dockerArgs = append(dockerArgs, fmt.Sprintf("weaveworks/ignite:%s", version.GetIgnite().ImageTag()))
 	dockerArgs = append(dockerArgs, vm.GetUID().String())
 
 	// Create the VM container in docker

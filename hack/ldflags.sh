@@ -80,6 +80,9 @@ ldflags() {
   if [[ $1 == "--version-only" ]]; then
     echo "${IGNITE_GIT_VERSION}"
     exit 0
+  elif [[ $1 == "--image-tag-only" ]]; then
+    echo "${IGNITE_GIT_VERSION}" | sed "s/+/-/g"
+    exit 0
   fi
 
   # The -ldflags parameter takes a single string, so join the output.
