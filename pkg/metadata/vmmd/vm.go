@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-
 	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -105,7 +104,7 @@ func (md *VM) copyToOverlay() error {
 		if err := os.MkdirAll(path.Dir(vmFilePath), 0755); err != nil {
 			return err
 		}
-
+		
 		if err := util.CopyFile(mapping.HostPath, vmFilePath); err != nil {
 			return err
 		}
@@ -116,12 +115,18 @@ func (md *VM) copyToOverlay() error {
 		ip = md.Status.IPAddresses[0]
 	}
 
-	return md.WriteEtcHosts(mp.Path, md.GetUID().String(), ip)
+	if err := md.writeEtcHosts(mp.Path, md.GetUID().String(), ip); err != nil {
+		return err
+	}
+
+	// TODO: This code seems to be flaky and not always copy over the files?
+	time.Sleep(300 * time.Millisecond)
+	return nil
 }
 
-// WriteEtcHosts populates the /etc/hosts file to avoid errors like
+// writeEtcHosts populates the /etc/hosts file to avoid errors like
 // sudo: unable to resolve host 4462576f8bf5b689
-func (md *VM) WriteEtcHosts(tmpDir, hostname string, primaryIP net.IP) error {
+func (md *VM) writeEtcHosts(tmpDir, hostname string, primaryIP net.IP) error {
 	hostFilePath := filepath.Join(tmpDir, "/etc/hosts")
 	empty, err := util.FileIsEmpty(hostFilePath)
 	if err != nil {
