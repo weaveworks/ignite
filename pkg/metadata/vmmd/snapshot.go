@@ -3,6 +3,7 @@ package vmmd
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"path"
 	"strconv"
@@ -31,8 +32,13 @@ func (md *VM) SetupSnapshot() error {
 		return err
 	}
 
+	// Make sure the all directories above the snapshot directory exists
+	if err := os.MkdirAll(path.Dir(md.OverlayFile()), 0755); err != nil {
+		return err
+	}
+
 	// Setup loop device for the VM overlay
-	overlayLoop, err := newLoopDev(path.Join(md.ObjectPath(), constants.OVERLAY_FILE), false)
+	overlayLoop, err := newLoopDev(md.OverlayFile(), false)
 	if err != nil {
 		return err
 	}

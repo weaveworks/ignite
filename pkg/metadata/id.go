@@ -8,7 +8,7 @@ import (
 	"path"
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-
+	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -58,7 +58,12 @@ func NewUID(md Metadata, input meta.UID) error {
 func Cleanup(md Metadata, silent bool) error {
 	// If success has not been confirmed, remove the generated directory
 	if !success[md] {
-		return Remove(md, logs.Quiet)
+		if !logs.Quiet {
+			log.Printf("Removed %s with name %q and ID %q", md.GetKind(), md.GetName(), md.GetUID())
+		} else if !silent {
+			fmt.Println(md.GetUID())
+		}
+		return client.Dynamic(md.GetKind().String()).Delete(md.GetUID())
 	}
 
 	if !logs.Quiet {

@@ -49,7 +49,12 @@ func (md *VM) AllocateOverlay(requestedSize uint64) error {
 			datasize.ByteSize(requestedSize).HR(), datasize.ByteSize(size).HR())
 	}
 
-	overlayFile, err := os.Create(path.Join(md.ObjectPath(), constants.OVERLAY_FILE))
+	// Make sure the all directories above the snapshot directory exists
+	if err := os.MkdirAll(path.Dir(md.OverlayFile()), 0755); err != nil {
+		return err
+	}
+
+	overlayFile, err := os.Create(md.OverlayFile())
 	if err != nil {
 		return fmt.Errorf("failed to create overlay file for %q, %v", md.GetUID(), err)
 	}
@@ -128,8 +133,12 @@ func (md *VM) Running() bool {
 	return md.Status.State == api.VMStateRunning
 }
 
+func (md *VM) OverlayFile() string {
+	return path.Join(md.ObjectPath(), constants.OVERLAY_FILE)
+}
+
 func (md *VM) Size() (int64, error) {
-	fi, err := os.Stat(path.Join(md.ObjectPath(), constants.OVERLAY_FILE))
+	fi, err := os.Stat(md.OverlayFile())
 	if err != nil {
 		return 0, err
 	}
