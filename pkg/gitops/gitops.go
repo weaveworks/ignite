@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	"sync"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
@@ -32,9 +33,9 @@ func RunLoop(url, branch string) error {
 	c = client.NewClient(s)
 
 	for {
-		time.Sleep(5 * time.Second)
-
 		if !s.Ready() {
+			// poll until the git repo is initialized
+			time.Sleep(5 * time.Second)
 			continue
 		}
 
@@ -43,26 +44,44 @@ func RunLoop(url, branch string) error {
 
 		list, err := c.VMs().List()
 		if err != nil {
-			fmt.Println("list err %v", err)
+			fmt.Printf("list err %v", err)
 			continue
 		}
 		vmMap = mapVMs(list)
 
+		wg := &sync.WaitGroup{}
 		for _, file := range diff {
 			vm := vmMap[file.APIType.UID]
 
+			// TODO: At the moment there aren't running in parallel, shall they?
 			switch file.Type {
 			case gitops.UpdateTypeCreated:
-				go check(handleCreate(vm))
+				go runHandle(wg, func() error {
+					return handleCreate(vm)
+				})
 			case gitops.UpdateTypeChanged:
-				go check(handleChange(vm))
+				go runHandle(wg, func() error {
+					return handleChange(vm)
+				})
 			case gitops.UpdateTypeDeleted:
-				go check(handleDelete(file.APIType))
+				go runHandle(wg, func() error {
+					return handleDelete(file.APIType)
+				})
 			default:
 				log.Printf("Unrecognized Git update type %s\n", file.Type)
 				continue
 			}
 		}
+		// wait for all goroutines to finish before the next sync round
+		wg.Wait()
+	}
+}
+
+func runHandle(wg *sync.WaitGroup, fn func() error) {
+	wg.Add(1)
+	defer wg.Done()
+	if err := fn(); err != nil {
+		log.Printf("[WARNING] An error occurred when processing a VM update: %v\n", err)
 	}
 }
 
@@ -106,12 +125,6 @@ func handleChange(vm *api.VM) error {
 
 func handleDelete(obj *meta.APIType) error {
 	return remove(obj)
-}
-
-func check(err error) {
-	if err != nil {
-		log.Printf("[WARNING] An error occurred when processing a VM update: %v\n", err)
-	}
 }
 
 // TODO: use a real filter here when ready
