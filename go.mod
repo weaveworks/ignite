@@ -20,18 +20,18 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/miekg/dns v1.1.14
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
-	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
-	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.0.0
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
+	github.com/weaveworks/flux v0.0.0-20190704153721-8292179855e1
 	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
-	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/grpc v1.21.1 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
 	k8s.io/apimachinery v0.0.0-20190612205821-1799e75a0719
-	k8s.io/kube-openapi v0.0.0-20190228160746-b3a7cee44a30
+	k8s.io/kube-openapi v0.0.0-20190401085232-94e1e7b7574c
 	sigs.k8s.io/yaml v1.1.0
 )
+
+replace github.com/docker/distribution => github.com/docker/distribution v2.7.1+incompatible
