@@ -19,7 +19,7 @@ github.com/containernetworking/cni/pkg/types/020
 github.com/containernetworking/cni/pkg/types/current
 # github.com/cpuguy83/go-md2man v1.0.10
 github.com/cpuguy83/go-md2man/md2man
-# github.com/docker/distribution v2.7.1+incompatible
+# github.com/docker/distribution v2.7.1+incompatible => github.com/docker/distribution v2.7.1+incompatible
 github.com/docker/distribution/reference
 github.com/docker/distribution/digestset
 github.com/docker/distribution/registry/api/errcode
@@ -89,7 +89,7 @@ github.com/go-openapi/strfmt
 github.com/go-openapi/swag
 # github.com/go-openapi/validate v0.17.1
 github.com/go-openapi/validate
-# github.com/gogo/protobuf v1.1.1
+# github.com/gogo/protobuf v1.2.1
 github.com/gogo/protobuf/proto
 github.com/gogo/protobuf/sortkeys
 # github.com/golang/protobuf v1.3.1
@@ -98,7 +98,7 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf
+# github.com/google/gofuzz v1.0.0
 github.com/google/gofuzz
 # github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 github.com/goombaio/namegenerator
@@ -106,7 +106,7 @@ github.com/goombaio/namegenerator
 github.com/inconshreveable/mousetrap
 # github.com/json-iterator/go v1.1.6
 github.com/json-iterator/go
-# github.com/konsorten/go-windows-terminal-sequences v1.0.1
+# github.com/konsorten/go-windows-terminal-sequences v1.0.2
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/krolaw/dhcp4 v0.0.0-20190531080455-7b64900047ae
 github.com/krolaw/dhcp4
@@ -156,10 +156,15 @@ github.com/spf13/cobra
 github.com/spf13/cobra/doc
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
-# golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+# github.com/weaveworks/flux v0.0.0-20190704153721-8292179855e1
+github.com/weaveworks/flux/git
+github.com/weaveworks/flux/errors
+# github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
+github.com/whilp/git-urls
+# golang.org/x/crypto v0.0.0-20190411191339-88737f569e3a
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
-# golang.org/x/net v0.0.0-20190311183353-d8887717615a
+# golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3
 golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 golang.org/x/net/context
@@ -181,12 +186,12 @@ golang.org/x/text/width
 golang.org/x/text/secure/bidirule
 golang.org/x/text/unicode/bidi
 golang.org/x/text/transform
-# google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8
+# google.golang.org/genproto v0.0.0-20190404172233-64821d5d2107
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.21.1
 google.golang.org/grpc/codes
 google.golang.org/grpc/status
-# gopkg.in/inf.v0 v0.9.0
+# gopkg.in/inf.v0 v0.9.1
 gopkg.in/inf.v0
 # gopkg.in/yaml.v2 v2.2.2
 gopkg.in/yaml.v2
@@ -224,7 +229,7 @@ k8s.io/apimachinery/pkg/util/net
 k8s.io/apimachinery/pkg/util/validation/field
 # k8s.io/klog v0.3.1
 k8s.io/klog
-# k8s.io/kube-openapi v0.0.0-20190228160746-b3a7cee44a30
+# k8s.io/kube-openapi v0.0.0-20190401085232-94e1e7b7574c
 k8s.io/kube-openapi/pkg/common
 # sigs.k8s.io/yaml v1.1.0
 sigs.k8s.io/yaml

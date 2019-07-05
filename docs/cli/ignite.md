@@ -42,6 +42,7 @@ Example usage:
 * [ignite attach](ignite_attach.md)	 - Attach to a running VM
 * [ignite completion](ignite_completion.md)	 - Output bash completion for ignite to stdout
 * [ignite create](ignite_create.md)	 - Create a new VM without starting it
+* [ignite gitops](ignite_gitops.md)	 - Run the GitOps feature of Ignite
 * [ignite image](ignite_image.md)	 - Manage VM base images
 * [ignite kernel](ignite_kernel.md)	 - Manage VM kernels
 * [ignite kill](ignite_kill.md)	 - Kill running VMs
