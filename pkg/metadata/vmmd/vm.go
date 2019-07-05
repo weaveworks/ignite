@@ -26,9 +26,11 @@ ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 `
+	vmAuthorizedKeys = "/root/.ssh/authorized_keys"
 )
 
-func (md *VM) AllocateOverlay(requestedSize uint64) error {
+func (md *VM) AllocateAndPopulateOverlay() error {
+	requestedSize := md.Spec.DiskSize.Bytes()
 	// Truncate only accepts an int64
 	if requestedSize > math.MaxInt64 {
 		return fmt.Errorf("requested size %d too large, cannot truncate", requestedSize)
@@ -63,16 +65,11 @@ func (md *VM) AllocateOverlay(requestedSize uint64) error {
 	if err := overlayFile.Truncate(size); err != nil {
 		return fmt.Errorf("failed to allocate overlay file for VM %q: %v", md.GetUID(), err)
 	}
-
-	return nil
+	// populate the filesystem
+	return md.copyToOverlay()
 }
 
-func (md *VM) CopyToOverlay(fileMappings map[string]string) error {
-	// Skip the mounting process if there are no files
-	if len(fileMappings) == 0 {
-		return nil
-	}
-
+func (md *VM) copyToOverlay() error {
 	if err := md.SetupSnapshot(); err != nil {
 		return err
 	}
@@ -84,14 +81,32 @@ func (md *VM) CopyToOverlay(fileMappings map[string]string) error {
 	}
 	defer mp.Umount()
 
+	// do not mutate md.Spec.CopyFiles
+	fileMappings := md.Spec.CopyFiles
+
+	if md.Spec.SSH != nil {
+		pubKeyPath := md.Spec.SSH.PublicKey
+		if len(pubKeyPath) == 0 {
+			// generate a key if PublicKey is empty
+			pubKeyPath, err = md.newSSHKeypair()
+			if err != nil {
+				return err
+			}
+		}
+		fileMappings = append(fileMappings, api.FileMapping{
+			HostPath: pubKeyPath,
+			VMPath:   vmAuthorizedKeys,
+		})
+	}
+
 	// TODO: File/directory permissions?
-	for hostFile, vmFile := range fileMappings {
-		vmFilePath := path.Join(mp.Path, vmFile)
+	for _, mapping := range fileMappings {
+		vmFilePath := path.Join(mp.Path, mapping.VMPath)
 		if err := os.MkdirAll(path.Dir(vmFilePath), 0755); err != nil {
 			return err
 		}
 
-		if err := util.CopyFile(hostFile, vmFilePath); err != nil {
+		if err := util.CopyFile(mapping.HostPath, vmFilePath); err != nil {
 			return err
 		}
 	}
@@ -159,7 +174,7 @@ func (md *VM) ClearPortMappings() {
 }
 
 // Generate a new SSH keypair for the vm
-func (md *VM) NewSSHKeypair() (string, error) {
+func (md *VM) newSSHKeypair() (string, error) {
 	privKeyPath := path.Join(md.ObjectPath(), fmt.Sprintf(constants.VM_SSH_KEY_TEMPLATE, md.GetUID()))
 
 	// Use ED25519 instead of RSA for performance (it's equally secure, but a lot faster to generate/authenticate)

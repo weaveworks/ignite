@@ -182,7 +182,7 @@ type FileMapping struct {
 
 // SSH specifies different ways to connect via SSH to the VM
 type SSH struct {
-	PublicKey string `json:"publicKey"`
+	PublicKey string `json:"publicKey,omitempty"`
 }
 
 // VMState defines different states a VM can be in

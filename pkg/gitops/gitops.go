@@ -145,8 +145,8 @@ func create(vm *api.VM) error {
 		return err
 	}
 
-	// Allocate the overlay file
-	return runVM.AllocateOverlay(vm.Spec.DiskSize.Bytes())
+	// Allocate and populate the overlay file
+	return runVM.AllocateAndPopulateOverlay()
 }
 
 // prepareVM takes a VM API object, finds/populates its dependencies (image/kernel) and finally

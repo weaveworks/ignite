@@ -16,6 +16,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
+// SSHFlag is the pflag.Value custom flag for ignite create --ssh
+// TODO: Move SSHFlag somewhere else, e.g. cmdutils
 type SSHFlag struct {
 	value    *string
 	generate bool
@@ -51,9 +53,33 @@ func (sf *SSHFlag) IsBoolFlag() bool {
 	return true
 }
 
-var _ pflag.Value = &SSHFlag{}
+// Parse sets the right values on the VM API object if requested to import or generate an SSH key
+func (sf *SSHFlag) Parse(vm *api.VM) error {
+	importKey := sf.String()
+	// Check if an SSH key should be generated
+	if sf.Generate() {
+		// An empty struct means "generate"
+		vm.Spec.SSH = &api.SSH{}
+	} else if len(importKey) > 0 {
+		// Always digest the public key
+		if !strings.HasSuffix(importKey, ".pub") {
+			importKey = fmt.Sprintf("%s.pub", importKey)
+		}
+		// verify the file exists
+		if !util.FileExists(importKey) {
+			return fmt.Errorf("invalid SSH key: %s", importKey)
+		}
 
-const vmAuthorizedKeys = "/root/.ssh/authorized_keys"
+		// Set the SSH field on the API object
+		vm.Spec.SSH = &api.SSH{
+			PublicKey: importKey,
+		}
+	}
+
+	return nil
+}
+
+var _ pflag.Value = &SSHFlag{}
 
 func NewCreateFlags() *CreateFlags {
 	cf := &CreateFlags{
@@ -66,7 +92,7 @@ func NewCreateFlags() *CreateFlags {
 }
 
 type CreateFlags struct {
-	// TODO: Also respect CopyFiles, SSH, PortMappings, Networking mode, and kernel stuff from the config file
+	// TODO: Also respect PortMappings, Networking mode, and kernel stuff from the config file
 	CopyFiles  []string
 	KernelName string
 	SSH        *SSHFlag
@@ -149,7 +175,8 @@ func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*cr
 	}
 
 	// Parse the --copy-files flag
-	if co.fileMappings, err = parseFileMappings(co.CopyFiles); err != nil {
+	cf.VM.Spec.CopyFiles, err = parseFileMappings(co.CopyFiles)
+	if err != nil {
 		return nil, err
 	}
 	return co, nil
@@ -162,37 +189,33 @@ func Create(co *createOptions) error {
 		return err
 	}
 
+	// Parse SSH key importing
+	if err := co.SSH.Parse(co.VM); err != nil {
+		return err
+	}
+
 	// Create new metadata for the VM
 	if co.newVM, err = vmmd.NewVM("", &name, co.VM); err != nil {
 		return err
 	}
 	defer metadata.Cleanup(co.newVM, false) // TODO: Handle silent
 
-	// Parse SSH key importing
-	if err := co.parseSSH(&co.fileMappings); err != nil {
-		return err
-	}
-
 	// Save the metadata
 	if err := co.newVM.Save(); err != nil {
 		return err
 	}
 
-	// Allocate the overlay file
-	if err := co.newVM.AllocateOverlay(co.VM.Spec.DiskSize.Bytes()); err != nil {
-		return err
-	}
-
-	// Copy the additional files to the overlay
-	if err := co.newVM.CopyToOverlay(co.fileMappings); err != nil {
+	// Allocate and populate the overlay file
+	if err := co.newVM.AllocateAndPopulateOverlay(); err != nil {
 		return err
 	}
 
 	return metadata.Success(co.newVM)
 }
 
-func parseFileMappings(fileMappings []string) (map[string]string, error) {
-	result := map[string]string{}
+// TODO: Move this to meta, or an helper in api
+func parseFileMappings(fileMappings []string) ([]api.FileMapping, error) {
+	result := []api.FileMapping{}
 
 	for _, fileMapping := range fileMappings {
 		files := strings.Split(fileMapping, ":")
@@ -205,35 +228,11 @@ func parseFileMappings(fileMappings []string) (map[string]string, error) {
 			return nil, fmt.Errorf("--copy-files path arguments must be absolute")
 		}
 
-		result[src] = dest
+		result = append(result, api.FileMapping{
+			HostPath: src,
+			VMPath:   dest,
+		})
 	}
 
 	return result, nil
-}
-
-// If we're requested to import/generate an SSH key, add that to fileMappings
-func (co *createOptions) parseSSH(fileMappings *map[string]string) error {
-	importKey := co.SSH.String()
-
-	if co.SSH.Generate() {
-		pubKeyPath, err := co.newVM.NewSSHKeypair()
-		if err != nil {
-			return err
-		}
-
-		(*fileMappings)[pubKeyPath] = vmAuthorizedKeys
-	} else if len(importKey) > 0 {
-		// Always digest the public key
-		if !strings.HasSuffix(importKey, ".pub") {
-			importKey = fmt.Sprintf("%s.pub", importKey)
-		}
-
-		if !util.FileExists(importKey) {
-			return fmt.Errorf("invalid SSH key: %s", importKey)
-		}
-
-		(*fileMappings)[importKey] = vmAuthorizedKeys
-	}
-
-	return nil
 }

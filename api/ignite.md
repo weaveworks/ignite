@@ -423,10 +423,10 @@ PoolStatus defines the Pool's current status
 
 
 
-## <a name="SSH">type</a> [SSH](/src/target/types.go?s=6838:6894#L184)
+## <a name="SSH">type</a> [SSH](/src/target/types.go?s=6838:6904#L184)
 ``` go
 type SSH struct {
-    PublicKey string `json:"publicKey"`
+    PublicKey string `json:"publicKey,omitempty"`
 }
 
 ```
@@ -501,7 +501,7 @@ VMSpec describes the configuration of a VM
 
 
 
-## <a name="VMState">type</a> [VMState](/src/target/types.go?s=6947:6966#L189)
+## <a name="VMState">type</a> [VMState](/src/target/types.go?s=6957:6976#L189)
 ``` go
 type VMState string
 ```
@@ -524,7 +524,7 @@ const (
 
 
 
-## <a name="VMStatus">type</a> [VMStatus](/src/target/types.go?s=7126:7246#L198)
+## <a name="VMStatus">type</a> [VMStatus](/src/target/types.go?s=7136:7256#L198)
 ``` go
 type VMStatus struct {
     State       VMState          `json:"state"`
