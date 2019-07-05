@@ -237,14 +237,14 @@ func schema_pkg_apis_ignite_v1alpha1_KernelClaim(ref common.ReferenceCallback) c
 							Format: "",
 						},
 					},
-					"cmdline": {
+					"cmdLine": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
 						},
 					},
 				},
-				Required: []string{"uid", "cmdline"},
+				Required: []string{"uid"},
 			},
 		},
 	}
@@ -439,7 +439,6 @@ func schema_pkg_apis_ignite_v1alpha1_SSH(ref common.ReferenceCallback) common.Op
 						},
 					},
 				},
-				Required: []string{"publicKey"},
 			},
 		},
 	}

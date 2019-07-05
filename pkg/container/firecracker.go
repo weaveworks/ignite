@@ -30,10 +30,16 @@ func ExecuteFirecracker(md *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 	vCPUCount := int64(md.Spec.CPUs)
 	memSizeMib := int64(md.Spec.Memory.MBytes())
 
+	cmdLine := md.Spec.Kernel.CmdLine
+	if len(cmdLine) == 0 {
+		// if for some reason cmdline would be unpopulated, set it to the default
+		cmdLine = constants.VM_DEFAULT_KERNEL_ARGS
+	}
+
 	cfg := firecracker.Config{
 		SocketPath:      constants.SOCKET_PATH,
 		KernelImagePath: path.Join(constants.KERNEL_DIR, md.Spec.Kernel.UID.String(), constants.KERNEL_FILE),
-		KernelArgs:      md.Spec.Kernel.CmdLine,
+		KernelArgs:      cmdLine,
 		Drives: []models.Drive{{
 			DriveID:      firecracker.String("1"),
 			PathOnHost:   &drivePath,

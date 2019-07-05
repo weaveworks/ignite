@@ -166,9 +166,7 @@ func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*cr
 	// The VM metadata needs the image and kernel IDs to be saved for now
 	// TODO: Replace with pool/snapshotter
 	cf.VM.Spec.Image.UID = co.image.GetUID()
-	cf.VM.Spec.Kernel = &api.KernelClaim{
-		UID: co.kernel.GetUID(),
-	}
+	cf.VM.Spec.Kernel.UID = co.kernel.GetUID()
 
 	if allVMs, err := l.VMs(); err == nil {
 		co.allVMs = *allVMs

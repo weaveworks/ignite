@@ -48,11 +48,11 @@ func SetDefaults_VMSpec(obj *VMSpec) {
 	if obj.DiskSize == meta.EmptySize {
 		obj.DiskSize = meta.NewSizeFromBytes(constants.VM_DEFAULT_SIZE)
 	}
+}
 
-	if obj.Kernel == nil {
-		obj.Kernel = &KernelClaim{
-			CmdLine: constants.VM_DEFAULT_KERNEL_ARGS,
-		}
+func SetDefaults_KernelClaim(obj *KernelClaim) {
+	if len(obj.CmdLine) == 0 {
+		obj.CmdLine = constants.VM_DEFAULT_KERNEL_ARGS
 	}
 }
 

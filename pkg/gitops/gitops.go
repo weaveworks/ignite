@@ -195,9 +195,7 @@ func prepareVM(vm *api.VM) (*vmmd.VM, error) {
 
 	// populate the image/kernel ID fields to use when running the VM
 	vm.Spec.Image.UID = runImg.UID
-	vm.Spec.Kernel = &api.KernelClaim{
-		UID: runKernel.UID,
-	}
+	vm.Spec.Kernel.UID = runKernel.UID
 
 	// Create new metadata for the VM
 	return vmmd.NewVM(vm.ObjectMeta.UID, &vm.ObjectMeta.Name, vm)

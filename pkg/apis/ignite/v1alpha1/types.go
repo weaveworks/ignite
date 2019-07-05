@@ -144,7 +144,7 @@ type VM struct {
 type VMSpec struct {
 	Image *ImageClaim `json:"image"`
 	// TODO: Temporary ID for the old metadata handling
-	Kernel   *KernelClaim      `json:"kernel"`
+	Kernel   KernelClaim      `json:"kernel"`
 	CPUs     uint64            `json:"cpus"`
 	Memory   meta.Size         `json:"memory"`
 	DiskSize meta.Size         `json:"diskSize"`
@@ -171,7 +171,7 @@ type ImageClaim struct {
 // TODO: Temporary helper for the old metadata handling
 type KernelClaim struct {
 	UID     meta.UID `json:"uid"`
-	CmdLine string   `json:"cmdline"`
+	CmdLine string   `json:"cmdLine,omitempty"`
 }
 
 // FileMapping defines mappings between files on the host and VM

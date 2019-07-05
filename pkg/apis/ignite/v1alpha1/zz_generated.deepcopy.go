@@ -307,11 +307,7 @@ func (in *VMSpec) DeepCopyInto(out *VMSpec) {
 		*out = new(ImageClaim)
 		**out = **in
 	}
-	if in.Kernel != nil {
-		in, out := &in.Kernel, &out.Kernel
-		*out = new(KernelClaim)
-		**out = **in
-	}
+	out.Kernel = in.Kernel
 	out.Memory = in.Memory
 	out.DiskSize = in.DiskSize
 	if in.Ports != nil {

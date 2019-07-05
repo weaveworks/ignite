@@ -33,5 +33,6 @@ func SetObjectDefaults_Pool(in *Pool) {
 
 func SetObjectDefaults_VM(in *VM) {
 	SetDefaults_VMSpec(&in.Spec)
+	SetDefaults_KernelClaim(&in.Spec.Kernel)
 	SetDefaults_VMStatus(&in.Status)
 }
