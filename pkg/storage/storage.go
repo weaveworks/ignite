@@ -37,7 +37,7 @@ type Storage interface {
 	GetCache(kind string) (Cache, error)
 }
 
-// DefaultStorage is the default storage impl
+// DefaultStorage is the default storage implementation
 var DefaultStorage = NewGenericStorage(NewDefaultRawStorage(constants.DATA_DIR), scheme.Serializer)
 
 // NewGenericStorage constructs a new Storage
@@ -66,7 +66,7 @@ func (s *GenericStorage) Get(obj meta.Object) error {
 
 // GetByID returns a new Object for the resource at the specified kind/uid path, based on the file content
 func (s *GenericStorage) GetByID(kind string, uid meta.UID) (meta.Object, error) {
-	storageKey := s.keyForID(kind, uid.String())
+	storageKey := KeyForUID(kind, uid)
 	content, err := s.raw.Read(storageKey)
 	if err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func (s *GenericStorage) Set(obj meta.Object) error {
 
 // Delete removes an object from the storage
 func (s *GenericStorage) Delete(kind string, uid meta.UID) error {
-	storageKey := s.keyForID(kind, uid.String())
+	storageKey := KeyForUID(kind, uid)
 	return s.raw.Delete(storageKey)
 }
 
@@ -160,7 +160,7 @@ func (s *GenericStorage) GetCache(kind string) (Cache, error) {
 }
 
 func (s *GenericStorage) walkKind(kind string, fn func(content []byte) error) error {
-	kindKey := s.keyForKind(kind)
+	kindKey := KeyForKind(kind)
 	entries, err := s.raw.List(kindKey)
 	if err != nil {
 		return err
@@ -170,7 +170,6 @@ func (s *GenericStorage) walkKind(kind string, fn func(content []byte) error) er
 		if !s.raw.Exists(entry) {
 			continue
 		}
-
 		content, err := s.raw.Read(entry)
 		if err != nil {
 			return err
@@ -187,15 +186,7 @@ func (s *GenericStorage) keyForObj(obj meta.Object) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return s.keyForID(gvk.Kind, obj.GetUID().String()), nil
-}
-
-func (s *GenericStorage) keyForID(kind, uid string) string {
-	return strings.ToLower("/" + path.Join(kind, uid))
-}
-
-func (s *GenericStorage) keyForKind(kind string) string {
-	return strings.ToLower("/" + kind)
+	return KeyForUID(gvk.Kind, obj.GetUID()), nil
 }
 
 func (s *GenericStorage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKind, error) {
@@ -210,4 +201,12 @@ func (s *GenericStorage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKin
 		return nil, fmt.Errorf("unexpected gvks")
 	}
 	return &gvks[0], nil
+}
+
+func KeyForUID(kind string, uid meta.UID) string {
+	return strings.ToLower("/" + path.Join(kind, uid.String()))
+}
+
+func KeyForKind(kind string) string {
+	return strings.ToLower("/" + kind)
 }

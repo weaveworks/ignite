@@ -48,7 +48,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage"
 )
 
-// NewClient constructs a new Client for the specified data directory
+// NewClient creates a client for the specified storage
 func NewClient(s storage.Storage) *Client {
 	return &Client{
 		storage:        s,
