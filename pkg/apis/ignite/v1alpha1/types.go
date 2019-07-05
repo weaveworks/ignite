@@ -144,11 +144,12 @@ type VM struct {
 type VMSpec struct {
 	Image *ImageClaim `json:"image"`
 	// TODO: Temporary ID for the old metadata handling
-	Kernel   KernelClaim      `json:"kernel"`
-	CPUs     uint64            `json:"cpus"`
-	Memory   meta.Size         `json:"memory"`
-	DiskSize meta.Size         `json:"diskSize"`
-	Ports    meta.PortMappings `json:"ports,omitempty"`
+	Kernel      KernelClaim       `json:"kernel"`
+	CPUs        uint64            `json:"cpus"`
+	Memory      meta.Size         `json:"memory"`
+	DiskSize    meta.Size         `json:"diskSize"`
+	NetworkMode NetworkMode       `json:"networkMode"`
+	Ports       meta.PortMappings `json:"ports,omitempty"`
 	// This will be done at either "ignite start" or "ignite create" time
 	// TODO: We might to revisit this later
 	CopyFiles []FileMapping `json:"copyFiles,omitempty"`
@@ -184,6 +185,17 @@ type FileMapping struct {
 type SSH struct {
 	PublicKey string `json:"publicKey,omitempty"`
 }
+
+// NetworkMode defines different states a VM can be in
+type NetworkMode string
+
+const (
+	// NetworkModeCNI specifies the network mode where CNI is used
+	NetworkModeCNI NetworkMode = "cni"
+	// NetworkModeDockerBridge specifies the default docker bridge network is used
+	NetworkModeDockerBridge NetworkMode = "docker-bridge"
+	// Whenever updating this list, also update GetNetworkModes in helpers.go
+)
 
 // VMState defines different states a VM can be in
 type VMState string

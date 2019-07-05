@@ -48,6 +48,7 @@ func (rf *RunFlags) NewRunOptions(l *loader.ResLoader, args []string) (*runOptio
 		return nil, err
 	}
 
+	// TODO: We should be able to use the constructor here instead...
 	so := &startOptions{
 		StartFlags: rf.StartFlags,
 		attachOptions: &attachOptions{
@@ -64,11 +65,8 @@ func Run(ro *runOptions) error {
 	}
 
 	// Copy the pointer over for Start
+	// TODO: This is pretty bad, fix this
 	ro.vm = ro.newVM
 
-	if err := Start(ro.startOptions); err != nil {
-		return err
-	}
-
-	return nil
+	return Start(ro.startOptions)
 }

@@ -3,6 +3,7 @@ package run
 import (
 	"fmt"
 
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/operations"
@@ -12,7 +13,8 @@ type StartFlags struct {
 	PortMappings []string
 	Interactive  bool
 	Debug        bool
-	NetworkMode  string
+	// TODO: Make a dedicated flag for networkMode, so we can bind to the custom type directly
+	NetworkMode string
 }
 
 type startOptions struct {
@@ -29,10 +31,6 @@ func (sf *StartFlags) NewStartOptions(l *loader.ResLoader, vmMatch string) (*sta
 	// Disable running check as it takes a while for the in-container Ignite to update the state
 	ao.checkRunning = false
 
-	if sf.NetworkMode != operations.NetworkModeCNI && sf.NetworkMode != operations.NetworkModeBridge {
-		return nil, fmt.Errorf("invalid network mode %s, must be one of %v", sf.NetworkMode, operations.NetworkModes)
-	}
-
 	return &startOptions{sf, ao}, nil
 }
 
@@ -42,6 +40,14 @@ func Start(so *startOptions) error {
 	if so.vm.Spec.Ports, err = meta.ParsePortMappings(so.PortMappings); err != nil {
 		return err
 	}
+
+	// Validate and set the desired networking mode
+	nm := api.NetworkMode(so.NetworkMode)
+	if err := api.ValidateNetworkMode(nm); err != nil {
+		return err
+	}
+	so.vm.Spec.NetworkMode = nm
+	fmt.Println("nm", nm)
 
 	// Save the port mappings into the VM metadata
 	if err := so.vm.Save(); err != nil {
@@ -53,7 +59,7 @@ func Start(so *startOptions) error {
 		return fmt.Errorf("VM %q is already running", so.vm.GetUID())
 	}
 
-	if err := operations.StartVM(so.vm, so.NetworkMode, so.Debug); err != nil {
+	if err := operations.StartVM(so.vm, so.Debug); err != nil {
 		return err
 	}
 

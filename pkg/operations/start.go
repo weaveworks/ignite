@@ -5,6 +5,7 @@ import (
 	"log"
 	"path/filepath"
 
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/network/cni"
@@ -13,17 +14,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/version"
 )
 
-const (
-	NetworkModeCNI    = "cni"
-	NetworkModeBridge = "bridge"
-)
-
-var NetworkModes = []string{
-	NetworkModeCNI,
-	NetworkModeBridge,
-}
-
-func StartVM(vm *vmmd.VM, networkMode string, debug bool) error {
+func StartVM(vm *vmmd.VM, debug bool) error {
 	// Make sure the VM container does not exist. Don't care about the error
 	RemoveVMContainer(vm.VM)
 
@@ -50,14 +41,14 @@ func StartVM(vm *vmmd.VM, networkMode string, debug bool) error {
 		fmt.Sprintf("--device=%s", vm.SnapshotDev()),
 	}
 
-	if networkMode == NetworkModeCNI {
+	if vm.Spec.NetworkMode == api.NetworkModeCNI {
 		dockerArgs = append(dockerArgs, "--net=none")
 	}
 
 	dockerCmd := append(make([]string, 0, len(dockerArgs)+2), "run")
 
 	// If we're not debugging, remove the container post-run
-	if debug {
+	if !debug {
 		dockerCmd = append(dockerCmd, "--rm")
 	}
 
@@ -75,7 +66,7 @@ func StartVM(vm *vmmd.VM, networkMode string, debug bool) error {
 		return fmt.Errorf("failed to start container for VM %q: %v", vm.GetUID(), err)
 	}
 
-	if networkMode == NetworkModeCNI {
+	if vm.Spec.NetworkMode == api.NetworkModeCNI {
 		if err := setupCNINetworking(containerID); err != nil {
 			return err
 		}

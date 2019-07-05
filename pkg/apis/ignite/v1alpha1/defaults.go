@@ -48,6 +48,10 @@ func SetDefaults_VMSpec(obj *VMSpec) {
 	if obj.DiskSize == meta.EmptySize {
 		obj.DiskSize = meta.NewSizeFromBytes(constants.VM_DEFAULT_SIZE)
 	}
+
+	if len(obj.NetworkMode) == 0 {
+		obj.NetworkMode = NetworkModeDockerBridge
+	}
 }
 
 func SetDefaults_KernelClaim(obj *KernelClaim) {
