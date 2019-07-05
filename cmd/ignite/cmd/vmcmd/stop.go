@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
-
 	"github.com/lithammer/dedent"
-	"github.com/weaveworks/ignite/pkg/constants"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/errutils"
+	"github.com/weaveworks/ignite/pkg/metadata/loader"
 )
 
 // NewCmdStop stops a VM

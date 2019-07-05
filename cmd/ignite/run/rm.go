@@ -3,11 +3,10 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/pkg/metadata"
-
-	"github.com/weaveworks/ignite/pkg/logs"
+	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/operations"
 )
 
 type RmFlags struct {
@@ -35,25 +34,13 @@ func (rf *RmFlags) NewRmOptions(l *loader.ResLoader, vmMatches []string) (*rmOpt
 
 func Rm(ro *rmOptions) error {
 	for _, vm := range ro.vms {
-		// Check if the VM is running
-		if vm.Running() {
-			// If force is set, kill the vm
-			if ro.Force {
-				if err := Stop(&stopOptions{
-					&StopFlags{
-						Kill: true,
-					},
-					[]*vmmd.VM{vm},
-					true,
-				}); err != nil {
-					return err
-				}
-			} else {
-				return fmt.Errorf("%v is running", vm)
-			}
+		// If the VM is running, but we haven't enabled force-mode, return an error
+		if vm.Running() && !ro.Force {
+			return fmt.Errorf("%s is running", vm.GetUID())
 		}
 
-		if err := metadata.Remove(vm, logs.Quiet); err != nil {
+		// This will first kill the VM container, and then remove it
+		if err := operations.RemoveVM(client.DefaultClient, vm.VM); err != nil {
 			return err
 		}
 	}
