@@ -73,7 +73,7 @@ var EmptySize = NewSizeFromBytes(0)
 
 
 
-## <a name="APIType">type</a> [APIType](/src/target/meta.go?s=340:422#L18)
+## <a name="APIType">type</a> [APIType](/src/target/meta.go?s=411:493#L19)
 ``` go
 type APIType struct {
     TypeMeta   `json:",inline"`
@@ -84,6 +84,7 @@ type APIType struct {
 APIType is a struct implementing Object, used for
 unmarshalling unknown objects into this intermediate type
 where .Name, .UID, .Kind and .APIVersion become easily available
++k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 
 
@@ -94,7 +95,7 @@ where .Name, .UID, .Kind and .APIVersion become easily available
 
 
 
-## <a name="APITypeList">type</a> [APITypeList](/src/target/meta.go?s=482:509#L24)
+## <a name="APITypeList">type</a> [APITypeList](/src/target/meta.go?s=553:580#L25)
 ``` go
 type APITypeList []*APIType
 ```
@@ -180,7 +181,7 @@ func (i IPAddresses) String() string
 
 
 
-## <a name="Kind">type</a> [Kind](/src/target/meta.go?s=701:717#L35)
+## <a name="Kind">type</a> [Kind](/src/target/meta.go?s=772:788#L36)
 ``` go
 type Kind string
 ```
@@ -201,7 +202,7 @@ const (
 
 
 
-### <a name="Kind.String">func</a> (Kind) [String](/src/target/meta.go?s=897:926#L46)
+### <a name="Kind.String">func</a> (Kind) [String](/src/target/meta.go?s=968:997#L47)
 ``` go
 func (k Kind) String() string
 ```
@@ -210,7 +211,7 @@ Returns a lowercase string representation of the Kind
 
 
 
-### <a name="Kind.Upper">func</a> (Kind) [Upper](/src/target/meta.go?s=1094:1122#L58)
+### <a name="Kind.Upper">func</a> (Kind) [Upper](/src/target/meta.go?s=1165:1193#L59)
 ``` go
 func (k Kind) Upper() string
 ```
@@ -219,7 +220,7 @@ Returns a uppercase string representation of the Kind
 
 
 
-## <a name="Object">type</a> [Object](/src/target/meta.go?s=2172:2336#L103)
+## <a name="Object">type</a> [Object](/src/target/meta.go?s=2243:2407#L104)
 ``` go
 type Object interface {
     runtime.Object
@@ -248,7 +249,7 @@ extra GetName() and GetUID() methods from ObjectMeta
 
 
 
-## <a name="ObjectMeta">type</a> [ObjectMeta](/src/target/meta.go?s=1306:1444#L65)
+## <a name="ObjectMeta">type</a> [ObjectMeta](/src/target/meta.go?s=1377:1515#L66)
 ``` go
 type ObjectMeta struct {
     Name    string `json:"name"`
@@ -270,7 +271,7 @@ implement the Object interface
 
 
 
-### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/src/target/meta.go?s=1882:1921#L92)
+### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/src/target/meta.go?s=1953:1992#L93)
 ``` go
 func (o *ObjectMeta) GetCreated() *Time
 ```
@@ -279,7 +280,7 @@ GetCreated returns when the Object was created
 
 
 
-### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/src/target/meta.go?s=1488:1525#L72)
+### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/src/target/meta.go?s=1559:1596#L73)
 ``` go
 func (o *ObjectMeta) GetName() string
 ```
@@ -288,7 +289,7 @@ GetName returns the name of the Object
 
 
 
-### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/src/target/meta.go?s=1687:1720#L82)
+### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/src/target/meta.go?s=1758:1791#L83)
 ``` go
 func (o *ObjectMeta) GetUID() UID
 ```
@@ -297,7 +298,7 @@ GetUID returns the UID of the Object
 
 
 
-### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/src/target/meta.go?s=1995:2035#L97)
+### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/src/target/meta.go?s=2066:2106#L98)
 ``` go
 func (o *ObjectMeta) SetCreated(t *Time)
 ```
@@ -306,7 +307,7 @@ SetCreated returns when the Object was created
 
 
 
-### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/src/target/meta.go?s=1585:1626#L77)
+### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/src/target/meta.go?s=1656:1697#L78)
 ``` go
 func (o *ObjectMeta) SetName(name string)
 ```
@@ -315,7 +316,7 @@ SetName sets the name of the Object
 
 
 
-### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/src/target/meta.go?s=1777:1813#L87)
+### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/src/target/meta.go?s=1848:1884#L88)
 ``` go
 func (o *ObjectMeta) SetUID(uid UID)
 ```
@@ -377,7 +378,7 @@ func (p PortMappings) String() string
 
 
 
-## <a name="Size">type</a> [Size](/src/target/size.go?s=132:171#L11)
+## <a name="Size">type</a> [Size](/src/target/size.go?s=125:164#L10)
 ``` go
 type Size struct {
     datasize.ByteSize
@@ -392,17 +393,17 @@ Size specifies a common unit for data sizes
 
 
 
-### <a name="NewSizeFromBytes">func</a> [NewSizeFromBytes](/src/target/size.go?s=382:422#L25)
+### <a name="NewSizeFromBytes">func</a> [NewSizeFromBytes](/src/target/size.go?s=375:415#L24)
 ``` go
 func NewSizeFromBytes(bytes uint64) Size
 ```
 
-### <a name="NewSizeFromSectors">func</a> [NewSizeFromSectors](/src/target/size.go?s=473:517#L31)
+### <a name="NewSizeFromSectors">func</a> [NewSizeFromSectors](/src/target/size.go?s=466:510#L30)
 ``` go
 func NewSizeFromSectors(sectors uint64) Size
 ```
 
-### <a name="NewSizeFromString">func</a> [NewSizeFromString](/src/target/size.go?s=275:323#L20)
+### <a name="NewSizeFromString">func</a> [NewSizeFromString](/src/target/size.go?s=268:316#L19)
 ``` go
 func NewSizeFromString(str string) (Size, error)
 ```
@@ -410,7 +411,7 @@ func NewSizeFromString(str string) (Size, error)
 
 
 
-### <a name="Size.Add">func</a> (Size) [Add](/src/target/size.go?s=845:879#L47)
+### <a name="Size.Add">func</a> (Size) [Add](/src/target/size.go?s=838:872#L46)
 ``` go
 func (s Size) Add(other Size) Size
 ```
@@ -419,35 +420,35 @@ Add returns a copy, does not modify the receiver
 
 
 
-### <a name="Size.MarshalJSON">func</a> (\*Size) [MarshalJSON](/src/target/size.go?s=1131:1175#L68)
+### <a name="Size.MarshalJSON">func</a> (\*Size) [MarshalJSON](/src/target/size.go?s=1124:1168#L67)
 ``` go
 func (s *Size) MarshalJSON() ([]byte, error)
 ```
 
 
 
-### <a name="Size.Max">func</a> (Size) [Max](/src/target/size.go?s=1028:1062#L60)
+### <a name="Size.Max">func</a> (Size) [Max](/src/target/size.go?s=1021:1055#L59)
 ``` go
 func (s Size) Max(other Size) Size
 ```
 
 
 
-### <a name="Size.Min">func</a> (Size) [Min](/src/target/size.go?s=925:959#L52)
+### <a name="Size.Min">func</a> (Size) [Min](/src/target/size.go?s=918:952#L51)
 ``` go
 func (s Size) Min(other Size) Size
 ```
 
 
 
-### <a name="Size.Sectors">func</a> (\*Size) [Sectors](/src/target/size.go?s=583:614#L37)
+### <a name="Size.Sectors">func</a> (\*Size) [Sectors](/src/target/size.go?s=576:607#L36)
 ``` go
 func (s *Size) Sectors() uint64
 ```
 
 
 
-### <a name="Size.String">func</a> (\*Size) [String](/src/target/size.go?s=742:772#L42)
+### <a name="Size.String">func</a> (\*Size) [String](/src/target/size.go?s=735:765#L41)
 ``` go
 func (s *Size) String() string
 ```
@@ -456,7 +457,7 @@ Override ByteSize's default string implementation which results in .HR() without
 
 
 
-### <a name="Size.UnmarshalJSON">func</a> (\*Size) [UnmarshalJSON](/src/target/size.go?s=1274:1318#L74)
+### <a name="Size.UnmarshalJSON">func</a> (\*Size) [UnmarshalJSON](/src/target/size.go?s=1231:1275#L72)
 ``` go
 func (s *Size) UnmarshalJSON(b []byte) error
 ```
@@ -495,7 +496,7 @@ The default string for Time is a human readable difference between the Time and 
 
 
 
-## <a name="TypeMeta">type</a> [TypeMeta](/src/target/meta.go?s=598:639#L27)
+## <a name="TypeMeta">type</a> [TypeMeta](/src/target/meta.go?s=669:710#L28)
 ``` go
 type TypeMeta struct {
     metav1.TypeMeta
@@ -513,7 +514,7 @@ TypeMeta is an alias for the k8s/apimachinery TypeMeta with some additional meth
 
 
 
-### <a name="TypeMeta.GetKind">func</a> (\*TypeMeta) [GetKind](/src/target/meta.go?s=641:674#L31)
+### <a name="TypeMeta.GetKind">func</a> (\*TypeMeta) [GetKind](/src/target/meta.go?s=712:745#L32)
 ``` go
 func (t *TypeMeta) GetKind() Kind
 ```
