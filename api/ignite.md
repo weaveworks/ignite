@@ -18,9 +18,11 @@
 * [Constants](#pkg-constants)
 * [Variables](#pkg-variables)
 * [func SetDefaults_ImageSource(obj *ImageSource)](#SetDefaults_ImageSource)
+* [func SetDefaults_KernelClaim(obj *KernelClaim)](#SetDefaults_KernelClaim)
 * [func SetDefaults_PoolSpec(obj *PoolSpec)](#SetDefaults_PoolSpec)
 * [func SetDefaults_VMSpec(obj *VMSpec)](#SetDefaults_VMSpec)
 * [func SetDefaults_VMStatus(obj *VMStatus)](#SetDefaults_VMStatus)
+* [func ValidateNetworkMode(mode NetworkMode) error](#ValidateNetworkMode)
 * [type FileMapping](#FileMapping)
 * [type Image](#Image)
 * [type ImageClaim](#ImageClaim)
@@ -30,6 +32,8 @@
 * [type Kernel](#Kernel)
 * [type KernelClaim](#KernelClaim)
 * [type KernelSpec](#KernelSpec)
+* [type NetworkMode](#NetworkMode)
+  * [func GetNetworkModes() []NetworkMode](#GetNetworkModes)
 * [type Pool](#Pool)
 * [type PoolDevice](#PoolDevice)
 * [type PoolDeviceType](#PoolDeviceType)
@@ -43,7 +47,7 @@
 
 
 #### <a name="pkg-files">Package files</a>
-[defaults.go](/src/target/defaults.go) [doc.go](/src/target/doc.go) [register.go](/src/target/register.go) [types.go](/src/target/types.go) 
+[defaults.go](/src/target/defaults.go) [doc.go](/src/target/doc.go) [helpers.go](/src/target/helpers.go) [register.go](/src/target/register.go) [types.go](/src/target/types.go) 
 
 
 ## <a name="pkg-constants">Constants</a>
@@ -91,6 +95,12 @@ func SetDefaults_ImageSource(obj *ImageSource)
 ```
 
 
+## <a name="SetDefaults_KernelClaim">func</a> [SetDefaults_KernelClaim](/src/target/defaults.go?s=1311:1357#L57)
+``` go
+func SetDefaults_KernelClaim(obj *KernelClaim)
+```
+
+
 ## <a name="SetDefaults_PoolSpec">func</a> [SetDefaults_PoolSpec](/src/target/defaults.go?s=349:389#L17)
 ``` go
 func SetDefaults_PoolSpec(obj *PoolSpec)
@@ -103,14 +113,23 @@ func SetDefaults_VMSpec(obj *VMSpec)
 ```
 
 
-## <a name="SetDefaults_VMStatus">func</a> [SetDefaults_VMStatus](/src/target/defaults.go?s=1338:1378#L59)
+## <a name="SetDefaults_VMStatus">func</a> [SetDefaults_VMStatus](/src/target/defaults.go?s=1443:1483#L63)
 ``` go
 func SetDefaults_VMStatus(obj *VMStatus)
 ```
 
 
+## <a name="ValidateNetworkMode">func</a> [ValidateNetworkMode](/src/target/helpers.go?s=317:365#L15)
+``` go
+func ValidateNetworkMode(mode NetworkMode) error
+```
+ValidateNetworkMode validates the network mode
+TODO: This should move into a dedicated validation package
 
-## <a name="FileMapping">type</a> [FileMapping](/src/target/types.go?s=6680:6775#L178)
+
+
+
+## <a name="FileMapping">type</a> [FileMapping](/src/target/types.go?s=6735:6830#L179)
 ``` go
 type FileMapping struct {
     HostPath string `json:"hostPath"`
@@ -154,7 +173,7 @@ Image represents a cached OCI image ready to be used with Ignite
 
 
 
-## <a name="ImageClaim">type</a> [ImageClaim](/src/target/types.go?s=6285:6462#L164)
+## <a name="ImageClaim">type</a> [ImageClaim](/src/target/types.go?s=6330:6507#L165)
 ``` go
 type ImageClaim struct {
     Type ImageSourceType `json:"type"`
@@ -266,11 +285,11 @@ This file is stored in /var/lib/firecracker/kernels/{oci-image-digest}/metadata.
 
 
 
-## <a name="KernelClaim">type</a> [KernelClaim](/src/target/types.go?s=6520:6613#L172)
+## <a name="KernelClaim">type</a> [KernelClaim](/src/target/types.go?s=6565:6668#L173)
 ``` go
 type KernelClaim struct {
     UID     meta.UID `json:"uid"`
-    CmdLine string   `json:"cmdline"`
+    CmdLine string   `json:"cmdLine,omitempty"`
 }
 
 ```
@@ -299,6 +318,37 @@ KernelSpec describes the properties of a kernel
 
 
 
+
+
+
+
+
+## <a name="NetworkMode">type</a> [NetworkMode](/src/target/types.go?s=7016:7039#L190)
+``` go
+type NetworkMode string
+```
+NetworkMode defines different states a VM can be in
+
+
+``` go
+const (
+    // NetworkModeCNI specifies the network mode where CNI is used
+    NetworkModeCNI NetworkMode = "cni"
+    // NetworkModeDockerBridge specifies the default docker bridge network is used
+    NetworkModeDockerBridge NetworkMode = "docker-bridge"
+)
+```
+
+
+
+
+
+
+### <a name="GetNetworkModes">func</a> [GetNetworkModes](/src/target/helpers.go?s=92:128#L6)
+``` go
+func GetNetworkModes() []NetworkMode
+```
+GetNetworkModes gets the list of available network modes
 
 
 
@@ -423,7 +473,7 @@ PoolStatus defines the Pool's current status
 
 
 
-## <a name="SSH">type</a> [SSH](/src/target/types.go?s=6838:6904#L184)
+## <a name="SSH">type</a> [SSH](/src/target/types.go?s=6893:6959#L185)
 ``` go
 type SSH struct {
     PublicKey string `json:"publicKey,omitempty"`
@@ -468,16 +518,17 @@ These files are stored in /var/lib/firecracker/vm/{vm-id}/metadata.json
 
 
 
-## <a name="VMSpec">type</a> [VMSpec](/src/target/types.go?s=5440:6232#L144)
+## <a name="VMSpec">type</a> [VMSpec](/src/target/types.go?s=5440:6277#L144)
 ``` go
 type VMSpec struct {
     Image *ImageClaim `json:"image"`
     // TODO: Temporary ID for the old metadata handling
-    Kernel   *KernelClaim      `json:"kernel"`
-    CPUs     uint64            `json:"cpus"`
-    Memory   meta.Size         `json:"memory"`
-    DiskSize meta.Size         `json:"diskSize"`
-    Ports    meta.PortMappings `json:"ports,omitempty"`
+    Kernel      KernelClaim       `json:"kernel"`
+    CPUs        uint64            `json:"cpus"`
+    Memory      meta.Size         `json:"memory"`
+    DiskSize    meta.Size         `json:"diskSize"`
+    NetworkMode NetworkMode       `json:"networkMode"`
+    Ports       meta.PortMappings `json:"ports,omitempty"`
     // This will be done at either "ignite start" or "ignite create" time
     // TODO: We might to revisit this later
     CopyFiles []FileMapping `json:"copyFiles,omitempty"`
@@ -501,7 +552,7 @@ VMSpec describes the configuration of a VM
 
 
 
-## <a name="VMState">type</a> [VMState](/src/target/types.go?s=6957:6976#L189)
+## <a name="VMState">type</a> [VMState](/src/target/types.go?s=7416:7435#L201)
 ``` go
 type VMState string
 ```
@@ -524,7 +575,7 @@ const (
 
 
 
-## <a name="VMStatus">type</a> [VMStatus](/src/target/types.go?s=7136:7256#L198)
+## <a name="VMStatus">type</a> [VMStatus](/src/target/types.go?s=7595:7715#L210)
 ``` go
 type VMStatus struct {
     State       VMState          `json:"state"`

@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"time"
 
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/c2h5oh/datasize"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -105,7 +105,7 @@ func (md *VM) copyToOverlay() error {
 		if err := os.MkdirAll(path.Dir(vmFilePath), 0755); err != nil {
 			return err
 		}
-		
+
 		if err := util.CopyFile(mapping.HostPath, vmFilePath); err != nil {
 			return err
 		}

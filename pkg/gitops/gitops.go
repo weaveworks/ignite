@@ -3,8 +3,8 @@ package gitops
 import (
 	"fmt"
 	"log"
-	"time"
 	"sync"
+	"time"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
@@ -230,7 +230,7 @@ func start(vm *api.VM) error {
 	}
 
 	log.Printf("Starting VM %q with name %q...", vm.GetUID(), vm.GetName())
-	return operations.StartVM(runVM, "bridge", true)
+	return operations.StartVM(runVM, true)
 }
 
 func stop(vm *api.VM) error {
