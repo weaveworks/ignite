@@ -15,6 +15,7 @@ const (
 // APIType is a struct implementing Object, used for
 // unmarshalling unknown objects into this intermediate type
 // where .Name, .UID, .Kind and .APIVersion become easily available
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type APIType struct {
 	TypeMeta   `json:",inline"`
 	ObjectMeta `json:"metadata"`

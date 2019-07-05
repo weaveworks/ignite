@@ -2,7 +2,6 @@ package v1alpha1
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/c2h5oh/datasize"
 )
@@ -67,7 +66,6 @@ func (s Size) Max(other Size) Size {
 
 func (s *Size) MarshalJSON() ([]byte, error) {
 	b, _ := s.MarshalText()
-	fmt.Println("Marshal:", string(b))
 	return json.Marshal(string(b))
 }
 
