@@ -65,7 +65,7 @@ func RunLoop(url, branch string) error {
 				})
 			case gitops.UpdateTypeDeleted:
 				go runHandle(wg, func() error {
-					return handleDelete(file.APIType)
+					return handleDelete(vm)
 				})
 			default:
 				log.Printf("Unrecognized Git update type %s\n", file.Type)
@@ -123,8 +123,8 @@ func handleChange(vm *api.VM) error {
 	return err
 }
 
-func handleDelete(obj *meta.APIType) error {
-	return remove(obj)
+func handleDelete(vm *api.VM) error {
+	return remove(vm)
 }
 
 // TODO: use a real filter here when ready
@@ -235,10 +235,10 @@ func start(vm *api.VM) error {
 
 func stop(vm *api.VM) error {
 	log.Printf("Stopping VM %q with name %q...", vm.GetUID(), vm.GetName())
-	return operations.StopVM(vm, true, false)
+	return operations.StopVM(&vmmd.VM{vm}, true, false)
 }
 
-func remove(obj *meta.APIType) error {
-	log.Printf("Removing VM %q with name %q...", obj.GetUID(), obj.GetName())
-	return operations.RemoveVM(c, obj)
+func remove(vm *api.VM) error {
+	log.Printf("Removing VM %q with name %q...", vm.GetUID(), vm.GetName())
+	return operations.RemoveVM(c, &vmmd.VM{vm})
 }

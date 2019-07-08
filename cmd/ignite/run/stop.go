@@ -40,7 +40,7 @@ func Stop(so *stopOptions) error {
 		}
 
 		// Stop the VM, and optionally kill it
-		if err := operations.StopVM(vm.VM, so.Kill, false); err != nil {
+		if err := operations.StopVM(vm, so.Kill, false); err != nil {
 			return err
 		}
 	}

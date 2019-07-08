@@ -40,7 +40,7 @@ func Rm(ro *rmOptions) error {
 		}
 
 		// This will first kill the VM container, and then remove it
-		if err := operations.RemoveVM(client.DefaultClient, vm.VM); err != nil {
+		if err := operations.RemoveVM(client.DefaultClient, vm); err != nil {
 			return err
 		}
 	}
