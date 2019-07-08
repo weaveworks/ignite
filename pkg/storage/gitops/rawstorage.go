@@ -94,8 +94,8 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 			if err := yaml.Unmarshal(content, obj); err != nil {
 				return err
 			}
-			keyPath := storage.KeyForUID(obj.Kind, obj.GetUID())
-			kindKey := storage.KeyForKind(obj.Kind)
+			keyPath := storage.KeyForUID(obj.GetKind(), obj.GetUID())
+			kindKey := storage.KeyForKind(obj.GetKind())
 
 			f := &UpdatedFile{
 				GitPath:  path,
@@ -180,7 +180,7 @@ func (r *GitRawStorage) shouldPassthrough(key string) bool {
 	// firstDirName is e.g. "vm" when key is "/vm/foobar123"
 	firstDirName := splitDirsRegex.FindStringSubmatch(key)[1]
 	// check if this kind should be managed by git. if it's git-managed return false
-	_, ok := r.gitPathPrefixes[storage.KeyForKind(firstDirName)]
+	_, ok := r.gitPathPrefixes[storage.KeyForKind(meta.Kind(firstDirName))]
 	return !ok
 }
 

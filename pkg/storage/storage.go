@@ -16,25 +16,27 @@ import (
 )
 
 // Storage is an interface for persisting and retrieving API objects to/from a backend
+// One Storage instance handles all different Kinds of Objects
 type Storage interface {
-	// Get populates the pointer to the Object given, based on the file content
+	// Get populates the Object using the given pointer, based on the file content
 	Get(obj meta.Object) error
-	// GetByID returns a new Object for the resource at the specified kind/uid path, based on the file content
-	GetByID(kind string, uid meta.UID) (meta.Object, error)
 	// Set saves the Object to disk. If the object does not exist, the
 	// ObjectMeta.Created field is set automatically
 	Set(obj meta.Object) error
+	// GetByID returns a new Object for the resource at the specified kind/uid path, based on the file content
+	GetByID(kind meta.Kind, uid meta.UID) (meta.Object, error)
 	// Delete removes an object from the storage
-	Delete(kind string, uid meta.UID) error
+	Delete(kind meta.Kind, uid meta.UID) error
 	// List lists objects for the specific kind
-	List(kind string) ([]meta.Object, error)
+	List(kind meta.Kind) ([]meta.Object, error)
 	// ListMeta lists all objects' APIType representation. In other words,
 	// only metadata about each object is unmarshalled (uid/name/kind/apiVersion).
 	// This allows for faster runs (no need to unmarshal "the world"), and less
 	// resource usage, when only metadata is unmarshalled into memory
-	ListMeta(kind string) (meta.APITypeList, error)
-	// GetCache gets a new Cache implementation for the specified kind
-	GetCache(kind string) (Cache, error)
+	ListMeta(kind meta.Kind) ([]meta.Object, error)
+	// Count returns the amount of available Objects of a specific kind
+	// This is used by Caches to check if all objects are cached to perform a List
+	Count(kind meta.Kind) (uint64, error)
 }
 
 // DefaultStorage is the default storage implementation
@@ -51,6 +53,8 @@ type GenericStorage struct {
 	serializer serializer.Serializer
 }
 
+var _ Storage = &GenericStorage{}
+
 // Get populates the pointer to the Object given, based on the file content
 func (s *GenericStorage) Get(obj meta.Object) error {
 	storageKey, err := s.keyForObj(obj)
@@ -65,7 +69,7 @@ func (s *GenericStorage) Get(obj meta.Object) error {
 }
 
 // GetByID returns a new Object for the resource at the specified kind/uid path, based on the file content
-func (s *GenericStorage) GetByID(kind string, uid meta.UID) (meta.Object, error) {
+func (s *GenericStorage) GetByID(kind meta.Kind, uid meta.UID) (meta.Object, error) {
 	storageKey := KeyForUID(kind, uid)
 	content, err := s.raw.Read(storageKey)
 	if err != nil {
@@ -103,14 +107,14 @@ func (s *GenericStorage) Set(obj meta.Object) error {
 }
 
 // Delete removes an object from the storage
-func (s *GenericStorage) Delete(kind string, uid meta.UID) error {
+func (s *GenericStorage) Delete(kind meta.Kind, uid meta.UID) error {
 	storageKey := KeyForUID(kind, uid)
 	return s.raw.Delete(storageKey)
 }
 
 // List lists objects for the specific kind
-func (s *GenericStorage) List(kind string) ([]meta.Object, error) {
-	result := []meta.Object{}
+func (s *GenericStorage) List(kind meta.Kind) ([]meta.Object, error) {
+	result := []meta.Object{} // TODO: Fix these initializations
 	err := s.walkKind(kind, func(content []byte) error {
 		runtimeobj, err := s.serializer.Decode(content)
 		if err != nil {
@@ -133,8 +137,8 @@ func (s *GenericStorage) List(kind string) ([]meta.Object, error) {
 // only metadata about each object is unmarshalled (uid/name/kind/apiVersion).
 // This allows for faster runs (no need to unmarshal "the world"), and less
 // resource usage, when only metadata is unmarshalled into memory
-func (s *GenericStorage) ListMeta(kind string) (meta.APITypeList, error) {
-	result := meta.APITypeList{}
+func (s *GenericStorage) ListMeta(kind meta.Kind) ([]meta.Object, error) {
+	result := []meta.Object{}
 	err := s.walkKind(kind, func(content []byte) error {
 		obj := &meta.APIType{}
 		// The yaml package supports both YAML and JSON
@@ -150,16 +154,13 @@ func (s *GenericStorage) ListMeta(kind string) (meta.APITypeList, error) {
 	return result, nil
 }
 
-// GetCache gets a new Cache implementation for the specified kind
-func (s *GenericStorage) GetCache(kind string) (Cache, error) {
-	list, err := s.ListMeta(kind)
-	if err != nil {
-		return nil, err
-	}
-	return NewCache(list), nil
+// Count counts the objects for the specific kind
+func (s *GenericStorage) Count(kind meta.Kind) (uint64, error) {
+	entries, err := s.raw.List(KeyForKind(kind))
+	return uint64(len(entries)), err
 }
 
-func (s *GenericStorage) walkKind(kind string, fn func(content []byte) error) error {
+func (s *GenericStorage) walkKind(kind meta.Kind, fn func(content []byte) error) error {
 	kindKey := KeyForKind(kind)
 	entries, err := s.raw.List(kindKey)
 	if err != nil {
@@ -186,7 +187,7 @@ func (s *GenericStorage) keyForObj(obj meta.Object) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return KeyForUID(gvk.Kind, obj.GetUID()), nil
+	return KeyForUID(meta.Kind(gvk.Kind), obj.GetUID()), nil
 }
 
 func (s *GenericStorage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKind, error) {
@@ -203,10 +204,10 @@ func (s *GenericStorage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKin
 	return &gvks[0], nil
 }
 
-func KeyForUID(kind string, uid meta.UID) string {
-	return strings.ToLower("/" + path.Join(kind, uid.String()))
+func KeyForUID(kind meta.Kind, uid meta.UID) string {
+	return strings.ToLower("/" + path.Join(kind.String(), uid.String()))
 }
 
-func KeyForKind(kind string) string {
-	return strings.ToLower("/" + kind)
+func KeyForKind(kind meta.Kind) string {
+	return strings.ToLower("/" + kind.String())
 }
