@@ -1,23 +1,23 @@
 ## ignite kernel import
 
-Import an uncompressed kernel image for VM use
+Import a kernel image from an OCI image
 
 ### Synopsis
 
 
-Import a new kernel for VMs. This command takes in an existing uncompressed
-kernel (vmlinux) file. Used in conjunction with "export" (not yet implemented).
+Import a kernel image from an OCI image for VMs, takes in a Docker image as the source.
+This importing is done automatically when the run or create commands are run. This step
+is essentially a cache to be used later when running VMs.
 
 
 ```
-ignite kernel import <path> [flags]
+ignite kernel import <OCI image> [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help          help for import
-  -n, --name string   Specify the name
+  -h, --help   help for import
 ```
 
 ### Options inherited from parent commands

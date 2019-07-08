@@ -1,6 +1,6 @@
 ## ignite image
 
-Manage VM base images
+Manage base images for VMs
 
 ### Synopsis
 
