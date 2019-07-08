@@ -25,3 +25,19 @@ func ValidateNetworkMode(mode NetworkMode) error {
 	}
 	return nil
 }
+
+// SetImage populates relevant fields to an Image on the VM object
+func (vm *VM) SetImage(image *Image) {
+	vm.Spec.Image.OCIClaim = image.Spec.OCIClaim.DeepCopy()
+	vm.Status.Image.OCIImageSource = image.Status.OCISource
+	// TODO: Remove this
+	vm.Status.Image.UID = image.GetUID()
+}
+
+// SetKernel populates relevant fields to a Kernel on the VM object
+func (vm *VM) SetKernel(kernel *Kernel) {
+	vm.Spec.Kernel.OCIClaim = kernel.Spec.OCIClaim.DeepCopy()
+	vm.Status.Kernel.OCIImageSource = kernel.Status.OCISource
+	// TODO: Remove this
+	vm.Status.Kernel.UID = kernel.GetUID()
+}

@@ -162,6 +162,9 @@ func prepareVM(vm *api.VM) (*vmmd.VM, error) {
 		return nil, err
 	}
 
+	// Populate relevant data from the Image on the VM object
+	vm.SetImage(runImg.Image)
+
 	kernelName := vm.Spec.Kernel.OCIClaim.Ref
 	kernelName, err = metadata.NewNameWithLatest(kernelName, meta.KindImage)
 	if err != nil {
@@ -174,9 +177,8 @@ func prepareVM(vm *api.VM) (*vmmd.VM, error) {
 		return nil, err
 	}
 
-	// populate the image/kernel ID fields to use when running the VM
-	vm.Status.Image.UID = runImg.UID
-	vm.Status.Kernel.UID = runKernel.UID
+	// Populate relevant data from the Kernel on the VM object
+	vm.SetKernel(runKernel.Kernel)
 
 	// Create new metadata for the VM
 	return vmmd.NewVM(vm.ObjectMeta.UID, &vm.ObjectMeta.Name, vm)

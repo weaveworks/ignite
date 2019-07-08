@@ -141,16 +141,17 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 		return nil, err
 	}
 
+	// Populate relevant data from the Image on the VM object
+	cf.VM.SetImage(co.image.Image)
+
 	// Get the kernel, or import it if it doesn't exist
 	co.kernel, err = operations.FindOrImportKernel(client.DefaultClient, cf.KernelClaimRef)
 	if err != nil {
 		return nil, err
 	}
 
-	// The VM metadata needs the image and kernel IDs to be saved for now
-	// TODO: Replace with pool/snapshotter
-	cf.VM.Status.Image.UID = co.image.GetUID()
-	cf.VM.Status.Kernel.UID = co.kernel.GetUID()
+	// Populate relevant data from the Kernel on the VM object
+	cf.VM.SetKernel(co.kernel.Kernel)
 
 	// Parse the --copy-files flag
 	cf.VM.Spec.CopyFiles, err = parseFileMappings(co.CopyFiles)
