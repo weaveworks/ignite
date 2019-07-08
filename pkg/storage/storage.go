@@ -39,7 +39,7 @@ type Storage interface {
 }
 
 // DefaultStorage is the default storage implementation
-var DefaultStorage = NewGenericStorage(NewDefaultRawStorage(constants.DATA_DIR), scheme.Serializer)
+var DefaultStorage = NewCache(NewGenericStorage(NewDefaultRawStorage(constants.DATA_DIR), scheme.Serializer))
 
 // NewGenericStorage constructs a new Storage
 func NewGenericStorage(rawStorage RawStorage, serializer serializer.Serializer) Storage {
