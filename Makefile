@@ -54,6 +54,7 @@ $(API_DOCS): api/%.md: $(CACHE_DIR)/go/bin/godoc2md
 	mkdir -p $$(dirname $@) bin/tmp/$*
 	mv $(shell pwd)/pkg/apis/$*/v1alpha1/zz_generated* bin/tmp/$*
 	$(MAKE) shell COMMAND="/go/bin/godoc2md /go/src/${PROJECT}/pkg/apis/$*/v1alpha1 > $@"
+	sed -e "s|src/target|pkg/apis/$*/v1alpha1|g" -i $@
 	mv bin/tmp/$*/*.go $(shell pwd)/pkg/apis/$*/v1alpha1/
 	rm -r bin/tmp/$*
 
