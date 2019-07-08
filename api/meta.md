@@ -31,10 +31,14 @@
   * [func (k Kind) Upper() string](#Kind.Upper)
 * [type Object](#Object)
 * [type ObjectMeta](#ObjectMeta)
+  * [func (o *ObjectMeta) GetAnnotation(key string) string](#ObjectMeta.GetAnnotation)
   * [func (o *ObjectMeta) GetCreated() *Time](#ObjectMeta.GetCreated)
+  * [func (o *ObjectMeta) GetLabel(key string) string](#ObjectMeta.GetLabel)
   * [func (o *ObjectMeta) GetName() string](#ObjectMeta.GetName)
   * [func (o *ObjectMeta) GetUID() UID](#ObjectMeta.GetUID)
+  * [func (o *ObjectMeta) SetAnnotation(key, value string)](#ObjectMeta.SetAnnotation)
   * [func (o *ObjectMeta) SetCreated(t *Time)](#ObjectMeta.SetCreated)
+  * [func (o *ObjectMeta) SetLabel(key, value string)](#ObjectMeta.SetLabel)
   * [func (o *ObjectMeta) SetName(name string)](#ObjectMeta.SetName)
   * [func (o *ObjectMeta) SetUID(uid UID)](#ObjectMeta.SetUID)
 * [type PortMapping](#PortMapping)
@@ -228,7 +232,7 @@ Returns a uppercase string representation of the Kind
 
 
 
-## <a name="Object">type</a> [Object](/src/target/meta.go?s=2345:2509#L110)
+## <a name="Object">type</a> [Object](/src/target/meta.go?s=3178:3470#L144)
 ``` go
 type Object interface {
     runtime.Object
@@ -243,6 +247,12 @@ type Object interface {
 
     GetCreated() *Time
     SetCreated(t *Time)
+
+    GetLabel(key string) string
+    SetLabel(key, value string)
+
+    GetAnnotation(key string) string
+    SetAnnotation(key, value string)
 }
 ```
 Object extends k8s.io/apimachinery's runtime.Object with
@@ -257,12 +267,14 @@ extra GetName() and GetUID() methods from ObjectMeta
 
 
 
-## <a name="ObjectMeta">type</a> [ObjectMeta](/src/target/meta.go?s=1479:1617#L72)
+## <a name="ObjectMeta">type</a> [ObjectMeta](/src/target/meta.go?s=1479:1731#L72)
 ``` go
 type ObjectMeta struct {
-    Name    string `json:"name"`
-    UID     UID    `json:"uid,omitempty"`
-    Created *Time  `json:"created,omitempty"`
+    Name        string            `json:"name"`
+    UID         UID               `json:"uid,omitempty"`
+    Created     *Time             `json:"created,omitempty"`
+    Labels      map[string]string `json:"labels,omitempty"`
+    Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 ```
@@ -279,7 +291,16 @@ implement the Object interface
 
 
 
-### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/src/target/meta.go?s=2055:2094#L99)
+### <a name="ObjectMeta.GetAnnotation">func</a> (\*ObjectMeta) [GetAnnotation](/src/target/meta.go?s=2733:2786#L127)
+``` go
+func (o *ObjectMeta) GetAnnotation(key string) string
+```
+GetAnnotation returns the label value for the key
+
+
+
+
+### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/src/target/meta.go?s=2169:2208#L101)
 ``` go
 func (o *ObjectMeta) GetCreated() *Time
 ```
@@ -288,7 +309,16 @@ GetCreated returns when the Object was created
 
 
 
-### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/src/target/meta.go?s=1661:1698#L79)
+### <a name="ObjectMeta.GetLabel">func</a> (\*ObjectMeta) [GetLabel](/src/target/meta.go?s=2391:2439#L111)
+``` go
+func (o *ObjectMeta) GetLabel(key string) string
+```
+GetLabel returns the label value for the key
+
+
+
+
+### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/src/target/meta.go?s=1775:1812#L81)
 ``` go
 func (o *ObjectMeta) GetName() string
 ```
@@ -297,7 +327,7 @@ GetName returns the name of the Object
 
 
 
-### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/src/target/meta.go?s=1860:1893#L89)
+### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/src/target/meta.go?s=1974:2007#L91)
 ``` go
 func (o *ObjectMeta) GetUID() UID
 ```
@@ -306,7 +336,16 @@ GetUID returns the UID of the Object
 
 
 
-### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/src/target/meta.go?s=2168:2208#L104)
+### <a name="ObjectMeta.SetAnnotation">func</a> (\*ObjectMeta) [SetAnnotation](/src/target/meta.go?s=2907:2960#L135)
+``` go
+func (o *ObjectMeta) SetAnnotation(key, value string)
+```
+SetAnnotation sets a label value for a key
+
+
+
+
+### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/src/target/meta.go?s=2282:2322#L106)
 ``` go
 func (o *ObjectMeta) SetCreated(t *Time)
 ```
@@ -315,7 +354,16 @@ SetCreated returns when the Object was created
 
 
 
-### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/src/target/meta.go?s=1758:1799#L84)
+### <a name="ObjectMeta.SetLabel">func</a> (\*ObjectMeta) [SetLabel](/src/target/meta.go?s=2545:2593#L119)
+``` go
+func (o *ObjectMeta) SetLabel(key, value string)
+```
+SetLabel sets a label value for a key
+
+
+
+
+### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/src/target/meta.go?s=1872:1913#L86)
 ``` go
 func (o *ObjectMeta) SetName(name string)
 ```
@@ -324,7 +372,7 @@ SetName sets the name of the Object
 
 
 
-### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/src/target/meta.go?s=1950:1986#L94)
+### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/src/target/meta.go?s=2064:2100#L96)
 ``` go
 func (o *ObjectMeta) SetUID(uid UID)
 ```

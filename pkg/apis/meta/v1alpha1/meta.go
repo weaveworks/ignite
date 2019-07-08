@@ -70,9 +70,11 @@ func (k Kind) Lower() string {
 // It provides the .GetName() and .GetUID() methods that help
 // implement the Object interface
 type ObjectMeta struct {
-	Name    string `json:"name"`
-	UID     UID    `json:"uid,omitempty"`
-	Created *Time  `json:"created,omitempty"`
+	Name        string            `json:"name"`
+	UID         UID               `json:"uid,omitempty"`
+	Created     *Time             `json:"created,omitempty"`
+	Labels      map[string]string `json:"labels,omitempty"`
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // GetName returns the name of the Object
@@ -105,6 +107,38 @@ func (o *ObjectMeta) SetCreated(t *Time) {
 	o.Created = t
 }
 
+// GetLabel returns the label value for the key
+func (o *ObjectMeta) GetLabel(key string) string {
+	if o.Labels == nil {
+		return ""
+	}
+	return o.Labels[key]
+}
+
+// SetLabel sets a label value for a key
+func (o *ObjectMeta) SetLabel(key, value string) {
+	if o.Labels == nil {
+		o.Labels = map[string]string{}
+	}
+	o.Labels[key] = value
+}
+
+// GetAnnotation returns the label value for the key
+func (o *ObjectMeta) GetAnnotation(key string) string {
+	if o.Annotations == nil {
+		return ""
+	}
+	return o.Annotations[key]
+}
+
+// SetAnnotation sets a label value for a key
+func (o *ObjectMeta) SetAnnotation(key, value string) {
+	if o.Annotations == nil {
+		o.Annotations = map[string]string{}
+	}
+	o.Annotations[key] = value
+}
+
 // Object extends k8s.io/apimachinery's runtime.Object with
 // extra GetName() and GetUID() methods from ObjectMeta
 type Object interface {
@@ -120,4 +154,10 @@ type Object interface {
 
 	GetCreated() *Time
 	SetCreated(t *Time)
+
+	GetLabel(key string) string
+	SetLabel(key, value string)
+
+	GetAnnotation(key string) string
+	SetAnnotation(key, value string)
 }
