@@ -1,12 +1,13 @@
 package cmd
 
 import (
+	"io"
+
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
-	"io"
 )
 
 // NewCmdInspect inspects an Ignite Object
@@ -20,7 +21,7 @@ func NewCmdInspect(out io.Writer) *cobra.Command {
 			Retrieve information about the given object of the given kind.
 			The kind can be "image", "kernel" or "vm". The object is matched
 			by prefix based on its ID and name. Outputs JSON by default, can
-			be overridden to YAML with the yaml flag (-y, --yaml).
+			be overridden with the output flag (-o, --output).
 		`),
 		Args: cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -40,5 +41,5 @@ func NewCmdInspect(out io.Writer) *cobra.Command {
 }
 
 func addInspectFlags(fs *pflag.FlagSet, i *run.InspectFlags) {
-	fs.BoolVarP(&i.YAMLOutput, "yaml", "y", false, "Output the object in YAML format instead of JSON")
+	fs.StringVarP(&i.OutputFormat, "output", "o", "json", "Output the object in the specified format")
 }

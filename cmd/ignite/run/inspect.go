@@ -3,6 +3,8 @@ package run
 import (
 	"bytes"
 	"fmt"
+	"strings"
+
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
@@ -11,7 +13,7 @@ import (
 )
 
 type InspectFlags struct {
-	YAMLOutput bool
+	OutputFormat string
 }
 
 type inspectOptions struct {
@@ -24,7 +26,7 @@ func (i *InspectFlags) NewInspectOptions(k, objectMatch string) (*inspectOptions
 	var kind meta.Kind
 	io := &inspectOptions{InspectFlags: i}
 
-	switch k {
+	switch strings.ToLower(k) {
 	case meta.KindImage.Lower():
 		kind = meta.KindImage
 	case meta.KindKernel.Lower():
@@ -32,7 +34,7 @@ func (i *InspectFlags) NewInspectOptions(k, objectMatch string) (*inspectOptions
 	case meta.KindVM.Lower():
 		kind = meta.KindVM
 	default:
-		return nil, fmt.Errorf("unrecognized kind: %s", k)
+		return nil, fmt.Errorf("unrecognized kind: %q", k)
 	}
 
 	if io.object, err = client.Dynamic(kind).Find(filter.NewIDNameFilter(objectMatch)); err != nil {
@@ -43,14 +45,19 @@ func (i *InspectFlags) NewInspectOptions(k, objectMatch string) (*inspectOptions
 }
 
 func Inspect(io *inspectOptions) error {
-	// Choose the encoder
-	encodeFunc := scheme.Serializer.EncodeJSON
-	if io.YAMLOutput {
-		encodeFunc = scheme.Serializer.EncodeYAML
+	var b []byte
+	var err error
+
+	// Select the encoder and encode the object with it
+	switch io.OutputFormat {
+	case "json":
+		b, err = scheme.Serializer.EncodeJSON(io.object)
+	case "yaml":
+		b, err = scheme.Serializer.EncodeYAML(io.object)
+	default:
+		err = fmt.Errorf("unrecognized output format: %q", io.OutputFormat)
 	}
 
-	// Encode the object with the selected encoder
-	b, err := encodeFunc(io.object)
 	if err != nil {
 		return err
 	}
