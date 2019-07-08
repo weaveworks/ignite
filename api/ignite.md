@@ -129,7 +129,7 @@ TODO: This should move into a dedicated validation package
 
 
 
-## <a name="FileMapping">type</a> [FileMapping](/src/target/types.go?s=6735:6830#L179)
+## <a name="FileMapping">type</a> [FileMapping](/src/target/types.go?s=6757:6852#L179)
 ``` go
 type FileMapping struct {
     HostPath string `json:"hostPath"`
@@ -173,7 +173,7 @@ Image represents a cached OCI image ready to be used with Ignite
 
 
 
-## <a name="ImageClaim">type</a> [ImageClaim](/src/target/types.go?s=6330:6507#L165)
+## <a name="ImageClaim">type</a> [ImageClaim](/src/target/types.go?s=6352:6529#L165)
 ``` go
 type ImageClaim struct {
     Type ImageSourceType `json:"type"`
@@ -285,7 +285,7 @@ This file is stored in /var/lib/firecracker/kernels/{oci-image-digest}/metadata.
 
 
 
-## <a name="KernelClaim">type</a> [KernelClaim](/src/target/types.go?s=6565:6668#L173)
+## <a name="KernelClaim">type</a> [KernelClaim](/src/target/types.go?s=6587:6690#L173)
 ``` go
 type KernelClaim struct {
     UID     meta.UID `json:"uid"`
@@ -323,7 +323,7 @@ KernelSpec describes the properties of a kernel
 
 
 
-## <a name="NetworkMode">type</a> [NetworkMode](/src/target/types.go?s=7016:7039#L190)
+## <a name="NetworkMode">type</a> [NetworkMode](/src/target/types.go?s=7038:7061#L190)
 ``` go
 type NetworkMode string
 ```
@@ -473,7 +473,7 @@ PoolStatus defines the Pool's current status
 
 
 
-## <a name="SSH">type</a> [SSH](/src/target/types.go?s=6893:6959#L185)
+## <a name="SSH">type</a> [SSH](/src/target/types.go?s=6915:6981#L185)
 ``` go
 type SSH struct {
     PublicKey string `json:"publicKey,omitempty"`
@@ -518,7 +518,7 @@ These files are stored in /var/lib/firecracker/vm/{vm-id}/metadata.json
 
 
 
-## <a name="VMSpec">type</a> [VMSpec](/src/target/types.go?s=5440:6277#L144)
+## <a name="VMSpec">type</a> [VMSpec](/src/target/types.go?s=5440:6299#L144)
 ``` go
 type VMSpec struct {
     Image *ImageClaim `json:"image"`
@@ -552,7 +552,7 @@ VMSpec describes the configuration of a VM
 
 
 
-## <a name="VMState">type</a> [VMState](/src/target/types.go?s=7416:7435#L201)
+## <a name="VMState">type</a> [VMState](/src/target/types.go?s=7435:7454#L201)
 ``` go
 type VMState string
 ```
@@ -575,7 +575,7 @@ const (
 
 
 
-## <a name="VMStatus">type</a> [VMStatus](/src/target/types.go?s=7595:7715#L210)
+## <a name="VMStatus">type</a> [VMStatus](/src/target/types.go?s=7614:7734#L210)
 ``` go
 type VMStatus struct {
     State       VMState          `json:"state"`
