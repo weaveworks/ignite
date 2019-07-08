@@ -63,7 +63,14 @@ func RunLoop(url, branch string) error {
 				})
 			case gitops.UpdateTypeDeleted:
 				go runHandle(wg, func() error {
-					return handleDelete(vm)
+					// TODO: Temporary VM Object for removal
+					return handleDelete(&api.VM{
+						TypeMeta:   *file.APIType.TypeMeta,
+						ObjectMeta: *file.APIType.ObjectMeta,
+						Status: api.VMStatus{
+							State: api.VMStateStopped,
+						},
+					})
 				})
 			default:
 				log.Printf("Unrecognized Git update type %s\n", file.Type)
