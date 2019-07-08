@@ -11,7 +11,6 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/errutils"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 )
 
 // NewCmdStart starts a VM
@@ -29,7 +28,7 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				so, err := sf.NewStartOptions(loader.NewResLoader(), args[0])
+				so, err := sf.NewStartOptions(args[0])
 				if err != nil {
 					return err
 				}

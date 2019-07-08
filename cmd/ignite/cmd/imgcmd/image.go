@@ -3,8 +3,6 @@ package imgcmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
-
 	"github.com/lithammer/dedent"
 
 	"github.com/spf13/cobra"
@@ -25,7 +23,7 @@ func NewCmdImage(out io.Writer) *cobra.Command {
 		Aliases: []string{"images"},
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				i, err := run.NewImagesOptions(loader.NewResLoader())
+				i, err := run.NewImagesOptions()
 				if err != nil {
 					return err
 				}

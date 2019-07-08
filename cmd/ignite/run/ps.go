@@ -3,10 +3,12 @@ package run
 import (
 	"fmt"
 
+	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/filter"
+
 	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -20,12 +22,13 @@ type psOptions struct {
 	allVMs []*vmmd.VM
 }
 
-func (pf *PsFlags) NewPsOptions(l *loader.ResLoader) (*psOptions, error) {
+func (pf *PsFlags) NewPsOptions() (*psOptions, error) {
 	po := &psOptions{PsFlags: pf}
 
-	if allVMs, err := l.VMs(); err == nil {
-		if po.allVMs, err = allVMs.MatchFilter(po.All); err != nil {
-			return nil, err
+	if allVMs, err := client.VMs().FindAll(filter.NewVMFilterAll("", po.All)); err == nil {
+		po.allVMs = make([]*vmmd.VM, 0, len(allVMs))
+		for _, vm := range allVMs {
+			po.allVMs = append(po.allVMs, &vmmd.VM{vm})
 		}
 	} else {
 		return nil, err

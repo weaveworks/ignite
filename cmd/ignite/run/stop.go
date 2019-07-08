@@ -3,7 +3,8 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
+	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
 )
@@ -17,15 +18,15 @@ type stopOptions struct {
 	vms []*vmmd.VM
 }
 
-func (sf *StopFlags) NewStopOptions(l *loader.ResLoader, vmMatches []string) (*stopOptions, error) {
+func (sf *StopFlags) NewStopOptions(vmMatches []string) (*stopOptions, error) {
 	so := &stopOptions{StopFlags: sf}
 
-	if allVMs, err := l.VMs(); err == nil {
-		if so.vms, err = allVMs.MatchMultiple(vmMatches); err != nil {
+	for _, match := range vmMatches {
+		if vm, err := client.VMs().Find(filter.NewIDNameFilter(match)); err == nil {
+			so.vms = append(so.vms, &vmmd.VM{vm})
+		} else {
 			return nil, err
 		}
-	} else {
-		return nil, err
 	}
 
 	return so, nil

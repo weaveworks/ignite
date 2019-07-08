@@ -3,9 +3,11 @@ package run
 import (
 	"fmt"
 
+	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/filter"
+
 	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -13,11 +15,14 @@ type imagesOptions struct {
 	allImages []*imgmd.Image
 }
 
-func NewImagesOptions(l *loader.ResLoader) (*imagesOptions, error) {
+func NewImagesOptions() (*imagesOptions, error) {
 	io := &imagesOptions{}
 
-	if allImages, err := l.Images(); err == nil {
-		io.allImages = allImages.MatchAll()
+	if allImages, err := client.Images().FindAll(filter.NewAllFilter()); err == nil {
+		io.allImages = make([]*imgmd.Image, 0, len(allImages))
+		for _, image := range allImages {
+			io.allImages = append(io.allImages, &imgmd.Image{image})
+		}
 	} else {
 		return nil, err
 	}

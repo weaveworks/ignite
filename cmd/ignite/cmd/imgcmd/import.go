@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 )
 
 // NewCmdImport imports  a new VM image
@@ -28,7 +27,7 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				io, err := run.NewImportOptions(loader.NewResLoader(), args[0])
+				io, err := run.NewImportOptions(args[0])
 				if err != nil {
 					return err
 				}

@@ -63,7 +63,7 @@ func Cleanup(md Metadata, silent bool) error {
 		} else if !silent {
 			fmt.Println(md.GetUID())
 		}
-		return client.Dynamic(md.GetKind().String()).Delete(md.GetUID())
+		return client.Dynamic(md.GetKind()).Delete(md.GetUID())
 	}
 
 	if !logs.Quiet {

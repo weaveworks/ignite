@@ -3,8 +3,6 @@ package vmcmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
-
 	"github.com/lithammer/dedent"
 
 	"github.com/weaveworks/ignite/cmd/ignite/run"
@@ -25,7 +23,7 @@ func NewCmdLogs(out io.Writer) *cobra.Command {
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				lo, err := run.NewLogsOptions(loader.NewResLoader(), args[0])
+				lo, err := run.NewLogsOptions(args[0])
 				if err != nil {
 					return err
 				}

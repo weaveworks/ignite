@@ -3,8 +3,6 @@ package vmcmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
-
 	"github.com/lithammer/dedent"
 
 	"github.com/spf13/cobra"
@@ -25,7 +23,7 @@ func NewCmdKill(out io.Writer) *cobra.Command {
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				so, err := (&run.StopFlags{Kill: true}).NewStopOptions(loader.NewResLoader(), args)
+				so, err := (&run.StopFlags{Kill: true}).NewStopOptions(args)
 				if err != nil {
 					return err
 				}

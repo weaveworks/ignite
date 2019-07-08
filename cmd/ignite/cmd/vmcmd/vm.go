@@ -5,7 +5,6 @@ import (
 
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
@@ -22,7 +21,7 @@ func NewCmdVM(out io.Writer) *cobra.Command {
 		Aliases: []string{"vms"},
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				po, err := (&run.PsFlags{All: true}).NewPsOptions(loader.NewResLoader())
+				po, err := (&run.PsFlags{All: true}).NewPsOptions()
 				if err != nil {
 					return err
 				}

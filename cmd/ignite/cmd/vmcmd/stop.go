@@ -10,7 +10,6 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/errutils"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 )
 
 // NewCmdStop stops a VM
@@ -32,7 +31,7 @@ func NewCmdStop(out io.Writer) *cobra.Command {
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				so, err := sf.NewStopOptions(loader.NewResLoader(), args)
+				so, err := sf.NewStopOptions(args)
 				if err != nil {
 					return err
 				}

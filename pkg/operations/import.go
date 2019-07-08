@@ -6,7 +6,9 @@ import (
 	"os"
 	"path"
 
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
@@ -15,7 +17,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-func ImportImage(srcString string, allImages *[]metadata.Metadata) (*imgmd.Image, error) {
+func ImportImage(srcString string) (*imgmd.Image, error) {
 	// Parse the source
 	dockerSource := source.NewDockerSource()
 	src, err := dockerSource.Parse(srcString)
@@ -28,9 +30,12 @@ func ImportImage(srcString string, allImages *[]metadata.Metadata) (*imgmd.Image
 			Source: *src,
 		},
 	}
+	// Set defaults, and populate TypeMeta
+	// TODO: Make this more standardized; maybe a constructor method somewhere?
+	scheme.Scheme.Default(image)
 
 	// Verify the name
-	name, err := metadata.NewNameWithLatest(srcString, allImages)
+	name, err := metadata.NewNameWithLatest(srcString, meta.KindImage)
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +74,7 @@ func ImportKernelFromImage(runImage *imgmd.Image) (*kernmd.Kernel, error) {
 	tmpKernelDir, err := runImage.ExportKernel()
 	if err != nil {
 		// Tolerate the kernel to not be found
+		fmt.Println("kernel not found in image")
 		if _, ok := err.(*imgmd.KernelNotFoundError); ok {
 			return nil, nil
 		}
@@ -94,6 +100,9 @@ func ImportKernelFromImage(runImage *imgmd.Image) (*kernmd.Kernel, error) {
 			},
 		},
 	}
+	// Set defaults, and populate TypeMeta
+	// TODO: Make this more standardized; maybe a constructor method somewhere?
+	scheme.Scheme.Default(kernel)
 
 	// Create new kernel metadata
 	runKernel, err := kernmd.NewKernel("", &kernelName, kernel)
@@ -102,6 +111,7 @@ func ImportKernelFromImage(runImage *imgmd.Image) (*kernmd.Kernel, error) {
 	}
 
 	// Save the metadata
+	fmt.Println("saving kernel")
 	if err := runKernel.Save(); err != nil {
 		return nil, err
 	}
@@ -117,6 +127,6 @@ func ImportKernelFromImage(runImage *imgmd.Image) (*kernmd.Kernel, error) {
 		return nil, err
 	}
 
-	//log.Printf("A kernel was imported from the image with name %q and ID %q", name.String(), kernelID)
+	log.Printf("A kernel was imported from the image with name %q and ID %q", runKernel.GetName(), runKernel.GetUID())
 	return runKernel, nil
 }
