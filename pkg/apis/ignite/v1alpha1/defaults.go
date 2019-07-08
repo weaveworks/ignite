@@ -4,6 +4,7 @@ import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"k8s.io/apimachinery/pkg/runtime"
+	"reflect"
 )
 
 func addDefaultingFuncs(scheme *runtime.Scheme) error {
@@ -72,4 +73,22 @@ func calcMetadataDevSize(obj *PoolSpec) meta.Size {
 	maxSize := meta.NewSizeFromBytes(16 * constants.GB)
 
 	return meta.NewSizeFromBytes(48 * obj.DataSize.Bytes() / obj.AllocationSize.Bytes()).Min(maxSize).Max(minSize)
+}
+
+// TODO: Temporary hacks to populate TypeMeta until we get the generator working
+func SetDefaults_VM(obj *VM) {
+	setTypeMeta(obj)
+}
+
+func SetDefaults_Image(obj *Image) {
+	setTypeMeta(obj)
+}
+
+func SetDefaults_Kernel(obj *Kernel) {
+	setTypeMeta(obj)
+}
+
+func setTypeMeta(obj meta.Object) {
+	obj.GetTypeMeta().APIVersion = SchemeGroupVersion.String()
+	obj.GetTypeMeta().Kind = reflect.Indirect(reflect.ValueOf(obj)).Type().Name()
 }
