@@ -90,12 +90,3 @@ func (md *Image) SetupResolvConf(tempDir string) error {
 	//fmt.Println("Symlinking /etc/resolv.conf to /proc/net/pnp")
 	return os.Symlink("../proc/net/pnp", resolvConf)
 }
-
-func (md *Image) Size() (int64, error) {
-	fi, err := os.Stat(path.Join(md.ObjectPath(), constants.IMAGE_FS))
-	if err != nil {
-		return 0, err
-	}
-
-	return fi.Size(), nil
-}
