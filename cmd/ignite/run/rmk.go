@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
+	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/filter"
 
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
@@ -20,19 +21,22 @@ type rmkOptions struct {
 	allVMs  []*vmmd.VM
 }
 
-func (rf *RmkFlags) NewRmkOptions(l *loader.ResLoader, kernelMatches []string) (*rmkOptions, error) {
+func (rf *RmkFlags) NewRmkOptions(kernelMatches []string) (*rmkOptions, error) {
 	ro := &rmkOptions{RmkFlags: rf}
 
-	if allKernels, err := l.Kernels(); err == nil {
-		if ro.kernels, err = allKernels.MatchMultiple(kernelMatches); err != nil {
+	for _, match := range kernelMatches {
+		if kernel, err := client.Kernels().Find(filter.NewIDNameFilter(match)); err == nil {
+			ro.kernels = append(ro.kernels, &kernmd.Kernel{kernel})
+		} else {
 			return nil, err
 		}
-	} else {
-		return nil, err
 	}
 
-	if allVMs, err := l.VMs(); err == nil {
-		ro.allVMs = allVMs.MatchAll()
+	if allVMs, err := client.VMs().FindAll(filter.NewAllFilter()); err == nil {
+		ro.allVMs = make([]*vmmd.VM, 0, len(allVMs))
+		for _, vm := range allVMs {
+			ro.allVMs = append(ro.allVMs, &vmmd.VM{vm})
+		}
 	} else {
 		return nil, err
 	}

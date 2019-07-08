@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
+	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/filter"
 
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
@@ -20,19 +21,22 @@ type rmiOptions struct {
 	allVMs []*vmmd.VM
 }
 
-func (rf *RmiFlags) NewRmiOptions(l *loader.ResLoader, imageMatches []string) (*rmiOptions, error) {
+func (rf *RmiFlags) NewRmiOptions(imageMatches []string) (*rmiOptions, error) {
 	ro := &rmiOptions{RmiFlags: rf}
 
-	if allImages, err := l.Images(); err == nil {
-		if ro.images, err = allImages.MatchMultiple(imageMatches); err != nil {
+	for _, match := range imageMatches {
+		if image, err := client.Images().Find(filter.NewIDNameFilter(match)); err == nil {
+			ro.images = append(ro.images, &imgmd.Image{image})
+		} else {
 			return nil, err
 		}
-	} else {
-		return nil, err
 	}
 
-	if allVMs, err := l.VMs(); err == nil {
-		ro.allVMs = allVMs.MatchAll()
+	if allVMs, err := client.VMs().FindAll(filter.NewAllFilter()); err == nil {
+		ro.allVMs = make([]*vmmd.VM, 0, len(allVMs))
+		for _, vm := range allVMs {
+			ro.allVMs = append(ro.allVMs, &vmmd.VM{vm})
+		}
 	} else {
 		return nil, err
 	}

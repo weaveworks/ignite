@@ -45,6 +45,7 @@ VM with a new IP address:
 package client
 
 import (
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 )
 
@@ -52,7 +53,7 @@ import (
 func NewClient(s storage.Storage) *Client {
 	return &Client{
 		storage:        s,
-		dynamicClients: map[string]DynamicClient{},
+		dynamicClients: map[meta.Kind]DynamicClient{},
 	}
 }
 
@@ -64,7 +65,7 @@ type Client struct {
 	vmClient       VMClient
 	kernelClient   KernelClient
 	imageClient    ImageClient
-	dynamicClients map[string]DynamicClient
+	dynamicClients map[meta.Kind]DynamicClient
 }
 
 // DefaultClient is the default client that can be easily used

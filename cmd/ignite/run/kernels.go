@@ -3,9 +3,11 @@ package run
 import (
 	"fmt"
 
+	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/filter"
+
 	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -13,11 +15,14 @@ type kernelsOptions struct {
 	allKernels []*kernmd.Kernel
 }
 
-func NewKernelsOptions(l *loader.ResLoader) (*kernelsOptions, error) {
+func NewKernelsOptions() (*kernelsOptions, error) {
 	io := &kernelsOptions{}
 
-	if allKernels, err := l.Kernels(); err == nil {
-		io.allKernels = allKernels.MatchAll()
+	if allKernels, err := client.Kernels().FindAll(filter.NewAllFilter()); err == nil {
+		io.allKernels = make([]*kernmd.Kernel, 0, len(allKernels))
+		for _, kernel := range allKernels {
+			io.allKernels = append(io.allKernels, &kernmd.Kernel{kernel})
+		}
 	} else {
 		return nil, err
 	}

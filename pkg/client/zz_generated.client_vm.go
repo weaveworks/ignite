@@ -11,18 +11,22 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
+	"github.com/weaveworks/ignite/pkg/storage/filterer"
 )
 
 // VMClient is an interface for accessing VM-specific API objects
 type VMClient interface {
-	storage.Cache
-
-	// Get returns a VM object based on a reference string; which can either
-	// match the VM's Name or UID, or be a prefix of the UID
-	Get(ref string) (*api.VM, error)
-	// Set saves a VM into the persistent storage
-	Set(vm *api.VM) error
-	// Delete deletes the API object from the storage
+	// Get returns the VM matching given UID from the storage
+	Get(meta.UID) (*api.VM, error)
+	// Set saves the given VM into persistent storage
+	Set(*api.VM) error
+	// Find returns the VM matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	Find(filter filterer.BaseFilter) (*api.VM, error)
+	// FindAll returns multiple VMs matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	FindAll(filter filterer.BaseFilter) ([]*api.VM, error)
+	// Delete deletes the VM with the given UID from the storage
 	Delete(uid meta.UID) error
 	// List returns a list of all VMs available
 	List() ([]*api.VM, error)
@@ -33,6 +37,7 @@ func (c *Client) VMs() VMClient {
 	if c.vmClient == nil {
 		c.vmClient = newVMClient(c.storage)
 	}
+
 	return c.vmClient
 }
 
@@ -42,55 +47,76 @@ func VMs() VMClient {
 }
 
 // vmClient is a struct implementing the VMClient interface
-// It uses a shared storage instance passed from the Client
+// It uses a shared storage instance passed from the Client together with its own Filterer
 type vmClient struct {
-	storage.Cache
-	storage storage.Storage
+	storage  storage.Storage
+	filterer *filterer.Filterer
 }
 
-// newVMClient builds the vmClient struct using the storage implementation
-// It automatically fetches all metadata for all API types of the specific kind into the cache
+// newVMClient builds the vmClient struct using the storage implementation and a new Filterer
 func newVMClient(s storage.Storage) VMClient {
-	c, err := s.GetCache(api.VMKind)
-	if err != nil {
-		panic(err)
+	return &vmClient{
+		storage:  s,
+		filterer: filterer.NewFilterer(s),
 	}
-	return &vmClient{storage: s, Cache: c}
 }
 
-// Get returns a VM object based on a reference string; which can either
-// match the VM's Name or UID, or be a prefix of the UID
-func (c *vmClient) Get(ref string) (*api.VM, error) {
-	ob := meta.ObjectMeta{}
-	ob.SetUID(meta.UID(ref))
-	vm := &api.VM{
-		ObjectMeta: ob,
-	}
-	if err := c.storage.Get(vm); err != nil {
+// Find returns a single VM based on the given Filter
+func (c *vmClient) Find(filter filterer.BaseFilter) (*api.VM, error) {
+	object, err := c.filterer.Find(api.VMKind, filter)
+	if err != nil {
 		return nil, err
 	}
-	return vm, nil
+
+	return object.(*api.VM), nil
 }
 
-// Set saves a VM into the persistent storage
+// FindAll returns multiple VMs based on the given Filter
+func (c *vmClient) FindAll(filter filterer.BaseFilter) ([]*api.VM, error) {
+	matches, err := c.filterer.FindAll(api.VMKind, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]*api.VM, 0, len(matches))
+	for _, item := range matches {
+		results = append(results, item.(*api.VM))
+	}
+
+	return results, nil
+}
+
+// Get returns the VM matching given UID from the storage
+func (c *vmClient) Get(uid meta.UID) (*api.VM, error) {
+	object, err := c.storage.GetByID(meta.KindVM, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*api.VM), nil
+}
+
+// Set saves the given VM into the persistent storage
 func (c *vmClient) Set(vm *api.VM) error {
 	return c.storage.Set(vm)
 }
 
-// Delete deletes the API object from the storage
+// Delete deletes the VM from the storage
 func (c *vmClient) Delete(uid meta.UID) error {
-	return c.storage.Delete(api.VMKind, uid)
+	return c.storage.Delete(meta.KindVM, uid)
 }
 
 // List returns a list of all VMs available
 func (c *vmClient) List() ([]*api.VM, error) {
-	list, err := c.storage.List(api.VMKind)
+	list, err := c.storage.List(meta.KindVM)
 	if err != nil {
 		return nil, err
 	}
-	result := []*api.VM{}
+
+	results := make([]*api.VM, 0, len(list))
 	for _, item := range list {
-		result = append(result, item.(*api.VM))
+		results = append(results, item.(*api.VM))
 	}
-	return result, nil
+
+	return results, nil
 }

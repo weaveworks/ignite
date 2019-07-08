@@ -45,7 +45,7 @@ func (md *VM) ObjectPath() string {
 }
 
 func (md *VM) Load() (err error) {
-	md.VM, err = client.VMs().Get(md.GetUID().String())
+	md.VM, err = client.VMs().Get(md.GetUID())
 	return
 }
 

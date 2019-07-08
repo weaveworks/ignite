@@ -21,6 +21,8 @@ type APIType struct {
 	ObjectMeta `json:"metadata"`
 }
 
+var _ Object = &APIType{}
+
 // APITypeList is a list of many pointers APIType objects
 type APITypeList []*APIType
 
@@ -58,6 +60,10 @@ func (k Kind) String() string {
 // Returns a uppercase string representation of the Kind
 func (k Kind) Upper() string {
 	return string(k)
+}
+
+func (k Kind) Lower() string {
+	return string(bytes.ToLower([]byte(k)))
 }
 
 // ObjectMeta have to be embedded into any serializable object.

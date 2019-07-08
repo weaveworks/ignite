@@ -3,7 +3,8 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
+	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/filter"
 
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
@@ -17,13 +18,11 @@ type attachOptions struct {
 	vm           *vmmd.VM
 }
 
-func NewAttachOptions(l *loader.ResLoader, vmMatch string) (*attachOptions, error) {
+func NewAttachOptions(vmMatch string) (*attachOptions, error) {
 	ao := &attachOptions{checkRunning: true}
 
-	if allVMs, err := l.VMs(); err == nil {
-		if ao.vm, err = allVMs.MatchSingle(vmMatch); err != nil {
-			return nil, err
-		}
+	if vm, err := client.VMs().Find(filter.NewIDNameFilter(vmMatch)); err == nil {
+		ao.vm = &vmmd.VM{vm}
 	} else {
 		return nil, err
 	}

@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
+	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
@@ -9,13 +10,11 @@ type options struct {
 	vm *vmmd.VM
 }
 
-func NewOptions(l *loader.ResLoader, vmMatch string) (*options, error) {
+func NewOptions(vmMatch string) (*options, error) {
 	co := &options{}
 
-	if allVMS, err := l.VMs(); err == nil {
-		if co.vm, err = allVMS.MatchSingle(vmMatch); err != nil {
-			return nil, err
-		}
+	if vm, err := client.VMs().Find(filter.NewIDNameFilter(vmMatch)); err == nil {
+		co.vm = &vmmd.VM{vm}
 	} else {
 		return nil, err
 	}

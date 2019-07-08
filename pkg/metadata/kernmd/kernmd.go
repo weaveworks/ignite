@@ -3,9 +3,9 @@ package kernmd
 import (
 	"path"
 
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
@@ -21,6 +21,9 @@ func NewKernel(id meta.UID, name *string, object *api.Kernel) (*Kernel, error) {
 	if object == nil {
 		object = &api.Kernel{}
 	}
+	// Set defaults, and populate TypeMeta
+	// TODO: Make this more standardized; maybe a constructor method somewhere?
+	scheme.Scheme.Default(object)
 
 	md := &Kernel{
 		Kernel: object,
@@ -45,7 +48,7 @@ func (md *Kernel) ObjectPath() string {
 }
 
 func (md *Kernel) Load() (err error) {
-	md.Kernel, err = client.Kernels().Get(md.GetUID().String())
+	md.Kernel, err = client.Kernels().Get(md.GetUID())
 	return
 }
 

@@ -3,8 +3,6 @@ package kerncmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
-
 	"github.com/lithammer/dedent"
 
 	"github.com/spf13/cobra"
@@ -29,7 +27,7 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
-				ro, err := rf.NewRmkOptions(loader.NewResLoader(), args)
+				ro, err := rf.NewRmkOptions(args)
 				if err != nil {
 					return err
 				}

@@ -170,7 +170,7 @@ func prepareVM(vm *api.VM) (*vmmd.VM, error) {
 	}
 
 	imgName := vm.Spec.Image.Ref
-	imgName, _ = metadata.NewNameWithLatest(imgName, nil)
+	imgName, _ = metadata.NewNameWithLatest(imgName, meta.KindImage)
 	imgs, err := c.Images().List()
 	if err != nil {
 		return nil, err
@@ -179,7 +179,7 @@ func prepareVM(vm *api.VM) (*vmmd.VM, error) {
 	var runImg *imgmd.Image
 	img := findImageByName(imgs, imgName)
 	if img == nil {
-		if runImg, err = operations.ImportImage(imgName, nil); err != nil {
+		if runImg, err = operations.ImportImage(imgName); err != nil {
 			return nil, fmt.Errorf("failed to import image %s %v", imgName, err)
 		}
 	} else {

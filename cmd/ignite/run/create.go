@@ -5,13 +5,16 @@ import (
 	"path"
 	"strings"
 
+	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/filter"
+
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -104,7 +107,6 @@ type createOptions struct {
 	*CreateFlags
 	image        *imgmd.Image
 	kernel       *kernmd.Kernel
-	allVMs       []metadata.Metadata
 	newVM        *vmmd.VM
 	fileMappings map[string]string
 }
@@ -135,7 +137,7 @@ func (cf *CreateFlags) parseArgsAndConfig(args []string) error {
 	return nil
 }
 
-func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*createOptions, error) {
+func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 	err := cf.parseArgsAndConfig(args)
 	if err != nil {
 		return nil, err
@@ -143,10 +145,8 @@ func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*cr
 
 	co := &createOptions{CreateFlags: cf}
 
-	if allImages, err := l.Images(); err == nil {
-		if co.image, err = allImages.MatchSingle(cf.VM.Spec.Image.Ref); err != nil {
-			return nil, err
-		}
+	if image, err := client.Images().Find(filter.NewIDNameFilter(cf.VM.Spec.Image.Ref)); err == nil {
+		co.image = &imgmd.Image{image}
 	} else {
 		return nil, err
 	}
@@ -155,10 +155,8 @@ func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*cr
 		cf.KernelName = cf.VM.Spec.Image.Ref
 	}
 
-	if allKernels, err := l.Kernels(); err == nil {
-		if co.kernel, err = allKernels.MatchSingle(cf.KernelName); err != nil {
-			return nil, err
-		}
+	if kernel, err := client.Kernels().Find(filter.NewIDNameFilter(cf.KernelName)); err == nil {
+		co.kernel = &kernmd.Kernel{kernel}
 	} else {
 		return nil, err
 	}
@@ -167,12 +165,6 @@ func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*cr
 	// TODO: Replace with pool/snapshotter
 	cf.VM.Spec.Image.UID = co.image.GetUID()
 	cf.VM.Spec.Kernel.UID = co.kernel.GetUID()
-
-	if allVMs, err := l.VMs(); err == nil {
-		co.allVMs = *allVMs
-	} else {
-		return nil, err
-	}
 
 	// Parse the --copy-files flag
 	cf.VM.Spec.CopyFiles, err = parseFileMappings(co.CopyFiles)
@@ -184,7 +176,7 @@ func (cf *CreateFlags) NewCreateOptions(l *loader.ResLoader, args []string) (*cr
 
 func Create(co *createOptions) error {
 	// Verify the name
-	name, err := metadata.NewName(co.VM.Name, &co.allVMs)
+	name, err := metadata.NewName(co.VM.Name, meta.KindVM)
 	if err != nil {
 		return err
 	}

@@ -5,7 +5,6 @@ import (
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
 	"github.com/weaveworks/ignite/pkg/operations"
 )
 
@@ -22,8 +21,8 @@ type startOptions struct {
 	*attachOptions
 }
 
-func (sf *StartFlags) NewStartOptions(l *loader.ResLoader, vmMatch string) (*startOptions, error) {
-	ao, err := NewAttachOptions(l, vmMatch)
+func (sf *StartFlags) NewStartOptions(vmMatch string) (*startOptions, error) {
+	ao, err := NewAttachOptions(vmMatch)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +46,6 @@ func Start(so *startOptions) error {
 		return err
 	}
 	so.vm.Spec.NetworkMode = nm
-	fmt.Println("nm", nm)
 
 	// Save the port mappings into the VM metadata
 	if err := so.vm.Save(); err != nil {

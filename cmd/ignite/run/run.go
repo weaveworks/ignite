@@ -1,8 +1,11 @@
 package run
 
 import (
-	"github.com/weaveworks/ignite/pkg/metadata"
-	"github.com/weaveworks/ignite/pkg/metadata/loader"
+	"fmt"
+
+	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/filter"
+	"github.com/weaveworks/ignite/pkg/storage/filterer"
 )
 
 type RunFlags struct {
@@ -15,22 +18,20 @@ type runOptions struct {
 	*startOptions
 }
 
-func (rf *RunFlags) NewRunOptions(l *loader.ResLoader, args []string) (*runOptions, error) {
+func (rf *RunFlags) NewRunOptions(args []string) (*runOptions, error) {
 	// parse the args and the config file
 	err := rf.CreateFlags.parseArgsAndConfig(args)
 	if err != nil {
 		return nil, err
 	}
 
-	// Logic to import the image if it doesn't exist
-	if allImages, err := l.Images(); err == nil {
-		imageName := rf.VM.Spec.Image.Ref
-		if _, err := allImages.MatchSingle(imageName); err != nil { // TODO: Use this match in create?
-			if _, ok := err.(*metadata.NonexistentError); !ok {
-				return nil, err
-			}
+	imageName := rf.VM.Spec.Image.Ref
 
-			io, err := NewImportOptions(l, imageName)
+	// Logic to import the image if it doesn't exist
+	if _, err := client.Images().Find(filter.NewIDNameFilter(imageName)); err != nil { // TODO: Use this match in create?
+		switch err.(type) {
+		case *filterer.NonexistentError:
+			io, err := NewImportOptions(imageName)
 			if err != nil {
 				return nil, err
 			}
@@ -38,12 +39,12 @@ func (rf *RunFlags) NewRunOptions(l *loader.ResLoader, args []string) (*runOptio
 			if err := Import(io); err != nil {
 				return nil, err
 			}
+		default:
+			return nil, err
 		}
-	} else {
-		return nil, err
 	}
 
-	co, err := rf.NewCreateOptions(l, args)
+	co, err := rf.NewCreateOptions(args)
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +61,7 @@ func (rf *RunFlags) NewRunOptions(l *loader.ResLoader, args []string) (*runOptio
 }
 
 func Run(ro *runOptions) error {
+	fmt.Println("create")
 	if err := Create(ro.createOptions); err != nil {
 		return err
 	}
@@ -68,5 +70,6 @@ func Run(ro *runOptions) error {
 	// TODO: This is pretty bad, fix this
 	ro.vm = ro.newVM
 
+	fmt.Println("start")
 	return Start(ro.startOptions)
 }
