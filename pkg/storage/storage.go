@@ -2,13 +2,11 @@ package storage
 
 import (
 	"fmt"
-	"path"
-	"strings"
-
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/storage/serializer"
+	"path"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -205,9 +203,9 @@ func (s *GenericStorage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKin
 }
 
 func KeyForUID(kind meta.Kind, uid meta.UID) string {
-	return strings.ToLower("/" + path.Join(kind.String(), uid.String()))
+	return "/" + path.Join(kind.Lower(), uid.String())
 }
 
 func KeyForKind(kind meta.Kind) string {
-	return strings.ToLower("/" + kind.String())
+	return "/" + kind.Lower()
 }

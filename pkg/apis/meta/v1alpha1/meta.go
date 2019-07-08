@@ -45,7 +45,7 @@ const (
 	KindVM     Kind = "VM"
 )
 
-// Returns a lowercase string representation of the Kind
+// Returns a string representation of the Kind suitable for sentences
 func (k Kind) String() string {
 	b := []byte(k)
 
@@ -57,11 +57,12 @@ func (k Kind) String() string {
 	return string(b)
 }
 
-// Returns a uppercase string representation of the Kind
-func (k Kind) Upper() string {
+// Returns a title case string representation of the Kind
+func (k Kind) Title() string {
 	return string(k)
 }
 
+// Returns a lowercase string representation of the Kind
 func (k Kind) Lower() string {
 	return string(bytes.ToLower([]byte(k)))
 }
