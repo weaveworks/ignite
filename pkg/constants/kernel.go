@@ -7,6 +7,9 @@ const (
 	// Kernel filename
 	KERNEL_FILE = "vmlinux"
 
-	// Filename for the image file containing the kernel filesystem
-	KERNEL_FS = "kernel.ext4"
+	// Filename for the tar containing the kernel filesystem
+	KERNEL_TAR = "kernel.tar"
+
+	// The kernel image to be used by default
+	DEFAULT_KERNEL_IMAGE = "weaveworks/ignite-kernel:4.19.47"
 )

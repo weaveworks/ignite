@@ -3,11 +3,10 @@ package vmcmd
 import (
 	"io"
 
-	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/errutils"
-
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/ignite/cmd/ignite/run"
+	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdVM handles VM-related functionality via its subcommands

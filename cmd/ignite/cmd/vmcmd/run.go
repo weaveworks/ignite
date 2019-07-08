@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/lithammer/dedent"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
@@ -19,7 +18,7 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:   "run <image>",
+		Use:   "run <OCI image>",
 		Short: "Create a new VM and start it",
 		Long: dedent.Dedent(`
 			Create and start a new VM immediately. The image and kernel are matched by
@@ -28,12 +27,12 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 			specified to immediately attach to the started VM after creation.
 
 			Example usage:
-				$ ignite run weaveworks/ignite-ubuntu \
-					--kernel weaveworks/ignite-ubuntu \
+				$ ignite run centos:7 \
 					--interactive \
 					--name my-vm \
 					--cpus 2 \
-					--memory 2048 \
+					--ssh \
+					--memory 2GB \
 					--size 10G
 		`),
 		Args: cobra.RangeArgs(0, 1),

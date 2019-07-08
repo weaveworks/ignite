@@ -193,19 +193,13 @@ func schema_pkg_apis_ignite_v1alpha1_KernelSpec(ref common.ReferenceCallback) co
 				Description: "KernelSpec describes the properties of a kernel",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"version": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 					"ociClaim": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageClaim"),
 						},
 					},
 				},
-				Required: []string{"version", "ociClaim"},
+				Required: []string{"ociClaim"},
 			},
 		},
 		Dependencies: []string{
@@ -220,13 +214,19 @@ func schema_pkg_apis_ignite_v1alpha1_KernelStatus(ref common.ReferenceCallback) 
 				Description: "KernelStatus describes the status of a kernel",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
+					"version": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"ociSource": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageSource"),
 						},
 					},
 				},
-				Required: []string{"ociSource"},
+				Required: []string{"version", "ociSource"},
 			},
 		},
 		Dependencies: []string{

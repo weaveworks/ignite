@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/lithammer/dedent"
-
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"

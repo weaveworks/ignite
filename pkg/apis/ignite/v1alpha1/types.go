@@ -134,7 +134,6 @@ type Kernel struct {
 
 // KernelSpec describes the properties of a kernel
 type KernelSpec struct {
-	Version  string        `json:"version"`
 	OCIClaim OCIImageClaim `json:"ociClaim"`
 	// Optional future feature, support per-kernel specific default command lines
 	// DefaultCmdLine string
@@ -142,6 +141,7 @@ type KernelSpec struct {
 
 // KernelStatus describes the status of a kernel
 type KernelStatus struct {
+	Version   string         `json:"version"`
 	OCISource OCIImageSource `json:"ociSource"`
 }
 

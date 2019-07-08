@@ -91,44 +91,6 @@ func (md *Image) SetupResolvConf(tempDir string) error {
 	return os.Symlink("../proc/net/pnp", resolvConf)
 }
 
-type KernelNotFoundError struct {
-	error
-}
-
-func (md *Image) ExportKernel() (string, error) {
-	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
-	tempDir, err := ioutil.TempDir("", "")
-	if err != nil {
-		return "", err
-	}
-
-	kernelDir, err := ioutil.TempDir("", "")
-	if err != nil {
-		return "", err
-	}
-
-	if _, err := util.ExecuteCommand("mount", "-o", "loop", p, tempDir); err != nil {
-		return "", fmt.Errorf("failed to mount image %q: %v", p, err)
-	}
-	defer util.ExecuteCommand("umount", tempDir)
-
-	kernelDest := path.Join(kernelDir, constants.KERNEL_FILE)
-	kernelSrc, err := findKernel(tempDir)
-	if err != nil {
-		return "", &KernelNotFoundError{err}
-	}
-
-	if util.FileExists(kernelSrc) {
-		if err := util.CopyFile(kernelSrc, kernelDest); err != nil {
-			return "", fmt.Errorf("failed to copy kernel file from %q to %q: %v", kernelSrc, kernelDest, err)
-		}
-	} else {
-		return "", &KernelNotFoundError{fmt.Errorf("no kernel found in image %q", md.GetUID())}
-	}
-
-	return kernelDir, nil
-}
-
 func (md *Image) Size() (int64, error) {
 	fi, err := os.Stat(path.Join(md.ObjectPath(), constants.IMAGE_FS))
 	if err != nil {
@@ -136,32 +98,4 @@ func (md *Image) Size() (int64, error) {
 	}
 
 	return fi.Size(), nil
-}
-
-// Quick hack to resolve a kernel in the image
-func findKernel(tmpDir string) (string, error) {
-	bootDir := path.Join(tmpDir, "boot")
-	kernel := path.Join(bootDir, constants.KERNEL_FILE)
-
-	fi, err := os.Lstat(kernel)
-	if err != nil {
-		return "", err
-	}
-
-	// The target is a symlink
-	if fi.Mode()&os.ModeSymlink != 0 {
-		kernel, err = os.Readlink(kernel)
-		if err != nil {
-			return "", err
-		}
-
-		// Fix the path for absolute and relative symlinks
-		if path.IsAbs(kernel) {
-			kernel = path.Join(tmpDir, kernel)
-		} else {
-			kernel = path.Join(bootDir, kernel)
-		}
-	}
-
-	return kernel, nil
 }

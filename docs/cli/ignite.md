@@ -9,7 +9,7 @@ Ignite is a containerized Firecracker microVM administration tool.
 It can build VM images, spin VMs up/down and manage multiple VMs efficiently.
 
 Administration is divided into three subcommands:
-  image       Manage VM base images
+  image       Manage base images for VMs
   kernel      Manage VM kernels
   vm          Manage VMs
 
@@ -18,9 +18,9 @@ Combining an Image and a Kernel gives you a runnable VM.
 
 Example usage:
 
-	$ ignite run weaveworks/ignite-ubuntu \
+	$ ignite run centos:7 \
 		--cpus 2 \
-		--memory 1024 \
+		--memory 2GB \
 		--ssh \
 		--name my-vm
 	$ ignite images
@@ -43,7 +43,7 @@ Example usage:
 * [ignite completion](ignite_completion.md)	 - Output bash completion for ignite to stdout
 * [ignite create](ignite_create.md)	 - Create a new VM without starting it
 * [ignite gitops](ignite_gitops.md)	 - Run the GitOps feature of Ignite
-* [ignite image](ignite_image.md)	 - Manage VM base images
+* [ignite image](ignite_image.md)	 - Manage base images for VMs
 * [ignite kernel](ignite_kernel.md)	 - Manage VM kernels
 * [ignite kill](ignite_kill.md)	 - Kill running VMs
 * [ignite logs](ignite_logs.md)	 - Get the logs for a running VM

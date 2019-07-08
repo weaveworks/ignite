@@ -264,10 +264,9 @@ This file is stored in /var/lib/firecracker/kernels/{oci-image-digest}/metadata.
 
 
 
-## <a name="KernelSpec">type</a> [KernelSpec](/src/target/types.go?s=5245:5459#L136)
+## <a name="KernelSpec">type</a> [KernelSpec](/src/target/types.go?s=5245:5418#L136)
 ``` go
 type KernelSpec struct {
-    Version  string        `json:"version"`
     OCIClaim OCIImageClaim `json:"ociClaim"`
 }
 
@@ -283,9 +282,10 @@ KernelSpec describes the properties of a kernel
 
 
 
-## <a name="KernelStatus">type</a> [KernelStatus](/src/target/types.go?s=5510:5583#L144)
+## <a name="KernelStatus">type</a> [KernelStatus](/src/target/types.go?s=5469:5583#L143)
 ``` go
 type KernelStatus struct {
+    Version   string         `json:"version"`
     OCISource OCIImageSource `json:"ociSource"`
 }
 

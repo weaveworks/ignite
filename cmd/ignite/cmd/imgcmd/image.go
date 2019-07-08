@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/lithammer/dedent"
-
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/errutils"
@@ -15,7 +14,7 @@ import (
 func NewCmdImage(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "image",
-		Short: "Manage VM base images",
+		Short: "Manage base images for VMs",
 		Long: dedent.Dedent(`
 			Groups together functionality for managing VM base images.
 			Calling this command alone lists all available images.

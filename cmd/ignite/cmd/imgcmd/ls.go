@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/lithammer/dedent"
-
 	"github.com/spf13/cobra"
 )
 
