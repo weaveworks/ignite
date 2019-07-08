@@ -54,6 +54,7 @@ func RemoveVMContainer(vm meta.Object) error {
 // StopVM stops or kills a (potentially running) VM
 func StopVM(vm meta.Object, kill, silent bool) error {
 	dockerArgs := stopArgs
+
 	// Change to kill arguments if requested
 	if kill {
 		dockerArgs = killArgs
@@ -77,5 +78,6 @@ func StopVM(vm meta.Object, kill, silent bool) error {
 	} else {
 		log.Printf("Stopped %s with name %q and ID %q", vm.GetKind(), vm.GetName(), vm.GetUID())
 	}
+
 	return nil
 }

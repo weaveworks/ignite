@@ -44,5 +44,6 @@ func Stop(so *stopOptions) error {
 			return err
 		}
 	}
+
 	return nil
 }
