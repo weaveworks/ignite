@@ -1,8 +1,9 @@
 package storage
 
 import (
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"log"
+
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
 // Cache is an intermediate caching layer, which conforms to Storage

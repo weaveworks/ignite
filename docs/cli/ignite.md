@@ -44,6 +44,7 @@ Example usage:
 * [ignite create](ignite_create.md)	 - Create a new VM without starting it
 * [ignite gitops](ignite_gitops.md)	 - Run the GitOps feature of Ignite
 * [ignite image](ignite_image.md)	 - Manage base images for VMs
+* [ignite inspect](ignite_inspect.md)	 - Inspect an Ignite Object
 * [ignite kernel](ignite_kernel.md)	 - Manage VM kernels
 * [ignite kill](ignite_kill.md)	 - Kill running VMs
 * [ignite logs](ignite_logs.md)	 - Get the logs for a running VM

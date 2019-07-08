@@ -17,8 +17,11 @@
 ## <a name="pkg-index">Index</a>
 * [Constants](#pkg-constants)
 * [Variables](#pkg-variables)
+* [func SetDefaults_Image(obj *Image)](#SetDefaults_Image)
+* [func SetDefaults_Kernel(obj *Kernel)](#SetDefaults_Kernel)
 * [func SetDefaults_OCIImageClaim(obj *OCIImageClaim)](#SetDefaults_OCIImageClaim)
 * [func SetDefaults_PoolSpec(obj *PoolSpec)](#SetDefaults_PoolSpec)
+* [func SetDefaults_VM(obj *VM)](#SetDefaults_VM)
 * [func SetDefaults_VMKernelSpec(obj *VMKernelSpec)](#SetDefaults_VMKernelSpec)
 * [func SetDefaults_VMSpec(obj *VMSpec)](#SetDefaults_VMSpec)
 * [func SetDefaults_VMStatus(obj *VMStatus)](#SetDefaults_VMStatus)
@@ -42,6 +45,8 @@
 * [type PoolStatus](#PoolStatus)
 * [type SSH](#SSH)
 * [type VM](#VM)
+  * [func (vm *VM) SetImage(image *Image)](#VM.SetImage)
+  * [func (vm *VM) SetKernel(kernel *Kernel)](#VM.SetKernel)
 * [type VMImageSource](#VMImageSource)
 * [type VMImageSpec](#VMImageSpec)
 * [type VMKernelSpec](#VMKernelSpec)
@@ -93,31 +98,51 @@ SchemeGroupVersion is group version used to register these objects
 
 
 
-## <a name="SetDefaults_OCIImageClaim">func</a> [SetDefaults_OCIImageClaim](/pkg/apis/ignite/v1alpha1/defaults.go?s=263:313#L13)
+## <a name="SetDefaults_Image">func</a> [SetDefaults_Image](/pkg/apis/ignite/v1alpha1/defaults.go?s=2025:2059#L83)
+``` go
+func SetDefaults_Image(obj *Image)
+```
+
+
+## <a name="SetDefaults_Kernel">func</a> [SetDefaults_Kernel](/pkg/apis/ignite/v1alpha1/defaults.go?s=2083:2119#L87)
+``` go
+func SetDefaults_Kernel(obj *Kernel)
+```
+
+
+## <a name="SetDefaults_OCIImageClaim">func</a> [SetDefaults_OCIImageClaim](/pkg/apis/ignite/v1alpha1/defaults.go?s=274:324#L14)
 ``` go
 func SetDefaults_OCIImageClaim(obj *OCIImageClaim)
 ```
 
 
-## <a name="SetDefaults_PoolSpec">func</a> [SetDefaults_PoolSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=353:393#L17)
+## <a name="SetDefaults_PoolSpec">func</a> [SetDefaults_PoolSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=364:404#L18)
 ``` go
 func SetDefaults_PoolSpec(obj *PoolSpec)
 ```
 
 
-## <a name="SetDefaults_VMKernelSpec">func</a> [SetDefaults_VMKernelSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=1315:1363#L57)
+## <a name="SetDefaults_VM">func</a> [SetDefaults_VM](/pkg/apis/ignite/v1alpha1/defaults.go?s=1973:2001#L79)
+``` go
+func SetDefaults_VM(obj *VM)
+```
+TODO: Temporary hacks to populate TypeMeta until we get the generator working
+
+
+
+## <a name="SetDefaults_VMKernelSpec">func</a> [SetDefaults_VMKernelSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=1326:1374#L58)
 ``` go
 func SetDefaults_VMKernelSpec(obj *VMKernelSpec)
 ```
 
 
-## <a name="SetDefaults_VMSpec">func</a> [SetDefaults_VMSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=919:955#L39)
+## <a name="SetDefaults_VMSpec">func</a> [SetDefaults_VMSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=930:966#L40)
 ``` go
 func SetDefaults_VMSpec(obj *VMSpec)
 ```
 
 
-## <a name="SetDefaults_VMStatus">func</a> [SetDefaults_VMStatus](/pkg/apis/ignite/v1alpha1/defaults.go?s=1449:1489#L63)
+## <a name="SetDefaults_VMStatus">func</a> [SetDefaults_VMStatus](/pkg/apis/ignite/v1alpha1/defaults.go?s=1460:1500#L64)
 ``` go
 func SetDefaults_VMStatus(obj *VMStatus)
 ```
@@ -544,6 +569,24 @@ These files are stored in /var/lib/firecracker/vm/{vm-id}/metadata.json
 
 
 
+
+
+
+
+### <a name="VM.SetImage">func</a> (\*VM) [SetImage](/pkg/apis/ignite/v1alpha1/helpers.go?s=658:694#L30)
+``` go
+func (vm *VM) SetImage(image *Image)
+```
+SetImage populates relevant fields to an Image on the VM object
+
+
+
+
+### <a name="VM.SetKernel">func</a> (\*VM) [SetKernel](/pkg/apis/ignite/v1alpha1/helpers.go?s=942:981#L38)
+``` go
+func (vm *VM) SetKernel(kernel *Kernel)
+```
+SetKernel populates relevant fields to a Kernel on the VM object
 
 
 

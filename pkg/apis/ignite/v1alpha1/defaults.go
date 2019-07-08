@@ -1,10 +1,11 @@
 package v1alpha1
 
 import (
+	"reflect"
+
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"k8s.io/apimachinery/pkg/runtime"
-	"reflect"
 )
 
 func addDefaultingFuncs(scheme *runtime.Scheme) error {
