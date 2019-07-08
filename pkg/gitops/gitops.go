@@ -165,11 +165,11 @@ func create(vm *api.VM) error {
 // prepareVM takes a VM API object, finds/populates its dependencies (image/kernel) and finally
 // returns the runtime VM object
 func prepareVM(vm *api.VM) (*vmmd.VM, error) {
-	if vm.Spec.Image == nil {
+	if vm.Spec.Image.OCIClaim == nil {
 		return nil, fmt.Errorf("vm must specify image to run! image is empty for vm %s", vm.GetUID())
 	}
 
-	imgName := vm.Spec.Image.Ref
+	imgName := vm.Spec.Image.OCIClaim.Ref
 	imgName, _ = metadata.NewNameWithLatest(imgName, meta.KindImage)
 	imgs, err := c.Images().List()
 	if err != nil {
@@ -207,8 +207,8 @@ func prepareVM(vm *api.VM) (*vmmd.VM, error) {
 	}
 
 	// populate the image/kernel ID fields to use when running the VM
-	vm.Spec.Image.UID = runImg.UID
-	vm.Spec.Kernel.UID = runKernel.UID
+	vm.Status.Image.UID = runImg.UID
+	vm.Status.Kernel.UID = runKernel.UID
 
 	// Create new metadata for the VM
 	return vmmd.NewVM(vm.ObjectMeta.UID, &vm.ObjectMeta.Name, vm)

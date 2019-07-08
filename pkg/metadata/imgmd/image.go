@@ -23,7 +23,7 @@ func (md *Image) AllocateAndFormat() error {
 	defer imageFile.Close()
 
 	// The base image is the size of the tar file, plus 100MB
-	if err := imageFile.Truncate(int64(md.Spec.Source.Size.Bytes()) + 100*1024*1024); err != nil {
+	if err := imageFile.Truncate(int64(md.Status.OCISource.Size.Bytes()) + 100*1024*1024); err != nil {
 		return errors.Wrapf(err, "failed to allocate space for image %s", md.GetUID())
 	}
 

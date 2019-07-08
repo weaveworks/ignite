@@ -115,7 +115,7 @@ type createOptions struct {
 // and the config file, if it needs to be loaded
 func (cf *CreateFlags) parseArgsAndConfig(args []string) error {
 	if len(args) == 1 {
-		cf.VM.Spec.Image = &api.ImageClaim{
+		cf.VM.Spec.Image.OCIClaim = &api.OCIImageClaim{
 			Type: api.ImageSourceTypeDocker,
 			Ref:  args[0],
 		}
@@ -131,7 +131,7 @@ func (cf *CreateFlags) parseArgsAndConfig(args []string) error {
 	}
 
 	// Specifying an image either way is mandatory
-	if cf.VM.Spec.Image == nil || len(cf.VM.Spec.Image.Ref) == 0 {
+	if cf.VM.Spec.Image.OCIClaim == nil || len(cf.VM.Spec.Image.OCIClaim.Ref) == 0 {
 		return fmt.Errorf("you must specify an image to run either via CLI args or a config file")
 	}
 	return nil
@@ -145,14 +145,14 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 
 	co := &createOptions{CreateFlags: cf}
 
-	if image, err := client.Images().Find(filter.NewIDNameFilter(cf.VM.Spec.Image.Ref)); err == nil {
+	if image, err := client.Images().Find(filter.NewIDNameFilter(cf.VM.Spec.Image.OCIClaim.Ref)); err == nil {
 		co.image = &imgmd.Image{image}
 	} else {
 		return nil, err
 	}
 
 	if len(cf.KernelName) == 0 {
-		cf.KernelName = cf.VM.Spec.Image.Ref
+		cf.KernelName = cf.VM.Spec.Image.OCIClaim.Ref
 	}
 
 	if kernel, err := client.Kernels().Find(filter.NewIDNameFilter(cf.KernelName)); err == nil {
@@ -163,8 +163,8 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 
 	// The VM metadata needs the image and kernel IDs to be saved for now
 	// TODO: Replace with pool/snapshotter
-	cf.VM.Spec.Image.UID = co.image.GetUID()
-	cf.VM.Spec.Kernel.UID = co.kernel.GetUID()
+	cf.VM.Status.Image.UID = co.image.GetUID()
+	cf.VM.Status.Kernel.UID = co.kernel.GetUID()
 
 	// Parse the --copy-files flag
 	cf.VM.Spec.CopyFiles, err = parseFileMappings(co.CopyFiles)

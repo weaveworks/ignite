@@ -27,7 +27,7 @@ func (md *VM) SetupSnapshot() error {
 	}
 
 	// Setup loop device for the image
-	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, md.Spec.Image.UID.String(), constants.IMAGE_FS), true)
+	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, md.Status.Image.UID.String(), constants.IMAGE_FS), true)
 	if err != nil {
 		return err
 	}

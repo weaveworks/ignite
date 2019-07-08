@@ -38,7 +38,7 @@ func (md *VM) AllocateAndPopulateOverlay() error {
 
 	size := int64(requestedSize)
 
-	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, md.Spec.Image.UID.String(), constants.IMAGE_FS))
+	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, md.Status.Image.UID.String(), constants.IMAGE_FS))
 	if err != nil {
 		return err
 	}

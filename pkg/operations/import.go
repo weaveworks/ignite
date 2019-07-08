@@ -27,7 +27,12 @@ func ImportImage(srcString string) (*imgmd.Image, error) {
 
 	image := &api.Image{
 		Spec: api.ImageSpec{
-			Source: *src,
+			OCIClaim: api.OCIImageClaim{
+				Ref: srcString,
+			},
+		},
+		Status: api.ImageStatus{
+			OCISource: *src,
 		},
 	}
 	// Set defaults, and populate TypeMeta
@@ -61,7 +66,7 @@ func ImportImage(srcString string) (*imgmd.Image, error) {
 	if err := runImage.Save(); err != nil {
 		return nil, err
 	}
-	log.Printf("Imported a %s filesystem from OCI image %q", image.Spec.Source.Size.HR(), srcString)
+	log.Printf("Imported a %s filesystem from OCI image %q", image.Status.OCISource.Size.HR(), srcString)
 	return runImage, nil
 }
 
@@ -93,10 +98,8 @@ func ImportKernelFromImage(runImage *imgmd.Image) (*kernmd.Kernel, error) {
 	kernel := &api.Kernel{
 		Spec: api.KernelSpec{
 			Version: "unknown",
-			Source: api.ImageSource{
-				Type: "file",
-				ID:   "-",
-				Name: "-",
+			OCIClaim: api.OCIImageClaim{
+				Ref: "-",
 			},
 		},
 	}
