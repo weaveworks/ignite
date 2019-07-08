@@ -138,7 +138,7 @@ func (s *GenericStorage) List(kind meta.Kind) ([]meta.Object, error) {
 func (s *GenericStorage) ListMeta(kind meta.Kind) ([]meta.Object, error) {
 	result := []meta.Object{}
 	err := s.walkKind(kind, func(content []byte) error {
-		obj := &meta.APIType{}
+		obj := meta.NewAPIType()
 		// The yaml package supports both YAML and JSON
 		if err := yaml.Unmarshal(content, obj); err != nil {
 			return err

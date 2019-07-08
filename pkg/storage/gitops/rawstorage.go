@@ -85,7 +85,7 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 			return nil
 		}
 		if strings.HasSuffix(path, ".yaml") || strings.HasSuffix(path, ".json") {
-			obj := &meta.APIType{}
+			obj := meta.NewAPIType()
 			content, err := ioutil.ReadFile(path)
 			if err != nil {
 				return err
@@ -130,15 +130,12 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 			// the file existed in the last iteration, but not now; a delete
 			// as oldFile will be removed from memory in the map overwrites below
 			// we need to create a net-new object, with a copy of the previous APIType
-			newAPIType := meta.APIType{
-				TypeMeta:   oldFile.APIType.TypeMeta,
-				ObjectMeta: oldFile.APIType.ObjectMeta,
-			}
+			newAPIType := oldFile.APIType.DeepCopy()
 			diff = append(diff, &UpdatedFile{
 				Type:     UpdateTypeDeleted,
 				GitPath:  oldFile.GitPath,
 				Checksum: oldFile.Checksum,
-				APIType:  &newAPIType,
+				APIType:  newAPIType,
 			})
 		}
 	}
