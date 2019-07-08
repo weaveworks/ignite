@@ -12,18 +12,22 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
+	"github.com/weaveworks/ignite/pkg/storage/filterer"
 )
 
 // ResourceClient is an interface for accessing Resource-specific API objects
 type ResourceClient interface {
-	storage.Cache
-
-	// Get returns a Resource object based on a reference string; which can either
-	// match the Resource's Name or UID, or be a prefix of the UID
-	Get(ref string) (*api.Resource, error)
-	// Set saves a Resource into the persistent storage
-	Set(resource *api.Resource) error
-	// Delete deletes the API object from the storage
+	// Get returns the Resource matching given UID from the storage
+	Get(meta.UID) (*api.Resource, error)
+	// Set saves the given Resource into persistent storage
+	Set(*api.Resource) error
+	// Find returns the Resource matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	Find(filter filterer.BaseFilter) (*api.Resource, error)
+	// FindAll returns multiple Resources matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	FindAll(filter filterer.BaseFilter) ([]*api.Resource, error)
+	// Delete deletes the Resource with the given UID from the storage
 	Delete(uid meta.UID) error
 	// List returns a list of all Resources available
 	List() ([]*api.Resource, error)
@@ -34,6 +38,7 @@ func (c *Client) Resources() ResourceClient {
 	if c.resourceClient == nil {
 		c.resourceClient = newResourceClient(c.storage)
 	}
+
 	return c.resourceClient
 }
 
@@ -43,55 +48,76 @@ func Resources() ResourceClient {
 }
 
 // resourceClient is a struct implementing the ResourceClient interface
-// It uses a shared storage instance passed from the Client
+// It uses a shared storage instance passed from the Client together with its own Filterer
 type resourceClient struct {
-	storage.Cache
-	storage storage.Storage
+	storage  storage.Storage
+	filterer *filterer.Filterer
 }
 
-// newResourceClient builds the resourceClient struct using the storage implementation
-// It automatically fetches all metadata for all API types of the specific kind into the cache
+// newResourceClient builds the resourceClient struct using the storage implementation and a new Filterer
 func newResourceClient(s storage.Storage) ResourceClient {
-	c, err := s.GetCache(api.ResourceKind)
-	if err != nil {
-		panic(err)
+	return &resourceClient{
+		storage:  s,
+		filterer: filterer.NewFilterer(s),
 	}
-	return &resourceClient{storage: s, Cache: c}
 }
 
-// Get returns a Resource object based on a reference string; which can either
-// match the Resource's Name or UID, or be a prefix of the UID
-func (c *resourceClient) Get(ref string) (*api.Resource, error) {
-	ob := meta.ObjectMeta{}
-	ob.SetUID(meta.UID(ref))
-	resource := &api.Resource{
-		ObjectMeta: ob,
-	}
-	if err := c.storage.Get(resource); err != nil {
+// Find returns a single Resource based on the given Filter
+func (c *resourceClient) Find(filter filterer.BaseFilter) (*api.Resource, error) {
+	object, err := c.filterer.Find(api.ResourceKind, filter)
+	if err != nil {
 		return nil, err
 	}
-	return resource, nil
+
+	return object.(*api.Resource), nil
 }
 
-// Set saves a Resource into the persistent storage
+// FindAll returns multiple Resources based on the given Filter
+func (c *resourceClient) FindAll(filter filterer.BaseFilter) ([]*api.Resource, error) {
+	matches, err := c.filterer.FindAll(api.ResourceKind, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]*api.Resource, 0, len(matches))
+	for _, item := range matches {
+		results = append(results, item.(*api.Resource))
+	}
+
+	return results, nil
+}
+
+// Get returns the Resource matching given UID from the storage
+func (c *resourceClient) Get(uid meta.UID) (*api.Resource, error) {
+	object, err := c.storage.GetByID(meta.KindResource, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*api.Resource), nil
+}
+
+// Set saves the given Resource into the persistent storage
 func (c *resourceClient) Set(resource *api.Resource) error {
 	return c.storage.Set(resource)
 }
 
-// Delete deletes the API object from the storage
+// Delete deletes the Resource from the storage
 func (c *resourceClient) Delete(uid meta.UID) error {
-	return c.storage.Delete(api.ResourceKind, uid)
+	return c.storage.Delete(meta.KindResource, uid)
 }
 
 // List returns a list of all Resources available
 func (c *resourceClient) List() ([]*api.Resource, error) {
-	list, err := c.storage.List(api.ResourceKind)
+	list, err := c.storage.List(meta.KindResource)
 	if err != nil {
 		return nil, err
 	}
-	result := []*api.Resource{}
+
+	results := make([]*api.Resource, 0, len(list))
 	for _, item := range list {
-		result = append(result, item.(*api.Resource))
+		results = append(results, item.(*api.Resource))
 	}
-	return result, nil
+
+	return results, nil
 }

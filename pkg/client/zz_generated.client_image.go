@@ -11,18 +11,22 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
+	"github.com/weaveworks/ignite/pkg/storage/filterer"
 )
 
 // ImageClient is an interface for accessing Image-specific API objects
 type ImageClient interface {
-	storage.Cache
-
-	// Get returns a Image object based on a reference string; which can either
-	// match the Image's Name or UID, or be a prefix of the UID
-	Get(ref string) (*api.Image, error)
-	// Set saves a Image into the persistent storage
-	Set(image *api.Image) error
-	// Delete deletes the API object from the storage
+	// Get returns the Image matching given UID from the storage
+	Get(meta.UID) (*api.Image, error)
+	// Set saves the given Image into persistent storage
+	Set(*api.Image) error
+	// Find returns the Image matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	Find(filter filterer.BaseFilter) (*api.Image, error)
+	// FindAll returns multiple Images matching the given filter, filters can
+	// match e.g. the Object's Name, UID or a specific property
+	FindAll(filter filterer.BaseFilter) ([]*api.Image, error)
+	// Delete deletes the Image with the given UID from the storage
 	Delete(uid meta.UID) error
 	// List returns a list of all Images available
 	List() ([]*api.Image, error)
@@ -33,6 +37,7 @@ func (c *Client) Images() ImageClient {
 	if c.imageClient == nil {
 		c.imageClient = newImageClient(c.storage)
 	}
+
 	return c.imageClient
 }
 
@@ -42,55 +47,76 @@ func Images() ImageClient {
 }
 
 // imageClient is a struct implementing the ImageClient interface
-// It uses a shared storage instance passed from the Client
+// It uses a shared storage instance passed from the Client together with its own Filterer
 type imageClient struct {
-	storage.Cache
-	storage storage.Storage
+	storage  storage.Storage
+	filterer *filterer.Filterer
 }
 
-// newImageClient builds the imageClient struct using the storage implementation
-// It automatically fetches all metadata for all API types of the specific kind into the cache
+// newImageClient builds the imageClient struct using the storage implementation and a new Filterer
 func newImageClient(s storage.Storage) ImageClient {
-	c, err := s.GetCache(api.ImageKind)
-	if err != nil {
-		panic(err)
+	return &imageClient{
+		storage:  s,
+		filterer: filterer.NewFilterer(s),
 	}
-	return &imageClient{storage: s, Cache: c}
 }
 
-// Get returns a Image object based on a reference string; which can either
-// match the Image's Name or UID, or be a prefix of the UID
-func (c *imageClient) Get(ref string) (*api.Image, error) {
-	ob := meta.ObjectMeta{}
-	ob.SetUID(meta.UID(ref))
-	image := &api.Image{
-		ObjectMeta: ob,
-	}
-	if err := c.storage.Get(image); err != nil {
+// Find returns a single Image based on the given Filter
+func (c *imageClient) Find(filter filterer.BaseFilter) (*api.Image, error) {
+	object, err := c.filterer.Find(api.ImageKind, filter)
+	if err != nil {
 		return nil, err
 	}
-	return image, nil
+
+	return object.(*api.Image), nil
 }
 
-// Set saves a Image into the persistent storage
+// FindAll returns multiple Images based on the given Filter
+func (c *imageClient) FindAll(filter filterer.BaseFilter) ([]*api.Image, error) {
+	matches, err := c.filterer.FindAll(api.ImageKind, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]*api.Image, 0, len(matches))
+	for _, item := range matches {
+		results = append(results, item.(*api.Image))
+	}
+
+	return results, nil
+}
+
+// Get returns the Image matching given UID from the storage
+func (c *imageClient) Get(uid meta.UID) (*api.Image, error) {
+	object, err := c.storage.GetByID(meta.KindImage, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	return object.(*api.Image), nil
+}
+
+// Set saves the given Image into the persistent storage
 func (c *imageClient) Set(image *api.Image) error {
 	return c.storage.Set(image)
 }
 
-// Delete deletes the API object from the storage
+// Delete deletes the Image from the storage
 func (c *imageClient) Delete(uid meta.UID) error {
-	return c.storage.Delete(api.ImageKind, uid)
+	return c.storage.Delete(meta.KindImage, uid)
 }
 
 // List returns a list of all Images available
 func (c *imageClient) List() ([]*api.Image, error) {
-	list, err := c.storage.List(api.ImageKind)
+	list, err := c.storage.List(meta.KindImage)
 	if err != nil {
 		return nil, err
 	}
-	result := []*api.Image{}
+
+	results := make([]*api.Image, 0, len(list))
 	for _, item := range list {
-		result = append(result, item.(*api.Image))
+		results = append(results, item.(*api.Image))
 	}
-	return result, nil
+
+	return results, nil
 }
