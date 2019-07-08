@@ -3,7 +3,6 @@ package storage
 import (
 	"fmt"
 	"path"
-	"strings"
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
@@ -140,7 +139,7 @@ func (s *GenericStorage) List(kind meta.Kind) ([]meta.Object, error) {
 func (s *GenericStorage) ListMeta(kind meta.Kind) ([]meta.Object, error) {
 	result := []meta.Object{}
 	err := s.walkKind(kind, func(content []byte) error {
-		obj := &meta.APIType{}
+		obj := meta.NewAPIType()
 		// The yaml package supports both YAML and JSON
 		if err := yaml.Unmarshal(content, obj); err != nil {
 			return err
@@ -205,9 +204,9 @@ func (s *GenericStorage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKin
 }
 
 func KeyForUID(kind meta.Kind, uid meta.UID) string {
-	return strings.ToLower("/" + path.Join(kind.String(), uid.String()))
+	return "/" + path.Join(kind.Lower(), uid.String())
 }
 
 func KeyForKind(kind meta.Kind) string {
-	return strings.ToLower("/" + kind.String())
+	return "/" + kind.Lower()
 }

@@ -7,8 +7,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/filter"
 
 	"github.com/c2h5oh/datasize"
-	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
-	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -48,18 +46,15 @@ func Ps(po *psOptions) error {
 			return fmt.Errorf("failed to get size for %s %q: %v", vm.GetKind(), vm.GetUID(), err)
 		}
 
-		imageMD, err := imgmd.LoadImage(vm.Status.Image.UID)
+		image, err := client.Images().Get(vm.Status.Image.UID)
 		if err != nil {
 			return fmt.Errorf("failed to load image metadata for %s %q: %v", vm.GetKind(), vm.GetUID(), err)
 		}
 
-		kernelMD, err := kernmd.LoadKernel(vm.Status.Kernel.UID)
+		kernel, err := client.Kernels().Get(vm.Status.Kernel.UID)
 		if err != nil {
 			return fmt.Errorf("failed to load kernel metadata for %s %q: %v", vm.GetKind(), vm.GetUID(), err)
 		}
-
-		image := imgmd.ToImage(imageMD)
-		kernel := kernmd.ToKernel(kernelMD)
 
 		// TODO: Clean up this print
 		o.Write(vm.GetUID(), image.GetName(), kernel.GetName(), vm.Created, datasize.ByteSize(size).HR(), vm.Spec.CPUs,

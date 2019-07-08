@@ -735,22 +735,17 @@ func schema_pkg_apis_meta_v1alpha1_APIType(ref common.ReferenceCallback) common.
 				Description: "APIType is a struct implementing Object, used for unmarshalling unknown objects into this intermediate type where .Name, .UID, .Kind and .APIVersion become easily available",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"TypeMeta": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"),
-						},
-					},
 					"metadata": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta"),
 						},
 					},
 				},
-				Required: []string{"TypeMeta", "metadata"},
+				Required: []string{"metadata"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta"},
 	}
 }
 

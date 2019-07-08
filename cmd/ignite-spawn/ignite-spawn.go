@@ -67,6 +67,9 @@ func StartVM(co *options) error {
 	// Remove the port mappings post-run
 	defer co.vm.ClearPortMappings()
 
+	// Remove the Prometheus socket post-run
+	defer os.Remove(metricsSocket)
+
 	// Execute Firecracker
 	if err := container.ExecuteFirecracker(co.vm, dhcpIfaces); err != nil {
 		return fmt.Errorf("runtime error for VM %q: %v", co.vm.GetUID(), err)
