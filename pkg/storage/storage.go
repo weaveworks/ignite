@@ -2,11 +2,12 @@ package storage
 
 import (
 	"fmt"
+	"path"
+
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/storage/serializer"
-	"path"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
