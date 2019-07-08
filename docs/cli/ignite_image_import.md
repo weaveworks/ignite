@@ -5,18 +5,13 @@ Import a new base image for VMs
 ### Synopsis
 
 
-Import a new base image for VMs, takes in a Docker image as the source.
-The base image is an ext4 block device file, which contains a root filesystem.
-
-If a kernel is found in the image, /boot/vmlinux is extracted from it
-and imported to a kernel with the same name.
-
-Example usage:
-    $ ignite image import luxas/ubuntu-base:18.04
+Import a base image from an OCI image for VMs, takes in a Docker image as the source.
+This importing is done automatically when the run or create commands are run. This step
+is essentially a cache to be used later when running VMs.
 
 
 ```
-ignite image import <source> [flags]
+ignite image import <OCI image> [flags]
 ```
 
 ### Options
@@ -33,5 +28,5 @@ ignite image import <source> [flags]
 
 ### SEE ALSO
 
-* [ignite image](ignite_image.md)	 - Manage VM base images
+* [ignite image](ignite_image.md)	 - Manage base images for VMs
 

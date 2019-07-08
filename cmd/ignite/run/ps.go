@@ -46,12 +46,12 @@ func Ps(po *psOptions) error {
 			return fmt.Errorf("failed to get size for %s %q: %v", vm.GetKind(), vm.GetUID(), err)
 		}
 
-		image, err := client.Images().Get(vm.Spec.Image.UID)
+		image, err := client.Images().Get(vm.Status.Image.UID)
 		if err != nil {
 			return fmt.Errorf("failed to load image metadata for %s %q: %v", vm.GetKind(), vm.GetUID(), err)
 		}
 
-		kernel, err := client.Kernels().Get(vm.Spec.Kernel.UID)
+		kernel, err := client.Kernels().Get(vm.Status.Kernel.UID)
 		if err != nil {
 			return fmt.Errorf("failed to load kernel metadata for %s %q: %v", vm.GetKind(), vm.GetUID(), err)
 		}

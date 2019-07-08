@@ -13,13 +13,13 @@ type Image struct {
 	// ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
 	meta.ObjectMeta `json:"metadata"`
 
-	Spec ImageSpec `json:"spec"`
-	//Status ImageStatus `json:"status"`
+	Spec   ImageSpec   `json:"spec"`
+	Status ImageStatus `json:"status"`
 }
 
 // ImageSpec declares what the image contains
 type ImageSpec struct {
-	Source ImageSource `json:"source"`
+	OCIClaim OCIImageClaim `json:"ociClaim"`
 }
 
 // ImageSourceType is an enum of different supported Image Source Types
@@ -30,23 +30,37 @@ const (
 	ImageSourceTypeDocker ImageSourceType = "Docker"
 )
 
-// ImageSource defines where the image was imported from
-type ImageSource struct {
-	// Type defines how the image was imported
+// OCIImageClaim defines a claim for importing an OCI image
+type OCIImageClaim struct {
+	// Type defines how the image should be imported
 	Type ImageSourceType `json:"type"`
+	// Ref defines the reference to use when talking to the backend.
+	// This is most commonly the image name, followed by a tag.
+	// Other supported ways are $registry/$user/$image@sha256:$digest
+	// This ref is also used as ObjectMeta.Name for kinds Images and Kernels
+	Ref string `json:"ref"`
+}
+
+// OCIImageSource specifies how the OCI image was imported.
+// It is the status variant of OCIImageClaim
+type OCIImageSource struct {
 	// ID defines the source's ID (e.g. the Docker image ID)
 	ID string `json:"id"`
-	// Name defines the user-friendly name of the imported source
-	Name string `json:"name"`
 	// Size defines the size of the source in bytes
 	Size meta.Size `json:"size"`
+	// RepoDigests defines the image name as it was when pulled
+	// from a repository, and the digest of the image
+	// The format is $registry/$user/$image@sha256:$digest
+	// This field is unpopulated if the image used as the source
+	// has never been pushed to or pulled from a registry
+	RepoDigests []string `json:"repoDigests,omitempty"`
 }
 
 // ImageStatus defines the status of the image
-//type ImageStatus struct {
-//	// LayerID points to the index of the device in the DM pool
-//	LayerID meta.DMID `json:"layerID"`
-//}
+type ImageStatus struct {
+	// OCISource contains the information about how this OCI image was imported
+	OCISource OCIImageSource `json:"ociSource"`
+}
 
 // Pool defines device mapper pool database
 // This file is managed by the snapshotter part of Ignite, and the file (existing as a singleton)
@@ -114,16 +128,21 @@ type Kernel struct {
 	// ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
 	meta.ObjectMeta `json:"metadata"`
 
-	Spec KernelSpec `json:"spec"`
-	//Status KernelStatus `json:"status"`
+	Spec   KernelSpec   `json:"spec"`
+	Status KernelStatus `json:"status"`
 }
 
 // KernelSpec describes the properties of a kernel
 type KernelSpec struct {
-	Version string      `json:"version"`
-	Source  ImageSource `json:"source"`
+	OCIClaim OCIImageClaim `json:"ociClaim"`
 	// Optional future feature, support per-kernel specific default command lines
 	// DefaultCmdLine string
+}
+
+// KernelStatus describes the status of a kernel
+type KernelStatus struct {
+	Version   string         `json:"version"`
+	OCISource OCIImageSource `json:"ociSource"`
 }
 
 // VM represents a virtual machine run by Firecracker
@@ -142,9 +161,8 @@ type VM struct {
 
 // VMSpec describes the configuration of a VM
 type VMSpec struct {
-	Image *ImageClaim `json:"image"`
-	// TODO: Temporary ID for the old metadata handling
-	Kernel      KernelClaim       `json:"kernel"`
+	Image       VMImageSpec       `json:"image"`
+	Kernel      VMKernelSpec      `json:"kernel"`
 	CPUs        uint64            `json:"cpus"`
 	Memory      meta.Size         `json:"memory"`
 	DiskSize    meta.Size         `json:"diskSize"`
@@ -161,18 +179,13 @@ type VMSpec struct {
 	SSH *SSH `json:"ssh,omitempty"`
 }
 
-// ImageClaim specifies a claim to import an image
-type ImageClaim struct {
-	Type ImageSourceType `json:"type"`
-	Ref  string          `json:"ref"`
-	// TODO: Temporary ID for the old metadata handling
-	UID meta.UID `json:"uid"`
+type VMImageSpec struct {
+	OCIClaim *OCIImageClaim `json:"ociClaim"`
 }
 
-// TODO: Temporary helper for the old metadata handling
-type KernelClaim struct {
-	UID     meta.UID `json:"uid"`
-	CmdLine string   `json:"cmdLine,omitempty"`
+type VMKernelSpec struct {
+	OCIClaim *OCIImageClaim `json:"ociClaim"`
+	CmdLine  string         `json:"cmdLine,omitempty"`
 }
 
 // FileMapping defines mappings between files on the host and VM
@@ -209,5 +222,14 @@ const (
 // VMStatus defines the status of a VM
 type VMStatus struct {
 	State       VMState          `json:"state"`
-	IPAddresses meta.IPAddresses `json:"ipAddresses"`
+	IPAddresses meta.IPAddresses `json:"ipAddresses,omitempty"`
+	Image       VMImageSource    `json:"image"`
+	Kernel      VMImageSource    `json:"kernel"`
+}
+
+// VMImageSource is a temporary wrapper around OCIImageSource to allow
+// passing the old UID for internal purposes
+type VMImageSource struct {
+	OCIImageSource `json:",inline"`
+	UID            meta.UID `json:"internalUID"`
 }

@@ -5,15 +5,14 @@ import (
 	"io"
 	"os"
 
+	"github.com/lithammer/dedent"
+	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/imgcmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/kerncmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/util"
-
-	"github.com/lithammer/dedent"
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 // NewIgniteCommand returns the root command for ignite
@@ -58,9 +57,9 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 
 			Example usage:
 
-				$ ignite run weaveworks/ignite-ubuntu \
+				$ ignite run centos:7 \
 					--cpus 2 \
-					--memory 1024 \
+					--memory 2GB \
 					--ssh \
 					--name my-vm
 				$ ignite images

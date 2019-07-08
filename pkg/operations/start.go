@@ -24,7 +24,7 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 	}
 
 	vmDir := filepath.Join(constants.VM_DIR, vm.GetUID().String())
-	kernelDir := filepath.Join(constants.KERNEL_DIR, vm.Spec.Kernel.UID.String())
+	kernelDir := filepath.Join(constants.KERNEL_DIR, vm.Status.Kernel.UID.String())
 
 	dockerArgs := []string{
 		"-itd",

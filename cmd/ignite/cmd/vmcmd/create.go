@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
@@ -16,13 +17,12 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 	cf := run.NewCreateFlags()
 
 	cmd := &cobra.Command{
-		Use:   "create <image>",
+		Use:   "create <OCI image>",
 		Short: "Create a new VM without starting it",
 		Long: dedent.Dedent(`
 			Create a new VM by combining the given image and kernel.
-			Various VM tunables can be set during creation by using
-			the flags for this command. The image and kernel are
-			matched by prefix based on their ID and name.
+			Various configuration options can be set during creation by using
+			the flags for this command.
 			
 			If the name flag (-n, --name) is not specified,
 			the VM is given a random name. Using the copy files
@@ -30,10 +30,11 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 			the VM during creation with the syntax /host/path:/vm/path.
 
 			Example usage:
-				$ ignite create my-image my-kernel \
+				$ ignite create centos:7 \
 					--name my-vm \
 					--cpus 2 \
-					--memory 2048 \
+					--ssh \
+					--memory 2GB \
 					--size 6GB
 		`),
 		Args: cobra.RangeArgs(0, 1),
@@ -60,7 +61,7 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	cmdutil.SizeVar(fs, &cf.VM.Spec.Memory, "memory", cf.VM.Spec.Memory, "Amount of RAM to allocate for the VM")
 	cmdutil.SizeVarP(fs, &cf.VM.Spec.DiskSize, "size", "s", cf.VM.Spec.DiskSize, "VM filesystem size, for example 5GB or 2048MB")
 	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", nil, "Copy files from the host to the created VM")
-	fs.StringVarP(&cf.KernelName, "kernel", "k", "", "Specify a kernel to use. By default this equals the image name")
+	fs.StringVarP(&cf.KernelClaimRef, "kernel-image", "k", constants.DEFAULT_KERNEL_IMAGE, "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
 	fs.StringVar(&cf.VM.Spec.Kernel.CmdLine, "kernel-args", cf.VM.Spec.Kernel.CmdLine, "Set the command line for the kernel")
 
 	cf.SSH = &run.SSHFlag{}

@@ -1,12 +1,8 @@
 package run
 
 import (
-	"fmt"
-
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
-
-	"github.com/c2h5oh/datasize"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -34,14 +30,9 @@ func Kernels(ko *kernelsOptions) error {
 	o := util.NewOutput()
 	defer o.Flush()
 
-	o.Write("KERNEL ID", "CREATED", "SIZE", "NAME")
-	for _, md := range ko.allKernels {
-		size, err := md.Size()
-		if err != nil {
-			return fmt.Errorf("failed to get size for %s %q: %v", md.GetKind(), md.GetUID(), err)
-		}
-
-		o.Write(md.GetUID(), md.Created, datasize.ByteSize(size).HR(), md.GetName())
+	o.Write("KERNEL ID", "NAME", "CREATED", "SIZE", "VERSION")
+	for _, kernel := range ko.allKernels {
+		o.Write(kernel.GetUID(), kernel.GetName(), kernel.GetCreated(), kernel.Status.OCISource.Size.String(), kernel.Status.Version)
 	}
 
 	return nil
