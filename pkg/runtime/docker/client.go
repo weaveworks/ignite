@@ -37,9 +37,9 @@ func (dc *dockerClient) InspectImage(image string) (*runtime.ImageInspectResult,
 		return nil, err
 	}
 	return &runtime.ImageInspectResult{
-		ID:    res.ID,
-		Names: res.RepoTags,
-		Size:  res.Size,
+		ID:          res.ID,
+		RepoDigests: res.RepoDigests,
+		Size:        res.Size,
 	}, nil
 }
 

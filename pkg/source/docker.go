@@ -30,7 +30,7 @@ func (ds *DockerSource) ID() string {
 	return ds.imageID
 }
 
-func (ds *DockerSource) Parse(source string) (*api.ImageSource, error) {
+func (ds *DockerSource) Parse(source string) (*api.OCIImageSource, error) {
 	client, err := docker.GetDockerClient()
 	if err != nil {
 		return nil, err
@@ -52,16 +52,15 @@ func (ds *DockerSource) Parse(source string) (*api.ImageSource, error) {
 		}
 	}
 
-	if res.Size == 0 || len(res.ID) == 0 || len(res.Names) == 0 {
+	if res.Size == 0 || len(res.ID) == 0 || len(res.RepoDigests) == 0 {
 		return nil, fmt.Errorf("parsing docker image %q data failed", source)
 	}
 
 	ds.imageID = res.ID
-	return &api.ImageSource{
-		Type: api.ImageSourceTypeDocker,
-		ID:   res.ID,
-		Name: res.Names[0],
-		Size: meta.NewSizeFromBytes(uint64(res.Size)),
+	return &api.OCIImageSource{
+		ID:          res.ID,
+		RepoDigests: res.RepoDigests,
+		Size:        meta.NewSizeFromBytes(uint64(res.Size)),
 	}, nil
 }
 

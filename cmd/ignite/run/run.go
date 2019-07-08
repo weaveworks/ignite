@@ -25,7 +25,7 @@ func (rf *RunFlags) NewRunOptions(args []string) (*runOptions, error) {
 		return nil, err
 	}
 
-	imageName := rf.VM.Spec.Image.Ref
+	imageName := rf.VM.Spec.Image.OCIClaim.Ref
 
 	// Logic to import the image if it doesn't exist
 	if _, err := client.Images().Find(filter.NewIDNameFilter(imageName)); err != nil { // TODO: Use this match in create?

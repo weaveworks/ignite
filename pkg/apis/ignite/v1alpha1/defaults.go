@@ -10,7 +10,7 @@ func addDefaultingFuncs(scheme *runtime.Scheme) error {
 	return RegisterDefaults(scheme)
 }
 
-func SetDefaults_ImageSource(obj *ImageSource) {
+func SetDefaults_OCIImageClaim(obj *OCIImageClaim) {
 	obj.Type = ImageSourceTypeDocker
 }
 
@@ -54,7 +54,7 @@ func SetDefaults_VMSpec(obj *VMSpec) {
 	}
 }
 
-func SetDefaults_KernelClaim(obj *KernelClaim) {
+func SetDefaults_VMKernelSpec(obj *VMKernelSpec) {
 	if len(obj.CmdLine) == 0 {
 		obj.CmdLine = constants.VM_DEFAULT_KERNEL_ARGS
 	}

@@ -3,9 +3,9 @@ package runtime
 import "io"
 
 type ImageInspectResult struct {
-	ID    string
-	Names []string
-	Size  int64
+	ID          string
+	RepoDigests []string
+	Size        int64
 }
 
 type Interface interface {
