@@ -17,23 +17,24 @@
 ## <a name="pkg-index">Index</a>
 * [Constants](#pkg-constants)
 * [Variables](#pkg-variables)
-* [func SetDefaults_ImageSource(obj *ImageSource)](#SetDefaults_ImageSource)
-* [func SetDefaults_KernelClaim(obj *KernelClaim)](#SetDefaults_KernelClaim)
+* [func SetDefaults_OCIImageClaim(obj *OCIImageClaim)](#SetDefaults_OCIImageClaim)
 * [func SetDefaults_PoolSpec(obj *PoolSpec)](#SetDefaults_PoolSpec)
+* [func SetDefaults_VMKernelSpec(obj *VMKernelSpec)](#SetDefaults_VMKernelSpec)
 * [func SetDefaults_VMSpec(obj *VMSpec)](#SetDefaults_VMSpec)
 * [func SetDefaults_VMStatus(obj *VMStatus)](#SetDefaults_VMStatus)
 * [func ValidateNetworkMode(mode NetworkMode) error](#ValidateNetworkMode)
 * [type FileMapping](#FileMapping)
 * [type Image](#Image)
-* [type ImageClaim](#ImageClaim)
-* [type ImageSource](#ImageSource)
 * [type ImageSourceType](#ImageSourceType)
 * [type ImageSpec](#ImageSpec)
+* [type ImageStatus](#ImageStatus)
 * [type Kernel](#Kernel)
-* [type KernelClaim](#KernelClaim)
 * [type KernelSpec](#KernelSpec)
+* [type KernelStatus](#KernelStatus)
 * [type NetworkMode](#NetworkMode)
   * [func GetNetworkModes() []NetworkMode](#GetNetworkModes)
+* [type OCIImageClaim](#OCIImageClaim)
+* [type OCIImageSource](#OCIImageSource)
 * [type Pool](#Pool)
 * [type PoolDevice](#PoolDevice)
 * [type PoolDeviceType](#PoolDeviceType)
@@ -41,6 +42,9 @@
 * [type PoolStatus](#PoolStatus)
 * [type SSH](#SSH)
 * [type VM](#VM)
+* [type VMImageSource](#VMImageSource)
+* [type VMImageSpec](#VMImageSpec)
+* [type VMKernelSpec](#VMKernelSpec)
 * [type VMSpec](#VMSpec)
 * [type VMState](#VMState)
 * [type VMStatus](#VMStatus)
@@ -89,31 +93,31 @@ SchemeGroupVersion is group version used to register these objects
 
 
 
-## <a name="SetDefaults_ImageSource">func</a> [SetDefaults_ImageSource](/src/target/defaults.go?s=263:309#L13)
+## <a name="SetDefaults_OCIImageClaim">func</a> [SetDefaults_OCIImageClaim](/src/target/defaults.go?s=263:313#L13)
 ``` go
-func SetDefaults_ImageSource(obj *ImageSource)
+func SetDefaults_OCIImageClaim(obj *OCIImageClaim)
 ```
 
 
-## <a name="SetDefaults_KernelClaim">func</a> [SetDefaults_KernelClaim](/src/target/defaults.go?s=1311:1357#L57)
-``` go
-func SetDefaults_KernelClaim(obj *KernelClaim)
-```
-
-
-## <a name="SetDefaults_PoolSpec">func</a> [SetDefaults_PoolSpec](/src/target/defaults.go?s=349:389#L17)
+## <a name="SetDefaults_PoolSpec">func</a> [SetDefaults_PoolSpec](/src/target/defaults.go?s=353:393#L17)
 ``` go
 func SetDefaults_PoolSpec(obj *PoolSpec)
 ```
 
 
-## <a name="SetDefaults_VMSpec">func</a> [SetDefaults_VMSpec](/src/target/defaults.go?s=915:951#L39)
+## <a name="SetDefaults_VMKernelSpec">func</a> [SetDefaults_VMKernelSpec](/src/target/defaults.go?s=1315:1363#L57)
+``` go
+func SetDefaults_VMKernelSpec(obj *VMKernelSpec)
+```
+
+
+## <a name="SetDefaults_VMSpec">func</a> [SetDefaults_VMSpec](/src/target/defaults.go?s=919:955#L39)
 ``` go
 func SetDefaults_VMSpec(obj *VMSpec)
 ```
 
 
-## <a name="SetDefaults_VMStatus">func</a> [SetDefaults_VMStatus](/src/target/defaults.go?s=1443:1483#L63)
+## <a name="SetDefaults_VMStatus">func</a> [SetDefaults_VMStatus](/src/target/defaults.go?s=1449:1489#L63)
 ``` go
 func SetDefaults_VMStatus(obj *VMStatus)
 ```
@@ -129,7 +133,7 @@ TODO: This should move into a dedicated validation package
 
 
 
-## <a name="FileMapping">type</a> [FileMapping](/src/target/types.go?s=6757:6852#L179)
+## <a name="FileMapping">type</a> [FileMapping](/src/target/types.go?s=7370:7465#L192)
 ``` go
 type FileMapping struct {
     HostPath string `json:"hostPath"`
@@ -148,7 +152,7 @@ FileMapping defines mappings between files on the host and VM
 
 
 
-## <a name="Image">type</a> [Image](/src/target/types.go?s=229:691#L9)
+## <a name="Image">type</a> [Image](/src/target/types.go?s=229:693#L9)
 ``` go
 type Image struct {
     meta.TypeMeta `json:",inline"`
@@ -157,7 +161,8 @@ type Image struct {
     // ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
     meta.ObjectMeta `json:"metadata"`
 
-    Spec ImageSpec `json:"spec"`
+    Spec   ImageSpec   `json:"spec"`
+    Status ImageStatus `json:"status"`
 }
 
 ```
@@ -173,53 +178,7 @@ Image represents a cached OCI image ready to be used with Ignite
 
 
 
-## <a name="ImageClaim">type</a> [ImageClaim](/src/target/types.go?s=6352:6529#L165)
-``` go
-type ImageClaim struct {
-    Type ImageSourceType `json:"type"`
-    Ref  string          `json:"ref"`
-    // TODO: Temporary ID for the old metadata handling
-    UID meta.UID `json:"uid"`
-}
-
-```
-ImageClaim specifies a claim to import an image
-
-
-
-
-
-
-
-
-
-
-## <a name="ImageSource">type</a> [ImageSource](/src/target/types.go?s=1094:1451#L34)
-``` go
-type ImageSource struct {
-    // Type defines how the image was imported
-    Type ImageSourceType `json:"type"`
-    // ID defines the source's ID (e.g. the Docker image ID)
-    ID string `json:"id"`
-    // Name defines the user-friendly name of the imported source
-    Name string `json:"name"`
-    // Size defines the size of the source in bytes
-    Size meta.Size `json:"size"`
-}
-
-```
-ImageSource defines where the image was imported from
-
-
-
-
-
-
-
-
-
-
-## <a name="ImageSourceType">type</a> [ImageSourceType](/src/target/types.go?s=874:901#L26)
+## <a name="ImageSourceType">type</a> [ImageSourceType](/src/target/types.go?s=882:909#L26)
 ``` go
 type ImageSourceType string
 ```
@@ -241,10 +200,10 @@ const (
 
 
 
-## <a name="ImageSpec">type</a> [ImageSpec](/src/target/types.go?s=739:800#L21)
+## <a name="ImageSpec">type</a> [ImageSpec](/src/target/types.go?s=741:808#L21)
 ``` go
 type ImageSpec struct {
-    Source ImageSource `json:"source"`
+    OCIClaim OCIImageClaim `json:"ociClaim"`
 }
 
 ```
@@ -259,7 +218,26 @@ ImageSpec declares what the image contains
 
 
 
-## <a name="Kernel">type</a> [Kernel](/src/target/types.go?s=4011:4476#L110)
+## <a name="ImageStatus">type</a> [ImageStatus](/src/target/types.go?s=2197:2346#L60)
+``` go
+type ImageStatus struct {
+    // OCISource contains the information about how this OCI image was imported
+    OCISource OCIImageSource `json:"ociSource"`
+}
+
+```
+ImageStatus defines the status of the image
+
+
+
+
+
+
+
+
+
+
+## <a name="Kernel">type</a> [Kernel](/src/target/types.go?s=4725:5192#L124)
 ``` go
 type Kernel struct {
     meta.TypeMeta `json:",inline"`
@@ -268,7 +246,8 @@ type Kernel struct {
     // ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)
     meta.ObjectMeta `json:"metadata"`
 
-    Spec KernelSpec `json:"spec"`
+    Spec   KernelSpec   `json:"spec"`
+    Status KernelStatus `json:"status"`
 }
 
 ```
@@ -285,30 +264,11 @@ This file is stored in /var/lib/firecracker/kernels/{oci-image-digest}/metadata.
 
 
 
-## <a name="KernelClaim">type</a> [KernelClaim](/src/target/types.go?s=6587:6690#L173)
-``` go
-type KernelClaim struct {
-    UID     meta.UID `json:"uid"`
-    CmdLine string   `json:"cmdLine,omitempty"`
-}
-
-```
-TODO: Temporary helper for the old metadata handling
-
-
-
-
-
-
-
-
-
-
-## <a name="KernelSpec">type</a> [KernelSpec](/src/target/types.go?s=4529:4735#L122)
+## <a name="KernelSpec">type</a> [KernelSpec](/src/target/types.go?s=5245:5459#L136)
 ``` go
 type KernelSpec struct {
-    Version string      `json:"version"`
-    Source  ImageSource `json:"source"`
+    Version  string        `json:"version"`
+    OCIClaim OCIImageClaim `json:"ociClaim"`
 }
 
 ```
@@ -323,7 +283,25 @@ KernelSpec describes the properties of a kernel
 
 
 
-## <a name="NetworkMode">type</a> [NetworkMode](/src/target/types.go?s=7038:7061#L190)
+## <a name="KernelStatus">type</a> [KernelStatus](/src/target/types.go?s=5510:5583#L144)
+``` go
+type KernelStatus struct {
+    OCISource OCIImageSource `json:"ociSource"`
+}
+
+```
+KernelStatus describes the status of a kernel
+
+
+
+
+
+
+
+
+
+
+## <a name="NetworkMode">type</a> [NetworkMode](/src/target/types.go?s=7651:7674#L203)
 ``` go
 type NetworkMode string
 ```
@@ -354,7 +332,59 @@ GetNetworkModes gets the list of available network modes
 
 
 
-## <a name="Pool">type</a> [Pool](/src/target/types.go?s=1907:2087#L55)
+## <a name="OCIImageClaim">type</a> [OCIImageClaim](/src/target/types.go?s=1105:1513#L34)
+``` go
+type OCIImageClaim struct {
+    // Type defines how the image should be imported
+    Type ImageSourceType `json:"type"`
+    // Ref defines the reference to use when talking to the backend.
+    // This is most commonly the image name, followed by a tag.
+    // Other supported ways are $registry/$user/$image@sha256:$digest
+    // This ref is also used as ObjectMeta.Name for kinds Images and Kernels
+    Ref string `json:"ref"`
+}
+
+```
+OCIImageClaim defines a claim for importing an OCI image
+
+
+
+
+
+
+
+
+
+
+## <a name="OCIImageSource">type</a> [OCIImageSource](/src/target/types.go?s=1620:2148#L46)
+``` go
+type OCIImageSource struct {
+    // ID defines the source's ID (e.g. the Docker image ID)
+    ID string `json:"id"`
+    // Size defines the size of the source in bytes
+    Size meta.Size `json:"size"`
+    // RepoDigests defines the image name as it was when pulled
+    // from a repository, and the digest of the image
+    // The format is $registry/$user/$image@sha256:$digest
+    // This field is unpopulated if the image used as the source
+    // has never been pushed to or pulled from a registry
+    RepoDigests []string `json:"repoDigests,omitempty"`
+}
+
+```
+OCIImageSource specifies how the OCI image was imported.
+It is the status variant of OCIImageClaim
+
+
+
+
+
+
+
+
+
+
+## <a name="Pool">type</a> [Pool](/src/target/types.go?s=2621:2801#L69)
 ``` go
 type Pool struct {
     meta.TypeMeta `json:",inline"`
@@ -378,7 +408,7 @@ is present at /var/lib/firecracker/snapshotter/pool.json
 
 
 
-## <a name="PoolDevice">type</a> [PoolDevice](/src/target/types.go?s=3378:3768#L97)
+## <a name="PoolDevice">type</a> [PoolDevice](/src/target/types.go?s=4092:4482#L111)
 ``` go
 type PoolDevice struct {
     Size   meta.Size `json:"size"`
@@ -402,7 +432,7 @@ PoolDevice defines one device in the pool
 
 
 
-## <a name="PoolDeviceType">type</a> [PoolDeviceType](/src/target/types.go?s=3107:3133#L87)
+## <a name="PoolDeviceType">type</a> [PoolDeviceType](/src/target/types.go?s=3821:3847#L101)
 ``` go
 type PoolDeviceType string
 ```
@@ -424,7 +454,7 @@ const (
 
 
 
-## <a name="PoolSpec">type</a> [PoolSpec](/src/target/types.go?s=2134:2847#L65)
+## <a name="PoolSpec">type</a> [PoolSpec](/src/target/types.go?s=2848:3561#L79)
 ``` go
 type PoolSpec struct {
     // MetadataSize specifies the size of the pool's metadata
@@ -453,7 +483,7 @@ PoolSpec defines the Pool's specification
 
 
 
-## <a name="PoolStatus">type</a> [PoolStatus](/src/target/types.go?s=2897:3105#L81)
+## <a name="PoolStatus">type</a> [PoolStatus](/src/target/types.go?s=3611:3819#L95)
 ``` go
 type PoolStatus struct {
     // The Devices array needs to contain pointers to accommodate "holes" in the mapping
@@ -473,7 +503,7 @@ PoolStatus defines the Pool's current status
 
 
 
-## <a name="SSH">type</a> [SSH](/src/target/types.go?s=6915:6981#L185)
+## <a name="SSH">type</a> [SSH](/src/target/types.go?s=7528:7594#L198)
 ``` go
 type SSH struct {
     PublicKey string `json:"publicKey,omitempty"`
@@ -491,7 +521,7 @@ SSH specifies different ways to connect via SSH to the VM
 
 
 
-## <a name="VM">type</a> [VM](/src/target/types.go?s=4937:5392#L132)
+## <a name="VM">type</a> [VM](/src/target/types.go?s=5785:6240#L151)
 ``` go
 type VM struct {
     meta.TypeMeta `json:",inline"`
@@ -518,12 +548,64 @@ These files are stored in /var/lib/firecracker/vm/{vm-id}/metadata.json
 
 
 
-## <a name="VMSpec">type</a> [VMSpec](/src/target/types.go?s=5440:6299#L144)
+## <a name="VMImageSource">type</a> [VMImageSource](/src/target/types.go?s=8566:8674#L232)
+``` go
+type VMImageSource struct {
+    OCIImageSource `json:",inline"`
+    UID            meta.UID `json:"internalUID"`
+}
+
+```
+VMImageSource is a temporary wrapper around OCIImageSource to allow
+passing the old UID for internal purposes
+
+
+
+
+
+
+
+
+
+
+## <a name="VMImageSpec">type</a> [VMImageSpec](/src/target/types.go?s=7108:7178#L182)
+``` go
+type VMImageSpec struct {
+    OCIClaim *OCIImageClaim `json:"ociClaim"`
+}
+
+```
+
+
+
+
+
+
+
+
+
+## <a name="VMKernelSpec">type</a> [VMKernelSpec](/src/target/types.go?s=7180:7303#L186)
+``` go
+type VMKernelSpec struct {
+    OCIClaim *OCIImageClaim `json:"ociClaim"`
+    CmdLine  string         `json:"cmdLine,omitempty"`
+}
+
+```
+
+
+
+
+
+
+
+
+
+## <a name="VMSpec">type</a> [VMSpec](/src/target/types.go?s=6288:7106#L163)
 ``` go
 type VMSpec struct {
-    Image *ImageClaim `json:"image"`
-    // TODO: Temporary ID for the old metadata handling
-    Kernel      KernelClaim       `json:"kernel"`
+    Image       VMImageSpec       `json:"image"`
+    Kernel      VMKernelSpec      `json:"kernel"`
     CPUs        uint64            `json:"cpus"`
     Memory      meta.Size         `json:"memory"`
     DiskSize    meta.Size         `json:"diskSize"`
@@ -552,7 +634,7 @@ VMSpec describes the configuration of a VM
 
 
 
-## <a name="VMState">type</a> [VMState](/src/target/types.go?s=7435:7454#L201)
+## <a name="VMState">type</a> [VMState](/src/target/types.go?s=8048:8067#L214)
 ``` go
 type VMState string
 ```
@@ -575,11 +657,13 @@ const (
 
 
 
-## <a name="VMStatus">type</a> [VMStatus](/src/target/types.go?s=7614:7734#L210)
+## <a name="VMStatus">type</a> [VMStatus](/src/target/types.go?s=8227:8448#L223)
 ``` go
 type VMStatus struct {
     State       VMState          `json:"state"`
-    IPAddresses meta.IPAddresses `json:"ipAddresses"`
+    IPAddresses meta.IPAddresses `json:"ipAddresses,omitempty"`
+    Image       VMImageSource    `json:"image"`
+    Kernel      VMImageSource    `json:"kernel"`
 }
 
 ```

@@ -13,29 +13,33 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.FileMapping": schema_pkg_apis_ignite_v1alpha1_FileMapping(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.Image":       schema_pkg_apis_ignite_v1alpha1_Image(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageClaim":  schema_pkg_apis_ignite_v1alpha1_ImageClaim(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSource": schema_pkg_apis_ignite_v1alpha1_ImageSource(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSpec":   schema_pkg_apis_ignite_v1alpha1_ImageSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.Kernel":      schema_pkg_apis_ignite_v1alpha1_Kernel(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelClaim": schema_pkg_apis_ignite_v1alpha1_KernelClaim(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelSpec":  schema_pkg_apis_ignite_v1alpha1_KernelSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.Pool":        schema_pkg_apis_ignite_v1alpha1_Pool(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.PoolDevice":  schema_pkg_apis_ignite_v1alpha1_PoolDevice(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.PoolSpec":    schema_pkg_apis_ignite_v1alpha1_PoolSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.PoolStatus":  schema_pkg_apis_ignite_v1alpha1_PoolStatus(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.SSH":         schema_pkg_apis_ignite_v1alpha1_SSH(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VM":          schema_pkg_apis_ignite_v1alpha1_VM(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMSpec":      schema_pkg_apis_ignite_v1alpha1_VMSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMStatus":    schema_pkg_apis_ignite_v1alpha1_VMStatus(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.APIType":       schema_pkg_apis_meta_v1alpha1_APIType(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.DMID":          schema_pkg_apis_meta_v1alpha1_DMID(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta":    schema_pkg_apis_meta_v1alpha1_ObjectMeta(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.PortMapping":   schema_pkg_apis_meta_v1alpha1_PortMapping(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size":          schema_pkg_apis_meta_v1alpha1_Size(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Time":          schema_pkg_apis_meta_v1alpha1_Time(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.TypeMeta":      schema_pkg_apis_meta_v1alpha1_TypeMeta(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.FileMapping":    schema_pkg_apis_ignite_v1alpha1_FileMapping(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.Image":          schema_pkg_apis_ignite_v1alpha1_Image(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSpec":      schema_pkg_apis_ignite_v1alpha1_ImageSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageStatus":    schema_pkg_apis_ignite_v1alpha1_ImageStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.Kernel":         schema_pkg_apis_ignite_v1alpha1_Kernel(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelSpec":     schema_pkg_apis_ignite_v1alpha1_KernelSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelStatus":   schema_pkg_apis_ignite_v1alpha1_KernelStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageClaim":  schema_pkg_apis_ignite_v1alpha1_OCIImageClaim(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageSource": schema_pkg_apis_ignite_v1alpha1_OCIImageSource(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.Pool":           schema_pkg_apis_ignite_v1alpha1_Pool(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.PoolDevice":     schema_pkg_apis_ignite_v1alpha1_PoolDevice(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.PoolSpec":       schema_pkg_apis_ignite_v1alpha1_PoolSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.PoolStatus":     schema_pkg_apis_ignite_v1alpha1_PoolStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.SSH":            schema_pkg_apis_ignite_v1alpha1_SSH(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VM":             schema_pkg_apis_ignite_v1alpha1_VM(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSource":  schema_pkg_apis_ignite_v1alpha1_VMImageSource(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSpec":    schema_pkg_apis_ignite_v1alpha1_VMImageSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMKernelSpec":   schema_pkg_apis_ignite_v1alpha1_VMKernelSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMSpec":         schema_pkg_apis_ignite_v1alpha1_VMSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMStatus":       schema_pkg_apis_ignite_v1alpha1_VMStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.APIType":          schema_pkg_apis_meta_v1alpha1_APIType(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.DMID":             schema_pkg_apis_meta_v1alpha1_DMID(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta":       schema_pkg_apis_meta_v1alpha1_ObjectMeta(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.PortMapping":      schema_pkg_apis_meta_v1alpha1_PortMapping(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size":             schema_pkg_apis_meta_v1alpha1_Size(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Time":             schema_pkg_apis_meta_v1alpha1_Time(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.TypeMeta":         schema_pkg_apis_meta_v1alpha1_TypeMeta(ref),
 	}
 }
 
@@ -88,87 +92,17 @@ func schema_pkg_apis_ignite_v1alpha1_Image(ref common.ReferenceCallback) common.
 							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSpec"),
 						},
 					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageStatus"),
+						},
+					},
 				},
-				Required: []string{"TypeMeta", "metadata", "spec"},
+				Required: []string{"TypeMeta", "metadata", "spec", "status"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSpec", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
-	}
-}
-
-func schema_pkg_apis_ignite_v1alpha1_ImageClaim(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "ImageClaim specifies a claim to import an image",
-				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"type": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"ref": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"uid": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-				},
-				Required: []string{"type", "ref", "uid"},
-			},
-		},
-	}
-}
-
-func schema_pkg_apis_ignite_v1alpha1_ImageSource(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "ImageSource defines where the image was imported from",
-				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"type": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Type defines how the image was imported",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"id": {
-						SchemaProps: spec.SchemaProps{
-							Description: "ID defines the source's ID (e.g. the Docker image ID)",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"name": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Name defines the user-friendly name of the imported source",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"size": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Size defines the size of the source in bytes",
-							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"),
-						},
-					},
-				},
-				Required: []string{"type", "id", "name", "size"},
-			},
-		},
-		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageStatus", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -179,17 +113,39 @@ func schema_pkg_apis_ignite_v1alpha1_ImageSpec(ref common.ReferenceCallback) com
 				Description: "ImageSpec declares what the image contains",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"source": {
+					"ociClaim": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSource"),
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageClaim"),
 						},
 					},
 				},
-				Required: []string{"source"},
+				Required: []string{"ociClaim"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSource"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageClaim"},
+	}
+}
+
+func schema_pkg_apis_ignite_v1alpha1_ImageStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ImageStatus defines the status of the image",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"ociSource": {
+						SchemaProps: spec.SchemaProps{
+							Description: "OCISource contains the information about how this OCI image was imported",
+							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageSource"),
+						},
+					},
+				},
+				Required: []string{"ociSource"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageSource"},
 	}
 }
 
@@ -216,37 +172,17 @@ func schema_pkg_apis_ignite_v1alpha1_Kernel(ref common.ReferenceCallback) common
 							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelSpec"),
 						},
 					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelStatus"),
+						},
+					},
 				},
-				Required: []string{"TypeMeta", "metadata", "spec"},
+				Required: []string{"TypeMeta", "metadata", "spec", "status"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelSpec", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
-	}
-}
-
-func schema_pkg_apis_ignite_v1alpha1_KernelClaim(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"uid": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"cmdLine": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-				},
-				Required: []string{"uid"},
-			},
-		},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelStatus", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -263,17 +199,109 @@ func schema_pkg_apis_ignite_v1alpha1_KernelSpec(ref common.ReferenceCallback) co
 							Format: "",
 						},
 					},
-					"source": {
+					"ociClaim": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSource"),
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageClaim"),
 						},
 					},
 				},
-				Required: []string{"version", "source"},
+				Required: []string{"version", "ociClaim"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSource"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageClaim"},
+	}
+}
+
+func schema_pkg_apis_ignite_v1alpha1_KernelStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "KernelStatus describes the status of a kernel",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"ociSource": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageSource"),
+						},
+					},
+				},
+				Required: []string{"ociSource"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageSource"},
+	}
+}
+
+func schema_pkg_apis_ignite_v1alpha1_OCIImageClaim(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "OCIImageClaim defines a claim for importing an OCI image",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"type": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Type defines how the image should be imported",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"ref": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Ref defines the reference to use when talking to the backend. This is most commonly the image name, followed by a tag. Other supported ways are $registry/$user/$image@sha256:$digest This ref is also used as ObjectMeta.Name for kinds Images and Kernels",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+				Required: []string{"type", "ref"},
+			},
+		},
+	}
+}
+
+func schema_pkg_apis_ignite_v1alpha1_OCIImageSource(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "OCIImageSource specifies how the OCI image was imported. It is the status variant of OCIImageClaim",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"id": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ID defines the source's ID (e.g. the Docker image ID)",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"size": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Size defines the size of the source in bytes",
+							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"),
+						},
+					},
+					"repoDigests": {
+						SchemaProps: spec.SchemaProps{
+							Description: "RepoDigests defines the image name as it was when pulled from a repository, and the digest of the image The format is $registry/$user/$image@sha256:$digest This field is unpopulated if the image used as the source has never been pushed to or pulled from a registry",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"id", "size"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
 	}
 }
 
@@ -481,6 +509,101 @@ func schema_pkg_apis_ignite_v1alpha1_VM(ref common.ReferenceCallback) common.Ope
 	}
 }
 
+func schema_pkg_apis_ignite_v1alpha1_VMImageSource(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "VMImageSource is a temporary wrapper around OCIImageSource to allow passing the old UID for internal purposes",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"id": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ID defines the source's ID (e.g. the Docker image ID)",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"size": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Size defines the size of the source in bytes",
+							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"),
+						},
+					},
+					"repoDigests": {
+						SchemaProps: spec.SchemaProps{
+							Description: "RepoDigests defines the image name as it was when pulled from a repository, and the digest of the image The format is $registry/$user/$image@sha256:$digest This field is unpopulated if the image used as the source has never been pushed to or pulled from a registry",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"internalUID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"id", "size", "internalUID"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
+	}
+}
+
+func schema_pkg_apis_ignite_v1alpha1_VMImageSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"ociClaim": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageClaim"),
+						},
+					},
+				},
+				Required: []string{"ociClaim"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageClaim"},
+	}
+}
+
+func schema_pkg_apis_ignite_v1alpha1_VMKernelSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"ociClaim": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageClaim"),
+						},
+					},
+					"cmdLine": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"ociClaim"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageClaim"},
+	}
+}
+
 func schema_pkg_apis_ignite_v1alpha1_VMSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -490,12 +613,12 @@ func schema_pkg_apis_ignite_v1alpha1_VMSpec(ref common.ReferenceCallback) common
 				Properties: map[string]spec.Schema{
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageClaim"),
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSpec"),
 						},
 					},
 					"kernel": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelClaim"),
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMKernelSpec"),
 						},
 					},
 					"cpus": {
@@ -512,6 +635,12 @@ func schema_pkg_apis_ignite_v1alpha1_VMSpec(ref common.ReferenceCallback) common
 					"diskSize": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"),
+						},
+					},
+					"networkMode": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 					"ports": {
@@ -546,11 +675,11 @@ func schema_pkg_apis_ignite_v1alpha1_VMSpec(ref common.ReferenceCallback) common
 						},
 					},
 				},
-				Required: []string{"image", "kernel", "cpus", "memory", "diskSize"},
+				Required: []string{"image", "kernel", "cpus", "memory", "diskSize", "networkMode"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.FileMapping", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageClaim", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelClaim", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.SSH", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.PortMapping", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.FileMapping", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.SSH", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMKernelSpec", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.PortMapping", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
 	}
 }
 
@@ -580,10 +709,22 @@ func schema_pkg_apis_ignite_v1alpha1_VMStatus(ref common.ReferenceCallback) comm
 							},
 						},
 					},
+					"image": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSource"),
+						},
+					},
+					"kernel": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSource"),
+						},
+					},
 				},
-				Required: []string{"state", "ipAddresses"},
+				Required: []string{"state", "image", "kernel"},
 			},
 		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSource"},
 	}
 }
 
@@ -655,6 +796,34 @@ func schema_pkg_apis_meta_v1alpha1_ObjectMeta(ref common.ReferenceCallback) comm
 					"created": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Time"),
+						},
+					},
+					"labels": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"annotations": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
 				},
