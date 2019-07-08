@@ -10,8 +10,6 @@ import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/metadata"
-	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
-	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/storage/gitops"
@@ -127,24 +125,6 @@ func handleDelete(obj *meta.APIType) error {
 	return remove(obj)
 }
 
-// TODO: use a real filter here when ready
-func findImageByName(list []*api.Image, name string) *api.Image {
-	for _, obj := range list {
-		if obj.GetName() == name {
-			return obj
-		}
-	}
-	return nil
-}
-func findKernelByName(list []*api.Kernel, name string) *api.Kernel {
-	for _, obj := range list {
-		if obj.GetName() == name {
-			return obj
-		}
-	}
-	return nil
-}
-
 // TODO: Unify this with the "real" Create() method currently in cmd/
 func create(vm *api.VM) error {
 	log.Printf("Creating VM %q with name %q...", vm.GetUID(), vm.GetName())
@@ -169,41 +149,29 @@ func prepareVM(vm *api.VM) (*vmmd.VM, error) {
 		return nil, fmt.Errorf("vm must specify image to run! image is empty for vm %s", vm.GetUID())
 	}
 
+	var err error
 	imgName := vm.Spec.Image.OCIClaim.Ref
-	imgName, _ = metadata.NewNameWithLatest(imgName, meta.KindImage)
-	imgs, err := c.Images().List()
+	imgName, err = metadata.NewNameWithLatest(imgName, meta.KindImage)
 	if err != nil {
 		return nil, err
 	}
 
-	var runImg *imgmd.Image
-	img := findImageByName(imgs, imgName)
-	if img == nil {
-		if runImg, err = operations.ImportImage(imgName); err != nil {
-			return nil, fmt.Errorf("failed to import image %s %v", imgName, err)
-		}
-	} else {
-		if runImg, err = imgmd.NewImage(img.UID, &img.Name, img); err != nil {
-			return nil, err
-		}
-	}
-
-	// check if a kernel with this name already exists, or import it
-	kernels, err := c.Kernels().List()
+	// Check if a kernel with this name already exists, or import it
+	runImg, err := operations.FindOrImportImage(c, imgName)
 	if err != nil {
 		return nil, err
 	}
 
-	var runKernel *kernmd.Kernel
-	kernel := findKernelByName(kernels, imgName)
-	if kernel == nil {
-		if runKernel, err = operations.ImportKernelFromImage(runImg); err != nil {
-			return nil, fmt.Errorf("failed to import kernel %s %v", imgName, err)
-		}
-	} else {
-		if runKernel, err = kernmd.NewKernel(kernel.UID, &kernel.Name, kernel); err != nil {
-			return nil, err
-		}
+	kernelName := vm.Spec.Kernel.OCIClaim.Ref
+	kernelName, err = metadata.NewNameWithLatest(kernelName, meta.KindImage)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if a kernel with this name already exists, or import it
+	runKernel, err := operations.FindOrImportKernel(c, kernelName)
+	if err != nil {
+		return nil, err
 	}
 
 	// populate the image/kernel ID fields to use when running the VM
