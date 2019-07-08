@@ -58,6 +58,7 @@ func importImage(srcString string) (*imgmd.Image, error) {
 			OCISource: *src,
 		},
 	}
+
 	// Set defaults, and populate TypeMeta
 	// TODO: Make this more standardized; maybe a constructor method somewhere?
 	scheme.Scheme.Default(image)

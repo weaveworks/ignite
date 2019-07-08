@@ -20,10 +20,12 @@ func RegisterDefaults(scheme *runtime.Scheme) error {
 }
 
 func SetObjectDefaults_Image(in *Image) {
+	SetDefaults_Image(in)
 	SetDefaults_OCIImageClaim(&in.Spec.OCIClaim)
 }
 
 func SetObjectDefaults_Kernel(in *Kernel) {
+	SetDefaults_Kernel(in)
 	SetDefaults_OCIImageClaim(&in.Spec.OCIClaim)
 }
 
@@ -32,6 +34,7 @@ func SetObjectDefaults_Pool(in *Pool) {
 }
 
 func SetObjectDefaults_VM(in *VM) {
+	SetDefaults_VM(in)
 	SetDefaults_VMSpec(&in.Spec)
 	if in.Spec.Image.OCIClaim != nil {
 		SetDefaults_OCIImageClaim(in.Spec.Image.OCIClaim)
