@@ -17,8 +17,24 @@ const (
 // where .Name, .UID, .Kind and .APIVersion become easily available
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type APIType struct {
-	TypeMeta   `json:",inline"`
-	ObjectMeta `json:"metadata"`
+	*TypeMeta   `json:",inline"`
+	*ObjectMeta `json:"metadata"`
+}
+
+// This constructor ensures the APIType fields are not nil
+func NewAPIType() *APIType {
+	return &APIType{
+		&TypeMeta{},
+		&ObjectMeta{},
+	}
+}
+
+// APITypeFrom is used to create a bound APIType from an Object
+func APITypeFrom(obj Object) *APIType {
+	return &APIType{
+		obj.GetTypeMeta(),
+		obj.GetObjectMeta(),
+	}
 }
 
 var _ Object = &APIType{}
@@ -29,6 +45,11 @@ type APITypeList []*APIType
 // TypeMeta is an alias for the k8s/apimachinery TypeMeta with some additional methods
 type TypeMeta struct {
 	metav1.TypeMeta
+}
+
+// This is a helper for APIType generation
+func (t *TypeMeta) GetTypeMeta() *TypeMeta {
+	return t
 }
 
 func (t *TypeMeta) GetKind() Kind {
@@ -76,6 +97,11 @@ type ObjectMeta struct {
 	Created *Time  `json:"created,omitempty"`
 }
 
+// This is a helper for APIType generation
+func (o *ObjectMeta) GetObjectMeta() *ObjectMeta {
+	return o
+}
+
 // GetName returns the name of the Object
 func (o *ObjectMeta) GetName() string {
 	return o.Name
@@ -110,6 +136,9 @@ func (o *ObjectMeta) SetCreated(t *Time) {
 // extra GetName() and GetUID() methods from ObjectMeta
 type Object interface {
 	runtime.Object
+
+	GetTypeMeta() *TypeMeta
+	GetObjectMeta() *ObjectMeta
 
 	GetKind() Kind
 
