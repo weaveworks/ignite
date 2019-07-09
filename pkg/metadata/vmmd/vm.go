@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/c2h5oh/datasize"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -81,6 +82,11 @@ func (md *VM) copyToOverlay() error {
 	}
 	defer mp.Umount()
 
+	// Copy the kernel files to the VM. TODO: Use snapshot overlaying instead.
+	if err := md.copyKernelToOverlay(mp.Path); err != nil {
+		return err
+	}
+
 	// do not mutate md.Spec.CopyFiles
 	fileMappings := md.Spec.CopyFiles
 
@@ -123,8 +129,21 @@ func (md *VM) copyToOverlay() error {
 	}
 
 	// TODO: This code seems to be flaky and not always copy over the files?
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 	return nil
+}
+
+func (md *VM) copyKernelToOverlay(mountPoint string) error {
+	kernelUID := md.GetKernelUID()
+	kernelTarPath := path.Join(constants.KERNEL_DIR, kernelUID.String(), constants.KERNEL_TAR)
+
+	if !util.FileExists(kernelTarPath) {
+		log.Warnf("Could not find kernel overlay files, not copying into the VM.")
+		return nil
+	}
+
+	_, err := util.ExecuteCommand("tar", "-xf", kernelTarPath, "-C", mountPoint)
+	return err
 }
 
 // writeEtcHosts populates the /etc/hosts file to avoid errors like
