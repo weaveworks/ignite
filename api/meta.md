@@ -63,8 +63,8 @@
   * [func (s *Size) MarshalJSON() ([]byte, error)](#Size.MarshalJSON)
   * [func (s Size) Max(other Size) Size](#Size.Max)
   * [func (s Size) Min(other Size) Size](#Size.Min)
-  * [func (s *Size) Sectors() uint64](#Size.Sectors)
-  * [func (s *Size) String() string](#Size.String)
+  * [func (s Size) Sectors() uint64](#Size.Sectors)
+  * [func (s Size) String() string](#Size.String)
   * [func (s *Size) UnmarshalJSON(b []byte) error](#Size.UnmarshalJSON)
 * [type Time](#Time)
   * [func Timestamp() Time](#Timestamp)
@@ -270,28 +270,28 @@ NewOCIImageRef parses and normalizes a reference to an OCI (docker) image.
 
 
 
-### <a name="OCIImageRef.IsUnset">func</a> (OCIImageRef) [IsUnset](/pkg/apis/meta/v1alpha1/image.go?s=647:682#L29)
+### <a name="OCIImageRef.IsUnset">func</a> (OCIImageRef) [IsUnset](/pkg/apis/meta/v1alpha1/image.go?s=685:720#L31)
 ``` go
 func (i OCIImageRef) IsUnset() bool
 ```
 
 
 
-### <a name="OCIImageRef.MarshalJSON">func</a> (OCIImageRef) [MarshalJSON](/pkg/apis/meta/v1alpha1/image.go?s=708:758#L33)
+### <a name="OCIImageRef.MarshalJSON">func</a> (OCIImageRef) [MarshalJSON](/pkg/apis/meta/v1alpha1/image.go?s=746:796#L35)
 ``` go
 func (i OCIImageRef) MarshalJSON() ([]byte, error)
 ```
 
 
 
-### <a name="OCIImageRef.String">func</a> (OCIImageRef) [String](/pkg/apis/meta/v1alpha1/image.go?s=587:623#L25)
+### <a name="OCIImageRef.String">func</a> (OCIImageRef) [String](/pkg/apis/meta/v1alpha1/image.go?s=625:661#L27)
 ``` go
 func (i OCIImageRef) String() string
 ```
 
 
 
-### <a name="OCIImageRef.UnmarshalJSON">func</a> (\*OCIImageRef) [UnmarshalJSON](/pkg/apis/meta/v1alpha1/image.go?s=796:847#L37)
+### <a name="OCIImageRef.UnmarshalJSON">func</a> (\*OCIImageRef) [UnmarshalJSON](/pkg/apis/meta/v1alpha1/image.go?s=834:885#L39)
 ``` go
 func (i *OCIImageRef) UnmarshalJSON(b []byte) error
 ```
@@ -512,7 +512,7 @@ func (p PortMappings) String() string
 
 
 
-## <a name="Size">type</a> [Size](/pkg/apis/meta/v1alpha1/size.go?s=125:164#L10)
+## <a name="Size">type</a> [Size](/pkg/apis/meta/v1alpha1/size.go?s=132:171#L11)
 ``` go
 type Size struct {
     datasize.ByteSize
@@ -527,17 +527,17 @@ Size specifies a common unit for data sizes
 
 
 
-### <a name="NewSizeFromBytes">func</a> [NewSizeFromBytes](/pkg/apis/meta/v1alpha1/size.go?s=375:415#L24)
+### <a name="NewSizeFromBytes">func</a> [NewSizeFromBytes](/pkg/apis/meta/v1alpha1/size.go?s=411:451#L27)
 ``` go
 func NewSizeFromBytes(bytes uint64) Size
 ```
 
-### <a name="NewSizeFromSectors">func</a> [NewSizeFromSectors](/pkg/apis/meta/v1alpha1/size.go?s=466:510#L30)
+### <a name="NewSizeFromSectors">func</a> [NewSizeFromSectors](/pkg/apis/meta/v1alpha1/size.go?s=502:546#L33)
 ``` go
 func NewSizeFromSectors(sectors uint64) Size
 ```
 
-### <a name="NewSizeFromString">func</a> [NewSizeFromString](/pkg/apis/meta/v1alpha1/size.go?s=268:316#L19)
+### <a name="NewSizeFromString">func</a> [NewSizeFromString](/pkg/apis/meta/v1alpha1/size.go?s=304:352#L22)
 ``` go
 func NewSizeFromString(str string) (Size, error)
 ```
@@ -545,7 +545,7 @@ func NewSizeFromString(str string) (Size, error)
 
 
 
-### <a name="Size.Add">func</a> (Size) [Add](/pkg/apis/meta/v1alpha1/size.go?s=838:872#L46)
+### <a name="Size.Add">func</a> (Size) [Add](/pkg/apis/meta/v1alpha1/size.go?s=872:906#L49)
 ``` go
 func (s Size) Add(other Size) Size
 ```
@@ -554,44 +554,44 @@ Add returns a copy, does not modify the receiver
 
 
 
-### <a name="Size.MarshalJSON">func</a> (\*Size) [MarshalJSON](/pkg/apis/meta/v1alpha1/size.go?s=1124:1168#L67)
+### <a name="Size.MarshalJSON">func</a> (\*Size) [MarshalJSON](/pkg/apis/meta/v1alpha1/size.go?s=1158:1202#L70)
 ``` go
 func (s *Size) MarshalJSON() ([]byte, error)
 ```
 
 
 
-### <a name="Size.Max">func</a> (Size) [Max](/pkg/apis/meta/v1alpha1/size.go?s=1021:1055#L59)
+### <a name="Size.Max">func</a> (Size) [Max](/pkg/apis/meta/v1alpha1/size.go?s=1055:1089#L62)
 ``` go
 func (s Size) Max(other Size) Size
 ```
 
 
 
-### <a name="Size.Min">func</a> (Size) [Min](/pkg/apis/meta/v1alpha1/size.go?s=918:952#L51)
+### <a name="Size.Min">func</a> (Size) [Min](/pkg/apis/meta/v1alpha1/size.go?s=952:986#L54)
 ``` go
 func (s Size) Min(other Size) Size
 ```
 
 
 
-### <a name="Size.Sectors">func</a> (\*Size) [Sectors](/pkg/apis/meta/v1alpha1/size.go?s=576:607#L36)
+### <a name="Size.Sectors">func</a> (Size) [Sectors](/pkg/apis/meta/v1alpha1/size.go?s=612:642#L39)
 ``` go
-func (s *Size) Sectors() uint64
+func (s Size) Sectors() uint64
 ```
 
 
 
-### <a name="Size.String">func</a> (\*Size) [String](/pkg/apis/meta/v1alpha1/size.go?s=735:765#L41)
+### <a name="Size.String">func</a> (Size) [String](/pkg/apis/meta/v1alpha1/size.go?s=770:799#L44)
 ``` go
-func (s *Size) String() string
+func (s Size) String() string
 ```
 Override ByteSize's default string implementation which results in .HR() without spaces
 
 
 
 
-### <a name="Size.UnmarshalJSON">func</a> (\*Size) [UnmarshalJSON](/pkg/apis/meta/v1alpha1/size.go?s=1231:1275#L72)
+### <a name="Size.UnmarshalJSON">func</a> (\*Size) [UnmarshalJSON](/pkg/apis/meta/v1alpha1/size.go?s=1265:1309#L75)
 ``` go
 func (s *Size) UnmarshalJSON(b []byte) error
 ```
