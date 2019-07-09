@@ -98,7 +98,19 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 
 			// Ignore unknown API objects to Ignite (e.g. Kubernetes manifests)
 			if !scheme.Scheme.Recognizes(obj.GroupVersionKind()) {
-				log.Debugf("ignoring file with API version %s and kind %s", obj.APIVersion, obj.Kind)
+				log.Debugf("Ignoring file with API version %s and kind %s", obj.APIVersion, obj.Kind)
+				return nil
+			}
+
+			// Require the UID field to be set
+			if len(obj.GetUID()) == 0 {
+				log.Infof("Ignoring %s at path %q that does not have .metadata.uid set.", obj.GetKind(), r.gitRelativePath(path))
+				return nil
+			}
+
+			// Require the Name field to be set
+			if len(obj.GetName()) == 0 {
+				log.Infof("Ignoring %s at path %q that does not have .metadata.name set.", obj.GetKind(), r.gitRelativePath(path))
 				return nil
 			}
 
@@ -112,6 +124,7 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 			}
 			newKeyFileMap[keyPath] = f
 			newByKind[kindKey] = append(newByKind[kindKey], keyPath)
+			log.Debugf("Stored file info %v at path %q and parent kind %q", *f, keyPath, kindKey)
 
 			// calculate a diff if files change
 			if prevFile, ok := r.keyFileMap[keyPath]; ok {
@@ -152,7 +165,7 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 	r.byKind = newByKind
 
 	for _, file := range diff {
-		gitFilePath := strings.TrimPrefix(file.GitPath, r.gitDir+"/")
+		gitFilePath := r.gitRelativePath(file.GitPath)
 		action := strings.ToLower(string(file.Type))
 		log.Printf("File %q was %s. It describes a %s with UID %q and name %q\n", gitFilePath, action, file.APIType.Kind, file.APIType.GetUID(), file.APIType.GetName())
 	}
@@ -169,6 +182,10 @@ func sha256sum(content []byte) string {
 	return fmt.Sprintf("%x", hasher.Sum(nil))
 }
 
+func (r *GitRawStorage) gitRelativePath(fullPath string) string {
+	return strings.TrimPrefix(fullPath, r.gitDir+"/")
+}
+
 func (r *GitRawStorage) realPath(key string) string {
 	// The "/" prefix is enforced
 	if !strings.HasPrefix(key, "/") {
@@ -176,6 +193,7 @@ func (r *GitRawStorage) realPath(key string) string {
 	}
 	info, ok := r.keyFileMap[key]
 	if !ok {
+		log.Debugf("GitRawStorage.realPath returned an empty string for key %s", key)
 		return ""
 	}
 	return info.GitPath
@@ -190,6 +208,7 @@ func (r *GitRawStorage) shouldPassthrough(key string) bool {
 }
 
 func (r *GitRawStorage) Read(key string) ([]byte, error) {
+	log.Debugf("GitRawStorage.Read: %q", key)
 	if r.shouldPassthrough(key) {
 		return r.passthrough.Read(key)
 	}
@@ -198,6 +217,7 @@ func (r *GitRawStorage) Read(key string) ([]byte, error) {
 }
 
 func (r *GitRawStorage) Exists(key string) bool {
+	log.Debugf("GitRawStorage.Exists: %q", key)
 	if r.shouldPassthrough(key) {
 		return r.passthrough.Exists(key)
 	}
@@ -206,11 +226,16 @@ func (r *GitRawStorage) Exists(key string) bool {
 }
 
 func (r *GitRawStorage) Write(key string, content []byte) error {
+	log.Debugf("GitRawStorage.Write: %q", key)
 	// Write always writes to the underlying (expected) place, and to Git
 	if err := r.passthrough.Write(key, content); err != nil {
 		return err
 	}
-	// also do a normal write to the git-backed file.
+	// If this should not be stored in Git, return at this point
+	if r.shouldPassthrough(key) {
+		return nil
+	}
+	// Do a normal write to the git-backed file.
 	file := r.realPath(key)
 	if err := ioutil.WriteFile(file, content, 0644); err != nil {
 		return err
@@ -220,6 +245,7 @@ func (r *GitRawStorage) Write(key string, content []byte) error {
 }
 
 func (r *GitRawStorage) Delete(key string) error {
+	log.Debugf("GitRawStorage.Delete: %q", key)
 	// Delete always deletes in the underlying (expected) place, and in Git
 	if err := r.passthrough.Delete(key); err != nil {
 		return err
@@ -239,6 +265,7 @@ func (r *GitRawStorage) Delete(key string) error {
 }
 
 func (r *GitRawStorage) List(parentKey string) ([]string, error) {
+	log.Debugf("GitRawStorage.List: %q", parentKey)
 	if r.shouldPassthrough(parentKey) {
 		return r.passthrough.List(parentKey)
 	}
