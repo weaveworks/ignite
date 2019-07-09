@@ -6,10 +6,10 @@ import (
 	"os"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	dhcp "github.com/krolaw/dhcp4"
 	"github.com/krolaw/dhcp4/conn"
 	"github.com/miekg/dns"
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
