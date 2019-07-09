@@ -88,7 +88,7 @@ func (c *vmClient) FindAll(filter filterer.BaseFilter) ([]*api.VM, error) {
 
 // Get returns the VM matching given UID from the storage
 func (c *vmClient) Get(uid meta.UID) (*api.VM, error) {
-	object, err := c.storage.GetByID(meta.KindVM, uid)
+	object, err := c.storage.GetByID(api.KindVM, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -103,12 +103,12 @@ func (c *vmClient) Set(vm *api.VM) error {
 
 // Delete deletes the VM from the storage
 func (c *vmClient) Delete(uid meta.UID) error {
-	return c.storage.Delete(meta.KindVM, uid)
+	return c.storage.Delete(api.KindVM, uid)
 }
 
 // List returns a list of all VMs available
 func (c *vmClient) List() ([]*api.VM, error) {
-	list, err := c.storage.List(meta.KindVM)
+	list, err := c.storage.List(api.KindVM)
 	if err != nil {
 		return nil, err
 	}

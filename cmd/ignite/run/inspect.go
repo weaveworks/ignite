@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
-
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
 type InspectFlags struct {
@@ -27,12 +27,12 @@ func (i *InspectFlags) NewInspectOptions(k, objectMatch string) (*inspectOptions
 	io := &inspectOptions{InspectFlags: i}
 
 	switch strings.ToLower(k) {
-	case meta.KindImage.Lower():
-		kind = meta.KindImage
-	case meta.KindKernel.Lower():
-		kind = meta.KindKernel
-	case meta.KindVM.Lower():
-		kind = meta.KindVM
+	case api.KindImage.Lower():
+		kind = api.KindImage
+	case api.KindKernel.Lower():
+		kind = api.KindKernel
+	case api.KindVM.Lower():
+		kind = api.KindVM
 	default:
 		return nil, fmt.Errorf("unrecognized kind: %q", k)
 	}

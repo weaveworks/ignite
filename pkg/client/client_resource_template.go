@@ -89,7 +89,7 @@ func (c *resourceClient) FindAll(filter filterer.BaseFilter) ([]*api.Resource, e
 
 // Get returns the Resource matching given UID from the storage
 func (c *resourceClient) Get(uid meta.UID) (*api.Resource, error) {
-	object, err := c.storage.GetByID(meta.KindResource, uid)
+	object, err := c.storage.GetByID(api.KindResource, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -104,12 +104,12 @@ func (c *resourceClient) Set(resource *api.Resource) error {
 
 // Delete deletes the Resource from the storage
 func (c *resourceClient) Delete(uid meta.UID) error {
-	return c.storage.Delete(meta.KindResource, uid)
+	return c.storage.Delete(api.KindResource, uid)
 }
 
 // List returns a list of all Resources available
 func (c *resourceClient) List() ([]*api.Resource, error) {
-	list, err := c.storage.List(meta.KindResource)
+	list, err := c.storage.List(api.KindResource)
 	if err != nil {
 		return nil, err
 	}
