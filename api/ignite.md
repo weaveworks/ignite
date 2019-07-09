@@ -36,6 +36,7 @@
 * [type KernelStatus](#KernelStatus)
 * [type NetworkMode](#NetworkMode)
   * [func GetNetworkModes() []NetworkMode](#GetNetworkModes)
+  * [func (nm NetworkMode) String() string](#NetworkMode.String)
 * [type OCIImageClaim](#OCIImageClaim)
 * [type OCIImageSource](#OCIImageSource)
 * [type Pool](#Pool)
@@ -363,6 +364,13 @@ GetNetworkModes gets the list of available network modes
 
 
 
+### <a name="NetworkMode.String">func</a> (NetworkMode) [String](/pkg/apis/ignite/v1alpha1/types.go?s=7790:7827#L211)
+``` go
+func (nm NetworkMode) String() string
+```
+
+
+
 ## <a name="OCIImageClaim">type</a> [OCIImageClaim](/pkg/apis/ignite/v1alpha1/types.go?s=1210:1628#L40)
 ``` go
 type OCIImageClaim struct {
@@ -663,7 +671,7 @@ VMSpec describes the configuration of a VM
 
 
 
-## <a name="VMState">type</a> [VMState](/pkg/apis/ignite/v1alpha1/types.go?s=8162:8181#L220)
+## <a name="VMState">type</a> [VMState](/pkg/apis/ignite/v1alpha1/types.go?s=8224:8243#L224)
 ``` go
 type VMState string
 ```
@@ -686,7 +694,7 @@ const (
 
 
 
-## <a name="VMStatus">type</a> [VMStatus](/pkg/apis/ignite/v1alpha1/types.go?s=8341:8562#L229)
+## <a name="VMStatus">type</a> [VMStatus](/pkg/apis/ignite/v1alpha1/types.go?s=8403:8624#L233)
 ``` go
 type VMStatus struct {
     State       VMState          `json:"state"`
