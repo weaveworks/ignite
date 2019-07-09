@@ -50,10 +50,6 @@ func SetDefaults_VMSpec(obj *VMSpec) {
 	if obj.DiskSize == meta.EmptySize {
 		obj.DiskSize = meta.NewSizeFromBytes(constants.VM_DEFAULT_SIZE)
 	}
-
-	if len(obj.NetworkMode) == 0 {
-		obj.NetworkMode = NetworkModeDockerBridge
-	}
 }
 
 func SetDefaults_VMKernelSpec(obj *VMKernelSpec) {
@@ -64,6 +60,12 @@ func SetDefaults_VMKernelSpec(obj *VMKernelSpec) {
 
 	if len(obj.CmdLine) == 0 {
 		obj.CmdLine = constants.VM_DEFAULT_KERNEL_ARGS
+	}
+}
+
+func SetDefaults_VMNetworkSpec(obj *VMNetworkSpec) {
+	if len(obj.Mode) == 0 {
+		obj.Mode = NetworkModeDockerBridge
 	}
 }
 

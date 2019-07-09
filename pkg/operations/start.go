@@ -41,7 +41,7 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 		fmt.Sprintf("--device=%s", vm.SnapshotDev()),
 	}
 
-	if vm.Spec.NetworkMode == api.NetworkModeCNI {
+	if vm.Spec.Network.Mode == api.NetworkModeCNI {
 		dockerArgs = append(dockerArgs, "--net=none")
 	}
 
@@ -53,7 +53,7 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 	}
 
 	// Add the port mappings to Docker
-	for _, portMapping := range vm.Spec.Ports {
+	for _, portMapping := range vm.Spec.Network.Ports {
 		dockerArgs = append(dockerArgs, fmt.Sprintf("-p=%d:%d", portMapping.HostPort, portMapping.VMPort))
 	}
 
@@ -66,7 +66,7 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 		return fmt.Errorf("failed to start container for VM %q: %v", vm.GetUID(), err)
 	}
 
-	if vm.Spec.NetworkMode == api.NetworkModeCNI {
+	if vm.Spec.Network.Mode == api.NetworkModeCNI {
 		if err := setupCNINetworking(containerID); err != nil {
 			return err
 		}

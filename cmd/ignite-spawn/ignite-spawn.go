@@ -64,9 +64,6 @@ func StartVM(co *options) error {
 	// Remove the IP addresses post-run
 	defer co.vm.ClearIPAddresses()
 
-	// Remove the port mappings post-run
-	defer co.vm.ClearPortMappings()
-
 	// Remove the Prometheus socket post-run
 	defer os.Remove(metricsSocket)
 

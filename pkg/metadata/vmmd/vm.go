@@ -166,10 +166,6 @@ func (md *VM) ClearIPAddresses() {
 	md.Status.IPAddresses = nil
 }
 
-func (md *VM) ClearPortMappings() {
-	md.Spec.Ports = nil
-}
-
 // Generate a new SSH keypair for the vm
 func (md *VM) newSSHKeypair() (string, error) {
 	privKeyPath := path.Join(md.ObjectPath(), fmt.Sprintf(constants.VM_SSH_KEY_TEMPLATE, md.GetUID()))

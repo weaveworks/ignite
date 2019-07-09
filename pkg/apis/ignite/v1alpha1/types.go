@@ -167,13 +167,13 @@ type VM struct {
 
 // VMSpec describes the configuration of a VM
 type VMSpec struct {
-	Image       VMImageSpec       `json:"image"`
-	Kernel      VMKernelSpec      `json:"kernel"`
-	CPUs        uint64            `json:"cpus"`
-	Memory      meta.Size         `json:"memory"`
-	DiskSize    meta.Size         `json:"diskSize"`
-	NetworkMode NetworkMode       `json:"networkMode"`
-	Ports       meta.PortMappings `json:"ports,omitempty"`
+	Image    VMImageSpec   `json:"image"`
+	Kernel   VMKernelSpec  `json:"kernel"`
+	CPUs     uint64        `json:"cpus"`
+	Memory   meta.Size     `json:"memory"`
+	DiskSize meta.Size     `json:"diskSize"`
+	Network  VMNetworkSpec `json:"network"`
+
 	// This will be done at either "ignite start" or "ignite create" time
 	// TODO: We might to revisit this later
 	CopyFiles []FileMapping `json:"copyFiles,omitempty"`
@@ -192,6 +192,11 @@ type VMImageSpec struct {
 type VMKernelSpec struct {
 	OCIClaim OCIImageClaim `json:"ociClaim"`
 	CmdLine  string        `json:"cmdLine,omitempty"`
+}
+
+type VMNetworkSpec struct {
+	Mode  NetworkMode       `json:"mode"`
+	Ports meta.PortMappings `json:"ports,omitempty"`
 }
 
 // FileMapping defines mappings between files on the host and VM

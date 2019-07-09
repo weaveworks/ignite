@@ -30,7 +30,7 @@ func Ps(po *psOptions) error {
 	for _, vm := range po.allVMs {
 		o.Write(vm.GetUID(), vm.Spec.Image.OCIClaim.Ref.String(), vm.Spec.Kernel.OCIClaim.Ref.String(), vm.GetCreated(),
 			vm.Spec.DiskSize.String(), vm.Spec.CPUs, vm.Spec.Memory.String(), vm.Status.State, vm.Status.IPAddresses,
-			vm.Spec.Ports, vm.GetName())
+			vm.Spec.Network.Ports, vm.GetName())
 	}
 
 	return nil

@@ -127,7 +127,7 @@ func (cf *CreateFlags) constructVMFromCLI(args []string) error {
 	}
 
 	// Parse the given port mappings
-	if cf.VM.Spec.Ports, err = meta.ParsePortMappings(cf.PortMappings); err != nil {
+	if cf.VM.Spec.Network.Ports, err = meta.ParsePortMappings(cf.PortMappings); err != nil {
 		return err
 	}
 
