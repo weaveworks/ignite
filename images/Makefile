@@ -17,13 +17,15 @@ push:
 	docker push ${DOCKER_USER}/ignite-${WHAT}:latest
 
 build-all:
-	make -C kernel
+	# Temporarily comment out the kernel build for the RC
+	#	make -C kernel
 	$(MAKE) build WHAT=ubuntu
 	$(MAKE) build WHAT=centos
 	$(MAKE) build WHAT=kubeadm
 
 push-all: build-all
-	make -C kernel push
+	# Temporarily comment out the kernel build for the RC
+	#	make -C kernel push
 	$(MAKE) push WHAT=ubuntu
 	$(MAKE) push WHAT=centos
 	$(MAKE) push WHAT=kubeadm
