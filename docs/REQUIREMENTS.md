@@ -38,3 +38,4 @@ With time, we aim to eliminate as many of these as possible.
  - `dmsetup` for managing devicemapper snapshots and overlays
  - `tar` for extracting files from the docker image onto the filesystem
  - `ssh` for SSH-ing into the VM
+ - `git` for the GitOps mode of Ignite (`ignite gitops`)
