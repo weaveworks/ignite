@@ -86,17 +86,19 @@ func (md *VM) copyToOverlay() error {
 
 	if md.Spec.SSH != nil {
 		pubKeyPath := md.Spec.SSH.PublicKey
-		if len(pubKeyPath) == 0 {
+		if md.Spec.SSH.Generate {
 			// generate a key if PublicKey is empty
 			pubKeyPath, err = md.newSSHKeypair()
 			if err != nil {
 				return err
 			}
 		}
-		fileMappings = append(fileMappings, api.FileMapping{
-			HostPath: pubKeyPath,
-			VMPath:   vmAuthorizedKeys,
-		})
+		if len(pubKeyPath) > 0 {
+			fileMappings = append(fileMappings, api.FileMapping{
+				HostPath: pubKeyPath,
+				VMPath:   vmAuthorizedKeys,
+			})
+		}
 	}
 
 	// TODO: File/directory permissions?

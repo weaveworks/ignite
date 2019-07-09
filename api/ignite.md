@@ -46,6 +46,8 @@
 * [type PoolSpec](#PoolSpec)
 * [type PoolStatus](#PoolStatus)
 * [type SSH](#SSH)
+  * [func (s *SSH) MarshalJSON() ([]byte, error)](#SSH.MarshalJSON)
+  * [func (s *SSH) UnmarshalJSON(b []byte) error](#SSH.UnmarshalJSON)
 * [type VM](#VM)
   * [func (vm *VM) SetImage(image *Image)](#VM.SetImage)
   * [func (vm *VM) SetKernel(kernel *Kernel)](#VM.SetKernel)
@@ -58,7 +60,7 @@
 
 
 #### <a name="pkg-files">Package files</a>
-[defaults.go](/pkg/apis/ignite/v1alpha1/defaults.go) [doc.go](/pkg/apis/ignite/v1alpha1/doc.go) [helpers.go](/pkg/apis/ignite/v1alpha1/helpers.go) [register.go](/pkg/apis/ignite/v1alpha1/register.go) [types.go](/pkg/apis/ignite/v1alpha1/types.go) 
+[defaults.go](/pkg/apis/ignite/v1alpha1/defaults.go) [doc.go](/pkg/apis/ignite/v1alpha1/doc.go) [helpers.go](/pkg/apis/ignite/v1alpha1/helpers.go) [json.go](/pkg/apis/ignite/v1alpha1/json.go) [register.go](/pkg/apis/ignite/v1alpha1/register.go) [types.go](/pkg/apis/ignite/v1alpha1/types.go) 
 
 
 ## <a name="pkg-constants">Constants</a>
@@ -173,7 +175,7 @@ TODO: This should move into a dedicated validation package
 
 
 
-## <a name="FileMapping">type</a> [FileMapping](/pkg/apis/ignite/v1alpha1/types.go?s=7503:7598#L203)
+## <a name="FileMapping">type</a> [FileMapping](/pkg/apis/ignite/v1alpha1/types.go?s=7672:7767#L204)
 ``` go
 type FileMapping struct {
     HostPath string `json:"hostPath"`
@@ -341,7 +343,7 @@ KernelStatus describes the status of a kernel
 
 
 
-## <a name="NetworkMode">type</a> [NetworkMode](/pkg/apis/ignite/v1alpha1/types.go?s=7784:7807#L214)
+## <a name="NetworkMode">type</a> [NetworkMode](/pkg/apis/ignite/v1alpha1/types.go?s=8118:8141#L219)
 ``` go
 type NetworkMode string
 ```
@@ -372,7 +374,7 @@ GetNetworkModes gets the list of available network modes
 
 
 
-### <a name="NetworkMode.String">func</a> (NetworkMode) [String](/pkg/apis/ignite/v1alpha1/types.go?s=7809:7846#L216)
+### <a name="NetworkMode.String">func</a> (NetworkMode) [String](/pkg/apis/ignite/v1alpha1/types.go?s=8143:8180#L221)
 ``` go
 func (nm NetworkMode) String() string
 ```
@@ -550,14 +552,18 @@ PoolStatus defines the Pool's current status
 
 
 
-## <a name="SSH">type</a> [SSH](/pkg/apis/ignite/v1alpha1/types.go?s=7661:7727#L209)
+## <a name="SSH">type</a> [SSH](/pkg/apis/ignite/v1alpha1/types.go?s=7987:8061#L213)
 ``` go
 type SSH struct {
-    PublicKey string `json:"publicKey,omitempty"`
+    Generate  bool   `json:"-"`
+    PublicKey string `json:"-"`
 }
 
 ```
 SSH specifies different ways to connect via SSH to the VM
+SSH uses a custom marshaller/unmarshaller. If generate is true,
+it marshals to true (a JSON bool). If PublicKey is set, it marshals
+to that string.
 
 
 
@@ -565,6 +571,20 @@ SSH specifies different ways to connect via SSH to the VM
 
 
 
+
+
+
+### <a name="SSH.MarshalJSON">func</a> (\*SSH) [MarshalJSON](/pkg/apis/ignite/v1alpha1/json.go?s=117:160#L9)
+``` go
+func (s *SSH) MarshalJSON() ([]byte, error)
+```
+
+
+
+### <a name="SSH.UnmarshalJSON">func</a> (\*SSH) [UnmarshalJSON](/pkg/apis/ignite/v1alpha1/json.go?s=306:349#L19)
+``` go
+func (s *SSH) UnmarshalJSON(b []byte) error
+```
 
 
 
@@ -613,7 +633,7 @@ SetKernel populates relevant fields to a Kernel on the VM object
 
 
 
-## <a name="VMImageSpec">type</a> [VMImageSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7124:7193#L188)
+## <a name="VMImageSpec">type</a> [VMImageSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7293:7362#L189)
 ``` go
 type VMImageSpec struct {
     OCIClaim OCIImageClaim `json:"ociClaim"`
@@ -629,7 +649,7 @@ type VMImageSpec struct {
 
 
 
-## <a name="VMKernelSpec">type</a> [VMKernelSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7195:7316#L192)
+## <a name="VMKernelSpec">type</a> [VMKernelSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7364:7485#L193)
 ``` go
 type VMKernelSpec struct {
     OCIClaim OCIImageClaim `json:"ociClaim"`
@@ -646,7 +666,7 @@ type VMKernelSpec struct {
 
 
 
-## <a name="VMNetworkSpec">type</a> [VMNetworkSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7318:7436#L197)
+## <a name="VMNetworkSpec">type</a> [VMNetworkSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7487:7605#L198)
 ``` go
 type VMNetworkSpec struct {
     Mode  NetworkMode       `json:"mode"`
@@ -663,7 +683,7 @@ type VMNetworkSpec struct {
 
 
 
-## <a name="VMSpec">type</a> [VMSpec](/pkg/apis/ignite/v1alpha1/types.go?s=6405:7122#L169)
+## <a name="VMSpec">type</a> [VMSpec](/pkg/apis/ignite/v1alpha1/types.go?s=6405:7291#L169)
 ``` go
 type VMSpec struct {
     Image    VMImageSpec   `json:"image"`
@@ -677,10 +697,11 @@ type VMSpec struct {
     // TODO: We might to revisit this later
     CopyFiles []FileMapping `json:"copyFiles,omitempty"`
     // SSH specifies how the SSH setup should be done
-    // SSH appends to CopyFiles when active
     // nil here means "don't do anything special"
-    // An empty struct means "generate a new SSH key and copy it in"
-    // Specifying a path means "use this public key"
+    // If SSH.Generate is set, Ignite will generate a new SSH key and copy it in to authorized_keys in the VM
+    // Specifying a path in SSH.Generate means "use this public key"
+    // If SSH.PublicKey is set, this struct will marshal as a string using that path
+    // If SSH.Generate is set, this struct will marshal as a bool => true
     SSH *SSH `json:"ssh,omitempty"`
 }
 
@@ -696,7 +717,7 @@ VMSpec describes the configuration of a VM
 
 
 
-## <a name="VMState">type</a> [VMState](/pkg/apis/ignite/v1alpha1/types.go?s=8243:8262#L229)
+## <a name="VMState">type</a> [VMState](/pkg/apis/ignite/v1alpha1/types.go?s=8577:8596#L234)
 ``` go
 type VMState string
 ```
@@ -719,7 +740,7 @@ const (
 
 
 
-## <a name="VMStatus">type</a> [VMStatus](/pkg/apis/ignite/v1alpha1/types.go?s=8422:8643#L238)
+## <a name="VMStatus">type</a> [VMStatus](/pkg/apis/ignite/v1alpha1/types.go?s=8756:8977#L243)
 ``` go
 type VMStatus struct {
     State       VMState          `json:"state"`

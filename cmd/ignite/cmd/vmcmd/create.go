@@ -71,11 +71,5 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	cmdutil.SizeVarP(fs, &cf.VM.Spec.DiskSize, "size", "s", "VM filesystem size, for example 5GB or 2048MB")
 	cmdutil.OCIImageRefVarP(fs, &cf.VM.Spec.Kernel.OCIClaim.Ref, "kernel-image", "k", "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
 	cmdutil.NetworkModeVar(fs, &cf.VM.Spec.Network.Mode)
-
-	cf.SSH = &run.SSHFlag{}
-	fs.Var(cf.SSH, "ssh", "Enable SSH for the VM. If <path> is given, it will be imported as the public key. If just '--ssh' is specified, a new keypair will be generated.")
-
-	sshFlag := fs.Lookup("ssh")
-	sshFlag.NoOptDefVal = "<path>"
-	sshFlag.DefValue = "is unset, which disables SSH access to the VM"
+	cmdutil.SSHVar(fs, &cf.SSH)
 }

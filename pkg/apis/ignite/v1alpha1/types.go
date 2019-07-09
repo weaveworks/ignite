@@ -178,10 +178,11 @@ type VMSpec struct {
 	// TODO: We might to revisit this later
 	CopyFiles []FileMapping `json:"copyFiles,omitempty"`
 	// SSH specifies how the SSH setup should be done
-	// SSH appends to CopyFiles when active
 	// nil here means "don't do anything special"
-	// An empty struct means "generate a new SSH key and copy it in"
-	// Specifying a path means "use this public key"
+	// If SSH.Generate is set, Ignite will generate a new SSH key and copy it in to authorized_keys in the VM
+	// Specifying a path in SSH.Generate means "use this public key"
+	// If SSH.PublicKey is set, this struct will marshal as a string using that path
+	// If SSH.Generate is set, this struct will marshal as a bool => true
 	SSH *SSH `json:"ssh,omitempty"`
 }
 
@@ -206,8 +207,12 @@ type FileMapping struct {
 }
 
 // SSH specifies different ways to connect via SSH to the VM
+// SSH uses a custom marshaller/unmarshaller. If generate is true,
+// it marshals to true (a JSON bool). If PublicKey is set, it marshals
+// to that string.
 type SSH struct {
-	PublicKey string `json:"publicKey,omitempty"`
+	Generate  bool   `json:"-"`
+	PublicKey string `json:"-"`
 }
 
 // NetworkMode defines different states a VM can be in

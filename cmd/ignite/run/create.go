@@ -5,7 +5,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
@@ -15,73 +14,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
-	"github.com/weaveworks/ignite/pkg/util"
 )
-
-// SSHFlag is the pflag.Value custom flag for ignite create --ssh
-// TODO: Move SSHFlag somewhere else, e.g. cmdutils
-type SSHFlag struct {
-	value    *string
-	generate bool
-}
-
-func (sf *SSHFlag) Set(x string) error {
-	if x != "<path>" {
-		sf.value = &x
-	} else {
-		sf.generate = true
-	}
-
-	return nil
-}
-
-func (sf *SSHFlag) String() string {
-	if sf.value == nil {
-		return ""
-	}
-
-	return *sf.value
-}
-
-func (sf *SSHFlag) Generate() bool {
-	return sf.generate
-}
-
-func (sf *SSHFlag) Type() string {
-	return ""
-}
-
-func (sf *SSHFlag) IsBoolFlag() bool {
-	return true
-}
-
-// Parse sets the right values on the VM API object if requested to import or generate an SSH key
-func (sf *SSHFlag) Parse(vm *api.VM) error {
-	importKey := sf.String()
-	// Check if an SSH key should be generated
-	if sf.Generate() {
-		// An empty struct means "generate"
-		vm.Spec.SSH = &api.SSH{}
-	} else if len(importKey) > 0 {
-		// Always digest the public key
-		if !strings.HasSuffix(importKey, ".pub") {
-			importKey = fmt.Sprintf("%s.pub", importKey)
-		}
-		// verify the file exists
-		if !util.FileExists(importKey) {
-			return fmt.Errorf("invalid SSH key: %s", importKey)
-		}
-
-		// Set the SSH field on the API object
-		vm.Spec.SSH = &api.SSH{
-			PublicKey: importKey,
-		}
-	}
-
-	return nil
-}
-
-var _ pflag.Value = &SSHFlag{}
 
 func NewCreateFlags() *CreateFlags {
 	cf := &CreateFlags{
@@ -94,12 +27,15 @@ func NewCreateFlags() *CreateFlags {
 }
 
 type CreateFlags struct {
-	// TODO: Also respect PortMappings, Networking mode, and kernel stuff from the config file
 	PortMappings []string
 	CopyFiles    []string
-	SSH          *SSHFlag
-	ConfigFile   string
-	VM           *api.VM
+	// This is a placeholder value here for now.
+	// If it was set using flags, it will be copied over to
+	// the API type. TODO: When we later have internal types
+	// this can go away
+	SSH        api.SSH
+	ConfigFile string
+	VM         *api.VM
 }
 
 type createOptions struct {
@@ -129,6 +65,11 @@ func (cf *CreateFlags) constructVMFromCLI(args []string) error {
 	// Parse the given port mappings
 	if cf.VM.Spec.Network.Ports, err = meta.ParsePortMappings(cf.PortMappings); err != nil {
 		return err
+	}
+
+	// If the SSH flag was set, copy it over to the API type
+	if cf.SSH.Generate || cf.SSH.PublicKey != "" {
+		cf.VM.Spec.SSH = &cf.SSH
 	}
 
 	return nil
@@ -177,11 +118,6 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 }
 
 func Create(co *createOptions) error {
-	// Parse SSH key importing
-	if err := co.SSH.Parse(co.VM); err != nil {
-		return err
-	}
-
 	// Create new metadata for the VM
 	var err error
 	if co.newVM, err = vmmd.NewVM(co.VM, client.DefaultClient); err != nil {
