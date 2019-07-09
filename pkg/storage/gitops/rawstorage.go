@@ -4,12 +4,13 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
@@ -94,6 +95,13 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 			if err := yaml.Unmarshal(content, obj); err != nil {
 				return err
 			}
+
+			// Ignore unknown API objects to Ignite (e.g. Kubernetes manifests)
+			if !scheme.Scheme.Recognizes(obj.GroupVersionKind()) {
+				log.Debugf("ignoring file with API version %s and kind %s", obj.APIVersion, obj.Kind)
+				return nil
+			}
+
 			keyPath := storage.KeyForUID(obj.GetKind(), obj.GetUID())
 			kindKey := storage.KeyForKind(obj.GetKind())
 
