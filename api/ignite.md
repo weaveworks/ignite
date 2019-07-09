@@ -23,6 +23,7 @@
 * [func SetDefaults_PoolSpec(obj *PoolSpec)](#SetDefaults_PoolSpec)
 * [func SetDefaults_VM(obj *VM)](#SetDefaults_VM)
 * [func SetDefaults_VMKernelSpec(obj *VMKernelSpec)](#SetDefaults_VMKernelSpec)
+* [func SetDefaults_VMNetworkSpec(obj *VMNetworkSpec)](#SetDefaults_VMNetworkSpec)
 * [func SetDefaults_VMSpec(obj *VMSpec)](#SetDefaults_VMSpec)
 * [func SetDefaults_VMStatus(obj *VMStatus)](#SetDefaults_VMStatus)
 * [func ValidateNetworkMode(mode NetworkMode) error](#ValidateNetworkMode)
@@ -50,6 +51,7 @@
   * [func (vm *VM) SetKernel(kernel *Kernel)](#VM.SetKernel)
 * [type VMImageSpec](#VMImageSpec)
 * [type VMKernelSpec](#VMKernelSpec)
+* [type VMNetworkSpec](#VMNetworkSpec)
 * [type VMSpec](#VMSpec)
 * [type VMState](#VMState)
 * [type VMStatus](#VMStatus)
@@ -105,13 +107,13 @@ SchemeGroupVersion is group version used to register these objects
 
 
 
-## <a name="SetDefaults_Image">func</a> [SetDefaults_Image](/pkg/apis/ignite/v1alpha1/defaults.go?s=2177:2211#L89)
+## <a name="SetDefaults_Image">func</a> [SetDefaults_Image](/pkg/apis/ignite/v1alpha1/defaults.go?s=2218:2252#L91)
 ``` go
 func SetDefaults_Image(obj *Image)
 ```
 
 
-## <a name="SetDefaults_Kernel">func</a> [SetDefaults_Kernel](/pkg/apis/ignite/v1alpha1/defaults.go?s=2235:2271#L93)
+## <a name="SetDefaults_Kernel">func</a> [SetDefaults_Kernel](/pkg/apis/ignite/v1alpha1/defaults.go?s=2276:2312#L95)
 ``` go
 func SetDefaults_Kernel(obj *Kernel)
 ```
@@ -129,7 +131,7 @@ func SetDefaults_PoolSpec(obj *PoolSpec)
 ```
 
 
-## <a name="SetDefaults_VM">func</a> [SetDefaults_VM](/pkg/apis/ignite/v1alpha1/defaults.go?s=2125:2153#L85)
+## <a name="SetDefaults_VM">func</a> [SetDefaults_VM](/pkg/apis/ignite/v1alpha1/defaults.go?s=2166:2194#L87)
 ``` go
 func SetDefaults_VM(obj *VM)
 ```
@@ -137,9 +139,15 @@ TODO: Temporary hacks to populate TypeMeta until we get the generator working
 
 
 
-## <a name="SetDefaults_VMKernelSpec">func</a> [SetDefaults_VMKernelSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=1327:1375#L59)
+## <a name="SetDefaults_VMKernelSpec">func</a> [SetDefaults_VMKernelSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=1247:1295#L55)
 ``` go
 func SetDefaults_VMKernelSpec(obj *VMKernelSpec)
+```
+
+
+## <a name="SetDefaults_VMNetworkSpec">func</a> [SetDefaults_VMNetworkSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=1532:1582#L66)
+``` go
+func SetDefaults_VMNetworkSpec(obj *VMNetworkSpec)
 ```
 
 
@@ -149,7 +157,7 @@ func SetDefaults_VMSpec(obj *VMSpec)
 ```
 
 
-## <a name="SetDefaults_VMStatus">func</a> [SetDefaults_VMStatus](/pkg/apis/ignite/v1alpha1/defaults.go?s=1612:1652#L70)
+## <a name="SetDefaults_VMStatus">func</a> [SetDefaults_VMStatus](/pkg/apis/ignite/v1alpha1/defaults.go?s=1653:1693#L72)
 ``` go
 func SetDefaults_VMStatus(obj *VMStatus)
 ```
@@ -165,7 +173,7 @@ TODO: This should move into a dedicated validation package
 
 
 
-## <a name="FileMapping">type</a> [FileMapping](/pkg/apis/ignite/v1alpha1/types.go?s=7484:7579#L198)
+## <a name="FileMapping">type</a> [FileMapping](/pkg/apis/ignite/v1alpha1/types.go?s=7544:7639#L203)
 ``` go
 type FileMapping struct {
     HostPath string `json:"hostPath"`
@@ -333,7 +341,7 @@ KernelStatus describes the status of a kernel
 
 
 
-## <a name="NetworkMode">type</a> [NetworkMode](/pkg/apis/ignite/v1alpha1/types.go?s=7765:7788#L209)
+## <a name="NetworkMode">type</a> [NetworkMode](/pkg/apis/ignite/v1alpha1/types.go?s=7825:7848#L214)
 ``` go
 type NetworkMode string
 ```
@@ -364,7 +372,7 @@ GetNetworkModes gets the list of available network modes
 
 
 
-### <a name="NetworkMode.String">func</a> (NetworkMode) [String](/pkg/apis/ignite/v1alpha1/types.go?s=7790:7827#L211)
+### <a name="NetworkMode.String">func</a> (NetworkMode) [String](/pkg/apis/ignite/v1alpha1/types.go?s=7850:7887#L216)
 ``` go
 func (nm NetworkMode) String() string
 ```
@@ -542,7 +550,7 @@ PoolStatus defines the Pool's current status
 
 
 
-## <a name="SSH">type</a> [SSH](/pkg/apis/ignite/v1alpha1/types.go?s=7642:7708#L204)
+## <a name="SSH">type</a> [SSH](/pkg/apis/ignite/v1alpha1/types.go?s=7702:7768#L209)
 ``` go
 type SSH struct {
     PublicKey string `json:"publicKey,omitempty"`
@@ -605,7 +613,7 @@ SetKernel populates relevant fields to a Kernel on the VM object
 
 
 
-## <a name="VMImageSpec">type</a> [VMImageSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7225:7294#L188)
+## <a name="VMImageSpec">type</a> [VMImageSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7160:7229#L188)
 ``` go
 type VMImageSpec struct {
     OCIClaim OCIImageClaim `json:"ociClaim"`
@@ -621,7 +629,7 @@ type VMImageSpec struct {
 
 
 
-## <a name="VMKernelSpec">type</a> [VMKernelSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7296:7417#L192)
+## <a name="VMKernelSpec">type</a> [VMKernelSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7231:7352#L192)
 ``` go
 type VMKernelSpec struct {
     OCIClaim OCIImageClaim `json:"ociClaim"`
@@ -638,16 +646,33 @@ type VMKernelSpec struct {
 
 
 
-## <a name="VMSpec">type</a> [VMSpec](/pkg/apis/ignite/v1alpha1/types.go?s=6405:7223#L169)
+## <a name="VMNetworkSpec">type</a> [VMNetworkSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7354:7477#L197)
+``` go
+type VMNetworkSpec struct {
+    Mode  NetworkMode       `json:"mode"`
+    Ports meta.PortMappings `json:"ports,omitempty"`
+}
+
+```
+
+
+
+
+
+
+
+
+
+## <a name="VMSpec">type</a> [VMSpec](/pkg/apis/ignite/v1alpha1/types.go?s=6405:7158#L169)
 ``` go
 type VMSpec struct {
-    Image       VMImageSpec       `json:"image"`
-    Kernel      VMKernelSpec      `json:"kernel"`
-    CPUs        uint64            `json:"cpus"`
-    Memory      meta.Size         `json:"memory"`
-    DiskSize    meta.Size         `json:"diskSize"`
-    NetworkMode NetworkMode       `json:"networkMode"`
-    Ports       meta.PortMappings `json:"ports,omitempty"`
+    Image    VMImageSpec   `json:"image"`
+    Kernel   VMKernelSpec  `json:"kernel"`
+    CPUs     uint64        `json:"cpus"`
+    Memory   meta.Size     `json:"memory"`
+    DiskSize meta.Size     `json:"diskSize"`
+    Network  VMNetworkSpec `json:"network"`
+
     // This will be done at either "ignite start" or "ignite create" time
     // TODO: We might to revisit this later
     CopyFiles []FileMapping `json:"copyFiles,omitempty"`
@@ -671,7 +696,7 @@ VMSpec describes the configuration of a VM
 
 
 
-## <a name="VMState">type</a> [VMState](/pkg/apis/ignite/v1alpha1/types.go?s=8224:8243#L224)
+## <a name="VMState">type</a> [VMState](/pkg/apis/ignite/v1alpha1/types.go?s=8284:8303#L229)
 ``` go
 type VMState string
 ```
@@ -694,7 +719,7 @@ const (
 
 
 
-## <a name="VMStatus">type</a> [VMStatus](/pkg/apis/ignite/v1alpha1/types.go?s=8403:8624#L233)
+## <a name="VMStatus">type</a> [VMStatus](/pkg/apis/ignite/v1alpha1/types.go?s=8463:8684#L238)
 ``` go
 type VMStatus struct {
     State       VMState          `json:"state"`

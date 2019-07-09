@@ -30,6 +30,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VM":             schema_pkg_apis_ignite_v1alpha1_VM(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSpec":    schema_pkg_apis_ignite_v1alpha1_VMImageSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMKernelSpec":   schema_pkg_apis_ignite_v1alpha1_VMKernelSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMNetworkSpec":  schema_pkg_apis_ignite_v1alpha1_VMNetworkSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMSpec":         schema_pkg_apis_ignite_v1alpha1_VMSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMStatus":       schema_pkg_apis_ignite_v1alpha1_VMStatus(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.APIType":          schema_pkg_apis_meta_v1alpha1_APIType(ref),
@@ -554,6 +555,39 @@ func schema_pkg_apis_ignite_v1alpha1_VMKernelSpec(ref common.ReferenceCallback) 
 	}
 }
 
+func schema_pkg_apis_ignite_v1alpha1_VMNetworkSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"mode": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"ports": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.PortMapping"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"mode"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.PortMapping"},
+	}
+}
+
 func schema_pkg_apis_ignite_v1alpha1_VMSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -587,22 +621,9 @@ func schema_pkg_apis_ignite_v1alpha1_VMSpec(ref common.ReferenceCallback) common
 							Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"),
 						},
 					},
-					"networkMode": {
+					"network": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"ports": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.PortMapping"),
-									},
-								},
-							},
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMNetworkSpec"),
 						},
 					},
 					"copyFiles": {
@@ -625,11 +646,11 @@ func schema_pkg_apis_ignite_v1alpha1_VMSpec(ref common.ReferenceCallback) common
 						},
 					},
 				},
-				Required: []string{"image", "kernel", "cpus", "memory", "diskSize", "networkMode"},
+				Required: []string{"image", "kernel", "cpus", "memory", "diskSize", "network"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.FileMapping", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.SSH", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMKernelSpec", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.PortMapping", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.FileMapping", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.SSH", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMKernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMNetworkSpec", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
 	}
 }
 
