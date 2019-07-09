@@ -36,12 +36,8 @@ func SetObjectDefaults_Pool(in *Pool) {
 func SetObjectDefaults_VM(in *VM) {
 	SetDefaults_VM(in)
 	SetDefaults_VMSpec(&in.Spec)
-	if in.Spec.Image.OCIClaim != nil {
-		SetDefaults_OCIImageClaim(in.Spec.Image.OCIClaim)
-	}
+	SetDefaults_OCIImageClaim(&in.Spec.Image.OCIClaim)
 	SetDefaults_VMKernelSpec(&in.Spec.Kernel)
-	if in.Spec.Kernel.OCIClaim != nil {
-		SetDefaults_OCIImageClaim(in.Spec.Kernel.OCIClaim)
-	}
+	SetDefaults_OCIImageClaim(&in.Spec.Kernel.OCIClaim)
 	SetDefaults_VMStatus(&in.Status)
 }

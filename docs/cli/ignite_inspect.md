@@ -8,7 +8,7 @@ Inspect an Ignite Object
 Retrieve information about the given object of the given kind.
 The kind can be "image", "kernel" or "vm". The object is matched
 by prefix based on its ID and name. Outputs JSON by default, can
-be overridden to YAML with the yaml flag (-y, --yaml).
+be overridden with the output flag (-o, --output).
 
 
 ```
