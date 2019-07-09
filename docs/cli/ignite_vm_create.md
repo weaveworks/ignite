@@ -45,7 +45,8 @@ ignite vm create <OCI image> [flags]
 ### Options inherited from parent commands
 
 ```
-  -q, --quiet   The quiet mode allows for machine-parsable output, by printing only IDs
+      --log-level loglevel   Specify the loglevel for the program (default info)
+  -q, --quiet                The quiet mode allows for machine-parsable output, by printing only IDs
 ```
 
 ### SEE ALSO

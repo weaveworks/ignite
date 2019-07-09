@@ -6,14 +6,18 @@ import (
 	"os"
 
 	"github.com/lithammer/dedent"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/imgcmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/kerncmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/util"
 )
+
+var logLevel = logrus.InfoLevel
 
 // NewIgniteCommand returns the root command for ignite
 func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
@@ -41,7 +45,7 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 				panic(err)
 			}
 
-			logs.InitLogs()
+			logs.InitLogs(logLevel)
 		},
 		Long: dedent.Dedent(fmt.Sprintf(`
 			Ignite is a containerized Firecracker microVM administration tool.
@@ -70,7 +74,7 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 		`, imageCmd.Short, kernelCmd.Short, vmCmd.Short)),
 	}
 
-	AddQuietFlag(root.PersistentFlags())
+	addGlobalFlags(root.PersistentFlags())
 
 	root.AddCommand(imageCmd)
 	root.AddCommand(kernelCmd)
@@ -93,6 +97,11 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	root.AddCommand(NewCmdStop(os.Stdout))
 	root.AddCommand(NewCmdVersion(os.Stdout))
 	return root
+}
+
+func addGlobalFlags(fs *pflag.FlagSet) {
+	AddQuietFlag(fs)
+	cmdutil.LogLevelFlagVar(fs, &logLevel)
 }
 
 // AddQuietFlag adds the quiet flag to a flagset

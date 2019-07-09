@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
@@ -161,11 +161,11 @@ func (c *cache) Flush() error {
 // loadFull checks if the Object is an APIType, and loads the full Object in that case
 func (c *objectCache) loadFull(obj cacheObject) (meta.Object, error) {
 	if !obj.apiType {
-		log.Printf("cache: full %s object cached\n", obj.object.GetKind())
+		log.Debugf("cache: full %s object cached\n", obj.object.GetKind())
 		return obj.object, nil
 	}
 
-	log.Printf("cache: loading full %s object\n", obj.object.GetKind())
+	log.Debugf("cache: loading full %s object\n", obj.object.GetKind())
 	result, err := c.loadFunc(obj.object.GetKind(), obj.object.GetUID())
 	if err != nil {
 		return nil, err
@@ -220,7 +220,7 @@ func (c *objectCache) storeCO(obj cacheObject) {
 }
 
 func (c *objectCache) store(obj meta.Object) {
-	log.Printf("cache: storing %s object\n", obj.GetKind())
+	log.Debugf("cache: storing %s object\n", obj.GetKind())
 	c.storeCO(cacheObject{object: obj})
 }
 
@@ -231,7 +231,7 @@ func (c *objectCache) storeAll(objs []meta.Object) {
 }
 
 func (c *objectCache) storeMeta(obj meta.Object) {
-	log.Printf("cache: storing %s meta object\n", obj.GetKind())
+	log.Debugf("cache: storing %s meta object\n", obj.GetKind())
 	c.storeCO(cacheObject{object: obj, apiType: true})
 }
 
@@ -255,7 +255,7 @@ func (c *objectCache) delete(kind meta.Kind, uid meta.UID) {
 
 func (c *objectCache) count(kind meta.Kind) uint64 {
 	count := uint64(len(c.objects[kind]))
-	log.Printf("cache: counted %d %s objects\n", count, kind)
+	log.Debugf("cache: counted %d %s objects\n", count, kind)
 	return count
 }
 
