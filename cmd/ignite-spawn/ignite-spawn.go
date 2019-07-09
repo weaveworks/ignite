@@ -6,9 +6,9 @@ import (
 	"path"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/ignite/pkg/container/prometheus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/container"
+	"github.com/weaveworks/ignite/pkg/container/prometheus"
 	"github.com/weaveworks/ignite/pkg/logs"
 )
 
