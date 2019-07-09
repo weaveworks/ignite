@@ -27,12 +27,12 @@ func AddForceFlag(fs *pflag.FlagSet, force *bool) {
 }
 
 type SizeFlag struct {
-	value meta.Size
+	value *meta.Size
 }
 
 func (sf *SizeFlag) Set(val string) error {
 	var err error
-	sf.value, err = meta.NewSizeFromString(val)
+	*sf.value, err = meta.NewSizeFromString(val)
 	return err
 }
 
@@ -46,25 +46,28 @@ func (sf *SizeFlag) Type() string {
 
 var _ pflag.Value = &SizeFlag{}
 
-func SizeVar(fs *pflag.FlagSet, ptr *meta.Size, name string, defVal meta.Size, usage string) {
-	SizeVarP(fs, ptr, name, "", defVal, usage)
+func SizeVar(fs *pflag.FlagSet, ptr *meta.Size, name, usage string) {
+	SizeVarP(fs, ptr, name, "", usage)
 }
 
-func SizeVarP(fs *pflag.FlagSet, ptr *meta.Size, name, shorthand string, defVal meta.Size, usage string) {
-	fs.VarP(&SizeFlag{value: defVal}, name, shorthand, usage)
+func SizeVarP(fs *pflag.FlagSet, ptr *meta.Size, name, shorthand, usage string) {
+	fs.VarP(&SizeFlag{value: ptr}, name, shorthand, usage)
 }
 
 type OCIImageRefFlag struct {
-	value meta.OCIImageRef
+	value *meta.OCIImageRef
 }
 
 func (of *OCIImageRefFlag) Set(val string) error {
 	var err error
-	of.value, err = meta.NewOCIImageRef(val)
+	*of.value, err = meta.NewOCIImageRef(val)
 	return err
 }
 
 func (of *OCIImageRefFlag) String() string {
+	if of.value == nil {
+		return ""
+	}
 	return of.value.String()
 }
 
@@ -74,12 +77,12 @@ func (of *OCIImageRefFlag) Type() string {
 
 var _ pflag.Value = &OCIImageRefFlag{}
 
-func OCIImageRefVar(fs *pflag.FlagSet, ptr *meta.OCIImageRef, name string, defVal meta.OCIImageRef, usage string) {
-	OCIImageRefVarP(fs, ptr, name, "", defVal, usage)
+func OCIImageRefVar(fs *pflag.FlagSet, ptr *meta.OCIImageRef, name, usage string) {
+	OCIImageRefVarP(fs, ptr, name, "", usage)
 }
 
-func OCIImageRefVarP(fs *pflag.FlagSet, ptr *meta.OCIImageRef, name, shorthand string, defVal meta.OCIImageRef, usage string) {
-	fs.VarP(&OCIImageRefFlag{value: defVal}, name, shorthand, usage)
+func OCIImageRefVarP(fs *pflag.FlagSet, ptr *meta.OCIImageRef, name, shorthand, usage string) {
+	fs.VarP(&OCIImageRefFlag{value: ptr}, name, shorthand, usage)
 }
 
 type LogLevelFlag struct {

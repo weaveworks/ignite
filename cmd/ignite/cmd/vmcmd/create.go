@@ -54,15 +54,22 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 }
 
 func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
+	// Register common flags
 	cmdutil.AddNameFlag(fs, &cf.VM.ObjectMeta.Name)
 	cmdutil.AddConfigFlag(fs, &cf.ConfigFile)
-	fs.StringSliceVarP(&cf.PortMappings, "ports", "p", nil, "Map host ports to VM ports")
+
+	// Register flags bound to temporary holder values
+	fs.StringSliceVarP(&cf.PortMappings, "ports", "p", cf.PortMappings, "Map host ports to VM ports")
+	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", cf.CopyFiles, "Copy files from the host to the created VM")
+
+	// Register flags for simple types (int, string, etc.)
 	fs.Uint64Var(&cf.VM.Spec.CPUs, "cpus", cf.VM.Spec.CPUs, "VM vCPU count, 1 or even numbers between 1 and 32")
-	cmdutil.SizeVar(fs, &cf.VM.Spec.Memory, "memory", cf.VM.Spec.Memory, "Amount of RAM to allocate for the VM")
-	cmdutil.SizeVarP(fs, &cf.VM.Spec.DiskSize, "size", "s", cf.VM.Spec.DiskSize, "VM filesystem size, for example 5GB or 2048MB")
-	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", nil, "Copy files from the host to the created VM")
-	cmdutil.OCIImageRefVarP(fs, &cf.VM.Spec.Kernel.OCIClaim.Ref, "kernel-image", "k", cf.VM.Spec.Kernel.OCIClaim.Ref, "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
 	fs.StringVar(&cf.VM.Spec.Kernel.CmdLine, "kernel-args", cf.VM.Spec.Kernel.CmdLine, "Set the command line for the kernel")
+
+	// Register more complex flags with their own flag types
+	cmdutil.SizeVar(fs, &cf.VM.Spec.Memory, "memory", "Amount of RAM to allocate for the VM")
+	cmdutil.SizeVarP(fs, &cf.VM.Spec.DiskSize, "size", "s", "VM filesystem size, for example 5GB or 2048MB")
+	cmdutil.OCIImageRefVarP(fs, &cf.VM.Spec.Kernel.OCIClaim.Ref, "kernel-image", "k", "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
 	cmdutil.NetworkModeVar(fs, &cf.VM.Spec.Network.Mode)
 
 	cf.SSH = &run.SSHFlag{}
