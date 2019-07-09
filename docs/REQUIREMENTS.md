@@ -14,8 +14,8 @@ Everything apart from above, is not supported, and out of scope.
 
  - A host running Linux 4.14 or newer
  - An Intel or AMD (alpha) CPU
- - `sysctl net.bridge.bridge-nf-call-iptables=0`
  - `sysctl net.ipv4.ip_forward=1`
+ - Optional: `sysctl net.bridge.bridge-nf-call-iptables=0`
 
 ### Guest Requirements
 
