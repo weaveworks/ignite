@@ -1,5 +1,7 @@
 # Weave Ignite
 
+![Ignite Logo](docs/logo.png)
+
 Ignite is a Firecracker microVM administration tool, like Docker manages
 runC containers.
 It builds VM images from OCI images, spin VMs up/down in lightning speed,
@@ -45,11 +47,15 @@ Or a similar solution like Kata Containers or gVisor, that are complementary to 
 Firecracker Ignite, however, is operating at another layer. Ignite isn’t concerned with **containers**
 as the primary unit, but whole yet lightweight VMs that integrate with the container landscape.
 
-## How to use
+## Installing
 
-Before starting, you might want to read about the dependencies and non-goals of Ignite in [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md).
+Please check out the [Releases Page](https://github.com/weaveworks/ignite/releases).
 
-**WARNING**: In it's `v0.X` series, Ignite is in _alpha_, which means that it might change in backwards-incompatible ways.
+How to install Ignite is covered in [docs/installation.md](docs/installation.md).
+
+## Getting Started
+
+**WARNING**: In it's `v0.X` series, Ignite is in **alpha**, which means that it might change in backwards-incompatible ways.
 
 [![asciicast](https://asciinema.org/a/252221.svg)](https://asciinema.org/a/252221)
 
@@ -61,7 +67,7 @@ for certain specific operations (e.g. `mount`). This will change in the future.
 # Use 2 vCPUs and 1GB of RAM, enable automatic SSH access and name it my-vm
 ignite run weaveworks/ignite-ubuntu \
     --cpus 2 \
-    --memory 1024 \
+    --memory 1GB \
     --ssh \
     --name my-vm
 
@@ -92,9 +98,17 @@ ignite ssh my-vm
 ignite rm my-vm
 ```
 
-### CLI documentation
+For a walkthrough of how to use Ignite, go to **[docs/usage.md]**(docs/usage.md).
 
-See the [CLI Reference](docs/cli/ignite.md).
+### Documentation
+
+Please refer to the:
+
+- [Getting Started Walkthrough](docs/usage.md)
+- [Declaratively Controlling Ignite](docs/declarative-config.md)
+- [CLI Reference](docs/cli/ignite.md)
+- [API Reference](api)
+- [Scope and Requirements](docs/REQUIREMENTS.md)
 
 ### Architecture
 
@@ -105,10 +119,9 @@ See the [CLI Reference](docs/cli/ignite.md).
 A _base image_ is an OCI-compliant image containing some operating system (e.g. Ubuntu).
 You can follow normal `docker build` patterns for customizing your VM's rootfs.
 
-A _kernel binary_ is today expected to be inside of the rootfs, at `/boot/vmlinux` (may
-be a symlink). It is also recommended to put supported kernel modules in `/lib/modules`
-if you need that. Today we couple the kernel and the base image, this will however change
-in future releases so you can mix and match kernel and base image OCI-images at `ignite run`-time.
+A _kernel image_ is an OCI-compliant image containing a `/boot/vmlinux` (an uncompressed kernel)
+executable (can be a symlink). You can also put supporting kernel modules in `/lib/modules`
+if needed. You can match and mix any kernel and any base image.
 
 As the upstream `centos:7` and `ubuntu:18.04` images from Docker Hub doesn't
 have all the utilities and packages you'd expect in a VM (e.g. an init system), we have packaged some
