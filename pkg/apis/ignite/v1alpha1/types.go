@@ -4,6 +4,12 @@ import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
+const (
+	KindImage  meta.Kind = "Image"
+	KindKernel meta.Kind = "Kernel"
+	KindVM     meta.Kind = "VM"
+)
+
 // Image represents a cached OCI image ready to be used with Ignite
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 type Image struct {
@@ -38,7 +44,7 @@ type OCIImageClaim struct {
 	// This is most commonly the image name, followed by a tag.
 	// Other supported ways are $registry/$user/$image@sha256:$digest
 	// This ref is also used as ObjectMeta.Name for kinds Images and Kernels
-	Ref string `json:"ref"`
+	Ref meta.OCIImageRef `json:"ref"`
 }
 
 // OCIImageSource specifies how the OCI image was imported.
@@ -180,12 +186,12 @@ type VMSpec struct {
 }
 
 type VMImageSpec struct {
-	OCIClaim *OCIImageClaim `json:"ociClaim"`
+	OCIClaim OCIImageClaim `json:"ociClaim"`
 }
 
 type VMKernelSpec struct {
-	OCIClaim *OCIImageClaim `json:"ociClaim"`
-	CmdLine  string         `json:"cmdLine,omitempty"`
+	OCIClaim OCIImageClaim `json:"ociClaim"`
+	CmdLine  string        `json:"cmdLine,omitempty"`
 }
 
 // FileMapping defines mappings between files on the host and VM
@@ -223,13 +229,6 @@ const (
 type VMStatus struct {
 	State       VMState          `json:"state"`
 	IPAddresses meta.IPAddresses `json:"ipAddresses,omitempty"`
-	Image       VMImageSource    `json:"image"`
-	Kernel      VMImageSource    `json:"kernel"`
-}
-
-// VMImageSource is a temporary wrapper around OCIImageSource to allow
-// passing the old UID for internal purposes
-type VMImageSource struct {
-	OCIImageSource `json:",inline"`
-	UID            meta.UID `json:"internalUID"`
+	Image       OCIImageSource   `json:"image"`
+	Kernel      OCIImageSource   `json:"kernel"`
 }

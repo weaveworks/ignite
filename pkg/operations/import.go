@@ -8,13 +8,11 @@ import (
 	"os"
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/filter"
-	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/source"
@@ -25,52 +23,45 @@ import (
 // FindOrImportImage returns an image based on the source string.
 // If the image already exists, it is returned. If the image doesn't
 // exist, it is imported
-func FindOrImportImage(c *client.Client, srcString string) (*imgmd.Image, error) {
-	image, err := c.Images().Find(filter.NewIDNameFilter(srcString))
+func FindOrImportImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error) {
+	image, err := c.Images().Find(filter.NewIDNameFilter(ociRef.String()))
 	if err == nil {
-		return &imgmd.Image{image}, nil
+		// Return the image found
+		return imgmd.WrapImage(image), nil
 	}
 
 	switch err.(type) {
 	case *filterer.NonexistentError:
-		return importImage(srcString)
+		return importImage(c, ociRef)
 	default:
 		return nil, err
 	}
 }
 
 // importKernel imports an image from an OCI image
-func importImage(srcString string) (*imgmd.Image, error) {
+func importImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error) {
 	// Parse the source
 	dockerSource := source.NewDockerSource()
-	src, err := dockerSource.Parse(srcString)
+	src, err := dockerSource.Parse(ociRef)
 	if err != nil {
 		return nil, err
 	}
 
 	image := &api.Image{
+		ObjectMeta: meta.ObjectMeta{
+			Name: ociRef.String(),
+		},
 		Spec: api.ImageSpec{
 			OCIClaim: api.OCIImageClaim{
-				Ref: srcString,
+				Ref: ociRef,
 			},
 		},
 		Status: api.ImageStatus{
 			OCISource: *src,
 		},
 	}
-
-	// Set defaults, and populate TypeMeta
-	// TODO: Make this more standardized; maybe a constructor method somewhere?
-	scheme.Scheme.Default(image)
-
-	// Verify the name
-	name, err := metadata.NewNameWithLatest(srcString, meta.KindImage)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create new image metadata
-	runImage, err := imgmd.NewImage("", &name, image)
+	// Create a new image runtime object
+	runImage, err := imgmd.NewImage(image, c)
 	if err != nil {
 		return nil, err
 	}
@@ -90,40 +81,44 @@ func importImage(srcString string) (*imgmd.Image, error) {
 	if err := runImage.Save(); err != nil {
 		return nil, err
 	}
-	log.Printf("Imported a %s filesystem from OCI image %q", image.Status.OCISource.Size.HR(), srcString)
+	log.Printf("Imported a %s filesystem from OCI image %q", image.Status.OCISource.Size.HR(), ociRef.String())
 	return runImage, nil
 }
 
 // FindOrImportKernel returns an kernel based on the source string.
 // If the image already exists, it is returned. If the image doesn't
 // exist, it is imported
-func FindOrImportKernel(c *client.Client, srcString string) (*kernmd.Kernel, error) {
-	image, err := c.Kernels().Find(filter.NewIDNameFilter(srcString))
+func FindOrImportKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, error) {
+	kernel, err := c.Kernels().Find(filter.NewIDNameFilter(ociRef.String()))
 	if err == nil {
-		return &kernmd.Kernel{image}, nil
+		// Return the kernel found
+		return kernmd.WrapKernel(kernel), nil
 	}
 
 	switch err.(type) {
 	case *filterer.NonexistentError:
-		return importKernel(srcString)
+		return importKernel(c, ociRef)
 	default:
 		return nil, err
 	}
 }
 
 // importKernel imports a kernel from an OCI image
-func importKernel(srcString string) (*kernmd.Kernel, error) {
+func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, error) {
 	// Parse the source
 	dockerSource := source.NewDockerSource()
-	src, err := dockerSource.Parse(srcString)
+	src, err := dockerSource.Parse(ociRef)
 	if err != nil {
 		return nil, err
 	}
 
 	kernel := &api.Kernel{
+		ObjectMeta: meta.ObjectMeta{
+			Name: ociRef.String(),
+		},
 		Spec: api.KernelSpec{
 			OCIClaim: api.OCIImageClaim{
-				Ref: srcString,
+				Ref: ociRef,
 			},
 		},
 		Status: api.KernelStatus{
@@ -131,17 +126,8 @@ func importKernel(srcString string) (*kernmd.Kernel, error) {
 		},
 	}
 
-	// Set defaults, and populate TypeMeta
-	// TODO: Make this more standardized; maybe a constructor method somewhere?
-	scheme.Scheme.Default(kernel)
-
-	name, err := metadata.NewNameWithLatest(srcString, meta.KindKernel)
-	if err != nil {
-		return nil, err
-	}
-
 	// Create new kernel metadata
-	runKernel, err := kernmd.NewKernel("", &name, kernel)
+	runKernel, err := kernmd.NewKernel(kernel, c)
 	if err != nil {
 		return nil, err
 	}

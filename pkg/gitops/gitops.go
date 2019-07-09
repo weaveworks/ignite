@@ -9,7 +9,6 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
-	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/storage/gitops"
@@ -49,6 +48,7 @@ func RunLoop(url, branch string) error {
 
 		wg := &sync.WaitGroup{}
 		for _, file := range diff {
+			// TODO: Construct a runVM object here and pass that instead of the "raw" API object
 			vm := vmMap[file.APIType.UID]
 
 			// TODO: At the moment there aren't running in parallel, shall they?
@@ -152,19 +152,12 @@ func create(vm *api.VM) error {
 // prepareVM takes a VM API object, finds/populates its dependencies (image/kernel) and finally
 // returns the runtime VM object
 func prepareVM(vm *api.VM) (*vmmd.VM, error) {
-	if vm.Spec.Image.OCIClaim == nil {
-		return nil, fmt.Errorf("vm must specify image to run! image is empty for vm %s", vm.GetUID())
+	if vm.Spec.Image.OCIClaim.Ref.IsUnset() {
+		return nil, fmt.Errorf("vm must specify image ref to run! image is empty for vm %s", vm.GetUID())
 	}
 
-	var err error
-	imgName := vm.Spec.Image.OCIClaim.Ref
-	imgName, err = metadata.NewNameWithLatest(imgName, meta.KindImage)
-	if err != nil {
-		return nil, err
-	}
-
-	// Check if a kernel with this name already exists, or import it
-	runImg, err := operations.FindOrImportImage(c, imgName)
+	// Check if a image with this name already exists, or import it
+	runImg, err := operations.FindOrImportImage(c, vm.Spec.Image.OCIClaim.Ref)
 	if err != nil {
 		return nil, err
 	}
@@ -172,14 +165,8 @@ func prepareVM(vm *api.VM) (*vmmd.VM, error) {
 	// Populate relevant data from the Image on the VM object
 	vm.SetImage(runImg.Image)
 
-	kernelName := vm.Spec.Kernel.OCIClaim.Ref
-	kernelName, err = metadata.NewNameWithLatest(kernelName, meta.KindImage)
-	if err != nil {
-		return nil, err
-	}
-
 	// Check if a kernel with this name already exists, or import it
-	runKernel, err := operations.FindOrImportKernel(c, kernelName)
+	runKernel, err := operations.FindOrImportKernel(c, vm.Spec.Kernel.OCIClaim.Ref)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +175,7 @@ func prepareVM(vm *api.VM) (*vmmd.VM, error) {
 	vm.SetKernel(runKernel.Kernel)
 
 	// Create new metadata for the VM
-	return vmmd.NewVM(vm.ObjectMeta.UID, &vm.ObjectMeta.Name, vm)
+	return vmmd.NewVM(vm, c)
 	// TODO: Consider cleanup like this?
 	//defer metadata.Cleanup(runVM, false) // TODO: Handle silent
 	//return metadata.Success(runVM)
@@ -212,10 +199,10 @@ func start(vm *api.VM) error {
 
 func stop(vm *api.VM) error {
 	log.Printf("Stopping VM %q with name %q...", vm.GetUID(), vm.GetName())
-	return operations.StopVM(&vmmd.VM{vm}, true, false)
+	return operations.StopVM(vmmd.WrapVM(vm), true, false)
 }
 
 func remove(vm *api.VM) error {
 	log.Printf("Removing VM %q with name %q...", vm.GetUID(), vm.GetName())
-	return operations.RemoveVM(c, &vmmd.VM{vm})
+	return operations.RemoveVM(c, vmmd.WrapVM(vm))
 }

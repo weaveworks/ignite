@@ -60,12 +60,6 @@ type Kind string
 
 var _ fmt.Stringer = Kind("")
 
-const (
-	KindImage  Kind = "Image"
-	KindKernel Kind = "Kernel"
-	KindVM     Kind = "VM"
-)
-
 // Returns a string representation of the Kind suitable for sentences
 func (k Kind) String() string {
 	b := []byte(k)

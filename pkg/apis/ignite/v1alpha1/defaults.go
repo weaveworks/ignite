@@ -57,6 +57,11 @@ func SetDefaults_VMSpec(obj *VMSpec) {
 }
 
 func SetDefaults_VMKernelSpec(obj *VMKernelSpec) {
+	// Default the kernel image if unset
+	if len(obj.OCIClaim.Ref) == 0 {
+		obj.OCIClaim.Ref, _ = meta.NewOCIImageRef(constants.DEFAULT_KERNEL_IMAGE)
+	}
+
 	if len(obj.CmdLine) == 0 {
 		obj.CmdLine = constants.VM_DEFAULT_KERNEL_ARGS
 	}

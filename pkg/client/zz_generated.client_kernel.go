@@ -88,7 +88,7 @@ func (c *kernelClient) FindAll(filter filterer.BaseFilter) ([]*api.Kernel, error
 
 // Get returns the Kernel matching given UID from the storage
 func (c *kernelClient) Get(uid meta.UID) (*api.Kernel, error) {
-	object, err := c.storage.GetByID(meta.KindKernel, uid)
+	object, err := c.storage.GetByID(api.KindKernel, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -103,12 +103,12 @@ func (c *kernelClient) Set(kernel *api.Kernel) error {
 
 // Delete deletes the Kernel from the storage
 func (c *kernelClient) Delete(uid meta.UID) error {
-	return c.storage.Delete(meta.KindKernel, uid)
+	return c.storage.Delete(api.KindKernel, uid)
 }
 
 // List returns a list of all Kernels available
 func (c *kernelClient) List() ([]*api.Kernel, error) {
-	list, err := c.storage.List(meta.KindKernel)
+	list, err := c.storage.List(api.KindKernel)
 	if err != nil {
 		return nil, err
 	}

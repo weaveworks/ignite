@@ -30,12 +30,13 @@ func (ds *DockerSource) ID() string {
 	return ds.imageID
 }
 
-func (ds *DockerSource) Parse(source string) (*api.OCIImageSource, error) {
+func (ds *DockerSource) Parse(ociRef meta.OCIImageRef) (*api.OCIImageSource, error) {
 	client, err := docker.GetDockerClient()
 	if err != nil {
 		return nil, err
 	}
 
+	source := ociRef.String()
 	res, err := client.InspectImage(source)
 	if err != nil {
 		log.Printf("Docker image %q not found locally, pulling...", source)
@@ -52,7 +53,7 @@ func (ds *DockerSource) Parse(source string) (*api.OCIImageSource, error) {
 		}
 	}
 
-	if res.Size == 0 || len(res.ID) == 0 || len(res.RepoDigests) == 0 {
+	if res.Size == 0 || len(res.ID) == 0 {
 		return nil, fmt.Errorf("parsing docker image %q data failed", source)
 	}
 

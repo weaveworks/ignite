@@ -3,9 +3,6 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/pkg/client"
-	"github.com/weaveworks/ignite/pkg/filter"
-
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -15,16 +12,10 @@ type logsOptions struct {
 	vm *vmmd.VM
 }
 
-func NewLogsOptions(vmMatch string) (*logsOptions, error) {
-	lo := &logsOptions{}
-
-	if vm, err := client.VMs().Find(filter.NewIDNameFilter(vmMatch)); err == nil {
-		lo.vm = &vmmd.VM{vm}
-	} else {
-		return nil, err
-	}
-
-	return lo, nil
+func NewLogsOptions(vmMatch string) (lo *logsOptions, err error) {
+	lo = &logsOptions{}
+	lo.vm, err = getVMForMatch(vmMatch)
+	return
 }
 
 func Logs(lo *logsOptions) error {

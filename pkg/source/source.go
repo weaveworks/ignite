@@ -4,6 +4,7 @@ import (
 	"io"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
 // Source represents a source for VM images
@@ -12,7 +13,7 @@ type Source interface {
 	ID() string
 
 	// Parse verifies the ImageSource, fills in any missing fields and prepares the reader
-	Parse(src string) (*api.OCIImageSource, error)
+	Parse(src meta.OCIImageRef) (*api.OCIImageSource, error)
 
 	// Reader provides a tar stream reader
 	Reader() (io.ReadCloser, error)

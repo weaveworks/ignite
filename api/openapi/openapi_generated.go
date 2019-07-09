@@ -28,7 +28,6 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.PoolStatus":     schema_pkg_apis_ignite_v1alpha1_PoolStatus(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.SSH":            schema_pkg_apis_ignite_v1alpha1_SSH(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VM":             schema_pkg_apis_ignite_v1alpha1_VM(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSource":  schema_pkg_apis_ignite_v1alpha1_VMImageSource(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSpec":    schema_pkg_apis_ignite_v1alpha1_VMImageSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMKernelSpec":   schema_pkg_apis_ignite_v1alpha1_VMKernelSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMSpec":         schema_pkg_apis_ignite_v1alpha1_VMSpec(ref),
@@ -509,55 +508,6 @@ func schema_pkg_apis_ignite_v1alpha1_VM(ref common.ReferenceCallback) common.Ope
 	}
 }
 
-func schema_pkg_apis_ignite_v1alpha1_VMImageSource(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "VMImageSource is a temporary wrapper around OCIImageSource to allow passing the old UID for internal purposes",
-				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"id": {
-						SchemaProps: spec.SchemaProps{
-							Description: "ID defines the source's ID (e.g. the Docker image ID)",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"size": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Size defines the size of the source in bytes",
-							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"),
-						},
-					},
-					"repoDigests": {
-						SchemaProps: spec.SchemaProps{
-							Description: "RepoDigests defines the image name as it was when pulled from a repository, and the digest of the image The format is $registry/$user/$image@sha256:$digest This field is unpopulated if the image used as the source has never been pushed to or pulled from a registry",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
-					"internalUID": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-				},
-				Required: []string{"id", "size", "internalUID"},
-			},
-		},
-		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
-	}
-}
-
 func schema_pkg_apis_ignite_v1alpha1_VMImageSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -711,12 +661,12 @@ func schema_pkg_apis_ignite_v1alpha1_VMStatus(ref common.ReferenceCallback) comm
 					},
 					"image": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSource"),
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageSource"),
 						},
 					},
 					"kernel": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSource"),
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageSource"),
 						},
 					},
 				},
@@ -724,7 +674,7 @@ func schema_pkg_apis_ignite_v1alpha1_VMStatus(ref common.ReferenceCallback) comm
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSource"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageSource"},
 	}
 }
 

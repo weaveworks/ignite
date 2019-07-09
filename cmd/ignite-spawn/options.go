@@ -14,7 +14,7 @@ func NewOptions(vmMatch string) (*options, error) {
 	co := &options{}
 
 	if vm, err := client.VMs().Find(filter.NewIDNameFilter(vmMatch)); err == nil {
-		co.vm = &vmmd.VM{vm}
+		co.vm = vmmd.WrapVM(vm)
 	} else {
 		return nil, err
 	}

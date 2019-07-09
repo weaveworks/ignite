@@ -88,7 +88,7 @@ func (c *imageClient) FindAll(filter filterer.BaseFilter) ([]*api.Image, error) 
 
 // Get returns the Image matching given UID from the storage
 func (c *imageClient) Get(uid meta.UID) (*api.Image, error) {
-	object, err := c.storage.GetByID(meta.KindImage, uid)
+	object, err := c.storage.GetByID(api.KindImage, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -103,12 +103,12 @@ func (c *imageClient) Set(image *api.Image) error {
 
 // Delete deletes the Image from the storage
 func (c *imageClient) Delete(uid meta.UID) error {
-	return c.storage.Delete(meta.KindImage, uid)
+	return c.storage.Delete(api.KindImage, uid)
 }
 
 // List returns a list of all Images available
 func (c *imageClient) List() ([]*api.Image, error) {
-	list, err := c.storage.List(meta.KindImage)
+	list, err := c.storage.List(api.KindImage)
 	if err != nil {
 		return nil, err
 	}

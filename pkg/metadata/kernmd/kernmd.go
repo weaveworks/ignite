@@ -3,9 +3,7 @@ package kernmd
 import (
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
@@ -13,45 +11,44 @@ import (
 
 type Kernel struct {
 	*api.Kernel
+	c *client.Client
 }
 
 var _ metadata.Metadata = &Kernel{}
 
-func NewKernel(id meta.UID, name *string, object *api.Kernel) (*Kernel, error) {
-	if object == nil {
-		object = &api.Kernel{}
+// WrapKernel wraps an API type in the runtime object
+// It does not do any validation or checking like
+// NewKernel, hence it should only be used for "safe"
+// data coming from storage.
+func WrapKernel(obj *api.Kernel) *Kernel {
+	return &Kernel{
+		Kernel: obj,
+		c:      client.DefaultClient,
 	}
-	// Set defaults, and populate TypeMeta
-	// TODO: Make this more standardized; maybe a constructor method somewhere?
-	scheme.Scheme.Default(object)
+}
 
-	md := &Kernel{
-		Kernel: object,
-	}
-
-	metadata.InitName(md, name)
-
-	if err := metadata.NewUID(md, id); err != nil {
+func NewKernel(obj *api.Kernel, c *client.Client) (*Kernel, error) {
+	// Initialize UID, name, defaulting, etc. that is common for all kinds
+	if err := metadata.InitObject(obj, c); err != nil {
 		return nil, err
 	}
 
-	return md, nil
+	// TODO: Validate the API object here
+
+	// Construct the runtime object
+	kernel := &Kernel{
+		Kernel: obj,
+		c:      c,
+	}
+
+	return kernel, nil
 }
 
-// TODO: Remove
-func (md *Kernel) TypePath() string {
-	return constants.KERNEL_DIR
+func (k *Kernel) ObjectPath() string {
+	// TODO: Move this into storage
+	return path.Join(constants.DATA_DIR, k.GetKind().Lower(), k.GetUID().String())
 }
 
-func (md *Kernel) ObjectPath() string {
-	return path.Join(md.TypePath(), md.GetUID().String())
-}
-
-func (md *Kernel) Load() (err error) {
-	md.Kernel, err = client.Kernels().Get(md.GetUID())
-	return
-}
-
-func (md *Kernel) Save() error {
-	return client.Kernels().Set(md.Kernel)
+func (k *Kernel) Save() error {
+	return k.c.Kernels().Set(k.Kernel)
 }

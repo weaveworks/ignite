@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
@@ -61,7 +60,7 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	cmdutil.SizeVar(fs, &cf.VM.Spec.Memory, "memory", cf.VM.Spec.Memory, "Amount of RAM to allocate for the VM")
 	cmdutil.SizeVarP(fs, &cf.VM.Spec.DiskSize, "size", "s", cf.VM.Spec.DiskSize, "VM filesystem size, for example 5GB or 2048MB")
 	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", nil, "Copy files from the host to the created VM")
-	fs.StringVarP(&cf.KernelClaimRef, "kernel-image", "k", constants.DEFAULT_KERNEL_IMAGE, "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
+	cmdutil.OCIImageRefVarP(fs, &cf.VM.Spec.Kernel.OCIClaim.Ref, "kernel-image", "k", cf.VM.Spec.Kernel.OCIClaim.Ref, "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
 	fs.StringVar(&cf.VM.Spec.Kernel.CmdLine, "kernel-args", cf.VM.Spec.Kernel.CmdLine, "Set the command line for the kernel")
 
 	cf.SSH = &run.SSHFlag{}

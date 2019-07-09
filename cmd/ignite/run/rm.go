@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/weaveworks/ignite/pkg/client"
-	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
 )
@@ -18,18 +17,10 @@ type rmOptions struct {
 	vms []*vmmd.VM
 }
 
-func (rf *RmFlags) NewRmOptions(vmMatches []string) (*rmOptions, error) {
-	ro := &rmOptions{RmFlags: rf}
-
-	for _, match := range vmMatches {
-		if vm, err := client.VMs().Find(filter.NewVMFilter(match)); err == nil {
-			ro.vms = append(ro.vms, &vmmd.VM{vm})
-		} else {
-			return nil, err
-		}
-	}
-
-	return ro, nil
+func (rf *RmFlags) NewRmOptions(vmMatches []string) (ro *rmOptions, err error) {
+	ro = &rmOptions{RmFlags: rf}
+	ro.vms, err = getVMsForMatches(vmMatches)
+	return
 }
 
 func Rm(ro *rmOptions) error {
