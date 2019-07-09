@@ -38,7 +38,7 @@ func (md *VM) AllocateAndPopulateOverlay() error {
 
 	size := int64(requestedSize)
 
-	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, md.Status.Image.UID.String(), constants.IMAGE_FS))
+	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, md.GetImageUID().String(), constants.IMAGE_FS))
 	if err != nil {
 		return err
 	}
@@ -156,15 +156,6 @@ func (md *VM) Running() bool {
 
 func (md *VM) OverlayFile() string {
 	return path.Join(md.ObjectPath(), constants.OVERLAY_FILE)
-}
-
-func (md *VM) Size() (int64, error) {
-	fi, err := os.Stat(md.OverlayFile())
-	if err != nil {
-		return 0, err
-	}
-
-	return fi.Size(), nil
 }
 
 func (md *VM) AddIPAddress(address net.IP) {

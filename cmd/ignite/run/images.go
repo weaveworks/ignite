@@ -1,29 +1,20 @@
 package run
 
 import (
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
-	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type imagesOptions struct {
-	allImages []*imgmd.Image
+	allImages []*api.Image
 }
 
-func NewImagesOptions() (*imagesOptions, error) {
-	io := &imagesOptions{}
-
-	if allImages, err := client.Images().FindAll(filter.NewAllFilter()); err == nil {
-		io.allImages = make([]*imgmd.Image, 0, len(allImages))
-		for _, image := range allImages {
-			io.allImages = append(io.allImages, &imgmd.Image{image})
-		}
-	} else {
-		return nil, err
-	}
-
-	return io, nil
+func NewImagesOptions() (io *imagesOptions, err error) {
+	io = &imagesOptions{}
+	io.allImages, err = client.Images().FindAll(filter.NewAllFilter())
+	return
 }
 
 func Images(io *imagesOptions) error {

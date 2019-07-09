@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/client"
-	"github.com/weaveworks/ignite/pkg/filter"
-
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -21,16 +18,10 @@ type sshOptions struct {
 	vm *vmmd.VM
 }
 
-func (sf *SSHFlags) NewSSHOptions(vmMatch string) (*sshOptions, error) {
-	so := &sshOptions{SSHFlags: sf}
-
-	if vm, err := client.VMs().Find(filter.NewIDNameFilter(vmMatch)); err == nil {
-		so.vm = &vmmd.VM{vm}
-	} else {
-		return nil, err
-	}
-
-	return so, nil
+func (sf *SSHFlags) NewSSHOptions(vmMatch string) (so *sshOptions, err error) {
+	so = &sshOptions{SSHFlags: sf}
+	so.vm, err = getVMForMatch(vmMatch)
+	return
 }
 
 func SSH(so *sshOptions) error {

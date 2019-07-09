@@ -1,29 +1,20 @@
 package run
 
 import (
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
-	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type kernelsOptions struct {
-	allKernels []*kernmd.Kernel
+	allKernels []*api.Kernel
 }
 
-func NewKernelsOptions() (*kernelsOptions, error) {
-	io := &kernelsOptions{}
-
-	if allKernels, err := client.Kernels().FindAll(filter.NewAllFilter()); err == nil {
-		io.allKernels = make([]*kernmd.Kernel, 0, len(allKernels))
-		for _, kernel := range allKernels {
-			io.allKernels = append(io.allKernels, &kernmd.Kernel{kernel})
-		}
-	} else {
-		return nil, err
-	}
-
-	return io, nil
+func NewKernelsOptions() (ko *kernelsOptions, err error) {
+	ko = &kernelsOptions{}
+	ko.allKernels, err = client.Kernels().FindAll(filter.NewAllFilter())
+	return
 }
 
 func Kernels(ko *kernelsOptions) error {
