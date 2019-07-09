@@ -61,6 +61,9 @@ func StartVM(co *options) error {
 	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
 	defer co.vm.RemoveSnapshot()
 
+	// Remove CNI networking post-run
+	defer co.vm.RemoveCNINetworking()
+
 	// Remove the IP addresses post-run
 	defer co.vm.ClearIPAddresses()
 

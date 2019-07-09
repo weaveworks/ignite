@@ -15,7 +15,7 @@ import (
 )
 
 func StartVM(vm *vmmd.VM, debug bool) error {
-	// Make sure the VM container does not exist. Don't care about the error
+	// Make sure the VM container does not exist. Don't care about the error.
 	RemoveVMContainer(vm.VM)
 
 	// Setup the snapshot overlay filesystem

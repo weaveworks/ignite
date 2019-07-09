@@ -2,6 +2,8 @@ package vmmd
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/network/cni"
+	"github.com/weaveworks/ignite/pkg/runtime/docker"
 	"io/ioutil"
 	"math"
 	"net"
@@ -168,6 +170,29 @@ func (md *VM) ClearIPAddresses() {
 
 func (md *VM) ClearPortMappings() {
 	md.Spec.Ports = nil
+}
+
+func (md *VM) RemoveCNINetworking() error {
+	// Skip all other network modes
+	if md.Spec.NetworkMode != api.NetworkModeCNI {
+		return nil
+	}
+
+	// TODO: Both the client and networkPlugin variables should be constructed once,
+	// and accessible throughout the program.
+	client, err := docker.GetDockerClient()
+	if err != nil {
+		return err
+	}
+
+	networkPlugin, err := cni.GetCNINetworkPlugin(client)
+	if err != nil {
+		return err
+	}
+
+	// TODO: The Docker hostname is not a robust way to get this, but
+	// Ignite needs to be daemonized to have a proper implementation
+	return networkPlugin.RemoveContainerNetwork(os.Getenv("HOSTNAME"))
 }
 
 // Generate a new SSH keypair for the vm
