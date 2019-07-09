@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/c2h5oh/datasize"
 )
@@ -10,6 +11,8 @@ import (
 type Size struct {
 	datasize.ByteSize
 }
+
+var _ fmt.Stringer = Size{}
 
 var EmptySize = NewSizeFromBytes(0)
 
@@ -33,12 +36,12 @@ func NewSizeFromSectors(sectors uint64) Size {
 	}
 }
 
-func (s *Size) Sectors() uint64 {
+func (s Size) Sectors() uint64 {
 	return s.Bytes() / sectorSize
 }
 
 // Override ByteSize's default string implementation which results in .HR() without spaces
-func (s *Size) String() string {
+func (s Size) String() string {
 	return s.HR()
 }
 

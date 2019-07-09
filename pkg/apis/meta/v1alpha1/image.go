@@ -22,6 +22,8 @@ func NewOCIImageRef(imageStr string) (OCIImageRef, error) {
 
 type OCIImageRef string
 
+var _ fmt.Stringer = OCIImageRef("")
+
 func (i OCIImageRef) String() string {
 	return string(i)
 }
