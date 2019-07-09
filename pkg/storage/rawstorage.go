@@ -33,10 +33,12 @@ func (r *DefaultRawStorage) realPath(key string) string {
 	if !strings.HasPrefix(key, "/") {
 		key = "/" + key
 	}
+
 	// If a top-level kind is described, and not a file, return the kind directory path
 	if len(strings.Split(key, "/")) == 2 {
 		return path.Join(r.dir, key)
 	}
+
 	// Return the file location, with the metadata.json suffix
 	return path.Join(r.dir, key, constants.METADATA)
 }
@@ -60,6 +62,7 @@ func (r *DefaultRawStorage) Write(key string, content []byte) error {
 			return err
 		}
 	}
+
 	return ioutil.WriteFile(file, content, 0644)
 }
 
@@ -75,10 +78,12 @@ func (r *DefaultRawStorage) List(parentKey string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	result := []string{}
 	for _, entry := range entries {
 		entryPath := path.Join(parentKey, entry.Name())
 		result = append(result, entryPath)
 	}
+
 	return result, nil
 }

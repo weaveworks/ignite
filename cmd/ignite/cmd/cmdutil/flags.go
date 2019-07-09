@@ -144,7 +144,7 @@ func NetworkModeVar(fs *pflag.FlagSet, ptr *api.NetworkMode) {
 	fs.Var(&NetworkModeFlag{value: ptr}, "net", fmt.Sprintf("Networking mode to use. Available options are: %v", api.GetNetworkModes()))
 }
 
-// SSHFlag is the pflag.Value custom flag for ignite create --ssh
+// SSHFlag is the pflag.Value custom flag for `ignite create --ssh`
 type SSHFlag struct {
 	value *api.SSH
 }

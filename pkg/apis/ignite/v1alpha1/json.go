@@ -10,9 +10,11 @@ func (s *SSH) MarshalJSON() ([]byte, error) {
 	if len(s.PublicKey) != 0 {
 		return json.Marshal(s.PublicKey)
 	}
+
 	if s.Generate {
 		return json.Marshal(true)
 	}
+
 	return []byte("{}"), nil
 }
 
@@ -28,18 +30,21 @@ func (s *SSH) UnmarshalJSON(b []byte) error {
 				PublicKey: str,
 			}
 		}
+
 		return nil
 	}
+
 	var boolVar bool
 	if err := json.Unmarshal(b, &boolVar); err == nil {
 		if boolVar {
 			*s = SSH{
 				Generate: true,
 			}
+
 			return nil
 		}
 	}
-	// The user did not specify this field
-	s = nil
+
+	// The user did not specify this field, just return
 	return nil
 }

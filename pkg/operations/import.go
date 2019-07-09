@@ -63,6 +63,7 @@ func importImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error
 			OCISource: *src,
 		},
 	}
+
 	// Create a new image runtime object
 	runImage, err := imgmd.NewImage(image, c)
 	if err != nil {
@@ -84,6 +85,7 @@ func importImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error
 	if err := runImage.Save(); err != nil {
 		return nil, err
 	}
+
 	log.Printf("Imported OCI image %q (%s) to base image with UID %q", ociRef, runImage.Status.OCISource.Size, runImage.GetUID())
 	return runImage, nil
 }
@@ -244,6 +246,7 @@ func findKernel(tmpDir string) (string, error) {
 		// "/boot", as we don't extract more
 		return path.Join(tmpDir, kernel), nil
 	}
+
 	// Return the path relative to the boot directory
 	return path.Join(bootDir, kernel), nil
 }

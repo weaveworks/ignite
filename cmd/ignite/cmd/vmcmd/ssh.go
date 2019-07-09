@@ -10,7 +10,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
-// NewCmdSSH ssh's into a running vm
+// NewCmdSSH SSH's into a running vm
 func NewCmdSSH(out io.Writer) *cobra.Command {
 	sf := &run.SSHFlags{}
 

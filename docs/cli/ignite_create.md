@@ -5,7 +5,10 @@ Create a new VM without starting it
 ### Synopsis
 
 
-Create a new VM by combining the given image and kernel.
+Create a new VM by combining the given image with a kernel. If no
+kernel is given using the kernel flag (-k, --kernel-image), use the
+default kernel (weaveworks/ignite-kernel:4.19.47).
+
 Various configuration options can be set during creation by using
 the flags for this command.
 

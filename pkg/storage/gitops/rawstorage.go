@@ -73,6 +73,7 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 		// filepath.Walk needs a trailing slash to start traversing the directory
 		dirToWalk += "/"
 	}
+
 	err := filepath.Walk(dirToWalk, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -82,6 +83,7 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 			if info.Name() == ".git" {
 				return filepath.SkipDir
 			}
+
 			// continue traversing
 			return nil
 		}
@@ -91,6 +93,7 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 			if err != nil {
 				return err
 			}
+
 			// The yaml package supports both YAML and JSON
 			if err := yaml.Unmarshal(content, obj); err != nil {
 				return err
@@ -139,8 +142,10 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 				diff = append(diff, f)
 			}
 		}
+
 		return nil
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -173,6 +178,7 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 	if len(diff) == 0 {
 		log.Println("No changes in the relevant YAML or JSON files")
 	}
+
 	return diff, nil
 }
 
@@ -191,11 +197,13 @@ func (r *GitRawStorage) realPath(key string) string {
 	if !strings.HasPrefix(key, "/") {
 		key = "/" + key
 	}
+
 	info, ok := r.keyFileMap[key]
 	if !ok {
 		log.Debugf("GitRawStorage.realPath returned an empty string for key %s", key)
 		return ""
 	}
+
 	return info.GitPath
 }
 
@@ -212,6 +220,7 @@ func (r *GitRawStorage) Read(key string) ([]byte, error) {
 	if r.shouldPassthrough(key) {
 		return r.passthrough.Read(key)
 	}
+
 	file := r.realPath(key)
 	return ioutil.ReadFile(file)
 }
@@ -221,6 +230,7 @@ func (r *GitRawStorage) Exists(key string) bool {
 	if r.shouldPassthrough(key) {
 		return r.passthrough.Exists(key)
 	}
+
 	file := r.realPath(key)
 	return util.FileExists(file)
 }
@@ -231,15 +241,18 @@ func (r *GitRawStorage) Write(key string, content []byte) error {
 	if err := r.passthrough.Write(key, content); err != nil {
 		return err
 	}
+
 	// If this should not be stored in Git, return at this point
 	if r.shouldPassthrough(key) {
 		return nil
 	}
+
 	// Do a normal write to the git-backed file.
 	file := r.realPath(key)
 	if err := ioutil.WriteFile(file, content, 0644); err != nil {
 		return err
 	}
+
 	// TODO: Do a git commit here!
 	return nil
 }
@@ -250,6 +263,7 @@ func (r *GitRawStorage) Delete(key string) error {
 	if err := r.passthrough.Delete(key); err != nil {
 		return err
 	}
+
 	// also delete the git-backed file.
 	file := r.realPath(key)
 	if len(file) == 0 {
@@ -260,6 +274,7 @@ func (r *GitRawStorage) Delete(key string) error {
 		// so it's safe to just exit quickly here
 		return nil
 	}
+
 	return os.RemoveAll(file)
 	// TODO: Do a git commit here!
 }
@@ -269,5 +284,6 @@ func (r *GitRawStorage) List(parentKey string) ([]string, error) {
 	if r.shouldPassthrough(parentKey) {
 		return r.passthrough.List(parentKey)
 	}
+
 	return r.byKind[parentKey], nil
 }

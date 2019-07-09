@@ -18,6 +18,7 @@ func GetDockerClient() (runtime.Interface, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &dockerClient{
 		client: cli,
 	}, nil
@@ -36,6 +37,7 @@ func (dc *dockerClient) InspectImage(image string) (*runtime.ImageInspectResult,
 	if err != nil {
 		return nil, err
 	}
+
 	return &runtime.ImageInspectResult{
 		ID:          res.ID,
 		RepoDigests: res.RepoDigests,
@@ -55,6 +57,7 @@ func (dc *dockerClient) GetNetNS(podSandboxID string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return getNetworkNamespace(&r)
 }
 
@@ -63,5 +66,6 @@ func getNetworkNamespace(c *types.ContainerJSON) (string, error) {
 		// Docker reports pid 0 for an exited container.
 		return "", fmt.Errorf("cannot find network namespace for the terminated container %q", c.ID)
 	}
+
 	return fmt.Sprintf(dockerNetNSFmt, c.State.Pid), nil
 }

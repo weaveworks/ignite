@@ -37,10 +37,12 @@ func NewSerializer(scheme *runtime.Scheme, codecs *k8sserializer.CodecFactory) S
 	if scheme == nil {
 		panic("scheme must not be nil")
 	}
+
 	if codecs == nil {
 		codecs = &k8sserializer.CodecFactory{}
 		*codecs = k8sserializer.NewCodecFactory(scheme)
 	}
+
 	return &serializer{
 		scheme: scheme,
 		codecs: codecs,
@@ -108,14 +110,17 @@ func (s *serializer) encode(obj runtime.Object, mediaType string, pretty bool) (
 	if !ok {
 		return nil, fmt.Errorf("unable to locate encoder -- %q is not a supported media type", mediaType)
 	}
+
 	serializer := info.Serializer
 	if pretty {
 		serializer = info.PrettySerializer
 	}
+
 	gvk, err := s.externalGVKForObject(obj)
 	if err != nil {
 		return nil, err
 	}
+
 	encoder := s.codecs.EncoderForVersion(serializer, gvk.GroupVersion())
 	return runtime.Encode(encoder, obj)
 }
@@ -125,11 +130,13 @@ func (s *serializer) externalGVKForObject(cfg runtime.Object) (*schema.GroupVers
 	if unversioned || err != nil || len(gvks) == 0 {
 		return nil, fmt.Errorf("unversioned %t or err %v or invalid gvks %v", unversioned, err, gvks)
 	}
+
 	gvk := gvks[0]
 	gvs := s.scheme.PrioritizedVersionsForGroup(gvk.Group)
 	if len(gvs) < 1 {
 		return nil, fmt.Errorf("expected some version to be registered for group %s", gvk.Group)
 	}
+
 	// Use the preferred (external) version
 	gvk.Version = gvs[0].Version
 	return &gvk, nil

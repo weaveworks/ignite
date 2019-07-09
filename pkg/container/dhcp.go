@@ -50,6 +50,7 @@ func StartDHCPServers(vm *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 			}
 		}()
 	}
+
 	return nil
 }
 
@@ -69,18 +70,21 @@ func (i *DHCPInterface) StartBlockingServer() error {
 	if err != nil {
 		return err
 	}
+
 	return dhcp.Serve(packetConn, i)
 }
 
 // ServeDHCP responds to a DHCP request
 func (i *DHCPInterface) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options dhcp.Options) dhcp.Packet {
 	var respMsg dhcp.MessageType
+
 	switch msgType {
 	case dhcp.Discover:
 		respMsg = dhcp.Offer
 	case dhcp.Request:
 		respMsg = dhcp.ACK
 	}
+
 	//fmt.Printf("Packet %v, Request: %s, Options: %v, Response: %v\n", p, msgType.String(), options, respMsg.String())
 	if respMsg != 0 {
 		requestingMAC := p.CHAddr().String()
@@ -91,11 +95,13 @@ func (i *DHCPInterface) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, optio
 				dhcp.OptionDomainNameServer: i.dnsServers,
 				dhcp.OptionHostName:         []byte(i.Hostname),
 			}
+
 			optSlice := opts.SelectOrderOrAll(options[dhcp.OptionParameterRequestList])
 			//fmt.Printf("Response: %s, Source %s, Client: %s, Options: %v, MAC: %s\n", respMsg.String(), i.GatewayIP.String(), i.VMIPNet.IP.String(), optSlice, requestingMAC)
 			return dhcp.ReplyPacket(p, respMsg, *i.GatewayIP, i.VMIPNet.IP, leaseDuration, optSlice)
 		}
 	}
+
 	return nil
 }
 

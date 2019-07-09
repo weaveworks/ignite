@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/logs"
 )
 
+// TODO: Get rid of this
 var success = make(map[Metadata]bool)
 
 // silent specifies if the ID should be printed, when chaining commands

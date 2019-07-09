@@ -20,6 +20,7 @@ func NewGitOpsStorage(url, branch string) *GitOpsStorage {
 		gitDir:  NewGitDirectory(url, dataDir, branch, syncInterval),
 		updates: make(chan UpdatedFiles),
 	}
+
 	s.gitDir.StartLoop()
 	s.startSync()
 	return s
@@ -38,11 +39,13 @@ func (s *GitOpsStorage) startSync() {
 		for {
 			// Whenever the git repo updates, resync the files in the repo
 			s.gitDir.WaitForUpdate()
+
 			diff, err := s.gitRaw.Sync()
 			if err != nil {
 				log.Warnf("An error occured while syncing git state %v\n", err)
 				continue
 			}
+
 			s.updates <- diff
 		}
 	}()

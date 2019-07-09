@@ -34,9 +34,11 @@ func InitObject(obj meta.Object, c *client.Client) error {
 	if obj == nil {
 		return fmt.Errorf("object cannot be nil when initializing runtime data")
 	}
+
 	if c == nil {
 		c = client.DefaultClient
 	}
+
 	// Default the object
 	scheme.Scheme.Default(obj)
 
@@ -49,6 +51,7 @@ func InitObject(obj meta.Object, c *client.Client) error {
 	if err := processName(obj, c); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -91,9 +94,10 @@ func processUID(obj meta.Object, c *client.Client) error {
 	// Create the directory for the specified UID
 	// TODO: Move this kind of functionality into pkg/storage
 	dir := path.Join(constants.DATA_DIR, obj.GetKind().Lower(), uid)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, constants.DATA_DIR_PERM); err != nil {
 		return fmt.Errorf("failed to create directory for ID %q: %v", uid, err)
 	}
+
 	return nil
 }
 

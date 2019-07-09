@@ -12,7 +12,7 @@ import (
 // Creates the /var/lib/firecracker/{vm,image,kernel} directories
 func CreateDirectories() error {
 	for _, dir := range []string{constants.VM_DIR, constants.IMAGE_DIR, constants.KERNEL_DIR} {
-		if err := os.MkdirAll(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, constants.DATA_DIR_PERM); err != nil {
 			return fmt.Errorf("failed to create directory %q: %v", dir, err)
 		}
 	}
@@ -25,6 +25,7 @@ func PathExists(path string) (bool, os.FileInfo) {
 	if os.IsNotExist(err) {
 		return false, nil
 	}
+
 	return true, info
 }
 
@@ -33,6 +34,7 @@ func FileExists(filename string) bool {
 	if !exists {
 		return false
 	}
+
 	return !info.IsDir()
 }
 
@@ -41,6 +43,7 @@ func DirExists(dirname string) bool {
 	if !exists {
 		return false
 	}
+
 	return info.IsDir()
 }
 

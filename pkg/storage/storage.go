@@ -61,10 +61,12 @@ func (s *GenericStorage) Get(obj meta.Object) error {
 	if err != nil {
 		return err
 	}
+
 	content, err := s.raw.Read(storageKey)
 	if err != nil {
 		return err
 	}
+
 	return s.serializer.DecodeInto(content, obj)
 }
 
@@ -75,14 +77,17 @@ func (s *GenericStorage) GetByID(kind meta.Kind, uid meta.UID) (meta.Object, err
 	if err != nil {
 		return nil, err
 	}
+
 	obj, err := s.serializer.Decode(content)
 	if err != nil {
 		return nil, err
 	}
+
 	igniteObj, ok := obj.(meta.Object)
 	if !ok {
 		return nil, fmt.Errorf("cannot convert ignite Object")
 	}
+
 	return igniteObj, nil
 }
 
@@ -93,6 +98,7 @@ func (s *GenericStorage) Set(obj meta.Object) error {
 	if err != nil {
 		return err
 	}
+
 	if !s.raw.Exists(storageKey) {
 		// Register that the object was created now
 		ts := meta.Timestamp()
@@ -104,6 +110,7 @@ func (s *GenericStorage) Set(obj meta.Object) error {
 	if err != nil {
 		return err
 	}
+
 	return s.raw.Write(storageKey, b)
 }
 
@@ -121,16 +128,20 @@ func (s *GenericStorage) List(kind meta.Kind) ([]meta.Object, error) {
 		if err != nil {
 			return err
 		}
+
 		obj, ok := runtimeobj.(meta.Object)
 		if !ok {
 			return fmt.Errorf("can't convert to ignite object")
 		}
+
 		result = append(result, obj)
 		return nil
 	})
+
 	if err != nil {
 		return nil, err
 	}
+
 	return result, nil
 }
 
@@ -146,12 +157,15 @@ func (s *GenericStorage) ListMeta(kind meta.Kind) ([]meta.Object, error) {
 		if err := yaml.Unmarshal(content, obj); err != nil {
 			return err
 		}
+
 		result = append(result, obj)
 		return nil
 	})
+
 	if err != nil {
 		return nil, err
 	}
+
 	return result, nil
 }
 
@@ -167,19 +181,23 @@ func (s *GenericStorage) walkKind(kind meta.Kind, fn func(content []byte) error)
 	if err != nil {
 		return err
 	}
+
 	for _, entry := range entries {
 		// Allow metadata.json to not exist, although the directory does exist
 		if !s.raw.Exists(entry) {
 			continue
 		}
+
 		content, err := s.raw.Read(entry)
 		if err != nil {
 			return err
 		}
+
 		if err := fn(content); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -188,6 +206,7 @@ func (s *GenericStorage) keyForObj(obj meta.Object) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return KeyForUID(meta.Kind(gvk.Kind), obj.GetUID()), nil
 }
 
@@ -196,12 +215,15 @@ func (s *GenericStorage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKin
 	if err != nil {
 		return nil, err
 	}
+
 	if unversioned {
 		return nil, fmt.Errorf("unversioned")
 	}
+
 	if len(gvks) == 0 {
 		return nil, fmt.Errorf("unexpected gvks")
 	}
+
 	return &gvks[0], nil
 }
 

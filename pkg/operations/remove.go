@@ -40,6 +40,7 @@ func RemoveVM(c *client.Client, vm *vmmd.VM) error {
 	} else {
 		log.Printf("Removed %s with name %q and ID %q", vm.GetKind(), vm.GetName(), vm.GetUID())
 	}
+
 	return nil
 }
 

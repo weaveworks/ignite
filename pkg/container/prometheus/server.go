@@ -26,5 +26,6 @@ func ServeMetrics(socketPath string) error {
 	if err != nil {
 		panic(err)
 	}
+
 	return server.Serve(unixListener)
 }

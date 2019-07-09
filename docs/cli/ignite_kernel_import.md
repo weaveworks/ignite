@@ -5,9 +5,9 @@ Import a kernel image from an OCI image
 ### Synopsis
 
 
-Import a kernel image from an OCI image for VMs, takes in a Docker image as the source.
-This importing is done automatically when the run or create commands are run. This step
-is essentially a cache to be used later when running VMs.
+Import an OCI image as a kernel image for VMs, takes in a Docker image identifier.
+This importing is done automatically when the "run" or "create" commands are run.
+The import step is essentially a cache for images to be used later when running VMs.
 
 
 ```

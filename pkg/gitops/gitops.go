@@ -45,6 +45,7 @@ func RunLoop(url, branch string) error {
 			log.Warnf("Listing VMs returned an error: %v. Retrying...", err)
 			continue
 		}
+
 		vmMap = mapVMs(list)
 
 		wg := &sync.WaitGroup{}
@@ -57,6 +58,7 @@ func RunLoop(url, branch string) error {
 					log.Warn("Skipping %s of %s with UID %s, no such object found through the client.", file.Type, file.APIType.GetKind(), file.APIType.GetUID())
 					continue
 				}
+
 				// As we know this VM was deleted, it's logical that it wasn't found in the VMs().List() call above
 				// Construct a temporary VM object for passing to the delete function
 				vm = &api.VM{
@@ -67,6 +69,7 @@ func RunLoop(url, branch string) error {
 					},
 				}
 			}
+
 			// Construct the runtime object for this VM. This will also do defaulting
 			// TODO: Consider cleanup like this?
 			//defer metadata.Cleanup(runVM, false) // TODO: Handle silent
@@ -96,6 +99,7 @@ func RunLoop(url, branch string) error {
 				continue
 			}
 		}
+
 		// wait for all goroutines to finish before the next sync round
 		wg.Wait()
 	}
@@ -104,6 +108,7 @@ func RunLoop(url, branch string) error {
 func runHandle(wg *sync.WaitGroup, fn func() error) {
 	wg.Add(1)
 	defer wg.Done()
+
 	if err := fn(); err != nil {
 		log.Printf("[WARNING] An error occurred when processing a VM update: %v\n", err)
 	}
@@ -114,11 +119,13 @@ func mapVMs(vmlist []*api.VM) map[meta.UID]*api.VM {
 	for _, vm := range vmlist {
 		result[vm.UID] = vm
 	}
+
 	return result
 }
 
 func handleCreate(vm *vmmd.VM) error {
 	var err error
+
 	switch vm.Status.State {
 	case api.VMStateCreated:
 		err = create(vm)
@@ -129,11 +136,13 @@ func handleCreate(vm *vmmd.VM) error {
 	default:
 		log.Printf("Unknown state of VM %q: %s", vm.GetUID().String(), vm.Status.State)
 	}
+
 	return err
 }
 
 func handleChange(vm *vmmd.VM) error {
 	var err error
+
 	switch vm.Status.State {
 	case api.VMStateCreated:
 		err = fmt.Errorf("VM %q cannot changed into the Created state", vm.GetUID())
@@ -144,6 +153,7 @@ func handleChange(vm *vmmd.VM) error {
 	default:
 		log.Printf("Unknown state of VM %q: %s", vm.GetUID().String(), vm.Status.State)
 	}
+
 	return err
 }
 
