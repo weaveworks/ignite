@@ -95,40 +95,54 @@ func NewCreateFlags() *CreateFlags {
 
 type CreateFlags struct {
 	// TODO: Also respect PortMappings, Networking mode, and kernel stuff from the config file
-	CopyFiles      []string
-	KernelClaimRef string
-	SSH            *SSHFlag
-	ConfigFile     string
-	VM             *api.VM
+	CopyFiles  []string
+	SSH        *SSHFlag
+	ConfigFile string
+	VM         *api.VM
 }
 
 type createOptions struct {
 	*CreateFlags
-	image        *imgmd.Image
-	kernel       *kernmd.Kernel
-	newVM        *vmmd.VM
-	fileMappings map[string]string
+	image  *imgmd.Image
+	kernel *kernmd.Kernel
+	newVM  *vmmd.VM
+}
+
+func (cf *CreateFlags) constructVMFromCLI(args []string) error {
+	if len(args) == 1 {
+		ociRef, err := meta.NewOCIImageRef(args[0])
+		if err != nil {
+			return err
+		}
+
+		cf.VM.Spec.Image.OCIClaim.Ref = ociRef
+	}
+
+	// Parse the --copy-files flag
+	var err error
+	cf.VM.Spec.CopyFiles, err = parseFileMappings(cf.CopyFiles)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
-	if len(args) == 1 {
-		cf.VM.Spec.Image.OCIClaim = &api.OCIImageClaim{
-			Type: api.ImageSourceTypeDocker,
-			Ref:  args[0],
-		}
-	}
-
-	// Decode the config file if given
+	// Decode the config file if given, or construct the VM based off flags and args
 	if len(cf.ConfigFile) != 0 {
 		// Marshal into a "clean" object, discard all flag input
 		cf.VM = &api.VM{}
 		if err := scheme.Serializer.DecodeFileInto(cf.ConfigFile, cf.VM); err != nil {
 			return nil, err
 		}
+	} else {
+		if err := cf.constructVMFromCLI(args); err != nil {
+			return nil, err
+		}
 	}
 
 	// Specifying an image either way is mandatory
-	if cf.VM.Spec.Image.OCIClaim == nil || len(cf.VM.Spec.Image.OCIClaim.Ref) == 0 {
+	if cf.VM.Spec.Image.OCIClaim.Ref.IsUnset() {
 		return nil, fmt.Errorf("you must specify an image to run either via CLI args or a config file")
 	}
 
@@ -145,36 +159,25 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 	cf.VM.SetImage(co.image.Image)
 
 	// Get the kernel, or import it if it doesn't exist
-	co.kernel, err = operations.FindOrImportKernel(client.DefaultClient, cf.KernelClaimRef)
+	co.kernel, err = operations.FindOrImportKernel(client.DefaultClient, cf.VM.Spec.Kernel.OCIClaim.Ref)
 	if err != nil {
 		return nil, err
 	}
 
 	// Populate relevant data from the Kernel on the VM object
 	cf.VM.SetKernel(co.kernel.Kernel)
-
-	// Parse the --copy-files flag
-	cf.VM.Spec.CopyFiles, err = parseFileMappings(co.CopyFiles)
-	if err != nil {
-		return nil, err
-	}
 	return co, nil
 }
 
 func Create(co *createOptions) error {
-	// Verify the name
-	name, err := metadata.NewName(co.VM.Name, meta.KindVM)
-	if err != nil {
-		return err
-	}
-
 	// Parse SSH key importing
 	if err := co.SSH.Parse(co.VM); err != nil {
 		return err
 	}
 
 	// Create new metadata for the VM
-	if co.newVM, err = vmmd.NewVM("", &name, co.VM); err != nil {
+	var err error
+	if co.newVM, err = vmmd.NewVM(co.VM, client.DefaultClient); err != nil {
 		return err
 	}
 	defer metadata.Cleanup(co.newVM, false) // TODO: Handle silent

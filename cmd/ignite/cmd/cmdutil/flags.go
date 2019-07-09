@@ -49,3 +49,31 @@ func SizeVar(fs *pflag.FlagSet, ptr *meta.Size, name string, defVal meta.Size, u
 func SizeVarP(fs *pflag.FlagSet, ptr *meta.Size, name, shorthand string, defVal meta.Size, usage string) {
 	fs.VarP(&SizeFlag{value: defVal}, name, shorthand, usage)
 }
+
+type OCIImageRefFlag struct {
+	value meta.OCIImageRef
+}
+
+func (of *OCIImageRefFlag) Set(val string) error {
+	var err error
+	of.value, err = meta.NewOCIImageRef(val)
+	return err
+}
+
+func (of *OCIImageRefFlag) String() string {
+	return of.value.String()
+}
+
+func (of *OCIImageRefFlag) Type() string {
+	return "oci-image"
+}
+
+var _ pflag.Value = &OCIImageRefFlag{}
+
+func OCIImageRefVar(fs *pflag.FlagSet, ptr *meta.OCIImageRef, name string, defVal meta.OCIImageRef, usage string) {
+	OCIImageRefVarP(fs, ptr, name, "", defVal, usage)
+}
+
+func OCIImageRefVarP(fs *pflag.FlagSet, ptr *meta.OCIImageRef, name, shorthand string, defVal meta.OCIImageRef, usage string) {
+	fs.VarP(&OCIImageRefFlag{value: defVal}, name, shorthand, usage)
+}

@@ -1,6 +1,7 @@
 package run
 
 import (
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
@@ -9,7 +10,11 @@ import (
 )
 
 func ImportImage(source string) (*imgmd.Image, error) {
-	runImage, err := operations.FindOrImportImage(client.DefaultClient, source)
+	ociRef, err := meta.NewOCIImageRef(source)
+	if err != nil {
+		return nil, err
+	}
+	runImage, err := operations.FindOrImportImage(client.DefaultClient, ociRef)
 	if err != nil {
 		return nil, err
 	}
@@ -18,7 +23,11 @@ func ImportImage(source string) (*imgmd.Image, error) {
 }
 
 func ImportKernel(source string) (*kernmd.Kernel, error) {
-	runKernel, err := operations.FindOrImportKernel(client.DefaultClient, source)
+	ociRef, err := meta.NewOCIImageRef(source)
+	if err != nil {
+		return nil, err
+	}
+	runKernel, err := operations.FindOrImportKernel(client.DefaultClient, ociRef)
 	if err != nil {
 		return nil, err
 	}
