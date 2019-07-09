@@ -1,4 +1,3 @@
-FROM weaveworks/ignite-kernel:4.19.47 AS kernel
 FROM ubuntu:18.04
 
 # udev is needed for booting a "real" VM, setting up the ttyS0 console properly
@@ -31,6 +30,3 @@ RUN sed -i -e 's/^AcceptEnv LANG LC_\*$/#AcceptEnv LANG LC_*/' /etc/ssh/sshd_con
 
 # Set the root password to root when logging in through the VM's ttyS0 console
 RUN echo "root:root" | chpasswd
-
-# Copy in the kernel overlay files
-COPY --from=kernel / /
