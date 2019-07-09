@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	dhcp "github.com/krolaw/dhcp4"
 	"github.com/krolaw/dhcp4/conn"
 	"github.com/miekg/dns"
@@ -44,7 +45,7 @@ func StartDHCPServers(vm *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 		vm.AddIPAddress(dhcpIface.VMIPNet.IP)
 
 		go func() {
-			fmt.Printf("Starting DHCP server for interface %s (%s)\n", dhcpIface.Bridge, dhcpIface.VMIPNet.IP)
+			log.Infof("Starting DHCP server for interface %s (%s)\n", dhcpIface.Bridge, dhcpIface.VMIPNet.IP)
 			if err := dhcpIface.StartBlockingServer(); err != nil {
 				fmt.Fprintf(os.Stderr, "%s DHCP server error: %v\n", dhcpIface.Bridge, err)
 			}

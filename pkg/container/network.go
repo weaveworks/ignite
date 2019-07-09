@@ -5,6 +5,7 @@ import (
 	"net"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/pkg/errors"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -157,7 +158,7 @@ func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
 			return nil, false, errors.Wrapf(err, "failed to remove address from interface %s", iface.Name)
 		}
 
-		fmt.Printf("Found an deleted address: %s (%s)\n", ip.String(), fmt.Sprintf("%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3]))
+		log.Infof("Moving IP address %s (%s) from container to VM\n", ip.String(), fmt.Sprintf("%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3]))
 
 		return &net.IPNet{
 			IP:   ip,

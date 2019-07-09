@@ -36,7 +36,6 @@ func Logs(lo *logsOptions) error {
 	}
 
 	// Print the ID and the VM logs
-	fmt.Println(lo.vm.GetUID())
 	fmt.Println(output)
 	return nil
 }
