@@ -56,6 +56,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	cmdutil.AddNameFlag(fs, &cf.VM.ObjectMeta.Name)
 	cmdutil.AddConfigFlag(fs, &cf.ConfigFile)
+	fs.StringSliceVarP(&cf.PortMappings, "ports", "p", nil, "Map host ports to VM ports")
 	fs.Uint64Var(&cf.VM.Spec.CPUs, "cpus", cf.VM.Spec.CPUs, "VM vCPU count, 1 or even numbers between 1 and 32")
 	cmdutil.SizeVar(fs, &cf.VM.Spec.Memory, "memory", cf.VM.Spec.Memory, "Amount of RAM to allocate for the VM")
 	cmdutil.SizeVarP(fs, &cf.VM.Spec.DiskSize, "size", "s", cf.VM.Spec.DiskSize, "VM filesystem size, for example 5GB or 2048MB")

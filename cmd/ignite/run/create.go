@@ -95,10 +95,11 @@ func NewCreateFlags() *CreateFlags {
 
 type CreateFlags struct {
 	// TODO: Also respect PortMappings, Networking mode, and kernel stuff from the config file
-	CopyFiles  []string
-	SSH        *SSHFlag
-	ConfigFile string
-	VM         *api.VM
+	PortMappings []string
+	CopyFiles    []string
+	SSH          *SSHFlag
+	ConfigFile   string
+	VM           *api.VM
 }
 
 type createOptions struct {
@@ -124,6 +125,12 @@ func (cf *CreateFlags) constructVMFromCLI(args []string) error {
 	if err != nil {
 		return err
 	}
+
+	// Parse the given port mappings
+	if cf.VM.Spec.Ports, err = meta.ParsePortMappings(cf.PortMappings); err != nil {
+		return err
+	}
+
 	return nil
 }
 

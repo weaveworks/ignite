@@ -4,14 +4,12 @@ import (
 	"fmt"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/operations"
 )
 
 type StartFlags struct {
-	PortMappings []string
-	Interactive  bool
-	Debug        bool
+	Interactive bool
+	Debug       bool
 	// TODO: Make a dedicated flag for networkMode, so we can bind to the custom type directly
 	NetworkMode string
 }
@@ -34,12 +32,6 @@ func (sf *StartFlags) NewStartOptions(vmMatch string) (*startOptions, error) {
 }
 
 func Start(so *startOptions) error {
-	// Parse the given port mappings
-	var err error
-	if so.vm.Spec.Ports, err = meta.ParsePortMappings(so.PortMappings); err != nil {
-		return err
-	}
-
 	// Validate and set the desired networking mode
 	nm := api.NetworkMode(so.NetworkMode)
 	if err := api.ValidateNetworkMode(nm); err != nil {
