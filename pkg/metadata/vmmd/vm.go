@@ -169,7 +169,8 @@ func (md *VM) ClearIPAddresses() {
 	md.Status.IPAddresses = nil
 }
 
-func (md *VM) RemoveCNINetworking() error {
+func (md *VM) RemoveCNINetworking(containerID string) error {
+	// TODO: Get containerID from the API object
 	// Skip all other network modes
 	if md.Spec.Network.Mode != api.NetworkModeCNI {
 		return nil
@@ -186,11 +187,9 @@ func (md *VM) RemoveCNINetworking() error {
 	if err != nil {
 		return err
 	}
-
-	// TODO: The Docker hostname is not a robust way to get this, but
-	// Ignite needs to be daemonized to have a proper implementation
-	// Also, the hostname is the shortened container ID which might not work here
-	return networkPlugin.RemoveContainerNetwork(os.Getenv("HOSTNAME"))
+	
+	fmt.Printf("Trying to remove the container with ID %q from the CNI network\n", containerID)
+	return networkPlugin.RemoveContainerNetwork(containerID)
 }
 
 // Generate a new SSH keypair for the vm

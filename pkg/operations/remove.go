@@ -53,6 +53,9 @@ func RemoveVMContainer(vm meta.Object) error {
 		return fmt.Errorf("failed to remove container for VM %q: %v", vm.GetUID(), err)
 	}
 
+	// TODO: Call vm.RemoveCNINetworking(containerID) here. Need to lookup the container ID
+	// first, or get it from the API object
+
 	return nil
 }
 

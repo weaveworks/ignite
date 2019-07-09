@@ -72,7 +72,10 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 		}
 		log.Printf("Networking is now handled by CNI")
 	}
-	log.Printf("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
+
+	// TODO: Patch the API object here with containerID information
+
+	log.Printf("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID[:10])
 	// TODO: Follow-up the container here with a defer, or dedicated goroutine. We should output
 	// if it started successfully or not
 	return nil
