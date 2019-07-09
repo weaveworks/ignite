@@ -3,7 +3,7 @@
 SCRIPT_DIR=$( dirname "${BASH_SOURCE[0]}" )
 cd ${SCRIPT_DIR}/..
 
-# git checkout master
+git checkout master
 
 FORCE=${FORCE:-0}
 GENERATED_GIT_VERSION=$(hack/ldflags.sh --version-only)
@@ -66,12 +66,33 @@ tag_release() {
     git tag ${FULL_VERSION}
 }
 
-build_binaries_images() {
+build_artifacts() {
     make ignite
     make ignite-spawn
     mkdir -p bin/releases/${FULL_VERSION}
     cp bin/ignite bin/releases/${FULL_VERSION}
     make -C images build-all
+}
+
+push_artifacts() {
+    read -p "Are you sure you want to push the release ${FULL_VERSION} artifacts? [y/N] " confirm
+    if [[ ${confirm} != "Y" ]]; then
+        cat <<EOF
+Done! Next, do this:
+
+make -C images push-all
+make image-push
+git push --tags
+git push origin ${RELEASE_BRANCH}
+git push origin master
+EOF
+        exit 1
+    fi
+    make -C images push-all
+    make image-push
+    git push --tags
+    git push origin ${RELEASE_BRANCH}
+    git push origin master
 }
 
 if [[ $1 == "tidy" ]]; then
@@ -81,13 +102,18 @@ elif [[ $1 == "changelog" ]]; then
 elif [[ $1 == "tag" ]]; then 
     tag_release
 elif [[ $1 == "build" ]]; then 
-    build_binaries_images
-    cat <<EOF
-Done! Next, do this:
-
-make -C images push-all
-make image-push
-git push --tags ${RELEASE_BRANCH}
-git push origin master
-EOF
+    build_artifacts
+elif [[ $1 == "push" ]]; then 
+    push_artifacts
+elif [[ $1 == "all" ]]; then
+    make_tidy_autogen
+    write_changelog
+    tag_release
+    build_artifacts
+    push_artifacts
+else
+    echo "Usage: $0 [command]"
+    echo "Command can be tidy, changelog, tag, build or push."
+    echo "Alternatively, 'all' can be specified to do all phases in one."
+    echo "To set the version to use, specify the MAJOR, MINOR, PATCH, and EXTRA environment variables"
 fi
