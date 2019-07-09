@@ -208,6 +208,10 @@ type SSH struct {
 // NetworkMode defines different states a VM can be in
 type NetworkMode string
 
+func (nm NetworkMode) String() string {
+	return string(nm)
+}
+
 const (
 	// NetworkModeCNI specifies the network mode where CNI is used
 	NetworkModeCNI NetworkMode = "cni"

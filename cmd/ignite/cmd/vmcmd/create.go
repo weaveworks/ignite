@@ -63,6 +63,7 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", nil, "Copy files from the host to the created VM")
 	cmdutil.OCIImageRefVarP(fs, &cf.VM.Spec.Kernel.OCIClaim.Ref, "kernel-image", "k", cf.VM.Spec.Kernel.OCIClaim.Ref, "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
 	fs.StringVar(&cf.VM.Spec.Kernel.CmdLine, "kernel-args", cf.VM.Spec.Kernel.CmdLine, "Set the command line for the kernel")
+	cmdutil.NetworkModeVar(fs, &cf.VM.Spec.NetworkMode)
 
 	cf.SSH = &run.SSHFlag{}
 	fs.Var(cf.SSH, "ssh", "Enable SSH for the VM. If <path> is given, it will be imported as the public key. If just '--ssh' is specified, a new keypair will be generated.")

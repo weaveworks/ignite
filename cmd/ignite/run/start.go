@@ -3,15 +3,12 @@ package run
 import (
 	"fmt"
 
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/operations"
 )
 
 type StartFlags struct {
 	Interactive bool
 	Debug       bool
-	// TODO: Make a dedicated flag for networkMode, so we can bind to the custom type directly
-	NetworkMode string
 }
 
 type startOptions struct {
@@ -32,18 +29,6 @@ func (sf *StartFlags) NewStartOptions(vmMatch string) (*startOptions, error) {
 }
 
 func Start(so *startOptions) error {
-	// Validate and set the desired networking mode
-	nm := api.NetworkMode(so.NetworkMode)
-	if err := api.ValidateNetworkMode(nm); err != nil {
-		return err
-	}
-	so.vm.Spec.NetworkMode = nm
-
-	// Save the port mappings into the VM metadata
-	if err := so.vm.Save(); err != nil {
-		return err
-	}
-
 	// Check if the given VM is already running
 	if so.vm.Running() {
 		return fmt.Errorf("VM %q is already running", so.vm.GetUID())

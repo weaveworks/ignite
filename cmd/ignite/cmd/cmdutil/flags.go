@@ -1,8 +1,11 @@
 package cmdutil
 
 import (
+	"fmt"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
@@ -104,4 +107,34 @@ var _ pflag.Value = &LogLevelFlag{}
 
 func LogLevelFlagVar(fs *pflag.FlagSet, ptr *logrus.Level) {
 	fs.Var(&LogLevelFlag{value: ptr}, "log-level", "Specify the loglevel for the program")
+}
+
+type NetworkModeFlag struct {
+	value *api.NetworkMode
+}
+
+func (nf *NetworkModeFlag) Set(val string) error {
+	nm := api.NetworkMode(val)
+	if err := api.ValidateNetworkMode(nm); err != nil {
+		return err
+	}
+	*nf.value = nm
+	return nil
+}
+
+func (nf *NetworkModeFlag) String() string {
+	if nf.value == nil {
+		return ""
+	}
+	return nf.value.String()
+}
+
+func (nf *NetworkModeFlag) Type() string {
+	return "network-mode"
+}
+
+var _ pflag.Value = &NetworkModeFlag{}
+
+func NetworkModeVar(fs *pflag.FlagSet, ptr *api.NetworkMode) {
+	fs.Var(&NetworkModeFlag{value: ptr}, "net", fmt.Sprintf("Networking mode to use. Available options are: %v", api.GetNetworkModes()))
 }
