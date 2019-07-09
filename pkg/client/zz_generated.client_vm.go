@@ -8,6 +8,7 @@
 package client
 
 import (
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
@@ -88,6 +89,7 @@ func (c *vmClient) FindAll(filter filterer.BaseFilter) ([]*api.VM, error) {
 
 // Get returns the VM matching given UID from the storage
 func (c *vmClient) Get(uid meta.UID) (*api.VM, error) {
+	log.Debugf("Client.Get; UID: %q, Kind: %s", uid, api.KindVM)
 	object, err := c.storage.GetByID(api.KindVM, uid)
 	if err != nil {
 		return nil, err
@@ -98,11 +100,13 @@ func (c *vmClient) Get(uid meta.UID) (*api.VM, error) {
 
 // Set saves the given VM into the persistent storage
 func (c *vmClient) Set(vm *api.VM) error {
+	log.Debugf("Client.Set; UID: %q, Kind: %s", vm.GetUID(), vm.GetKind())
 	return c.storage.Set(vm)
 }
 
 // Delete deletes the VM from the storage
 func (c *vmClient) Delete(uid meta.UID) error {
+	log.Debugf("Client.Delete; UID: %q, Kind: %s", uid, api.KindVM)
 	return c.storage.Delete(api.KindVM, uid)
 }
 

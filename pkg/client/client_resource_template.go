@@ -9,6 +9,7 @@
 package client
 
 import (
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
@@ -89,6 +90,7 @@ func (c *resourceClient) FindAll(filter filterer.BaseFilter) ([]*api.Resource, e
 
 // Get returns the Resource matching given UID from the storage
 func (c *resourceClient) Get(uid meta.UID) (*api.Resource, error) {
+	log.Debugf("Client.Get; UID: %q, Kind: %s", uid, api.KindResource)
 	object, err := c.storage.GetByID(api.KindResource, uid)
 	if err != nil {
 		return nil, err
@@ -99,11 +101,13 @@ func (c *resourceClient) Get(uid meta.UID) (*api.Resource, error) {
 
 // Set saves the given Resource into the persistent storage
 func (c *resourceClient) Set(resource *api.Resource) error {
+	log.Debugf("Client.Set; UID: %q, Kind: %s", resource.GetUID(), resource.GetKind())
 	return c.storage.Set(resource)
 }
 
 // Delete deletes the Resource from the storage
 func (c *resourceClient) Delete(uid meta.UID) error {
+	log.Debugf("Client.Delete; UID: %q, Kind: %s", uid, api.KindResource)
 	return c.storage.Delete(api.KindResource, uid)
 }
 

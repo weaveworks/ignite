@@ -8,6 +8,7 @@
 package client
 
 import (
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
@@ -88,6 +89,7 @@ func (c *imageClient) FindAll(filter filterer.BaseFilter) ([]*api.Image, error) 
 
 // Get returns the Image matching given UID from the storage
 func (c *imageClient) Get(uid meta.UID) (*api.Image, error) {
+	log.Debugf("Client.Get; UID: %q, Kind: %s", uid, api.KindImage)
 	object, err := c.storage.GetByID(api.KindImage, uid)
 	if err != nil {
 		return nil, err
@@ -98,11 +100,13 @@ func (c *imageClient) Get(uid meta.UID) (*api.Image, error) {
 
 // Set saves the given Image into the persistent storage
 func (c *imageClient) Set(image *api.Image) error {
+	log.Debugf("Client.Set; UID: %q, Kind: %s", image.GetUID(), image.GetKind())
 	return c.storage.Set(image)
 }
 
 // Delete deletes the Image from the storage
 func (c *imageClient) Delete(uid meta.UID) error {
+	log.Debugf("Client.Delete; UID: %q, Kind: %s", uid, api.KindImage)
 	return c.storage.Delete(api.KindImage, uid)
 }
 

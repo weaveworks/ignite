@@ -3,6 +3,7 @@ package kernmd
 import (
 	"path"
 
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -21,6 +22,9 @@ var _ metadata.Metadata = &Kernel{}
 // NewKernel, hence it should only be used for "safe"
 // data coming from storage.
 func WrapKernel(obj *api.Kernel) *Kernel {
+	// Run the object through defaulting, just to be sure it has all the values
+	scheme.Scheme.Default(obj)
+
 	return &Kernel{
 		Kernel: obj,
 		c:      client.DefaultClient,

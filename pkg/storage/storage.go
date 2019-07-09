@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -96,6 +97,7 @@ func (s *GenericStorage) Set(obj meta.Object) error {
 		// Register that the object was created now
 		ts := meta.Timestamp()
 		obj.SetCreated(&ts)
+		log.Debugf("GenericStorage.Set: Key %q did not exist before, set the created field", storageKey)
 	}
 
 	b, err := s.serializer.EncodeJSON(obj)

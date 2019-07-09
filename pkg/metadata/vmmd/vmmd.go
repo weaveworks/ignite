@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"path"
 
+	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
@@ -28,15 +30,12 @@ var _ metadata.Metadata = &VM{}
 // NewVM, hence it should only be used for "safe"
 // data coming from storage.
 func WrapVM(obj *api.VM) *VM {
+	// Run the object through defaulting, just to be sure it has all the values
+	scheme.Scheme.Default(obj)
+
 	vm := &VM{
 		VM: obj,
 		c:  client.DefaultClient,
-	}
-	if err := vm.setImageUID(); err != nil {
-		fmt.Printf("WARNING: Could not get image which this VM refers to: %v")
-	}
-	if err := vm.setKernelUID(); err != nil {
-		fmt.Printf("WARNING: Could not get image which this VM refers to: %v")
 	}
 	return vm
 }
@@ -97,7 +96,7 @@ func (vm *VM) setKernelUID() error {
 func (vm *VM) GetImageUID() meta.UID {
 	if len(vm.imageUID) == 0 {
 		if err := vm.setImageUID(); err != nil {
-			fmt.Printf("WARNING: Could not get image which this VM refers to: %v")
+			log.Debugf("Could not get image which this VM refers to: %v", err)
 		}
 	}
 	return vm.imageUID
@@ -106,7 +105,7 @@ func (vm *VM) GetImageUID() meta.UID {
 func (vm *VM) GetKernelUID() meta.UID {
 	if len(vm.kernelUID) == 0 {
 		if err := vm.setKernelUID(); err != nil {
-			fmt.Printf("WARNING: Could not get image which this VM refers to: %v")
+			log.Debugf("Could not get kernel which this VM refers to: %v", err)
 		}
 	}
 	return vm.kernelUID

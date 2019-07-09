@@ -8,6 +8,7 @@
 package client
 
 import (
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
@@ -88,6 +89,7 @@ func (c *kernelClient) FindAll(filter filterer.BaseFilter) ([]*api.Kernel, error
 
 // Get returns the Kernel matching given UID from the storage
 func (c *kernelClient) Get(uid meta.UID) (*api.Kernel, error) {
+	log.Debugf("Client.Get; UID: %q, Kind: %s", uid, api.KindKernel)
 	object, err := c.storage.GetByID(api.KindKernel, uid)
 	if err != nil {
 		return nil, err
@@ -98,11 +100,13 @@ func (c *kernelClient) Get(uid meta.UID) (*api.Kernel, error) {
 
 // Set saves the given Kernel into the persistent storage
 func (c *kernelClient) Set(kernel *api.Kernel) error {
+	log.Debugf("Client.Set; UID: %q, Kind: %s", kernel.GetUID(), kernel.GetKind())
 	return c.storage.Set(kernel)
 }
 
 // Delete deletes the Kernel from the storage
 func (c *kernelClient) Delete(uid meta.UID) error {
+	log.Debugf("Client.Delete; UID: %q, Kind: %s", uid, api.KindKernel)
 	return c.storage.Delete(api.KindKernel, uid)
 }
 

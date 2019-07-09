@@ -3,6 +3,7 @@ package imgmd
 import (
 	"path"
 
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -21,6 +22,9 @@ var _ metadata.Metadata = &Image{}
 // NewImage, hence it should only be used for "safe"
 // data coming from storage.
 func WrapImage(obj *api.Image) *Image {
+	// Run the object through defaulting, just to be sure it has all the values
+	scheme.Scheme.Default(obj)
+
 	return &Image{
 		Image: obj,
 		c:     client.DefaultClient,

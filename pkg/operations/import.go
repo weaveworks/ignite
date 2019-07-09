@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
@@ -24,9 +24,11 @@ import (
 // If the image already exists, it is returned. If the image doesn't
 // exist, it is imported
 func FindOrImportImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error) {
+	log.Debugf("Ensuring image %s exists, or importing it...", ociRef)
 	image, err := c.Images().Find(filter.NewIDNameFilter(ociRef.String()))
 	if err == nil {
 		// Return the image found
+		log.Debugf("Found image with UID %s", image.GetUID())
 		return imgmd.WrapImage(image), nil
 	}
 
@@ -40,6 +42,7 @@ func FindOrImportImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image,
 
 // importKernel imports an image from an OCI image
 func importImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error) {
+	log.Debugf("Importing image with ociRef %q", ociRef)
 	// Parse the source
 	dockerSource := source.NewDockerSource()
 	src, err := dockerSource.Parse(ociRef)
@@ -81,7 +84,7 @@ func importImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error
 	if err := runImage.Save(); err != nil {
 		return nil, err
 	}
-	log.Printf("Imported a %s filesystem from OCI image %q", image.Status.OCISource.Size.HR(), ociRef.String())
+	log.Printf("Imported OCI image %q (%s) to base image with UID %q", ociRef, runImage.Status.OCISource.Size, runImage.GetUID())
 	return runImage, nil
 }
 
@@ -89,9 +92,11 @@ func importImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error
 // If the image already exists, it is returned. If the image doesn't
 // exist, it is imported
 func FindOrImportKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, error) {
+	log.Debugf("Ensuring kernel %s exists, or importing it...", ociRef)
 	kernel, err := c.Kernels().Find(filter.NewIDNameFilter(ociRef.String()))
 	if err == nil {
 		// Return the kernel found
+		log.Debugf("Found kernel with UID %s", kernel.GetUID())
 		return kernmd.WrapKernel(kernel), nil
 	}
 
@@ -105,6 +110,7 @@ func FindOrImportKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kern
 
 // importKernel imports a kernel from an OCI image
 func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, error) {
+	log.Debugf("Importing kernel with ociRef %q", ociRef)
 	// Parse the source
 	dockerSource := source.NewDockerSource()
 	src, err := dockerSource.Parse(ociRef)
@@ -206,7 +212,7 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, er
 		return nil, err
 	}
 
-	log.Printf("A kernel was imported from the image with name %q and ID %q", runKernel.GetName(), runKernel.GetUID())
+	log.Printf("Imported OCI image %q (%s) to kernel image with UID %q", ociRef, runKernel.Status.OCISource.Size, runKernel.GetUID())
 	return runKernel, nil
 }
 

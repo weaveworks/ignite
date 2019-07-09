@@ -9,12 +9,14 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 func (md *Image) AllocateAndFormat() error {
+	log.Debugf("Allocating image file and formatting it with ext4...")
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 	imageFile, err := os.Create(p)
 	if err != nil {
@@ -38,6 +40,7 @@ func (md *Image) AllocateAndFormat() error {
 
 // AddFiles copies the contents of the tar file into the ext4 filesystem
 func (md *Image) AddFiles(src source.Source) error {
+	log.Debugf("Copying in files to the image file from a source...")
 	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
 	tempDir, err := ioutil.TempDir("", "")
 	if err != nil {
