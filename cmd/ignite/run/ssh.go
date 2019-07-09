@@ -35,7 +35,13 @@ func SSH(so *sshOptions) error {
 		return fmt.Errorf("VM %q has no usable IP addresses", so.vm.GetUID())
 	}
 
-	sshArgs := append(make([]string, 0, 3), fmt.Sprintf("root@%s", ipAddrs[0]), "-i")
+	// Auto-accept the "The authenticity of host **** can't be established" warning with
+	// -o StrictHostKeyChecking=no, we're dealing with local VMs in a local subnet which is trusted.
+	sshArgs := append(make([]string, 0, 3),
+		fmt.Sprintf("root@%s", ipAddrs[0]),
+		"-o",
+		"StrictHostKeyChecking=no",
+		"-i")
 
 	// If an external identity file is specified, use it instead of the internal one
 	if len(so.IdentityFile) > 0 {
