@@ -173,7 +173,7 @@ TODO: This should move into a dedicated validation package
 
 
 
-## <a name="FileMapping">type</a> [FileMapping](/pkg/apis/ignite/v1alpha1/types.go?s=7544:7639#L203)
+## <a name="FileMapping">type</a> [FileMapping](/pkg/apis/ignite/v1alpha1/types.go?s=7503:7598#L203)
 ``` go
 type FileMapping struct {
     HostPath string `json:"hostPath"`
@@ -341,7 +341,7 @@ KernelStatus describes the status of a kernel
 
 
 
-## <a name="NetworkMode">type</a> [NetworkMode](/pkg/apis/ignite/v1alpha1/types.go?s=7825:7848#L214)
+## <a name="NetworkMode">type</a> [NetworkMode](/pkg/apis/ignite/v1alpha1/types.go?s=7784:7807#L214)
 ``` go
 type NetworkMode string
 ```
@@ -372,7 +372,7 @@ GetNetworkModes gets the list of available network modes
 
 
 
-### <a name="NetworkMode.String">func</a> (NetworkMode) [String](/pkg/apis/ignite/v1alpha1/types.go?s=7850:7887#L216)
+### <a name="NetworkMode.String">func</a> (NetworkMode) [String](/pkg/apis/ignite/v1alpha1/types.go?s=7809:7846#L216)
 ``` go
 func (nm NetworkMode) String() string
 ```
@@ -550,7 +550,7 @@ PoolStatus defines the Pool's current status
 
 
 
-## <a name="SSH">type</a> [SSH](/pkg/apis/ignite/v1alpha1/types.go?s=7702:7768#L209)
+## <a name="SSH">type</a> [SSH](/pkg/apis/ignite/v1alpha1/types.go?s=7661:7727#L209)
 ``` go
 type SSH struct {
     PublicKey string `json:"publicKey,omitempty"`
@@ -613,7 +613,7 @@ SetKernel populates relevant fields to a Kernel on the VM object
 
 
 
-## <a name="VMImageSpec">type</a> [VMImageSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7160:7229#L188)
+## <a name="VMImageSpec">type</a> [VMImageSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7124:7193#L188)
 ``` go
 type VMImageSpec struct {
     OCIClaim OCIImageClaim `json:"ociClaim"`
@@ -629,7 +629,7 @@ type VMImageSpec struct {
 
 
 
-## <a name="VMKernelSpec">type</a> [VMKernelSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7231:7352#L192)
+## <a name="VMKernelSpec">type</a> [VMKernelSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7195:7316#L192)
 ``` go
 type VMKernelSpec struct {
     OCIClaim OCIImageClaim `json:"ociClaim"`
@@ -646,7 +646,7 @@ type VMKernelSpec struct {
 
 
 
-## <a name="VMNetworkSpec">type</a> [VMNetworkSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7354:7477#L197)
+## <a name="VMNetworkSpec">type</a> [VMNetworkSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7318:7436#L197)
 ``` go
 type VMNetworkSpec struct {
     Mode  NetworkMode       `json:"mode"`
@@ -663,7 +663,7 @@ type VMNetworkSpec struct {
 
 
 
-## <a name="VMSpec">type</a> [VMSpec](/pkg/apis/ignite/v1alpha1/types.go?s=6405:7158#L169)
+## <a name="VMSpec">type</a> [VMSpec](/pkg/apis/ignite/v1alpha1/types.go?s=6405:7122#L169)
 ``` go
 type VMSpec struct {
     Image    VMImageSpec   `json:"image"`
@@ -696,7 +696,7 @@ VMSpec describes the configuration of a VM
 
 
 
-## <a name="VMState">type</a> [VMState](/pkg/apis/ignite/v1alpha1/types.go?s=8284:8303#L229)
+## <a name="VMState">type</a> [VMState](/pkg/apis/ignite/v1alpha1/types.go?s=8243:8262#L229)
 ``` go
 type VMState string
 ```
@@ -719,7 +719,7 @@ const (
 
 
 
-## <a name="VMStatus">type</a> [VMStatus](/pkg/apis/ignite/v1alpha1/types.go?s=8463:8684#L238)
+## <a name="VMStatus">type</a> [VMStatus](/pkg/apis/ignite/v1alpha1/types.go?s=8422:8643#L238)
 ``` go
 type VMStatus struct {
     State       VMState          `json:"state"`
