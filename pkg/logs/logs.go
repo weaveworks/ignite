@@ -12,9 +12,9 @@ import (
 var Quiet bool
 
 // InitLogs initializes the logging system for ignite
-func InitLogs() {
-	// Initialize a new logrus logger
-	var Logger = log.New()
+func InitLogs(lvl log.Level) {
+	// Use the standard logrus logger
+	var Logger = log.StandardLogger()
 
 	// Set the output to be stdout in the normal case, but discard all log output in quiet mode
 	Logger.SetOutput(os.Stdout)
@@ -28,11 +28,11 @@ func InitLogs() {
 		FullTimestamp:    false,
 	})
 
+	// Set the default level to debug
+	Logger.SetLevel(lvl)
+
 	// Disable the stdlib's automatic add of the timestamp in beginning of the log message,
 	// as we stream the logs from stdlib log to this logrus instance.
 	golog.SetFlags(0)
 	golog.SetOutput(Logger.Writer())
-
-	// Also forward all logs from the standard logrus logger to our specific instance
-	log.StandardLogger().SetOutput(Logger.Writer())
 }
