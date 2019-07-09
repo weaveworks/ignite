@@ -17,11 +17,9 @@ ignite vm start <vm> [flags]
 ### Options
 
 ```
-  -d, --debug           Debug mode, keep container after VM shutdown
-  -h, --help            help for start
-  -i, --interactive     Attach to the VM after starting
-      --net string      Networking mode to use. Available options are: [cni docker-bridge] (default "docker-bridge")
-  -p, --ports strings   Map host ports to VM ports
+  -d, --debug         Debug mode, keep container after VM shutdown
+  -h, --help          help for start
+  -i, --interactive   Attach to the VM after starting
 ```
 
 ### Options inherited from parent commands

@@ -2,8 +2,6 @@ package vmmd
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/network/cni"
-	"github.com/weaveworks/ignite/pkg/runtime/docker"
 	"io/ioutil"
 	"math"
 	"net"
@@ -11,6 +9,9 @@ import (
 	"path"
 	"path/filepath"
 	"time"
+
+	"github.com/weaveworks/ignite/pkg/network/cni"
+	"github.com/weaveworks/ignite/pkg/runtime/docker"
 
 	"github.com/c2h5oh/datasize"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
@@ -168,13 +169,9 @@ func (md *VM) ClearIPAddresses() {
 	md.Status.IPAddresses = nil
 }
 
-func (md *VM) ClearPortMappings() {
-	md.Spec.Ports = nil
-}
-
 func (md *VM) RemoveCNINetworking() error {
 	// Skip all other network modes
-	if md.Spec.NetworkMode != api.NetworkModeCNI {
+	if md.Spec.Network.Mode != api.NetworkModeCNI {
 		return nil
 	}
 
@@ -192,6 +189,7 @@ func (md *VM) RemoveCNINetworking() error {
 
 	// TODO: The Docker hostname is not a robust way to get this, but
 	// Ignite needs to be daemonized to have a proper implementation
+	// Also, the hostname is the shortened container ID which might not work here
 	return networkPlugin.RemoveContainerNetwork(os.Getenv("HOSTNAME"))
 }
 

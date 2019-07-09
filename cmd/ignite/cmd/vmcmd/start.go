@@ -1,7 +1,6 @@
 package vmcmd
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/lithammer/dedent"
@@ -9,7 +8,6 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
@@ -44,7 +42,5 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 
 func addStartFlags(fs *pflag.FlagSet, sf *run.StartFlags) {
 	cmdutil.AddInteractiveFlag(fs, &sf.Interactive)
-	fs.StringSliceVarP(&sf.PortMappings, "ports", "p", nil, "Map host ports to VM ports")
-	fs.StringVar(&sf.NetworkMode, "net", string(api.NetworkModeDockerBridge), fmt.Sprintf("Networking mode to use. Available options are: %v", api.GetNetworkModes()))
 	fs.BoolVarP(&sf.Debug, "debug", "d", false, "Debug mode, keep container after VM shutdown")
 }

@@ -39,5 +39,6 @@ func SetObjectDefaults_VM(in *VM) {
 	SetDefaults_OCIImageClaim(&in.Spec.Image.OCIClaim)
 	SetDefaults_VMKernelSpec(&in.Spec.Kernel)
 	SetDefaults_OCIImageClaim(&in.Spec.Kernel.OCIClaim)
+	SetDefaults_VMNetworkSpec(&in.Spec.Network)
 	SetDefaults_VMStatus(&in.Status)
 }

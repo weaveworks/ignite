@@ -2,7 +2,7 @@ package gitops
 
 import (
 	"crypto/sha256"
-	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -158,7 +158,7 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 func sha256sum(content []byte) string {
 	hasher := sha256.New()
 	hasher.Write(content)
-	return base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+	return fmt.Sprintf("%x", hasher.Sum(nil))
 }
 
 func (r *GitRawStorage) realPath(key string) string {

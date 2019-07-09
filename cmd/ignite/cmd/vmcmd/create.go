@@ -56,12 +56,14 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	cmdutil.AddNameFlag(fs, &cf.VM.ObjectMeta.Name)
 	cmdutil.AddConfigFlag(fs, &cf.ConfigFile)
+	fs.StringSliceVarP(&cf.PortMappings, "ports", "p", nil, "Map host ports to VM ports")
 	fs.Uint64Var(&cf.VM.Spec.CPUs, "cpus", cf.VM.Spec.CPUs, "VM vCPU count, 1 or even numbers between 1 and 32")
 	cmdutil.SizeVar(fs, &cf.VM.Spec.Memory, "memory", cf.VM.Spec.Memory, "Amount of RAM to allocate for the VM")
 	cmdutil.SizeVarP(fs, &cf.VM.Spec.DiskSize, "size", "s", cf.VM.Spec.DiskSize, "VM filesystem size, for example 5GB or 2048MB")
 	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", nil, "Copy files from the host to the created VM")
 	cmdutil.OCIImageRefVarP(fs, &cf.VM.Spec.Kernel.OCIClaim.Ref, "kernel-image", "k", cf.VM.Spec.Kernel.OCIClaim.Ref, "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
 	fs.StringVar(&cf.VM.Spec.Kernel.CmdLine, "kernel-args", cf.VM.Spec.Kernel.CmdLine, "Set the command line for the kernel")
+	cmdutil.NetworkModeVar(fs, &cf.VM.Spec.Network.Mode)
 
 	cf.SSH = &run.SSHFlag{}
 	fs.Var(cf.SSH, "ssh", "Enable SSH for the VM. If <path> is given, it will be imported as the public key. If just '--ssh' is specified, a new keypair will be generated.")

@@ -37,7 +37,7 @@ ignite vm run <OCI image> [flags]
   -k, --kernel-image oci-image   Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules (default weaveworks/ignite-kernel:4.19.47)
       --memory size              Amount of RAM to allocate for the VM (default 512.0 MB)
   -n, --name string              Specify the name
-      --net string               Networking mode to use. Available options are: [cni docker-bridge] (default "docker-bridge")
+      --net network-mode         Networking mode to use. Available options are: [cni docker-bridge] (default docker-bridge)
   -p, --ports strings            Map host ports to VM ports
   -s, --size size                VM filesystem size, for example 5GB or 2048MB (default 4.0 GB)
       --ssh[=<path>]             Enable SSH for the VM. If <path> is given, it will be imported as the public key. If just '--ssh' is specified, a new keypair will be generated. (default is unset, which disables SSH access to the VM)
