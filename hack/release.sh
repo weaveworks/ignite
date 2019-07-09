@@ -21,10 +21,12 @@ RELEASE_BRANCH="release-${MAJOR}.${MINOR}"
 EXTRA=${EXTRA:-""}
 FULL_VERSION=${VERSION}${EXTRA}
 
-if [[ ${MINOR} == "" ]]; then
+if [[ ${MINOR} == "0" ]]; then
     echo "MINOR is mandatory"
     exit 1
 fi
+
+echo "Releasing version ${FULL_VERSION}"
 
 make_tidy_autogen() {
     make tidy
@@ -50,6 +52,7 @@ write_changelog() {
         exit 1
     fi
 
+    git add -A
     git commit -m "Release ${FULL_VERSION}"
 }
 
