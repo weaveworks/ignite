@@ -46,5 +46,6 @@ func Version(out io.Writer, cmd *cobra.Command) error {
 	default:
 		return fmt.Errorf("invalid output format: %s", of)
 	}
+
 	return nil
 }

@@ -37,6 +37,7 @@ func WrapVM(obj *api.VM) *VM {
 		VM: obj,
 		c:  client.DefaultClient,
 	}
+
 	return vm
 }
 
@@ -58,9 +59,11 @@ func NewVM(obj *api.VM, c *client.Client) (*VM, error) {
 	if err := vm.setImageUID(); err != nil {
 		return nil, err
 	}
+
 	if err := vm.setKernelUID(); err != nil {
 		return nil, err
 	}
+
 	return vm, nil
 }
 
@@ -99,6 +102,7 @@ func (vm *VM) GetImageUID() meta.UID {
 			log.Debugf("Could not get image which this VM refers to: %v", err)
 		}
 	}
+
 	return vm.imageUID
 }
 
@@ -108,6 +112,7 @@ func (vm *VM) GetKernelUID() meta.UID {
 			log.Debugf("Could not get kernel which this VM refers to: %v", err)
 		}
 	}
+
 	return vm.kernelUID
 }
 

@@ -44,6 +44,7 @@ func (ds *DockerSource) Parse(ociRef meta.OCIImageRef) (*api.OCIImageSource, err
 		if err != nil {
 			return nil, err
 		}
+
 		// Don't output the pull command
 		io.Copy(ioutil.Discard, rc)
 		rc.Close()

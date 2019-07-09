@@ -10,6 +10,6 @@ const (
 	// Filename for the tar containing the kernel filesystem
 	KERNEL_TAR = "kernel.tar"
 
-	// The kernel image to be used by default
+	// The kernel image to be used as the default
 	DEFAULT_KERNEL_IMAGE = "weaveworks/ignite-kernel:4.19.47"
 )

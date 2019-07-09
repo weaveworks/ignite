@@ -1,7 +1,10 @@
 package vmcmd
 
 import (
+	"fmt"
 	"io"
+
+	"github.com/weaveworks/ignite/pkg/constants"
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
@@ -18,8 +21,11 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create <OCI image>",
 		Short: "Create a new VM without starting it",
-		Long: dedent.Dedent(`
-			Create a new VM by combining the given image and kernel.
+		Long: dedent.Dedent(fmt.Sprintf(`
+			Create a new VM by combining the given image with a kernel. If no
+			kernel is given using the kernel flag (-k, --kernel-image), use the
+			default kernel (%s).
+
 			Various configuration options can be set during creation by using
 			the flags for this command.
 			
@@ -35,7 +41,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 					--ssh \
 					--memory 2GB \
 					--size 6GB
-		`),
+		`, constants.DEFAULT_KERNEL_IMAGE)),
 		Args: cobra.RangeArgs(0, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {

@@ -11,7 +11,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
-// NewCmdRm removes a kernel
+// NewCmdRm removes kernels
 func NewCmdRm(out io.Writer) *cobra.Command {
 	rf := &run.RmkFlags{}
 

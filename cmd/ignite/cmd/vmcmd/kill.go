@@ -9,7 +9,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
-// NewCmdKill kills a running VM
+// NewCmdKill kills running VMs
 func NewCmdKill(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "kill <vm>...",

@@ -60,9 +60,14 @@ func (o *output) Write(input ...interface{}) {
 			return
 		}
 	}
-	fmt.Fprint(o.writer, sb.String())
+
+	if _, err := fmt.Fprint(o.writer, sb.String()); err != nil {
+		panic(err)
+	}
 }
 
 func (o *output) Flush() {
-	o.writer.Flush()
+	if err := o.writer.Flush(); err != nil {
+		panic(err)
+	}
 }

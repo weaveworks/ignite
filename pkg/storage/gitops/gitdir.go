@@ -55,6 +55,7 @@ func (d *GitDirectory) StartLoop() {
 			log.Fatalf("The Git syncing loop terminated with an error %v\n", err)
 		}
 	}()
+
 	go func() {
 		if err := d.checkoutLoop(); err != nil {
 			log.Fatalf("The GitOps loop terminated with an error %v\n", err)
@@ -72,9 +73,11 @@ func (d *GitDirectory) checkoutLoop() error {
 		if err != nil {
 			return err
 		}
+
 		if status != git.RepoReady {
 			continue
 		}
+
 		if !hasBeenReadyBefore {
 			log.Printf("Git initialized: A bare clone of repo %q has been made\n", d.url)
 			hasBeenReadyBefore = true
@@ -98,9 +101,11 @@ func (d *GitDirectory) checkoutLoop() error {
 		if err := os.RemoveAll(d.dir); err != nil {
 			return fmt.Errorf("symlink remove error %v", err)
 		}
+
 		if err := os.RemoveAll(d.lastExport); err != nil {
 			return fmt.Errorf("lastexport remove error %v", err)
 		}
+
 		if err := os.Symlink(ex.Dir(), d.dir); err != nil {
 			return fmt.Errorf("symlink error %v", err)
 		}
@@ -112,6 +117,7 @@ func (d *GitDirectory) checkoutLoop() error {
 			PersistentDir: d.dir,
 			RealDir:       ex.Dir(),
 		}
+
 		log.Printf("New commit observed on branch %q: %s", d.branch, commit)
 	}
 }

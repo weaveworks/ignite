@@ -100,6 +100,7 @@ func (f *Filterer) parseFilter(kind meta.Kind, filter BaseFilter) (sources []met
 	} else {
 		err = fmt.Errorf("invalid filter type: %T", filter)
 	}
+
 	// Make sure the desired kind propagates down to the filter
 	filter.SetKind(kind)
 

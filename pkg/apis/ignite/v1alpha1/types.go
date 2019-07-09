@@ -1,6 +1,8 @@
 package v1alpha1
 
 import (
+	"fmt"
+
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
@@ -175,7 +177,7 @@ type VMSpec struct {
 	Network  VMNetworkSpec `json:"network"`
 
 	// This will be done at either "ignite start" or "ignite create" time
-	// TODO: We might to revisit this later
+	// TODO: We might revisit this later
 	CopyFiles []FileMapping `json:"copyFiles,omitempty"`
 	// SSH specifies how the SSH setup should be done
 	// nil here means "don't do anything special"
@@ -217,6 +219,8 @@ type SSH struct {
 
 // NetworkMode defines different states a VM can be in
 type NetworkMode string
+
+var _ fmt.Stringer = NetworkMode("")
 
 func (nm NetworkMode) String() string {
 	return string(nm)

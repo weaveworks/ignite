@@ -37,6 +37,7 @@ func SetupContainerNetworking() ([]DHCPInterface, error) {
 	var dhcpIfaces []DHCPInterface
 	interval := 1 * time.Second
 	timeout := 1 * time.Minute
+
 	err := wait.PollImmediate(interval, timeout, func() (bool, error) {
 		// this func returns true if it's done, and optionally an error
 		retry, err := networkSetup(&dhcpIfaces)
@@ -51,9 +52,11 @@ func SetupContainerNetworking() ([]DHCPInterface, error) {
 		// the error was fatal, return it
 		return false, err
 	})
+
 	if err != nil {
 		return nil, err
 	}
+
 	return dhcpIfaces, nil
 }
 

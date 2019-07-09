@@ -9,7 +9,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
-// NewCmdLogs gets the logs for a Firecracker VM
+// NewCmdLogs gets the logs for a VM
 func NewCmdLogs(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "logs <vm>",

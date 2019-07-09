@@ -14,11 +14,13 @@ func ImportImage(source string) (*imgmd.Image, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	runImage, err := operations.FindOrImportImage(client.DefaultClient, ociRef)
 	if err != nil {
 		return nil, err
 	}
 	defer metadata.Cleanup(runImage, false) // TODO: Handle silent
+
 	return runImage, metadata.Success(runImage)
 }
 
@@ -27,10 +29,12 @@ func ImportKernel(source string) (*kernmd.Kernel, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	runKernel, err := operations.FindOrImportKernel(client.DefaultClient, ociRef)
 	if err != nil {
 		return nil, err
 	}
 	defer metadata.Cleanup(runKernel, false) // TODO: Handle silent
+
 	return runKernel, metadata.Success(runKernel)
 }

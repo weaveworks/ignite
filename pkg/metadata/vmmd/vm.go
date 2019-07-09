@@ -53,7 +53,7 @@ func (md *VM) AllocateAndPopulateOverlay() error {
 	}
 
 	// Make sure the all directories above the snapshot directory exists
-	if err := os.MkdirAll(path.Dir(md.OverlayFile()), 0755); err != nil {
+	if err := os.MkdirAll(path.Dir(md.OverlayFile()), constants.DATA_DIR_PERM); err != nil {
 		return err
 	}
 
@@ -66,6 +66,7 @@ func (md *VM) AllocateAndPopulateOverlay() error {
 	if err := overlayFile.Truncate(size); err != nil {
 		return fmt.Errorf("failed to allocate overlay file for VM %q: %v", md.GetUID(), err)
 	}
+
 	// populate the filesystem
 	return md.copyToOverlay()
 }
@@ -99,6 +100,7 @@ func (md *VM) copyToOverlay() error {
 				return err
 			}
 		}
+
 		if len(pubKeyPath) > 0 {
 			fileMappings = append(fileMappings, api.FileMapping{
 				HostPath: pubKeyPath,
@@ -110,7 +112,7 @@ func (md *VM) copyToOverlay() error {
 	// TODO: File/directory permissions?
 	for _, mapping := range fileMappings {
 		vmFilePath := path.Join(mp.Path, mapping.VMPath)
-		if err := os.MkdirAll(path.Dir(vmFilePath), 0755); err != nil {
+		if err := os.MkdirAll(path.Dir(vmFilePath), constants.DATA_DIR_PERM); err != nil {
 			return err
 		}
 
@@ -154,9 +156,11 @@ func (md *VM) writeEtcHosts(tmpDir, hostname string, primaryIP net.IP) error {
 	if err != nil {
 		return err
 	}
+
 	if !empty {
 		return nil
 	}
+
 	content := []byte(fmt.Sprintf(hostsFileTmpl, primaryIP.String(), hostname))
 	return ioutil.WriteFile(hostFilePath, content, 0644)
 }
