@@ -2,11 +2,15 @@
 
 This is a provisional roadmap for what we'd like to do in the coming releases.
 
- - CNI support, when using Docker (similar to what the kubelet does)
- - Prometheus metrics exposed over a socket (converted from the FIFO Firecracker supplies)
  - containerd support, do not hard-code this to docker only. This will add Kubernetes support.
- - Parallelized internal architecture for way better performance
- - Factor out the `ignite container` command to its own binary for less overhead when running VMs (`ignite-spawn`)
+ - Parallelized internal architecture for better performance
+ - Patch support to `pkg/storage` to allow for race-condition-safe writes
+ - Write support for the GitOps mode, so it can write status back to the repo
+ - Add automated CI testing
+ - Provide deb/rpm packages
+ - Generate more/better API documentation
+ - Add support for CSI volumes
+ - Integrate Ignite with [Footloose](https://github.com/weaveworks/footloose)
  - Take full advantage of Devicemapper's thin-provisioning feature
  - Re-architect Ignite, and split it up into four parts:
     - `ignite`, keeping the same CLI as we have now
