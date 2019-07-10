@@ -1,0 +1,16 @@
+FROM alpine:3.9
+
+# TODO: This VM image does not work quite yet
+# Install common utilities
+RUN apk add \
+    openrc \
+    openssh \
+    iputils \
+    sudo \
+    wget \
+    net-tools \
+    procps \
+    udev
+
+# Set the root password to root when logging in through the VM's ttyS0 console
+RUN echo "root:root" | chpasswd
