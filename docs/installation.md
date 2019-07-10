@@ -42,8 +42,6 @@ Now you can continue with the [Getting Started Walkthrough](usage.md).
 
 ## Removing the installation
 
-## Removing the installation
-
 To completely remove the Ignite installation, execute the following as root:
 ```bash
 # Force-remove all running VMs
