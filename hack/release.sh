@@ -62,7 +62,7 @@ tag_release() {
         exit 1
     fi
 
-    git checkout -b ${RELEASE_BRANCH}
+    git checkout -B ${RELEASE_BRANCH}
     git tag ${FULL_VERSION}
 }
 
