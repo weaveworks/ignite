@@ -25,12 +25,13 @@ This means, you can try this feature out yourself!
 After you have [installed Ignite](../docs/installation.md), you can do the following:
 
 ```console
-$ ignite gitops https://github.com/weaveworks/ignite
+$ ignite gitops https://github.com/luxas/ignite-gitops
 ```
 
-Ignite will now search the repo for suitable JSON/YAML files, and apply their state locally.
+Ignite will now search that repo for suitable JSON/YAML files, and apply their state locally.
+(You can go and check the files out first, too, at: https://github.com/luxas/ignite-gitops)
 
-The two files that will be found and started are:
+To show how you could create your own repo, similar to `luxas/ignite-gitops`, refer to these two files:
 
  - [amazonlinux-vm.json](amazonlinux-vm.json)
  - [ubuntu-vm.yaml](ubuntu-vm.yaml)
