@@ -4,8 +4,11 @@ This guide describes the installation and uninstallation process of Ignite.
 
 ## System requirements
 
-Ignite runs on any Intel-based `linux/amd64` system with `KVM` enabled.
+Ignite runs on any Intel-based `linux/amd64` system with `KVM` support.
 AMD support is in alpha (Firecracker limitation).
+
+**Note**: You do **not** need to install any "traditional" QEMU/KVM packages, as long as
+there is virtualization support in the processor and kernel it works. 
 
 See [dependencies.md](dependencies.md) for needed dependencies.
 
@@ -14,12 +17,13 @@ Ignite is a currently a single binary application. To install it,
 download the binary from the [GitHub releases page](https://github.com/weaveworks/ignite/releases),
 save it as `/usr/local/bin/ignite` and make it executable.
 
-To install Ignite from the command line, execute the following in a `root` shell
-(or use `sudo` for `curl` and `chmod`):
+To install Ignite from the command line, follow these steps:
+
 ```bash
 export VERSION=v0.4.0
-curl -Lo /usr/local/bin/ignite https://github.com/weaveworks/ignite/releases/download/${VERSION}/ignite
-chmod +x /usr/local/bin/ignite
+curl -Lo ignite https://github.com/weaveworks/ignite/releases/download/${VERSION}/ignite
+chmod +x ignite
+sudo mv ignite /usr/local/bin
 ```
 
 Ignite uses [semantic versioning](https://semver.org), select the version to be installed
