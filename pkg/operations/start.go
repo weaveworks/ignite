@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"strings"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -61,10 +62,15 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 	dockerArgs = append(dockerArgs, vm.GetUID().String())
 
 	// Create the VM container in docker
-	containerID, err := util.ExecuteCommand("docker", append(dockerCmd, dockerArgs...)...)
+	output, err := util.ExecuteCommand("docker", append(dockerCmd, dockerArgs...)...)
 	if err != nil {
 		return fmt.Errorf("failed to start container for VM %q: %v", vm.GetUID(), err)
 	}
+
+	// TODO: Workaround that the image might not be pulled. Do not leak docker pull logs into the containerID
+	// TODO: Fix this by pre-pulling the image using pkg/runtime.
+	outputLines := strings.Split(output, `\n`)
+	containerID := outputLines[len(outputLines)-1]
 
 	if vm.Spec.Network.Mode == api.NetworkModeCNI {
 		if err := setupCNINetworking(containerID); err != nil {

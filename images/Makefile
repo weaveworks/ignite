@@ -19,6 +19,9 @@ push:
 build-all:
 	# Temporarily comment out the kernel build for the RC
 	#	make -C kernel
+	$(MAKE) build WHAT=amazon-kernel
+	$(MAKE) build WHAT=amazonlinux
+	$(MAKE) build WHAT=alpine
 	$(MAKE) build WHAT=ubuntu
 	$(MAKE) build WHAT=centos
 	$(MAKE) build WHAT=kubeadm
@@ -26,6 +29,9 @@ build-all:
 push-all: build-all
 	# Temporarily comment out the kernel build for the RC
 	#	make -C kernel push
+	$(MAKE) push WHAT=amazon-kernel
+	$(MAKE) push WHAT=amazonlinux
+	$(MAKE) push WHAT=alpine
 	$(MAKE) push WHAT=ubuntu
 	$(MAKE) push WHAT=centos
 	$(MAKE) push WHAT=kubeadm

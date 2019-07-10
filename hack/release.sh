@@ -43,7 +43,7 @@ write_changelog() {
     echo "" >> ${file}
     echo "# Changelog" >> ${file}
     echo "" >> ${file}
-    for release in $(find docs/releases/ -type f | sort -r); do
+    for release in $(find docs/releases/ -type f | grep -v rc | sort -Vr); do
         cat ${release} >> ${file}
         echo "" >> ${file}
     done
@@ -62,7 +62,7 @@ tag_release() {
         exit 1
     fi
 
-    git checkout -b ${RELEASE_BRANCH}
+    git checkout -B ${RELEASE_BRANCH}
     git tag ${FULL_VERSION}
 }
 
