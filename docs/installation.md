@@ -21,7 +21,7 @@ To install Ignite from the command line, follow these steps:
 
 ```bash
 export VERSION=v0.4.0
-curl -Lo ignite https://github.com/weaveworks/ignite/releases/download/${VERSION}/ignite
+curl -fLo ignite https://github.com/weaveworks/ignite/releases/download/${VERSION}/ignite
 chmod +x ignite
 sudo mv ignite /usr/local/bin
 ```
@@ -39,8 +39,6 @@ Firecracker version: v0.17.0
 ```
 
 Now you can continue with the [Getting Started Walkthrough](usage.md).
-
-## Removing the installation
 
 ## Removing the installation
 
