@@ -121,6 +121,23 @@ ignite rm my-vm
 
 For a walkthrough of how to use Ignite, go to **[docs/usage.md]**(docs/usage.md).
 
+## Getting Started the GitOps way
+
+In Git you [declaratively store](docs/declarative-config.md) the desired state of a set of VMs you want to manage.
+`ignite gitops` reconciles the state from Git, and applies the desired changes as state is updated in the repo.
+
+This can then be automated, tracked for correctness, and managed at scale - [just some of the benefits of GitOps](https://www.weave.works/technologies/gitops/).
+
+The workflow is simply this:
+
+ - Run `ignite gitops [repo]`, where repo points to your Git repo
+ - Create a file with the VM specification, specifying how much vCPUs, RAM, disk, etc. you’d like from the VM
+ - Run `git push` and see your VM start on the host
+
+See it in action!
+
+[![asciicast](https://asciinema.org/a/255797.svg)](https://asciinema.org/a/255797)
+
 ### Documentation
 
 Please refer to the following documents:
