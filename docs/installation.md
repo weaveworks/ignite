@@ -7,7 +7,7 @@ This guide describes the installation and uninstallation process of Ignite.
 Ignite runs on any Intel-based `linux/amd64` system with `KVM` enabled.
 AMD support is in alpha (Firecracker limitation).
 
-See the [requirements](REQUIREMENTS.md) for needed dependencies.
+See [dependencies.md](dependencies.md) for needed dependencies.
 
 ## Downloading the binary
 Ignite is a currently a single binary application. To install it,
@@ -17,8 +17,8 @@ save it as `/usr/local/bin/ignite` and make it executable.
 To install Ignite from the command line, execute the following in a `root` shell
 (or use `sudo` for `curl` and `chmod`):
 ```bash
-export VERSION=0.3.0
-curl -Lo /usr/local/bin/ignite https://github.com/weaveworks/ignite/releases/download/v${VERSION}/ignite
+export VERSION=v0.4.0
+curl -Lo /usr/local/bin/ignite https://github.com/weaveworks/ignite/releases/download/${VERSION}/ignite
 chmod +x /usr/local/bin/ignite
 ```
 
@@ -30,18 +30,22 @@ by changing the `VERSION` environment variable.
 If the installation was successful, the `ignite` command should now be available:
 ```
 # ignite version
-Ignite version: version.Info{Major:"0", Minor:"3", GitVersion:"v0.3.0", GitCommit:"9db63f66c8a38c83212d618f6d0d6995b79e07bf", GitTreeState:"clean", BuildDate:"2019-06-18T13:30:59Z", GoVersion:"go1.12.1", Compiler:"gc", Platform:"linux/amd64"}
-Firecracker version: v0.16.0
+Ignite version: version.Info{Major:"0", Minor:"4+", GitVersion:"v0.4.0-rc.1", GitCommit:"7e03dc80be894250f9f97ec4d80261fd2fdcd8f4", GitTreeState:"clean", BuildDate:"2019-07-09T19:03:30Z", GoVersion:"go1.12.1", Compiler:"gc", Platform:"linux/amd64"}
+Firecracker version: v0.17.0
 ```
 
-Now you can continue with the [Getting Started Walkthrough](./docs/usage.md).
+Now you can continue with the [Getting Started Walkthrough](usage.md).
 
 ## Removing the installation
 
-**NOTE:** Make sure no virtual machines are running before executing this step.
+## Removing the installation
 
 To completely remove the Ignite installation, execute the following as root:
 ```bash
+# Force-remove all running VMs
+ignite ps -q | xargs ignite rm -f
+# Remove the data directory
 rm -r /var/lib/firecracker
+# Remove the Ignite binary
 rm /usr/local/bin/ignite
 ```
