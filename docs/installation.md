@@ -34,6 +34,8 @@ Ignite version: version.Info{Major:"0", Minor:"3", GitVersion:"v0.3.0", GitCommi
 Firecracker version: v0.16.0
 ```
 
+Now you can continue with the [Getting Started Walkthrough](./docs/usage.md).
+
 ## Removing the installation
 
 **NOTE:** Make sure no virtual machines are running before executing this step.
