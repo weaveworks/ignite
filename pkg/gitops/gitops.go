@@ -23,7 +23,7 @@ var (
 
 func RunLoop(url, branch string) error {
 	log.Printf("Starting GitOps loop for repo at %q\n", url)
-	log.Printf("Whenever changes are pushed the %s branch, Ignite will apply the desired state locally\n", branch)
+	log.Printf("Whenever changes are pushed to the %s branch, Ignite will apply the desired state locally\n", branch)
 	log.Println("Initializing the Git repo...")
 
 	s := gitops.NewGitOpsStorage(url, branch)
@@ -110,7 +110,7 @@ func runHandle(wg *sync.WaitGroup, fn func() error) {
 	defer wg.Done()
 
 	if err := fn(); err != nil {
-		log.Printf("[WARNING] An error occurred when processing a VM update: %v\n", err)
+		log.Errorf("An error occurred when processing a VM update: %v\n", err)
 	}
 }
 

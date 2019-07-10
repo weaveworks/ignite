@@ -47,8 +47,7 @@ func (md *VM) AllocateAndPopulateOverlay() error {
 	// The overlay needs to be at least as large as the image
 	if size < fi.Size() {
 		size = fi.Size()
-		// TODO: Logging
-		fmt.Printf("warning: requested overlay size (%s) < image size (%s), using image size for overlay\n",
+		log.Warnf("warning: requested overlay size (%s) < image size (%s), using image size for overlay\n",
 			datasize.ByteSize(requestedSize).HR(), datasize.ByteSize(size).HR())
 	}
 
