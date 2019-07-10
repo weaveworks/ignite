@@ -2,6 +2,8 @@ package operations
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"path/filepath"
 	"strings"
@@ -16,7 +18,7 @@ import (
 )
 
 func StartVM(vm *vmmd.VM, debug bool) error {
-	// Make sure the VM container does not exist. Don't care about the error
+	// Make sure the VM container does not exist. Don't care about the error.
 	RemoveVMContainer(vm.VM)
 
 	// Setup the snapshot overlay filesystem
@@ -58,19 +60,23 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 		dockerArgs = append(dockerArgs, fmt.Sprintf("-p=%d:%d", portMapping.HostPort, portMapping.VMPort))
 	}
 
-	dockerArgs = append(dockerArgs, fmt.Sprintf("weaveworks/ignite:%s", version.GetIgnite().ImageTag()))
-	dockerArgs = append(dockerArgs, vm.GetUID().String())
+	igniteImage := fmt.Sprintf("weaveworks/ignite:%s", version.GetIgnite().ImageTag())
+	dockerArgs = append(dockerArgs, igniteImage, vm.GetUID().String())
+
+	// Verify that the image containing ignite-spawn is pulled
+	// TODO: Integrate automatic pulling into pkg/runtime
+	if err := verifyPulled(igniteImage); err != nil {
+		return err
+	}
 
 	// Create the VM container in docker
+	// TODO: Replace all calls to the docker binary with pkg/runtime
 	output, err := util.ExecuteCommand("docker", append(dockerCmd, dockerArgs...)...)
 	if err != nil {
 		return fmt.Errorf("failed to start container for VM %q: %v", vm.GetUID(), err)
 	}
 
-	// TODO: Workaround that the image might not be pulled. Do not leak docker pull logs into the containerID
-	// TODO: Fix this by pre-pulling the image using pkg/runtime.
-	outputLines := strings.Split(output, `\n`)
-	containerID := outputLines[len(outputLines)-1]
+	containerID := strings.TrimSpace(output)
 
 	if vm.Spec.Network.Mode == api.NetworkModeCNI {
 		if err := setupCNINetworking(containerID); err != nil {
@@ -101,4 +107,35 @@ func setupCNINetworking(containerID string) error {
 	}
 
 	return networkPlugin.SetupContainerNetwork(containerID)
+}
+
+func verifyPulled(image string) error {
+	client, err := docker.GetDockerClient()
+	if err != nil {
+		return err
+	}
+
+	if _, err = client.InspectImage(image); err != nil {
+		log.Printf("Pulling image %q...", image)
+		rc, err := client.PullImage(image)
+		if err != nil {
+			return err
+		}
+
+		// Don't output the pull command
+		if _, err = io.Copy(ioutil.Discard, rc); err != nil {
+			return err
+		}
+
+		if err = rc.Close(); err != nil {
+			return err
+		}
+
+		// Verify the image was pulled
+		if _, err = client.InspectImage(image); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
