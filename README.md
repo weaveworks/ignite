@@ -66,7 +66,7 @@ And - potentially - we can run a cloud of VMs ‘anywhere’ using Kubernetes fo
 
 Ignite is different from Kata Containers or gVisor. They don’t let you run real VMs, but only wrap a container in new layer providing some kind of security boundary (or sandbox).
 
-Ignite on the other hand lets you run a full-blown VM, easily and super-fast, but with the familiar container UX. This means you can “go a layer down” and start managing your fleet of VMs powering e.g. a Kubernetes cluster, but still package your VMs like containers.
+Ignite on the other hand lets you run a full-blown VM, easily and super-fast, but with the familiar container UX. This means you can “move down one layer” and start managing your fleet of VMs powering e.g. a Kubernetes cluster, but still package your VMs like containers.
 
 ## Installing
 
