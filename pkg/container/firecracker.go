@@ -36,7 +36,9 @@ func ExecuteFirecracker(md *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 		cmdLine = constants.VM_DEFAULT_KERNEL_ARGS
 	}
 
-	firecrackerSocketPath := path.Join(md.ObjectPath(), constants.FIRECRACKER_SOCKET_PATH, "firecracker.sock")
+	firecrackerSocketPath := path.Join(md.ObjectPath(), constants.FIRECRACKER_SOCKET_PATH, FIRECRACKER_API_SOCKET)
+	logSocketPath := path.Join(md.ObjectPath(), constants.FIRECRACKER_SOCKET_PATH, LOG_FIFO)
+	metricsSocketPath := path.Join(md.ObjectPath(), constants.FIRECRACKER_SOCKET_PATH, METRICS_FIFO)
 	cfg := firecracker.Config{
 		SocketPath:      firecrackerSocketPath,
 		KernelImagePath: path.Join(constants.KERNEL_DIR, md.GetKernelUID().String(), constants.KERNEL_FILE),
@@ -63,13 +65,13 @@ func ExecuteFirecracker(md *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 
 		// TODO: We could use /dev/null, but firecracker-go-sdk issues Mkfifo which collides with the existing device
 		LogLevel:    constants.VM_LOG_LEVEL,
-		LogFifo:     constants.LOG_FIFO,
-		MetricsFifo: constants.METRICS_FIFO,
+		LogFifo:     logSocketPath,
+		MetricsFifo: metricsSocketPath,
 	}
 
 	// Remove these FIFOs for now
-	defer os.Remove(constants.LOG_FIFO)
-	defer os.Remove(constants.METRICS_FIFO)
+	defer os.Remove(logSocketPath)
+	defer os.Remove(metricsSocketPath)
 
 	ctx, vmmCancel := context.WithCancel(context.Background())
 	defer vmmCancel()

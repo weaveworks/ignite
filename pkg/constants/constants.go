@@ -30,12 +30,13 @@ const (
 
 	// In-container path for the firecracker socket
 	FIRECRACKER_SOCKET_PATH = "firecracker"
+	FIRECRACKER_API_SOCKET = "firecracker.sock"
 
 	// In-container path for the firecracker log FIFO
-	LOG_FIFO = "/tmp/firecracker_log.fifo"
+	LOG_FIFO = "firecracker_log.fifo"
 
 	// In-container path for the firecracker metrics FIFO
-	METRICS_FIFO = "/tmp/firecracker_metrics.fifo"
+	METRICS_FIFO = "firecracker_metrics.fifo"
 
 	// Log level for the firecracker VM
 	VM_LOG_LEVEL = "Error"
