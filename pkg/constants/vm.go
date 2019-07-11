@@ -15,4 +15,7 @@ const (
 
 	// TODO: remove this when the old dm code is removed
 	OVERLAY_FILE = "overlay.dm"
+
+	// Prometheus socket filename
+	PROMETHEUS_SOCKET = "prometheus.sock"
 )

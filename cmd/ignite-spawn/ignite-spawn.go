@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"os"
 	"path"
 
@@ -49,9 +50,7 @@ func StartVM(co *options) error {
 	}
 
 	// Serve metrics over an unix socket in the VM's own directory
-	// TODO: when restarting a VM using `start`, we get a panic:
-	// panic: listen unix /var/lib/firecracker/vm/6a2b6ebafcb0e75c/prometheus.sock: bind: address already in use
-	metricsSocket := path.Join(co.vm.ObjectPath(), "prometheus.sock")
+	metricsSocket := path.Join(co.vm.ObjectPath(), constants.PROMETHEUS_SOCKET)
 	go prometheus.ServeMetrics(metricsSocket)
 
 	// VM state handling

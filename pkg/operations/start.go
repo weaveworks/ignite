@@ -5,8 +5,10 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -82,13 +84,16 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 		if err := setupCNINetworking(containerID); err != nil {
 			return err
 		}
+
 		log.Printf("Networking is now handled by CNI")
 	}
 
 	log.Printf("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
+
 	// TODO: Follow-up the container here with a defer, or dedicated goroutine. We should output
 	// if it started successfully or not
-	return nil
+	// TODO: This is temporary until we have proper communication to the container
+	return waitForSpawn(vm)
 }
 
 func setupCNINetworking(containerID string) error {
@@ -138,4 +143,22 @@ func verifyPulled(image string) error {
 	}
 
 	return nil
+}
+
+// TODO: This check for the Prometheus socket file is temporary
+// until we get a proper ignite <-> ignite-spawn communication channel
+func waitForSpawn(vm *vmmd.VM) error {
+	const timeout = 10 * time.Second
+	const checkInterval = 100 * time.Millisecond
+
+	startTime := time.Now()
+	for time.Now().Sub(startTime) < timeout {
+		time.Sleep(checkInterval)
+
+		if util.FileExists(path.Join(vm.ObjectPath(), constants.PROMETHEUS_SOCKET)) {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("timeout waiting for ignite-spawn startup")
 }
