@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/constants"
 	"os"
 	"path"
+
+	"github.com/weaveworks/ignite/pkg/constants"
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
