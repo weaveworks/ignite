@@ -29,7 +29,7 @@ const (
 	IGNITE_TIMEOUT = 10
 
 	// In-container path for the firecracker socket
-	SOCKET_PATH = "/tmp/firecracker.sock"
+	FIRECRACKER_SOCKET_PATH = "firecracker"
 
 	// In-container path for the firecracker log FIFO
 	LOG_FIFO = "/tmp/firecracker_log.fifo"

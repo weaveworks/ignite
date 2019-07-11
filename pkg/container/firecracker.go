@@ -36,8 +36,9 @@ func ExecuteFirecracker(md *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 		cmdLine = constants.VM_DEFAULT_KERNEL_ARGS
 	}
 
+	firecrackerSocketPath := path.Join(md.ObjectPath(), constants.FIRECRACKER_SOCKET_PATH, "firecracker.sock")
 	cfg := firecracker.Config{
-		SocketPath:      constants.SOCKET_PATH,
+		SocketPath:      firecrackerSocketPath,
 		KernelImagePath: path.Join(constants.KERNEL_DIR, md.GetKernelUID().String(), constants.KERNEL_FILE),
 		KernelArgs:      cmdLine,
 		Drives: []models.Drive{{
@@ -75,7 +76,7 @@ func ExecuteFirecracker(md *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 
 	cmd := firecracker.VMCommandBuilder{}.
 		WithBin("firecracker").
-		WithSocketPath(constants.SOCKET_PATH).
+		WithSocketPath(firecrackerSocketPath).
 		WithStdin(os.Stdin).
 		WithStdout(os.Stdout).
 		WithStderr(os.Stderr).

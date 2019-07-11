@@ -97,6 +97,10 @@ func processUID(obj meta.Object, c *client.Client) error {
 	if err := os.MkdirAll(dir, constants.DATA_DIR_PERM); err != nil {
 		return fmt.Errorf("failed to create directory for ID %q: %v", uid, err)
 	}
+	
+	if err := os.MkdirAll(paths.Join(dir, FIRECRACKER_SOCKET_PATH), constants.DATA_DIR_PERM); err != nil {
+		return fmt.Errorf("failed to create socket directory for ID %q: %v", uid, err)
+	}
 
 	return nil
 }
