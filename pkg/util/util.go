@@ -96,25 +96,24 @@ func RandomName() string {
 	return namegenerator.NewNameGenerator(time.Now().UTC().UnixNano()).Generate()
 }
 
-func MatchPrefix(prefix string, fields ...string) []string {
+func MatchPrefix(prefix string, fields ...string) ([]string, bool) {
 	var prefixMatches, exactMatches []string
 
 	for _, str := range fields {
-		if strings.HasPrefix(str, prefix) {
-			prefixMatches = append(prefixMatches, str)
-		}
-
 		if str == prefix {
 			exactMatches = append(exactMatches, str)
+		} else if strings.HasPrefix(str, prefix) {
+			prefixMatches = append(prefixMatches, str)
 		}
 	}
 
 	// If we have exact matches, return them
+	// and set the exact match boolean
 	if len(exactMatches) > 0 {
-		return exactMatches
+		return exactMatches, true
 	}
 
-	return prefixMatches
+	return prefixMatches, false
 }
 
 func TestRoot() (bool, error) {

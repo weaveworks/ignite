@@ -15,12 +15,12 @@ func NewAllFilter() *AllFilter {
 	return &AllFilter{}
 }
 
-func (f *AllFilter) Filter(object meta.Object) (meta.Object, error) {
-	return object, nil
+func (f *AllFilter) Filter(object meta.Object) (filterer.Match, error) {
+	return filterer.NewMatch(object, false), nil
 }
 
 // The AllFilter shouldn't be used to match single Objects
-func (f *AllFilter) AmbiguousError() *filterer.AmbiguousError {
+func (f *AllFilter) AmbiguousError(_ []filterer.Match) *filterer.AmbiguousError {
 	return filterer.NewAmbiguousError("ambiguous query: AllFilter used to match single Object")
 }
 

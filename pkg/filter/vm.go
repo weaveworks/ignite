@@ -30,7 +30,7 @@ func NewVMFilterAll(p string, all bool) *VMFilter {
 	}
 }
 
-func (f *VMFilter) Filter(object meta.Object) (meta.Object, error) {
+func (f *VMFilter) Filter(object meta.Object) (filterer.Match, error) {
 	// Option to list just running VMs
 	if !f.all {
 		vm, ok := object.(*api.VM)
