@@ -26,6 +26,7 @@ func mkfs(device blockDevice) error {
 	mkfsArgs := []string{
 		"-I",
 		"256",
+		"-F",
 		"-E",
 		"lazy_itable_init=0,lazy_journal_init=0",
 		device.Path(),

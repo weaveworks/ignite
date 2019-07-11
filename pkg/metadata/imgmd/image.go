@@ -31,7 +31,7 @@ func (md *Image) AllocateAndFormat() error {
 
 	// Use mkfs.ext4 to create the new image with an inode size of 256
 	// (gexto doesn't support anything but 128, but as long as we're not using that it's fine)
-	if _, err := util.ExecuteCommand("mkfs.ext4", "-I", "256", "-E", "lazy_itable_init=0,lazy_journal_init=0", p); err != nil {
+	if _, err := util.ExecuteCommand("mkfs.ext4", "-I", "256", "-F", "-E", "lazy_itable_init=0,lazy_journal_init=0", p); err != nil {
 		return errors.Wrapf(err, "failed to format image %s", md.GetUID())
 	}
 
