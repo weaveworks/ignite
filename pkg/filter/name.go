@@ -7,9 +7,8 @@ import (
 
 // The NameFilter matches Objects by their exact name
 type NameFilter struct {
-	name    string
-	matches uint64
-	kind    meta.Kind
+	name string
+	kind meta.Kind
 }
 
 var _ filterer.MetaFilter = &NameFilter{}
@@ -20,14 +19,9 @@ func NewNameFilter(n string) *NameFilter {
 	}
 }
 
-func (f *NameFilter) FilterMeta(object meta.Object) (meta.Object, error) {
-	if len(f.kind) == 0 {
-		f.kind = object.GetKind() // reflect.Indirect(reflect.ValueOf(object)).Type().Name()
-	}
-
+func (f *NameFilter) FilterMeta(object meta.Object) (filterer.Match, error) {
 	if object.GetName() == f.name {
-		f.matches++
-		return object, nil
+		return filterer.NewMatch(object, true), nil
 	}
 
 	return nil, nil
@@ -37,8 +31,8 @@ func (f *NameFilter) SetKind(k meta.Kind) {
 	f.kind = k
 }
 
-func (f *NameFilter) AmbiguousError() *filterer.AmbiguousError {
-	return filterer.NewAmbiguousError("ambiguous %s query: %q matched %d names", f.kind, f.name, f.matches)
+func (f *NameFilter) AmbiguousError(_ []filterer.Match) *filterer.AmbiguousError {
+	return filterer.NewAmbiguousError("ambiguous %s query: %q matched multiple names", f.kind, f.name)
 }
 
 func (f *NameFilter) NonexistentError() *filterer.NonexistentError {

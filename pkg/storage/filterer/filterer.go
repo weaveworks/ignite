@@ -17,11 +17,12 @@ func NewFilterer(storage storage.Storage) *Filterer {
 	}
 }
 
-type filterFunc func(meta.Object) (meta.Object, error)
+type filterFunc func(meta.Object) (Match, error)
 
 // Find a single meta.Object of the given kind using the given filter
 func (f *Filterer) Find(kind meta.Kind, filter BaseFilter) (meta.Object, error) {
-	var result meta.Object
+	var results []Match
+	var exactMatch Match
 
 	// Fetch the sources, correct filtering method and if we're dealing with meta.APIType objects
 	sources, filterFunc, metaObjects, err := f.parseFilter(kind, filter)
@@ -34,16 +35,32 @@ func (f *Filterer) Find(kind meta.Kind, filter BaseFilter) (meta.Object, error) 
 		if match, err := filterFunc(object); err != nil { // The filter returns meta.Object if it matches, otherwise nil
 			return nil, err
 		} else if match != nil {
-			if result != nil {
-				return nil, filter.AmbiguousError()
+			if match.Exact() {
+				if exactMatch != nil {
+					// We have multiple exact matches, the user has done something wrong
+					return nil, filter.AmbiguousError([]Match{exactMatch, match})
+				} else {
+					exactMatch = match
+				}
 			} else {
-				result = match
+				results = append(results, match)
 			}
 		}
 	}
 
-	if result == nil {
-		return nil, filter.NonexistentError()
+	var result meta.Object
+
+	// If we have an exact result, select it
+	if exactMatch != nil {
+		result = exactMatch.Object()
+	} else {
+		if len(results) == 0 {
+			return nil, filter.NonexistentError()
+		} else if len(results) > 1 {
+			return nil, filter.AmbiguousError(results)
+		}
+
+		result = results[0].Object()
 	}
 
 	// If we're filtering meta.APIType objects, load the full Object to be returned
@@ -69,7 +86,7 @@ func (f *Filterer) FindAll(kind meta.Kind, filter BaseFilter) ([]meta.Object, er
 		if match, err := filterFunc(object); err != nil { // The filter returns meta.Object if it matches, otherwise nil
 			return nil, err
 		} else if match != nil {
-			results = append(results, match)
+			results = append(results, match.Object())
 		}
 	}
 
