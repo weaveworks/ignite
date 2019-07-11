@@ -9,4 +9,4 @@ Table of Contents:
 - [CLI Reference](cli/ignite.md)
 - [API Reference](../api)
 - [Scope and Requirements](dependencies.md)
-- [Monitoring With Prometheus](dependencies.md)
+- [Monitoring With Prometheus](prometheus.md)
