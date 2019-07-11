@@ -22,6 +22,10 @@ The guide will cover the following topics in order:
 Keep in mind that all Ignite commands require `root` for now.
 This will change later.
 
+Here's a [demo](https://www.youtube.com/watch?v=s_O75zt-oBg) that shows the topics above in action with ignite running on [Amazon EC2 i3.metal instance](https://aws.amazon.com/ec2/instance-types/i3/) which satisfies the /dev/kvm dependency.
+
+[![ignite running on Amazon EC2 i3.metal instance](http://img.youtube.com/vi/s_O75zt-oBg/0.jpg)](http://www.youtube.com/watch?v=s_O75zt-oBg "ignite running on Amazon EC2 i3.metal instance")
+
 ### Importing a VM base image
 
 A VM base image (or just `image`) is an OCI container, which contains a filesystem
