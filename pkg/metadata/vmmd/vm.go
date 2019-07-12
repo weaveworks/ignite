@@ -193,9 +193,13 @@ func (md *VM) ClearIPAddresses() {
 // Generate a new SSH keypair for the vm
 func (md *VM) newSSHKeypair() (string, error) {
 	privKeyPath := path.Join(md.ObjectPath(), fmt.Sprintf(constants.VM_SSH_KEY_TEMPLATE, md.GetUID()))
-
-	// Use ED25519 instead of RSA for performance (it's equally secure, but a lot faster to generate/authenticate)
-	_, err := util.ExecuteCommand("ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", privKeyPath)
+	// TODO: In future versions, let the user specify what key algorithm to use through the API types
+	ssh_key_algorithm := "ed25519"
+	if util.FIPSEnabled() {
+		// Use rsa on FIPS machines
+		ssh_key_algorithm = "rsa"
+	}
+	_, err := util.ExecuteCommand("ssh-keygen", "-q", "-t", ssh_key_algorithm, "-N", "", "-f", privKeyPath)
 	if err != nil {
 		return "", err
 	}
