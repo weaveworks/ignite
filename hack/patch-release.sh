@@ -5,19 +5,23 @@ cd ${SCRIPT_DIR}/..
 
 source hack/release-common.sh
 
-git checkout master
-
 FORCE=${FORCE:-0}
 GENERATED_GIT_VERSION=$(hack/ldflags.sh --version-only)
+CURRENT_BRANCH=$(git branch | grep \* | cut -d ' ' -f2)
 
 if [[ ${GENERATED_GIT_VERSION} =~ "-dirty" && ${FORCE} == 0 ]]; then
     echo "Won't try to do a release when the git state is dirty"
     exit 1
 fi
 
+if [[ (! ${CURRENT_BRANCH} =~ "release-") && ${FORCE} == 0 ]]; then
+    echo "Won't try to do a release from a non-release branch"
+    exit 1
+fi
+
 MAJOR=0
 MINOR=${MINOR:-0}
-PATCH=0
+PATCH=${PATCH:-0}
 VERSION="v${MAJOR}.${MINOR}.${PATCH}"
 RELEASE_BRANCH="release-${MAJOR}.${MINOR}"
 EXTRA=${EXTRA:-""}
@@ -25,6 +29,11 @@ FULL_VERSION=${VERSION}${EXTRA}
 
 if [[ ${MINOR} == "0" ]]; then
     echo "MINOR is mandatory"
+    exit 1
+fi
+
+if [[ ${PATCH} == "0" ]]; then
+    echo "PATCH is mandatory"
     exit 1
 fi
 
@@ -36,7 +45,6 @@ tag_release() {
         exit 1
     fi
 
-    git checkout -B ${RELEASE_BRANCH}
     git tag ${FULL_VERSION}
 }
 
@@ -50,7 +58,6 @@ make -C images push-all
 make image-push
 git push --tags
 git push origin ${RELEASE_BRANCH}
-git push origin master
 EOF
         exit 1
     fi
@@ -58,7 +65,6 @@ EOF
     make image-push
     git push --tags
     git push origin ${RELEASE_BRANCH}
-    git push origin master
 }
 
 if [[ $1 == "tidy" ]]; then
@@ -81,5 +87,5 @@ else
     echo "Usage: $0 [command]"
     echo "Command can be tidy, changelog, tag, build or push."
     echo "Alternatively, 'all' can be specified to do all phases in one."
-    echo "To set the version to use, specify the MAJOR, and EXTRA environment variables"
+    echo "To set the version to use, specify the MAJOR, PATCH, and EXTRA environment variables"
 fi
