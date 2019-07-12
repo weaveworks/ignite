@@ -2,8 +2,9 @@ package run
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"path"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
