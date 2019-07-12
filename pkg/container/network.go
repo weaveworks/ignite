@@ -47,6 +47,7 @@ func SetupContainerNetworking() ([]DHCPInterface, error) {
 		}
 		if retry {
 			// we got an error, but let's ignore it and try again
+			log.Infof("Got an error while trying to set up networking, but retrying: %v", err)
 			return false, nil
 		}
 		// the error was fatal, return it
@@ -70,31 +71,43 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 	interfacesCount := 0
 	for _, iface := range ifaces {
 		// Skip the interface if it's ignored
-		if !ignoreInterfaces[iface.Name] {
-			// This is an interface we care about
-			interfacesCount++
-
-			ipNet, retry, err := takeAddress(&iface)
-			if err != nil {
-				return retry, fmt.Errorf("parsing interface failed: %v", err)
-			}
-
-			dhcpIface, err := bridge(&iface)
-			if err != nil {
-				return false, fmt.Errorf("bridging interface %s failed: %v0", iface.Name, err)
-			}
-
-			// Gateway for now is just x.x.x.1 TODO: Better detection
-			dhcpIface.GatewayIP = &net.IP{ipNet.IP[0], ipNet.IP[1], ipNet.IP[2], 1}
-			dhcpIface.VMIPNet = ipNet
-
-			*dhcpIfaces = append(*dhcpIfaces, *dhcpIface)
+		if ignoreInterfaces[iface.Name] {
+			continue
 		}
+
+		// Try to transfer the address from the container to the DHCP server
+		ipNet, _, err := takeAddress(&iface)
+		if err != nil {
+			// Log the problem, but don't quit the function here as there might be other good interfaces
+			log.Errorf("Parsing interface %s failed: %v", iface.Name, err)
+			// Try with the next interface
+			continue
+		}
+
+		// Bridge the Firecracker TAP interface with the container veth interface
+		dhcpIface, err := bridge(&iface)
+		if err != nil {
+			// Log the problem, but don't quit the function here as there might be other good interfaces
+			// Don't set shouldRetry here as there is no point really with retrying with this interface
+			// that seems broken/unsupported in some way.
+			log.Errorf("Bridging interface %s failed: %v", iface.Name, err)
+			// Try with the next interface
+			continue
+		}
+
+		// Gateway for now is just x.x.x.1 TODO: Better detection
+		dhcpIface.GatewayIP = &net.IP{ipNet.IP[0], ipNet.IP[1], ipNet.IP[2], 1}
+		dhcpIface.VMIPNet = ipNet
+
+		*dhcpIfaces = append(*dhcpIfaces, *dhcpIface)
+
+		// This is an interface we care about
+		interfacesCount++
 	}
 
-	// If there weren't any interfaces we cared about, retry the loop
+	// If there weren't any interfaces that were valid or active yet, retry the loop
 	if interfacesCount == 0 {
-		return true, fmt.Errorf("no active interfaces available yet")
+		return true, fmt.Errorf("no active or valid interfaces available yet")
 	}
 
 	return false, nil
