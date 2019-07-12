@@ -2,6 +2,53 @@
 
 # Changelog
 
+## v0.4.1
+
+The first patch release for the `v0.4.x` release stream.
+If you want to go and look at the new and changed stuff in v0.4.0, see [here](https://github.com/weaveworks/ignite/blob/master/CHANGELOG.md#v040).
+
+This release, we had an **amazing** amount of 9 PRs from 6 community contributors, in 48 hours after launch :tada:!
+We hope to see this trend continue, all help is very welcome to this community-driven project!
+
+### New Features / UX Improvements
+
+ - It is now possible to access and talk to the Firecracker socket, and metrics/logs FIFOs. ([#132](https://github.com/weaveworks/ignite/pull/132), [@patrobinson](https://github.com/patrobinson))
+ - Verify that the VM _actually_ did start before `ignite start/run` reports success ([#139](https://github.com/weaveworks/ignite/pull/139), [@twelho](https://github.com/twelho))
+ - Provide better UX and error messages for the `ignite ssh` command ([#149](https://github.com/weaveworks/ignite/pull/149), [@twelho](https://github.com/twelho))
+
+
+### Bugfixes
+
+ - Set the `-F` flag to `mkfs.ext4`, as it is required on RHEL platforms. ([#131](https://github.com/weaveworks/ignite/pull/131), [@junaid18183](https://github.com/junaid18183))
+ - Generate RSA keys instead of ED25519 on FIPS machines. ([#136](https://github.com/weaveworks/ignite/pull/136), [@junaid18183](https://github.com/junaid18183))
+ - Make the filtering framework respect exact matches ([#138](https://github.com/weaveworks/ignite/pull/138), [@twelho](https://github.com/twelho))
+ - Don't fail although there are inactive network interfaces in the container ([#146](https://github.com/weaveworks/ignite/pull/146), [@luxas](https://github.com/luxas))
+
+
+### Docs improvements
+
+ - Add a next action link for better developer-workflow in `installation.md` ([#118](https://github.com/weaveworks/ignite/pull/118), [@alexellis](https://github.com/alexellis))
+ - Error out if the Ignite binary download fails ([#120](https://github.com/weaveworks/ignite/pull/120), [@alexellis](https://github.com/alexellis))
+ - Improve wording in the `README.md` ([#125](https://github.com/weaveworks/ignite/pull/125), [@seeekr](https://github.com/seeekr))
+ - Fix link to the `prometheus.md` doc ([#126](https://github.com/weaveworks/ignite/pull/126), [@webwurst](https://github.com/webwurst))
+ - Fix typo in `docs/README.md` ([#128](https://github.com/weaveworks/ignite/pull/128), [@andrelop](https://github.com/andrelop))
+ - Added demo video to docs/usage.md ([#140](https://github.com/weaveworks/ignite/pull/140), [@paavan98pm](https://github.com/paavan98pm))
+ - Add docs on how to check for KVM support in the CPU/kernel ([#145](https://github.com/weaveworks/ignite/pull/145), [@luxas](https://github.com/luxas))
+
+
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.4.1
+curl -fLo ignite https://github.com/weaveworks/ignite/releases/download/${VERSION}/ignite
+chmod +x ignite
+sudo mv ignite /usr/local/bin
+```
+
+A more throughout installation guide is available here: https://github.com/weaveworks/ignite/blob/master/docs/installation.md
+
 ## v0.4.0
 
 The first release candidate for Ignite's biggest release yet!
