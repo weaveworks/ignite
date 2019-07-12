@@ -36,9 +36,9 @@ func ExecuteFirecracker(md *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 		cmdLine = constants.VM_DEFAULT_KERNEL_ARGS
 	}
 
-	firecrackerSocketPath := path.Join(md.ObjectPath(), FIRECRACKER_API_SOCKET)
-	logSocketPath := path.Join(md.ObjectPath(), LOG_FIFO)
-	metricsSocketPath := path.Join(md.ObjectPath(), METRICS_FIFO)
+	firecrackerSocketPath := path.Join(md.ObjectPath(), constants.FIRECRACKER_API_SOCKET)
+	logSocketPath := path.Join(md.ObjectPath(), constants.LOG_FIFO)
+	metricsSocketPath := path.Join(md.ObjectPath(), constants.METRICS_FIFO)
 	cfg := firecracker.Config{
 		SocketPath:      firecrackerSocketPath,
 		KernelImagePath: path.Join(constants.KERNEL_DIR, md.GetKernelUID().String(), constants.KERNEL_FILE),
