@@ -42,4 +42,5 @@ func NewCmdSSH(out io.Writer) *cobra.Command {
 
 func addSSHFlags(fs *pflag.FlagSet, sf *run.SSHFlags) {
 	fs.StringVarP(&sf.IdentityFile, "identity", "i", "", "Override the vm's default identity file")
+	fs.Uint32VarP(&sf.Timeout, "timeout", "t", 10, "Timeout waiting for connection in seconds")
 }
