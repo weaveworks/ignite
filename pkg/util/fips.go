@@ -1,4 +1,4 @@
-package vmmd
+package util
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 
 // FIPSEnabled returns true if running in FIPS mode.
 // currently it just checks the system wide /etc/system-fips file present or not.
-// We can improve it later.
+// TODO - Find a better generic solution for this.
 func FIPSEnabled() bool {
 	fips_file := "/etc/system-fips"
 	if _, err := os.Stat(fips_file); err != nil {
