@@ -204,7 +204,6 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, er
 		for _, entry := range entries {
 			name := entry.Name()
 			if !entry.IsDir() || !(name == "boot" || name == "lib") {
-				fmt.Printf("Removing: %q\n", name)
 				if err := os.RemoveAll(path.Join(tempDir, name)); err != nil {
 					return nil, err
 				}
