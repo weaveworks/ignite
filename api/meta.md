@@ -68,9 +68,8 @@
   * [func (s *Size) UnmarshalJSON(b []byte) error](#Size.UnmarshalJSON)
 * [type Time](#Time)
   * [func Timestamp() Time](#Timestamp)
-  * [func (t Time) MarshalJSON() ([]byte, error)](#Time.MarshalJSON)
+  * [func (t Time) MarshalJSON() (b []byte, err error)](#Time.MarshalJSON)
   * [func (t Time) String() string](#Time.String)
-  * [func (t *Time) UnmarshalJSON(b []byte) error](#Time.UnmarshalJSON)
 * [type TypeMeta](#TypeMeta)
   * [func (t *TypeMeta) GetKind() Kind](#TypeMeta.GetKind)
   * [func (t *TypeMeta) GetTypeMeta() *TypeMeta](#TypeMeta.GetTypeMeta)
@@ -600,10 +599,10 @@ func (s *Size) UnmarshalJSON(b []byte) error
 
 
 
-## <a name="Time">type</a> [Time](/pkg/apis/meta/v1alpha1/time.go?s=151:185#L12)
+## <a name="Time">type</a> [Time](/pkg/apis/meta/v1alpha1/time.go?s=151:184#L12)
 ``` go
 type Time struct {
-    *metav1.Time
+    metav1.Time
 }
 
 ```
@@ -613,7 +612,7 @@ type Time struct {
 
 
 
-### <a name="Timestamp">func</a> [Timestamp](/pkg/apis/meta/v1alpha1/time.go?s=586:607#L31)
+### <a name="Timestamp">func</a> [Timestamp](/pkg/apis/meta/v1alpha1/time.go?s=549:570#L30)
 ``` go
 func Timestamp() Time
 ```
@@ -623,26 +622,19 @@ Timestamp returns the current UTC time
 
 
 
-### <a name="Time.MarshalJSON">func</a> (Time) [MarshalJSON](/pkg/apis/meta/v1alpha1/time.go?s=738:781#L45)
+### <a name="Time.MarshalJSON">func</a> (Time) [MarshalJSON](/pkg/apis/meta/v1alpha1/time.go?s=640:689#L38)
 ``` go
-func (t Time) MarshalJSON() ([]byte, error)
+func (t Time) MarshalJSON() (b []byte, err error)
 ```
 
 
 
-### <a name="Time.String">func</a> (Time) [String](/pkg/apis/meta/v1alpha1/time.go?s=381:410#L22)
+### <a name="Time.String">func</a> (Time) [String](/pkg/apis/meta/v1alpha1/time.go?s=347:376#L21)
 ``` go
 func (t Time) String() string
 ```
 The default string for Time is a human readable difference between the Time and the current time
 
-
-
-
-### <a name="Time.UnmarshalJSON">func</a> (\*Time) [UnmarshalJSON](/pkg/apis/meta/v1alpha1/time.go?s=1021:1065#L61)
-``` go
-func (t *Time) UnmarshalJSON(b []byte) error
-```
 
 
 
