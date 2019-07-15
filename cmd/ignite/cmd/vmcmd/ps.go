@@ -23,6 +23,12 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 			also list VMs that are not currently running.
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
+			// If `ps` is called via any of its aliases
+			// (`ls`, `list`), list all VMs
+			if cmd.CalledAs() != cmd.Name() {
+				pf.All = true
+			}
+
 			errutils.Check(func() error {
 				po, err := pf.NewPsOptions()
 				if err != nil {
