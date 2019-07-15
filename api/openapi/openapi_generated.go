@@ -785,7 +785,7 @@ func schema_pkg_apis_meta_v1alpha1_ObjectMeta(ref common.ReferenceCallback) comm
 						},
 					},
 				},
-				Required: []string{"name"},
+				Required: []string{"name", "created"},
 			},
 		},
 		Dependencies: []string{
