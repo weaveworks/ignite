@@ -44,6 +44,9 @@ With time, we aim to eliminate as many of these as possible.
  - `e2fsck` & `resize2fs` for cleaning and resizing the ext4 filesystems
    - Ubuntu package: `e2fsprogs` (installed by default)
    - CentOS package: `e2fsprogs`
+ - `strings` for detecting the kernel version
+   - Ubuntu package: `binutils`
+   - CentOS package: `binutils` (installed by default)
  - `docker` for managing the containers ignite uses
    - Ubuntu package: `docker.io`
    - CentOS package: `docker`

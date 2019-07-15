@@ -46,13 +46,13 @@ Install them on Ubuntu/CentOS like this:
 
 Ubuntu:
 
-```
-apt-get update && apt-get install -y docker.io dmsetup openssh-client git
+```bash
+apt-get update && apt-get install -y --no-install-recommends docker.io dmsetup openssh-client git binutils
 ```
 
 CentOS:
 
-```
+```bash
 yum install -y docker e2fsprogs openssh-clients git
 ```
 
