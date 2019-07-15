@@ -173,7 +173,7 @@ but add `systemd`, `openssh`, and similar utilities.
 #### Base Images
 
  - [Ubuntu 18.04 Dockerfile](images/ubuntu/Dockerfile) (`weaveworks/ignite-ubuntu`)
- - [CentOS 7 Dockerfile](images/ubuntu/Dockerfile) (`weaveworks/ignite-centos`)
+ - [CentOS 7 Dockerfile](images/centos/Dockerfile) (`weaveworks/ignite-centos`)
  - [Amazon Linux 2 Dockerfile](images/amazonlinux/Dockerfile) (`weaveworks/ignite-amazonlinux`)
  - [The Firecracker Team's Alpine Image](images/alpine/Dockerfile) (`weaveworks/ignite-alpine`)
 
