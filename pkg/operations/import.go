@@ -2,9 +2,9 @@ package operations
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 
 	log "github.com/sirupsen/logrus"
@@ -143,42 +143,38 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, er
 	// Cache the kernel contents in the kernel tar file
 	kernelTarFile := path.Join(runKernel.ObjectPath(), constants.KERNEL_TAR)
 
-	if !util.FileExists(kernelTarFile) {
-		f, err := os.Create(kernelTarFile)
+	// vmlinuxFile describes the uncompressed kernel file at /var/lib/firecracker/kernel/<id>/vmlinux
+	vmlinuxFile := path.Join(runKernel.ObjectPath(), constants.KERNEL_FILE)
+
+	// Create both the kernel tar file and the vmlinux file it either doesn't exist
+	if !util.FileExists(kernelTarFile) || !util.FileExists(vmlinuxFile) {
+		// Create a temporary directory for extracting
+		// the necessary files from the OCI image
+		tempDir, err := ioutil.TempDir("", "")
 		if err != nil {
 			return nil, err
 		}
-		defer f.Close()
 
+		// Get the tar stream reader for the source OCI image
 		reader, err := dockerSource.Reader()
 		if err != nil {
 			return nil, err
 		}
 		defer reader.Close()
 
-		// Copy over the contents from the OCI image into the tar file
-		if _, err := io.Copy(f, reader); err != nil {
+		// Extract only the /boot and /lib directories of the tar stream into the tempDir
+		tarCmd := exec.Command("tar", "-x", "-C", tempDir, "boot", "lib")
+		tarCmd.Stdin = reader
+		if err := tarCmd.Start(); err != nil {
+			return nil, err
+		}
+
+		if err := tarCmd.Wait(); err != nil {
 			return nil, err
 		}
 
 		// Remove the temporary container
 		if err := dockerSource.Cleanup(); err != nil {
-			return nil, err
-		}
-	}
-
-	// vmlinuxFile describes the uncompressed kernel file at /var/lib/firecracker/kernel/$id/vmlinux
-	vmlinuxFile := path.Join(runKernel.ObjectPath(), constants.KERNEL_FILE)
-	// Create it if it doesn't exist
-	if !util.FileExists(vmlinuxFile) {
-		// Create a temporary directory for extracting the kernel file
-		tempDir, err := ioutil.TempDir("", "")
-		if err != nil {
-			return nil, err
-		}
-
-		// Extract the tar file cache to the temp dir
-		if _, err := util.ExecuteCommand("tar", "-xf", kernelTarFile, "-C", tempDir); err != nil {
 			return nil, err
 		}
 
@@ -193,24 +189,7 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, er
 			return nil, fmt.Errorf("failed to copy kernel file %q to kernel %q: %v", kernelTmpFile, runKernel.GetUID(), err)
 		}
 
-		// We will also use this one-time run to remove all unnecessary data from the kernel tar
-		entries, err := ioutil.ReadDir(tempDir)
-		if err != nil {
-			return nil, err
-		}
-
-		// Filter out everything except for /boot and /lib
-		// where the kernel and its modules reside
-		for _, entry := range entries {
-			name := entry.Name()
-			if !entry.IsDir() || !(name == "boot" || name == "lib") {
-				if err := os.RemoveAll(path.Join(tempDir, name)); err != nil {
-					return nil, err
-				}
-			}
-		}
-
-		// Re-pack the kernel tar with unnecessary data removed
+		// Pack the kernel tar with unnecessary data removed
 		if _, err := util.ExecuteCommand("tar", "-cf", kernelTarFile, "-C", tempDir, "."); err != nil {
 			return nil, err
 		}
