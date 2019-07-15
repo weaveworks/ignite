@@ -2,9 +2,10 @@ package v1alpha1
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/constants"
 	"strconv"
 	"unicode/utf8"
+
+	"github.com/weaveworks/ignite/pkg/constants"
 )
 
 // UID represents an unique ID for a type

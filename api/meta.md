@@ -74,6 +74,7 @@
   * [func (t *TypeMeta) GetTypeMeta() *TypeMeta](#TypeMeta.GetTypeMeta)
 * [type UID](#UID)
   * [func (u UID) String() string](#UID.String)
+  * [func (u *UID) UnmarshalJSON(b []byte) error](#UID.UnmarshalJSON)
 
 
 #### <a name="pkg-files">Package files</a>
@@ -664,7 +665,7 @@ This is a helper for APIType generation
 
 
 
-## <a name="UID">type</a> [UID](/pkg/apis/meta/v1alpha1/uid.go?s=74:89#L6)
+## <a name="UID">type</a> [UID](/pkg/apis/meta/v1alpha1/uid.go?s=152:167#L11)
 ``` go
 type UID string
 ```
@@ -679,11 +680,22 @@ UID represents an unique ID for a type
 
 
 
-### <a name="UID.String">func</a> (UID) [String](/pkg/apis/meta/v1alpha1/uid.go?s=172:200#L11)
+### <a name="UID.String">func</a> (UID) [String](/pkg/apis/meta/v1alpha1/uid.go?s=250:278#L16)
 ``` go
 func (u UID) String() string
 ```
 String returns the UID in string representation
+
+
+
+
+### <a name="UID.UnmarshalJSON">func</a> (\*UID) [UnmarshalJSON](/pkg/apis/meta/v1alpha1/uid.go?s=444:487#L23)
+``` go
+func (u *UID) UnmarshalJSON(b []byte) error
+```
+This unmarshaler enables the UID to be passed in as an
+unquoted string in JSON. Upon marshaling, quotes will
+be automatically added.
 
 
 
