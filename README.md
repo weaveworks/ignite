@@ -119,7 +119,7 @@ ignite ssh my-vm
 ignite rm my-vm
 ```
 
-For a walkthrough of how to use Ignite, go to **[docs/usage.md]**(docs/usage.md).
+For a walkthrough of how to use Ignite, go to [**docs/usage.md**](docs/usage.md).
 
 ## Getting Started the GitOps way
 
