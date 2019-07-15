@@ -39,4 +39,7 @@ const (
 
 	// Log level for the firecracker VM
 	VM_LOG_LEVEL = "Error"
+
+	// How many characters Ignite UIDs should have
+	IGNITE_UID_LENGTH = 16
 )

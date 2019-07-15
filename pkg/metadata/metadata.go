@@ -74,7 +74,7 @@ func processUID(obj meta.Object, c *client.Client) error {
 		// No UID set, generate one
 		var uidBytes []byte
 		for {
-			uidBytes = make([]byte, 8)
+			uidBytes = make([]byte, constants.IGNITE_UID_LENGTH/2)
 			if _, err := rand.Read(uidBytes); err != nil {
 				return fmt.Errorf("failed to generate ID: %v", err)
 			}
