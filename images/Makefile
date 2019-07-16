@@ -31,8 +31,8 @@ build-all:
 	$(MAKE) ${OP} WHAT=amazon-kernel
 	$(MAKE) ${OP} WHAT=amazonlinux		RELEASE=2		IS_LATEST=true
 	$(MAKE) ${OP} WHAT=alpine
-	$(MAKE) ${OP} WHAT=ubuntu			RELEASE=16.04	IS_LATEST=true
+	$(MAKE) ${OP} WHAT=ubuntu			RELEASE=16.04
 	$(MAKE) ${OP} WHAT=ubuntu			RELEASE=18.04	IS_LATEST=true
-	$(MAKE) ${OP} WHAT=ubuntu			RELEASE=19.04	IS_LATEST=true
+	$(MAKE) ${OP} WHAT=ubuntu			RELEASE=19.04
 	$(MAKE) ${OP} WHAT=centos			RELEASE=7		IS_LATEST=true
 	$(MAKE) ${OP} WHAT=kubeadm
