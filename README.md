@@ -20,6 +20,8 @@ keeping users isolated (multitenancy). Firecracker has proven to be able to run
 
 ## What is Ignite?
 
+**Read the announcement blog post here:** https://www.weave.works/blog/fire-up-your-vms-with-weave-ignite
+
 Ignite makes Firecracker easy to use by adopting its developer experience from _containers_.
 With Ignite, you pick an OCI-compliant image (Docker image) that you want to run as a VM, and then just
 execute **`ignite run`** instead of **`docker run`**.  There’s no need to use VM-specific tools to build
@@ -149,6 +151,10 @@ Please refer to the following documents:
 - [Declaratively Controlling Ignite](docs/declarative-config.md)
 - [CLI Reference](docs/cli/ignite.md)
 - [API Reference](api)
+
+### Frequently Asked Questions
+
+See the [FAQ.md](FAQ.md) document.
 
 ### Architecture
 
