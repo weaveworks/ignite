@@ -57,21 +57,21 @@ Ignite on Mac in the first place.
 
 Docker, currently the only available container runtime usable by Ignite, is used for a couple of reasons:
 
-a) **Running long-lived processes**: At the very early Ignite PoC stage, we tried to run the Firecracker
+1. **Running long-lived processes**: At the very early Ignite PoC stage, we tried to run the Firecracker
    process under `systemd`, but this was in many ways suboptimal. Attaching to the serial console, fetching
    logs, and b) and c) were very hard to achieve. Also, we'd need to somehow install the Firecracker binary
    on host. Packaging everything in a container, and running the Firecracker process in that container was a
    natural fit.
-b) **Sandboxing the Firecracker process**: Firecracker should not be run on host without sandboxing, as per
+1. **Sandboxing the Firecracker process**: Firecracker should not be run on host without sandboxing, as per
    their security model.
    Firecracker provides the [jailer](https://github.com/firecracker-microvm/firecracker/blob/master/docs/jailer.md)
    binary to do sandboxing/isolation from the host for the Firecracker process, but a container does this
    equally well, if not better.
-c) **Container Networking**: Using containers, we already know what IP to give the VM. We can integrate with
+1. **Container Networking**: Using containers, we already know what IP to give the VM. We can integrate with
    e.g. the default docker bridge, or docker's `libnetwork` in general, or [CNI](https://github.com/containernetworking/cni).
    This reduces the amount of scope and work needed by Ignite, and keeps our implementation lean. It also directly
    makes Ignite usable alongside normal containers, e.g. on a host running Kubernetes Pods.
-d) **OCI compliant operations**: Using an existing container runtime, we do not need to implement everything
+1. **OCI compliant operations**: Using an existing container runtime, we do not need to implement everything
    from the OCI spec ourselves. Instead, we can re-use functionality from the runtime, e.g. `pull`, `create`,
    and `export`.
 
