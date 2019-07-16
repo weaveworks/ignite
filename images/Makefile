@@ -5,6 +5,7 @@ DOCKER_USER?=weaveworks
 VERSION?=$(shell git describe HEAD --tags)
 RELEASE?=latest
 TAG:=${RELEASE}$(if $(strip $(VERSION)),-${VERSION})
+OP:=build
 
 all: build
 build:
@@ -23,22 +24,15 @@ ifeq ($(IS_LATEST),true)
 	docker push ${DOCKER_USER}/ignite-${WHAT}:latest
 endif
 
-build-all:
-	# Temporarily comment out the kernel build for the RC
-	#	make -C kernel
-	$(MAKE) build WHAT=amazon-kernel
-	$(MAKE) build WHAT=amazonlinux
-	$(MAKE) build WHAT=alpine
-	$(MAKE) build WHAT=ubuntu
-	$(MAKE) build WHAT=centos
-	$(MAKE) build WHAT=kubeadm
-
 push-all: build-all
-	# Temporarily comment out the kernel build for the RC
-	#	make -C kernel push
-	$(MAKE) push WHAT=amazon-kernel
-	$(MAKE) push WHAT=amazonlinux
-	$(MAKE) push WHAT=alpine
-	$(MAKE) push WHAT=ubuntu
-	$(MAKE) push WHAT=centos
-	$(MAKE) push WHAT=kubeadm
+	$(MAKE) OP=push build-all
+
+build-all:
+	$(MAKE) ${OP} WHAT=amazon-kernel
+	$(MAKE) ${OP} WHAT=amazonlinux		RELEASE=2		IS_LATEST=true
+	$(MAKE) ${OP} WHAT=alpine
+	$(MAKE) ${OP} WHAT=ubuntu			RELEASE=16.04	IS_LATEST=true
+	$(MAKE) ${OP} WHAT=ubuntu			RELEASE=18.04	IS_LATEST=true
+	$(MAKE) ${OP} WHAT=ubuntu			RELEASE=19.04	IS_LATEST=true
+	$(MAKE) ${OP} WHAT=centos			RELEASE=7		IS_LATEST=true
+	$(MAKE) ${OP} WHAT=kubeadm
