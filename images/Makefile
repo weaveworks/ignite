@@ -1,5 +1,6 @@
 # WHAT specifies the OS image to build
 WHAT?=
+IS_LATEST?=
 DOCKER_USER?=weaveworks
 VERSION?=$(shell git describe HEAD --tags)
 RELEASE?=latest
@@ -15,8 +16,12 @@ endif
 
 push:
 	docker push ${DOCKER_USER}/ignite-${WHAT}:${TAG}
+	docker tag ${DOCKER_USER}/ignite-${WHAT}:${TAG} ${DOCKER_USER}/ignite-${WHAT}:${RELEASE}
+	docker push ${DOCKER_USER}/ignite-${WHAT}:${RELEASE}
+ifeq ($(IS_LATEST),true)
 	docker tag ${DOCKER_USER}/ignite-${WHAT}:${TAG} ${DOCKER_USER}/ignite-${WHAT}:latest
 	docker push ${DOCKER_USER}/ignite-${WHAT}:latest
+endif
 
 build-all:
 	# Temporarily comment out the kernel build for the RC
