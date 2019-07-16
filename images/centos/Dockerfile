@@ -1,4 +1,6 @@
-FROM centos:7
+ARG RELEASE
+
+FROM centos:${RELEASE}
 
 # Install common utilities
 RUN yum -y install \
