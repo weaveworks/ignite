@@ -202,8 +202,9 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, er
 
 	// Populate the kernel version field if possible
 	if len(runKernel.Status.Version) == 0 {
-		cmd := fmt.Sprintf(`strings %s | grep 'Linux version' | awk '{print $3}'`, vmlinuxFile)
-		out, err := util.ExecuteCommand("/bin/bash", "-c", cmd)
+		cmd := fmt.Sprintf("strings %s | grep 'Linux version' | awk '{print $3}'", vmlinuxFile)
+		// Use the pipefail option to return an error if any of the pipeline commands is not available
+		out, err := util.ExecuteCommand("/bin/bash", "-o", "pipefail", "-c", cmd)
 		if err != nil {
 			runKernel.Status.Version = "<unknown>"
 		} else {
