@@ -2,6 +2,8 @@
 WHAT?=
 DOCKER_USER?=weaveworks
 VERSION?=$(shell git describe HEAD --tags)
+RELEASE?=latest
+TAG:=${RELEASE}$(if $(strip $(VERSION)),-${VERSION})
 
 all: build
 build:
@@ -9,11 +11,11 @@ ifeq ($(WHAT),)
 	$(error WHAT is a required argument)
 endif
 	@ls ${WHAT} >/dev/null
-	docker build -t ${DOCKER_USER}/ignite-${WHAT}:${VERSION} ${WHAT}
+	docker build --build-arg RELEASE -t ${DOCKER_USER}/ignite-${WHAT}:${TAG} ${WHAT}
 
 push:
-	docker push ${DOCKER_USER}/ignite-${WHAT}:${VERSION}
-	docker tag ${DOCKER_USER}/ignite-${WHAT}:${VERSION} ${DOCKER_USER}/ignite-${WHAT}:latest
+	docker push ${DOCKER_USER}/ignite-${WHAT}:${TAG}
+	docker tag ${DOCKER_USER}/ignite-${WHAT}:${TAG} ${DOCKER_USER}/ignite-${WHAT}:latest
 	docker push ${DOCKER_USER}/ignite-${WHAT}:latest
 
 build-all:

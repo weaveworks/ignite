@@ -1,4 +1,6 @@
-FROM amazonlinux:2
+ARG RELEASE
+
+FROM amazonlinux:${RELEASE}
 
 # Install common utilities
 RUN yum -y install \
