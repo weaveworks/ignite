@@ -673,7 +673,7 @@ This is a helper for APIType generation
 
 
 
-## <a name="UID">type</a> [UID](/pkg/apis/meta/v1alpha1/uid.go?s=152:167#L11)
+## <a name="UID">type</a> [UID](/pkg/apis/meta/v1alpha1/uid.go?s=153:168#L12)
 ``` go
 type UID string
 ```
@@ -688,7 +688,7 @@ UID represents an unique ID for a type
 
 
 
-### <a name="UID.String">func</a> (UID) [String](/pkg/apis/meta/v1alpha1/uid.go?s=250:278#L16)
+### <a name="UID.String">func</a> (UID) [String](/pkg/apis/meta/v1alpha1/uid.go?s=251:279#L17)
 ``` go
 func (u UID) String() string
 ```
@@ -697,7 +697,7 @@ String returns the UID in string representation
 
 
 
-### <a name="UID.UnmarshalJSON">func</a> (\*UID) [UnmarshalJSON](/pkg/apis/meta/v1alpha1/uid.go?s=444:487#L23)
+### <a name="UID.UnmarshalJSON">func</a> (\*UID) [UnmarshalJSON](/pkg/apis/meta/v1alpha1/uid.go?s=445:488#L24)
 ``` go
 func (u *UID) UnmarshalJSON(b []byte) error
 ```
