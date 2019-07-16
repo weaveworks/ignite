@@ -1,6 +1,4 @@
-ARG RELEASE
-
-FROM weaveworks/ignite-ubuntu:${RELEASE}
+FROM weaveworks/ignite-ubuntu:18.04
 # Install dependencies. Use containerd for running the containers (for better performance)
 RUN apt-get update && apt-get install -y --no-install-recommends \
         apt-transport-https \
