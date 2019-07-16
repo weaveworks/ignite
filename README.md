@@ -20,6 +20,8 @@ keeping users isolated (multitenancy). Firecracker has proven to be able to run
 
 ## What is Ignite?
 
+**Read the announcement blog post here:** https://www.weave.works/blog/fire-up-your-vms-with-weave-ignite
+
 Ignite makes Firecracker easy to use by adopting its developer experience from _containers_.
 With Ignite, you pick an OCI-compliant image (Docker image) that you want to run as a VM, and then just
 execute **`ignite run`** instead of **`docker run`**.  There’s no need to use VM-specific tools to build
@@ -119,7 +121,7 @@ ignite ssh my-vm
 ignite rm my-vm
 ```
 
-For a walkthrough of how to use Ignite, go to **[docs/usage.md]**(docs/usage.md).
+For a walkthrough of how to use Ignite, go to [**docs/usage.md**](docs/usage.md).
 
 ## Getting Started the GitOps way
 
@@ -150,9 +152,18 @@ Please refer to the following documents:
 - [CLI Reference](docs/cli/ignite.md)
 - [API Reference](api)
 
+### Frequently Asked Questions
+
+See the [FAQ.md](FAQ.md) document.
+
 ### Architecture
 
 ![docs/architecture.png](docs/architecture.png)
+
+Want to know how Ignite really works under the hood?
+Check out this [TGIK](https://github.com/heptio/tgik) session from [Joe Beda](https://twitter.com/jbeda) about it:
+
+[[![TGIK 082](https://img.youtube.com/vi/aq-wlslJ5MQ/0.jpg)]](https://youtu.be/aq-wlslJ5MQ)
 
 ### Base images and kernels
 
@@ -173,7 +184,7 @@ but add `systemd`, `openssh`, and similar utilities.
 #### Base Images
 
  - [Ubuntu 18.04 Dockerfile](images/ubuntu/Dockerfile) (`weaveworks/ignite-ubuntu`)
- - [CentOS 7 Dockerfile](images/ubuntu/Dockerfile) (`weaveworks/ignite-centos`)
+ - [CentOS 7 Dockerfile](images/centos/Dockerfile) (`weaveworks/ignite-centos`)
  - [Amazon Linux 2 Dockerfile](images/amazonlinux/Dockerfile) (`weaveworks/ignite-amazonlinux`)
  - [The Firecracker Team's Alpine Image](images/alpine/Dockerfile) (`weaveworks/ignite-alpine`)
 

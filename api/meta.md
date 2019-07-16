@@ -40,13 +40,13 @@
 * [type Object](#Object)
 * [type ObjectMeta](#ObjectMeta)
   * [func (o *ObjectMeta) GetAnnotation(key string) string](#ObjectMeta.GetAnnotation)
-  * [func (o *ObjectMeta) GetCreated() *Time](#ObjectMeta.GetCreated)
+  * [func (o *ObjectMeta) GetCreated() Time](#ObjectMeta.GetCreated)
   * [func (o *ObjectMeta) GetLabel(key string) string](#ObjectMeta.GetLabel)
   * [func (o *ObjectMeta) GetName() string](#ObjectMeta.GetName)
   * [func (o *ObjectMeta) GetObjectMeta() *ObjectMeta](#ObjectMeta.GetObjectMeta)
   * [func (o *ObjectMeta) GetUID() UID](#ObjectMeta.GetUID)
   * [func (o *ObjectMeta) SetAnnotation(key, value string)](#ObjectMeta.SetAnnotation)
-  * [func (o *ObjectMeta) SetCreated(t *Time)](#ObjectMeta.SetCreated)
+  * [func (o *ObjectMeta) SetCreated(t Time)](#ObjectMeta.SetCreated)
   * [func (o *ObjectMeta) SetLabel(key, value string)](#ObjectMeta.SetLabel)
   * [func (o *ObjectMeta) SetName(name string)](#ObjectMeta.SetName)
   * [func (o *ObjectMeta) SetUID(uid UID)](#ObjectMeta.SetUID)
@@ -68,12 +68,14 @@
   * [func (s *Size) UnmarshalJSON(b []byte) error](#Size.UnmarshalJSON)
 * [type Time](#Time)
   * [func Timestamp() Time](#Timestamp)
-  * [func (t *Time) String() string](#Time.String)
+  * [func (t Time) MarshalJSON() (b []byte, err error)](#Time.MarshalJSON)
+  * [func (t Time) String() string](#Time.String)
 * [type TypeMeta](#TypeMeta)
   * [func (t *TypeMeta) GetKind() Kind](#TypeMeta.GetKind)
   * [func (t *TypeMeta) GetTypeMeta() *TypeMeta](#TypeMeta.GetTypeMeta)
 * [type UID](#UID)
   * [func (u UID) String() string](#UID.String)
+  * [func (u *UID) UnmarshalJSON(b []byte) error](#UID.UnmarshalJSON)
 
 
 #### <a name="pkg-files">Package files</a>
@@ -298,7 +300,7 @@ func (i *OCIImageRef) UnmarshalJSON(b []byte) error
 
 
 
-## <a name="Object">type</a> [Object](/pkg/apis/meta/v1alpha1/meta.go?s=3735:4082#L165)
+## <a name="Object">type</a> [Object](/pkg/apis/meta/v1alpha1/meta.go?s=3724:4069#L165)
 ``` go
 type Object interface {
     runtime.Object
@@ -314,8 +316,8 @@ type Object interface {
     GetUID() UID
     SetUID(UID)
 
-    GetCreated() *Time
-    SetCreated(t *Time)
+    GetCreated() Time
+    SetCreated(t Time)
 
     GetLabel(key string) string
     SetLabel(key, value string)
@@ -336,12 +338,12 @@ extra GetName() and GetUID() methods from ObjectMeta
 
 
 
-## <a name="ObjectMeta">type</a> [ObjectMeta](/pkg/apis/meta/v1alpha1/meta.go?s=1879:2181#L88)
+## <a name="ObjectMeta">type</a> [ObjectMeta](/pkg/apis/meta/v1alpha1/meta.go?s=1879:2171#L88)
 ``` go
 type ObjectMeta struct {
     Name        string            `json:"name"`
     UID         UID               `json:"uid,omitempty"`
-    Created     *Time             `json:"created,omitempty"`
+    Created     Time              `json:"created"`
     Labels      map[string]string `json:"labels,omitempty"`
     Annotations map[string]string `json:"annotations,omitempty"`
 }
@@ -360,7 +362,7 @@ implement the Object interface
 
 
 
-### <a name="ObjectMeta.GetAnnotation">func</a> (\*ObjectMeta) [GetAnnotation](/pkg/apis/meta/v1alpha1/meta.go?s=3290:3343#L148)
+### <a name="ObjectMeta.GetAnnotation">func</a> (\*ObjectMeta) [GetAnnotation](/pkg/apis/meta/v1alpha1/meta.go?s=3279:3332#L148)
 ``` go
 func (o *ObjectMeta) GetAnnotation(key string) string
 ```
@@ -369,16 +371,16 @@ GetAnnotation returns the label value for the key
 
 
 
-### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/pkg/apis/meta/v1alpha1/meta.go?s=2726:2765#L122)
+### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/pkg/apis/meta/v1alpha1/meta.go?s=2716:2754#L122)
 ``` go
-func (o *ObjectMeta) GetCreated() *Time
+func (o *ObjectMeta) GetCreated() Time
 ```
 GetCreated returns when the Object was created
 
 
 
 
-### <a name="ObjectMeta.GetLabel">func</a> (\*ObjectMeta) [GetLabel](/pkg/apis/meta/v1alpha1/meta.go?s=2948:2996#L132)
+### <a name="ObjectMeta.GetLabel">func</a> (\*ObjectMeta) [GetLabel](/pkg/apis/meta/v1alpha1/meta.go?s=2937:2985#L132)
 ``` go
 func (o *ObjectMeta) GetLabel(key string) string
 ```
@@ -387,7 +389,7 @@ GetLabel returns the label value for the key
 
 
 
-### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/pkg/apis/meta/v1alpha1/meta.go?s=2332:2369#L102)
+### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/pkg/apis/meta/v1alpha1/meta.go?s=2322:2359#L102)
 ``` go
 func (o *ObjectMeta) GetName() string
 ```
@@ -396,7 +398,7 @@ GetName returns the name of the Object
 
 
 
-### <a name="ObjectMeta.GetObjectMeta">func</a> (\*ObjectMeta) [GetObjectMeta](/pkg/apis/meta/v1alpha1/meta.go?s=2226:2274#L97)
+### <a name="ObjectMeta.GetObjectMeta">func</a> (\*ObjectMeta) [GetObjectMeta](/pkg/apis/meta/v1alpha1/meta.go?s=2216:2264#L97)
 ``` go
 func (o *ObjectMeta) GetObjectMeta() *ObjectMeta
 ```
@@ -405,7 +407,7 @@ This is a helper for APIType generation
 
 
 
-### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/pkg/apis/meta/v1alpha1/meta.go?s=2531:2564#L112)
+### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/pkg/apis/meta/v1alpha1/meta.go?s=2521:2554#L112)
 ``` go
 func (o *ObjectMeta) GetUID() UID
 ```
@@ -414,7 +416,7 @@ GetUID returns the UID of the Object
 
 
 
-### <a name="ObjectMeta.SetAnnotation">func</a> (\*ObjectMeta) [SetAnnotation](/pkg/apis/meta/v1alpha1/meta.go?s=3464:3517#L156)
+### <a name="ObjectMeta.SetAnnotation">func</a> (\*ObjectMeta) [SetAnnotation](/pkg/apis/meta/v1alpha1/meta.go?s=3453:3506#L156)
 ``` go
 func (o *ObjectMeta) SetAnnotation(key, value string)
 ```
@@ -423,16 +425,16 @@ SetAnnotation sets a label value for a key
 
 
 
-### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/pkg/apis/meta/v1alpha1/meta.go?s=2839:2879#L127)
+### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/pkg/apis/meta/v1alpha1/meta.go?s=2829:2868#L127)
 ``` go
-func (o *ObjectMeta) SetCreated(t *Time)
+func (o *ObjectMeta) SetCreated(t Time)
 ```
-SetCreated returns when the Object was created
+SetCreated sets the creation time of the Object
 
 
 
 
-### <a name="ObjectMeta.SetLabel">func</a> (\*ObjectMeta) [SetLabel](/pkg/apis/meta/v1alpha1/meta.go?s=3102:3150#L140)
+### <a name="ObjectMeta.SetLabel">func</a> (\*ObjectMeta) [SetLabel](/pkg/apis/meta/v1alpha1/meta.go?s=3091:3139#L140)
 ``` go
 func (o *ObjectMeta) SetLabel(key, value string)
 ```
@@ -441,7 +443,7 @@ SetLabel sets a label value for a key
 
 
 
-### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/pkg/apis/meta/v1alpha1/meta.go?s=2429:2470#L107)
+### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/pkg/apis/meta/v1alpha1/meta.go?s=2419:2460#L107)
 ``` go
 func (o *ObjectMeta) SetName(name string)
 ```
@@ -450,7 +452,7 @@ SetName sets the name of the Object
 
 
 
-### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/pkg/apis/meta/v1alpha1/meta.go?s=2621:2657#L117)
+### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/pkg/apis/meta/v1alpha1/meta.go?s=2611:2647#L117)
 ``` go
 func (o *ObjectMeta) SetUID(uid UID)
 ```
@@ -598,7 +600,7 @@ func (s *Size) UnmarshalJSON(b []byte) error
 
 
 
-## <a name="Time">type</a> [Time](/pkg/apis/meta/v1alpha1/time.go?s=134:167#L11)
+## <a name="Time">type</a> [Time](/pkg/apis/meta/v1alpha1/time.go?s=151:184#L12)
 ``` go
 type Time struct {
     metav1.Time
@@ -611,7 +613,7 @@ type Time struct {
 
 
 
-### <a name="Timestamp">func</a> [Timestamp](/pkg/apis/meta/v1alpha1/time.go?s=460:481#L23)
+### <a name="Timestamp">func</a> [Timestamp](/pkg/apis/meta/v1alpha1/time.go?s=549:570#L30)
 ``` go
 func Timestamp() Time
 ```
@@ -621,9 +623,16 @@ Timestamp returns the current UTC time
 
 
 
-### <a name="Time.String">func</a> (\*Time) [String](/pkg/apis/meta/v1alpha1/time.go?s=299:329#L18)
+### <a name="Time.MarshalJSON">func</a> (Time) [MarshalJSON](/pkg/apis/meta/v1alpha1/time.go?s=640:689#L38)
 ``` go
-func (t *Time) String() string
+func (t Time) MarshalJSON() (b []byte, err error)
+```
+
+
+
+### <a name="Time.String">func</a> (Time) [String](/pkg/apis/meta/v1alpha1/time.go?s=347:376#L21)
+``` go
+func (t Time) String() string
 ```
 The default string for Time is a human readable difference between the Time and the current time
 
@@ -664,7 +673,7 @@ This is a helper for APIType generation
 
 
 
-## <a name="UID">type</a> [UID](/pkg/apis/meta/v1alpha1/uid.go?s=74:89#L6)
+## <a name="UID">type</a> [UID](/pkg/apis/meta/v1alpha1/uid.go?s=153:168#L12)
 ``` go
 type UID string
 ```
@@ -679,11 +688,22 @@ UID represents an unique ID for a type
 
 
 
-### <a name="UID.String">func</a> (UID) [String](/pkg/apis/meta/v1alpha1/uid.go?s=172:200#L11)
+### <a name="UID.String">func</a> (UID) [String](/pkg/apis/meta/v1alpha1/uid.go?s=251:279#L17)
 ``` go
 func (u UID) String() string
 ```
 String returns the UID in string representation
+
+
+
+
+### <a name="UID.UnmarshalJSON">func</a> (\*UID) [UnmarshalJSON](/pkg/apis/meta/v1alpha1/uid.go?s=445:488#L24)
+``` go
+func (u *UID) UnmarshalJSON(b []byte) error
+```
+This unmarshaler enables the UID to be passed in as an
+unquoted string in JSON. Upon marshaling, quotes will
+be automatically added.
 
 
 

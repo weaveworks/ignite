@@ -39,6 +39,26 @@ KVM acceleration can be used
 
 With this kind of output, you're ready to go!
 
+## Installing dependencies
+
+Ignite has a few dependencies (read more in this [doc](dependencies.md)).
+Install them on Ubuntu/CentOS like this:
+
+Ubuntu:
+
+```bash
+apt-get update && apt-get install -y --no-install-recommends docker.io dmsetup openssh-client git binutils
+```
+
+CentOS:
+
+```bash
+yum install -y docker e2fsprogs openssh-clients git
+```
+
+Note that the SSH and Git packages are optional; they are only needed if you use
+the `ignite ssh` and/or `ignite gitops` commands.
+
 ## Downloading the binary
 
 Ignite is a currently a single binary application. To install it,
@@ -48,7 +68,7 @@ save it as `/usr/local/bin/ignite` and make it executable.
 To install Ignite from the command line, follow these steps:
 
 ```bash
-export VERSION=v0.4.1
+export VERSION=v0.4.2
 curl -fLo ignite https://github.com/weaveworks/ignite/releases/download/${VERSION}/ignite
 chmod +x ignite
 sudo mv ignite /usr/local/bin
