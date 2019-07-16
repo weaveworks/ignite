@@ -68,7 +68,7 @@ save it as `/usr/local/bin/ignite` and make it executable.
 To install Ignite from the command line, follow these steps:
 
 ```bash
-export VERSION=v0.4.1
+export VERSION=v0.4.2
 curl -fLo ignite https://github.com/weaveworks/ignite/releases/download/${VERSION}/ignite
 chmod +x ignite
 sudo mv ignite /usr/local/bin
