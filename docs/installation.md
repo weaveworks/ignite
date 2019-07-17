@@ -95,7 +95,7 @@ To completely remove the Ignite installation, execute the following as root:
 
 ```bash
 # Force-remove all running VMs
-ignite ps -q | xargs ignite rm -f
+ignite rm -f $(ignite ps -aq)
 # Remove the data directory
 rm -r /var/lib/firecracker
 # Remove the Ignite binary
