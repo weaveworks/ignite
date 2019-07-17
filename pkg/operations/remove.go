@@ -3,6 +3,7 @@ package operations
 import (
 	"fmt"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/runtime/docker"
 	"log"
 
@@ -18,9 +19,15 @@ const (
 
 // RemoveVM removes the specified VM
 func RemoveVM(c *client.Client, vm *vmmd.VM) error {
+	// Get the Docker client
+	dc, err := docker.GetDockerClient()
+	if err != nil {
+		return err
+	}
+
 	// If the VM is running, try to kill it first so we don't leave dangling containers
 	if vm.Running() {
-		if err := StopVM(vm, true, true); err != nil {
+		if err := StopVM(dc, vm, true, true); err != nil {
 			return err
 		}
 	}
@@ -30,7 +37,7 @@ func RemoveVM(c *client.Client, vm *vmmd.VM) error {
 	}
 
 	// Force-remove the VM container. Don't care about the error.
-	_ = RemoveVMContainer(vm)
+	_ = RemoveVMContainer(dc, vm)
 
 	if logs.Quiet {
 		fmt.Println(vm.GetUID())
@@ -41,15 +48,9 @@ func RemoveVM(c *client.Client, vm *vmmd.VM) error {
 	return nil
 }
 
-func RemoveVMContainer(vm meta.Object) error {
-	// Get the Docker client
-	dc, err := docker.GetDockerClient()
-	if err != nil {
-		return err
-	}
-
+func RemoveVMContainer(runtime runtime.Interface, vm meta.Object) error {
 	// Remove the VM container
-	if err = dc.RemoveContainer(util.NewPrefixer().Prefix(vm.GetUID())); err != nil {
+	if err := runtime.RemoveContainer(util.NewPrefixer().Prefix(vm.GetUID())); err != nil {
 		return fmt.Errorf("failed to remove container for VM %q: %v", vm.GetUID(), err)
 	}
 
@@ -57,22 +58,17 @@ func RemoveVMContainer(vm meta.Object) error {
 }
 
 // StopVM stops or kills a VM
-func StopVM(vm *vmmd.VM, kill, silent bool) error {
-	// Get the Docker client
-	dc, err := docker.GetDockerClient()
-	if err != nil {
-		return err
-	}
-
+func StopVM(runtime runtime.Interface, vm *vmmd.VM, kill, silent bool) error {
+	var err error
 	container := util.NewPrefixer().Prefix(vm.GetUID())
 	action := "stop"
 
 	// Stop or kill the VM container
 	if kill {
 		action = "kill"
-		err = dc.KillContainer(container, signalSIGQUIT) // TODO: common constant for SIGQUIT
+		err = runtime.KillContainer(container, signalSIGQUIT) // TODO: common constant for SIGQUIT
 	} else {
-		err = dc.StopContainer(container, nil)
+		err = runtime.StopContainer(container, nil)
 	}
 
 	if err != nil {

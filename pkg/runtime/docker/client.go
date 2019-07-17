@@ -3,6 +3,7 @@ package docker
 import (
 	"context"
 	"fmt"
+	"github.com/docker/docker/api/types/network"
 	"io"
 	"time"
 
@@ -66,6 +67,77 @@ func (dc *dockerClient) ExportImage(image string) (io.ReadCloser, string, error)
 
 	rc, err := dc.client.ContainerExport(context.Background(), config.ID)
 	return rc, config.ID, err
+}
+
+func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConfig, name string) error {
+	// TODO: WIP transform runtime.ContainerConfig to this, perform the ContainerStart call
+	dc.client.ContainerCreate(context.Background(), &container.Config{
+		AttachStdin:     true,
+		AttachStdout:    true,
+		AttachStderr:    true,
+		ExposedPorts:    nil,
+		Tty:             true,
+		OpenStdin:       true,
+		StdinOnce:       false,
+		Env:             nil,
+		Cmd:             nil,
+		Healthcheck:     nil,
+		ArgsEscaped:     false,
+		Image:           "",
+		Volumes:         nil,
+		WorkingDir:      "",
+		Entrypoint:      nil,
+		NetworkDisabled: false,
+		MacAddress:      "",
+		OnBuild:         nil,
+		Labels:          nil,
+		StopSignal:      "",
+		StopTimeout:     nil,
+		Shell:           nil,
+	}, &container.HostConfig{
+		Binds:           nil,
+		ContainerIDFile: "",
+		LogConfig:       container.LogConfig{},
+		NetworkMode:     "",
+		PortBindings:    nil,
+		RestartPolicy:   container.RestartPolicy{},
+		AutoRemove:      false,
+		VolumeDriver:    "",
+		VolumesFrom:     nil,
+		CapAdd:          nil,
+		CapDrop:         nil,
+		Capabilities:    nil,
+		DNS:             nil,
+		DNSOptions:      nil,
+		DNSSearch:       nil,
+		ExtraHosts:      nil,
+		GroupAdd:        nil,
+		IpcMode:         "",
+		Cgroup:          "",
+		Links:           nil,
+		OomScoreAdj:     0,
+		PidMode:         "",
+		Privileged:      false,
+		PublishAllPorts: false,
+		ReadonlyRootfs:  false,
+		SecurityOpt:     nil,
+		StorageOpt:      nil,
+		Tmpfs:           nil,
+		UTSMode:         "",
+		UsernsMode:      "",
+		ShmSize:         0,
+		Sysctls:         nil,
+		Runtime:         "",
+		ConsoleSize:     [2]uint{},
+		Isolation:       "",
+		Resources:       container.Resources{},
+		Mounts:          nil,
+		MaskedPaths:     nil,
+		ReadonlyPaths:   nil,
+		Init:            nil,
+	}, &network.NetworkingConfig{
+		EndpointsConfig: nil,
+	}, "")
 }
 
 func (dc *dockerClient) RemoveContainer(container string) error {

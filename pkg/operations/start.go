@@ -2,6 +2,7 @@ package operations
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/runtime"
 	"io"
 	"io/ioutil"
 	"log"
@@ -20,8 +21,14 @@ import (
 )
 
 func StartVM(vm *vmmd.VM, debug bool) error {
+	// Get the Docker client
+	dc, err := docker.GetDockerClient()
+	if err != nil {
+		return err
+	}
+
 	// Make sure the VM container does not exist. Don't care about the error.
-	RemoveVMContainer(vm.VM)
+	_ = RemoveVMContainer(dc, vm.VM)
 
 	// Setup the snapshot overlay filesystem
 	if err := vm.SetupSnapshot(); err != nil {
@@ -69,6 +76,43 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 	// TODO: Integrate automatic pulling into pkg/runtime
 	if err := verifyPulled(igniteImage); err != nil {
 		return err
+	}
+
+	// TODO: WIP integrate this into pkg/runtime call
+	config := &runtime.ContainerConfig{
+		Cmd:    vm.GetUID().String(),
+		Labels: []string{fmt.Sprintf("ignite.name=%s", vm.GetName())},
+		Volumes: []*runtime.Volume{
+			{
+				HostPath:      vmDir,
+				ContainerPath: vmDir,
+			},
+			{
+				HostPath:      kernelDir,
+				ContainerPath: kernelDir,
+			},
+		},
+		CapAdds: []string{
+			"SYS_ADMIN", // Needed to run "dmsetup remove" inside the container
+			"NET_ADMIN", // Needed for removing the IP from the container's interface
+		},
+		Devices: []string{
+			"/dev/mapper/control", // This enables containerized Ignite to remove its own dm snapshot
+			"/dev/net/tun",        // Needed for creating TAP adapters
+			"/dev/kvm",            // Pass through virtualization support
+		},
+		StopTimeout:  constants.STOP_TIMEOUT + constants.IGNITE_TIMEOUT,
+		ExposedPorts: vm.Spec.Network.Ports,
+	}
+
+	// If the VM is using CNI networking, disable Docker's own implementation
+	if vm.Spec.Network.Mode == api.NetworkModeCNI {
+		config.NetworkMode = "none"
+	}
+
+	// If we're not debugging, remove the container post-run
+	if !debug {
+		config.AutoRemove = true
 	}
 
 	// Create the VM container in docker
