@@ -20,7 +20,7 @@ write_changelog() {
         echo "" >> ${file}
     done
     read -p "Are you sure you want to do a commit for the changelog? [y/N] " confirm
-    if [[ ${confirm} != "Y" ]]; then
+    if [[ ! ${confirm} =~ ^[Yy]$ ]]; then
         exit 1
     fi
 
