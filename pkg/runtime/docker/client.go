@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/weaveworks/ignite/pkg/runtime"
 )
@@ -52,6 +53,19 @@ func (dc *dockerClient) InspectImage(image string) (*runtime.ImageInspectResult,
 
 func (dc *dockerClient) PullImage(image string) (io.ReadCloser, error) {
 	return dc.client.ImagePull(context.Background(), image, types.ImagePullOptions{})
+}
+
+func (dc *dockerClient) ExportImage(image string) (io.ReadCloser, string, error) {
+	config, err := dc.client.ContainerCreate(context.Background(), &container.Config{
+		Cmd:   []string{"sh"}, // We need a temporary command, this doesn't need to exist in the image
+		Image: image,
+	}, nil, nil, "")
+	if err != nil {
+		return nil, "", err
+	}
+
+	rc, err := dc.client.ContainerExport(context.Background(), config.ID)
+	return rc, config.ID, err
 }
 
 func (dc *dockerClient) RemoveContainer(container string) error {

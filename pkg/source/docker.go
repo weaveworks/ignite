@@ -10,7 +10,6 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/runtime/docker"
-	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type DockerSource struct {
@@ -66,34 +65,29 @@ func (ds *DockerSource) Parse(ociRef meta.OCIImageRef) (*api.OCIImageSource, err
 	}, nil
 }
 
-func (ds *DockerSource) Reader() (io.ReadCloser, error) {
-	// Create a container from the image to be exported
-	var err error
-	if ds.containerID, err = util.ExecuteCommand("docker", "create", ds.imageID, "sh"); err != nil {
-		return nil, fmt.Errorf("failed to create Docker container from image %q: %v", ds.imageID, err)
-	}
-
-	// Open a tar file stream to be extracted straight into the image volume
-	ds.exportCmd = exec.Command("docker", "export", ds.containerID)
-	reader, err := ds.exportCmd.StdoutPipe()
+func (ds *DockerSource) Reader() (rc io.ReadCloser, err error) {
+	// Get the Docker client
+	dc, err := docker.GetDockerClient()
 	if err != nil {
 		return nil, err
 	}
 
-	if err := ds.exportCmd.Start(); err != nil {
-		return nil, err
-	}
-
-	return reader, nil
+	// Export the image
+	rc, ds.containerID, err = dc.ExportImage(ds.imageID)
+	return
 }
 
-func (ds *DockerSource) Cleanup() error {
+func (ds *DockerSource) Cleanup() (err error) {
 	if len(ds.containerID) > 0 {
-		// Remove the temporary container
-		if _, err := util.ExecuteCommand("docker", "rm", ds.containerID); err != nil {
-			return fmt.Errorf("failed to remove container %q: %v", ds.containerID, err)
+		// Get the Docker client
+		dc, err := docker.GetDockerClient()
+		if err != nil {
+			return err
 		}
+
+		// Remove the temporary container
+		err = dc.RemoveContainer(ds.containerID)
 	}
 
-	return nil
+	return
 }

@@ -17,6 +17,7 @@ type Interface interface {
 	GetNetNS(containerID string) (string, error)
 	RawClient() interface{}
 
+	ExportImage(image string) (io.ReadCloser, string, error)
 	RemoveContainer(container string) error
 	StopContainer(container string, timeout *time.Duration) error
 	KillContainer(container, signal string) error
