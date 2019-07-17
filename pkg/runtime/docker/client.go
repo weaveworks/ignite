@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -11,6 +12,14 @@ import (
 )
 
 const dockerNetNSFmt = "/proc/%v/ns/net"
+
+// dockerClient is a runtime.Interface
+// implementation serving the Docker client
+type dockerClient struct {
+	client *client.Client
+}
+
+var _ runtime.Interface = &dockerClient{}
 
 // GetDockerClient builds a client for talking to docker
 func GetDockerClient() (runtime.Interface, error) {
@@ -22,10 +31,6 @@ func GetDockerClient() (runtime.Interface, error) {
 	return &dockerClient{
 		client: cli,
 	}, nil
-}
-
-type dockerClient struct {
-	client *client.Client
 }
 
 func (dc *dockerClient) RawClient() interface{} {
@@ -47,6 +52,18 @@ func (dc *dockerClient) InspectImage(image string) (*runtime.ImageInspectResult,
 
 func (dc *dockerClient) PullImage(image string) (io.ReadCloser, error) {
 	return dc.client.ImagePull(context.Background(), image, types.ImagePullOptions{})
+}
+
+func (dc *dockerClient) RemoveContainer(container string) error {
+	return dc.client.ContainerRemove(context.Background(), container, types.ContainerRemoveOptions{})
+}
+
+func (dc *dockerClient) StopContainer(container string, timeout *time.Duration) error {
+	return dc.client.ContainerStop(context.Background(), container, timeout)
+}
+
+func (dc *dockerClient) KillContainer(container, signal string) error {
+	return dc.client.ContainerKill(context.Background(), container, signal)
 }
 
 // GetNetNS returns the network namespace of the given containerID. The ID

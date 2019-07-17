@@ -1,6 +1,9 @@
 package runtime
 
-import "io"
+import (
+	"io"
+	"time"
+)
 
 type ImageInspectResult struct {
 	ID          string
@@ -13,4 +16,8 @@ type Interface interface {
 	PullImage(image string) (io.ReadCloser, error)
 	GetNetNS(containerID string) (string, error)
 	RawClient() interface{}
+
+	RemoveContainer(container string) error
+	StopContainer(container string, timeout *time.Duration) error
+	KillContainer(container, signal string) error
 }
