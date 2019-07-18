@@ -19,9 +19,9 @@ type Serializer interface {
 	DecodeFileInto(filePath string, obj runtime.Object) error
 
 	// Decode takes byte content and returns the target object
-	Decode(content []byte) (runtime.Object, error)
+	Decode(content []byte, internal bool) (runtime.Object, error)
 	// DecodeFile takes a file path and returns the target object
-	DecodeFile(filePath string) (runtime.Object, error)
+	DecodeFile(filePath string, internal bool) (runtime.Object, error)
 
 	// EncodeYAML encodes the specified object for a specific version to YAML bytes
 	EncodeYAML(obj runtime.Object) ([]byte, error)
@@ -81,18 +81,27 @@ func (s *serializer) DecodeInto(content []byte, obj runtime.Object) error {
 }
 
 // DecodeFile takes a file path and returns the target object
-func (s *serializer) DecodeFile(filePath string) (runtime.Object, error) {
+func (s *serializer) DecodeFile(filePath string, internal bool) (runtime.Object, error) {
 	content, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.Decode(content)
+	return s.Decode(content, internal)
 }
 
 // Decode takes byte content and returns the target object
-func (s *serializer) Decode(content []byte) (runtime.Object, error) {
-	return runtime.Decode(s.decoder, content)
+func (s *serializer) Decode(content []byte, internal bool) (runtime.Object, error) {
+	obj, err := runtime.Decode(s.decoder, content)
+	if err != nil {
+		return nil, err
+	}
+	// If we did not request an internal conversion, return quickly
+	if !internal {
+		return obj, nil
+	}
+	// Return the internal version of the object
+	return s.scheme.ConvertToVersion(obj, runtime.InternalGroupVersioner)
 }
 
 // EncodeYAML encodes the specified object for a specific version to YAML bytes
