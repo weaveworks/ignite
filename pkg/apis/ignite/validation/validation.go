@@ -36,7 +36,7 @@ func ValidateFileMappings(mappings *[]api.FileMapping, fldPath *field.Path) (all
 	return
 }
 
-// ValidateAbsolutePath validates if a network mode is valid
+// ValidateAbsolutePath validates if a path is absolute
 func ValidateAbsolutePath(pathStr string, fldPath *field.Path) (allErrs field.ErrorList) {
 	if !path.IsAbs(pathStr) {
 		allErrs = append(allErrs, field.Invalid(fldPath, pathStr, fmt.Sprintf("path must be absolute %q", pathStr)))
@@ -74,7 +74,7 @@ func ValidateImageSourceType(t api.ImageSourceType, fldPath *field.Path) (allErr
 	return
 }
 
-// ValidateVMState validates if an vm state is valid
+// ValidateVMState validates if an VM state is valid
 func ValidateVMState(s api.VMState, fldPath *field.Path) (allErrs field.ErrorList) {
 	found := false
 	states := api.GetVMStates()
