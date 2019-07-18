@@ -2,6 +2,7 @@ package gitops
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/runtime/docker"
 	"sync"
 	"time"
 
@@ -213,8 +214,14 @@ func start(vm *vmmd.VM) error {
 }
 
 func stop(vm *vmmd.VM) error {
+	// Get the Docker client
+	dc, err := docker.GetDockerClient()
+	if err != nil {
+		return err
+	}
+
 	log.Printf("Stopping VM %q with name %q...", vm.GetUID(), vm.GetName())
-	return operations.StopVM(vm, true, false)
+	return operations.StopVM(dc, vm, true, false)
 }
 
 func remove(vm *vmmd.VM) error {

@@ -13,22 +13,22 @@ type ImageInspectResult struct {
 	Size        int64
 }
 
-type Volume struct {
+type Bind struct {
 	HostPath      string
 	ContainerPath string
 }
 
 type ContainerConfig struct {
-	Cmd          string
+	Cmd          []string
 	Hostname     string
-	Labels       []string
-	Volumes      []*Volume
+	Labels       map[string]string
+	Binds        []*Bind
 	CapAdds      []string
 	Devices      []string
 	StopTimeout  uint32
 	AutoRemove   bool
 	NetworkMode  string
-	ExposedPorts meta.PortMappings
+	PortBindings meta.PortMappings
 }
 
 type Interface interface {
@@ -38,7 +38,7 @@ type Interface interface {
 	GetNetNS(containerID string) (string, error)
 	RawClient() interface{}
 
-	RunContainer(image string, config *ContainerConfig, name string) error
+	RunContainer(image string, config *ContainerConfig, name string) (string, error)
 	RemoveContainer(container string) error
 	StopContainer(container string, timeout *time.Duration) error
 	KillContainer(container, signal string) error

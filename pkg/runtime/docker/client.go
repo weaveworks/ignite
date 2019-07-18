@@ -3,7 +3,7 @@ package docker
 import (
 	"context"
 	"fmt"
-	"github.com/docker/docker/api/types/network"
+	"github.com/docker/go-connections/nat"
 	"io"
 	"time"
 
@@ -13,7 +13,10 @@ import (
 	"github.com/weaveworks/ignite/pkg/runtime"
 )
 
-const dockerNetNSFmt = "/proc/%v/ns/net"
+const (
+	dockerNetNSFmt = "/proc/%v/ns/net"
+	portFormat     = "%d/tcp" // TODO: Support protocols other than TCP
+)
 
 // dockerClient is a runtime.Interface
 // implementation serving the Docker client
@@ -69,75 +72,55 @@ func (dc *dockerClient) ExportImage(image string) (io.ReadCloser, string, error)
 	return rc, config.ID, err
 }
 
-func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConfig, name string) error {
-	// TODO: WIP transform runtime.ContainerConfig to this, perform the ContainerStart call
-	dc.client.ContainerCreate(context.Background(), &container.Config{
-		AttachStdin:     true,
-		AttachStdout:    true,
-		AttachStderr:    true,
-		ExposedPorts:    nil,
-		Tty:             true,
-		OpenStdin:       true,
-		StdinOnce:       false,
-		Env:             nil,
-		Cmd:             nil,
-		Healthcheck:     nil,
-		ArgsEscaped:     false,
-		Image:           "",
-		Volumes:         nil,
-		WorkingDir:      "",
-		Entrypoint:      nil,
-		NetworkDisabled: false,
-		MacAddress:      "",
-		OnBuild:         nil,
-		Labels:          nil,
-		StopSignal:      "",
-		StopTimeout:     nil,
-		Shell:           nil,
+func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConfig, name string) (string, error) {
+	portBindings := make(nat.PortMap)
+	for _, portMapping := range config.PortBindings {
+		portBindings[nat.Port(fmt.Sprintf(portFormat, portMapping.VMPort))] = []nat.PortBinding{
+			{
+				HostPort: fmt.Sprintf(portFormat, portMapping.HostPort),
+			},
+		}
+	}
+
+	binds := make([]string, 0, len(config.Binds))
+	for _, bind := range config.Binds {
+		binds = append(binds, fmt.Sprintf("%s:%s", bind.HostPath, bind.ContainerPath))
+	}
+
+	devices := make([]container.DeviceMapping, 0, len(config.Devices))
+	for _, device := range config.Devices {
+		devices = append(devices, container.DeviceMapping{
+			PathOnHost:        device,
+			PathInContainer:   device,
+			CgroupPermissions: "rwm",
+		})
+	}
+
+	stopTimeout := int(config.StopTimeout)
+
+	c, err := dc.client.ContainerCreate(context.Background(), &container.Config{
+		Hostname:    config.Hostname,
+		Tty:         true, // --tty
+		OpenStdin:   true, // --interactive
+		Cmd:         config.Cmd,
+		Image:       image,
+		Labels:      config.Labels,
+		StopTimeout: &stopTimeout,
 	}, &container.HostConfig{
-		Binds:           nil,
-		ContainerIDFile: "",
-		LogConfig:       container.LogConfig{},
-		NetworkMode:     "",
-		PortBindings:    nil,
-		RestartPolicy:   container.RestartPolicy{},
-		AutoRemove:      false,
-		VolumeDriver:    "",
-		VolumesFrom:     nil,
-		CapAdd:          nil,
-		CapDrop:         nil,
-		Capabilities:    nil,
-		DNS:             nil,
-		DNSOptions:      nil,
-		DNSSearch:       nil,
-		ExtraHosts:      nil,
-		GroupAdd:        nil,
-		IpcMode:         "",
-		Cgroup:          "",
-		Links:           nil,
-		OomScoreAdj:     0,
-		PidMode:         "",
-		Privileged:      false,
-		PublishAllPorts: false,
-		ReadonlyRootfs:  false,
-		SecurityOpt:     nil,
-		StorageOpt:      nil,
-		Tmpfs:           nil,
-		UTSMode:         "",
-		UsernsMode:      "",
-		ShmSize:         0,
-		Sysctls:         nil,
-		Runtime:         "",
-		ConsoleSize:     [2]uint{},
-		Isolation:       "",
-		Resources:       container.Resources{},
-		Mounts:          nil,
-		MaskedPaths:     nil,
-		ReadonlyPaths:   nil,
-		Init:            nil,
-	}, &network.NetworkingConfig{
-		EndpointsConfig: nil,
-	}, "")
+		Binds:        binds,
+		NetworkMode:  container.NetworkMode(config.NetworkMode),
+		PortBindings: portBindings,
+		AutoRemove:   config.AutoRemove,
+		CapAdd:       config.CapAdds,
+		Resources: container.Resources{
+			Devices: devices,
+		},
+	}, nil, name)
+	if err != nil {
+		return "", err
+	}
+
+	return c.ID, dc.client.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{})
 }
 
 func (dc *dockerClient) RemoveContainer(container string) error {

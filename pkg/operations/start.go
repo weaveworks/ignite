@@ -8,7 +8,6 @@ import (
 	"log"
 	"path"
 	"path/filepath"
-	"strings"
 	"time"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
@@ -37,40 +36,7 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 
 	vmDir := filepath.Join(constants.VM_DIR, vm.GetUID().String())
 	kernelDir := filepath.Join(constants.KERNEL_DIR, vm.GetKernelUID().String())
-
-	dockerArgs := []string{
-		"-itd",
-		fmt.Sprintf("--label=ignite.name=%s", vm.GetName()),
-		fmt.Sprintf("--name=%s", constants.IGNITE_PREFIX+vm.GetUID()),
-		fmt.Sprintf("--volume=%s:%s", vmDir, vmDir),
-		fmt.Sprintf("--volume=%s:%s", kernelDir, kernelDir),
-		fmt.Sprintf("--stop-timeout=%d", constants.STOP_TIMEOUT+constants.IGNITE_TIMEOUT),
-		"--cap-add=SYS_ADMIN",          // Needed to run "dmsetup remove" inside the container
-		"--cap-add=NET_ADMIN",          // Needed for removing the IP from the container's interface
-		"--device=/dev/mapper/control", // This enables containerized Ignite to remove its own dm snapshot
-		"--device=/dev/net/tun",        // Needed for creating TAP adapters
-		"--device=/dev/kvm",            // Pass though virtualization support
-		fmt.Sprintf("--device=%s", vm.SnapshotDev()),
-	}
-
-	if vm.Spec.Network.Mode == api.NetworkModeCNI {
-		dockerArgs = append(dockerArgs, "--net=none")
-	}
-
-	dockerCmd := append(make([]string, 0, len(dockerArgs)+2), "run")
-
-	// If we're not debugging, remove the container post-run
-	if !debug {
-		dockerCmd = append(dockerCmd, "--rm")
-	}
-
-	// Add the port mappings to Docker
-	for _, portMapping := range vm.Spec.Network.Ports {
-		dockerArgs = append(dockerArgs, fmt.Sprintf("-p=%d:%d", portMapping.HostPort, portMapping.VMPort))
-	}
-
 	igniteImage := fmt.Sprintf("weaveworks/ignite:%s", version.GetIgnite().ImageTag())
-	dockerArgs = append(dockerArgs, igniteImage, vm.GetUID().String())
 
 	// Verify that the image containing ignite-spawn is pulled
 	// TODO: Integrate automatic pulling into pkg/runtime
@@ -78,11 +44,10 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 		return err
 	}
 
-	// TODO: WIP integrate this into pkg/runtime call
 	config := &runtime.ContainerConfig{
-		Cmd:    vm.GetUID().String(),
-		Labels: []string{fmt.Sprintf("ignite.name=%s", vm.GetName())},
-		Volumes: []*runtime.Volume{
+		Cmd:    []string{vm.GetUID().String()},
+		Labels: map[string]string{"ignite.name": vm.GetName()},
+		Binds: []*runtime.Bind{
 			{
 				HostPath:      vmDir,
 				ContainerPath: vmDir,
@@ -100,9 +65,10 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 			"/dev/mapper/control", // This enables containerized Ignite to remove its own dm snapshot
 			"/dev/net/tun",        // Needed for creating TAP adapters
 			"/dev/kvm",            // Pass through virtualization support
+			vm.SnapshotDev(),      // The block device to boot from
 		},
 		StopTimeout:  constants.STOP_TIMEOUT + constants.IGNITE_TIMEOUT,
-		ExposedPorts: vm.Spec.Network.Ports,
+		PortBindings: vm.Spec.Network.Ports, // Add the port mappings to Docker
 	}
 
 	// If the VM is using CNI networking, disable Docker's own implementation
@@ -115,14 +81,11 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 		config.AutoRemove = true
 	}
 
-	// Create the VM container in docker
-	// TODO: Replace all calls to the docker binary with pkg/runtime
-	output, err := util.ExecuteCommand("docker", append(dockerCmd, dockerArgs...)...)
+	// Run the VM container in Docker
+	containerID, err := dc.RunContainer(igniteImage, config, util.NewPrefixer().Prefix(vm.GetUID()))
 	if err != nil {
 		return fmt.Errorf("failed to start container for VM %q: %v", vm.GetUID(), err)
 	}
-
-	containerID := strings.TrimSpace(output)
 
 	if vm.Spec.Network.Mode == api.NetworkModeCNI {
 		if err := setupCNINetworking(containerID); err != nil {
