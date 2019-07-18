@@ -5,6 +5,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/runtime/docker"
 )
 
+// Runtime provides the default runtime
 var Runtime runtime.Interface
 
 func SetDockerRuntime() (err error) {

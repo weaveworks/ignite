@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/weaveworks/ignite/pkg/providers"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
@@ -35,7 +37,7 @@ func WrapVM(obj *api.VM) *VM {
 
 	vm := &VM{
 		VM: obj,
-		c:  client.DefaultClient,
+		c:  providers.Client,
 	}
 
 	return vm

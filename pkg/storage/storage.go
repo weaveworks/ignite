@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/storage/serializer"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -37,9 +35,6 @@ type Storage interface {
 	// This is used by Caches to check if all objects are cached to perform a List
 	Count(kind meta.Kind) (uint64, error)
 }
-
-// DefaultStorage is the default storage implementation
-var DefaultStorage = NewCache(NewGenericStorage(NewDefaultRawStorage(constants.DATA_DIR), scheme.Serializer))
 
 // NewGenericStorage constructs a new Storage
 func NewGenericStorage(rawStorage RawStorage, serializer serializer.Serializer) Storage {

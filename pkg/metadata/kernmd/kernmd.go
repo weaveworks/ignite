@@ -3,6 +3,8 @@ package kernmd
 import (
 	"path"
 
+	"github.com/weaveworks/ignite/pkg/providers"
+
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
@@ -27,7 +29,7 @@ func WrapKernel(obj *api.Kernel) *Kernel {
 
 	return &Kernel{
 		Kernel: obj,
-		c:      client.DefaultClient,
+		c:      providers.Client,
 	}
 }
 

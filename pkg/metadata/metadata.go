@@ -7,6 +7,8 @@ import (
 	"path"
 	"regexp"
 
+	"github.com/weaveworks/ignite/pkg/providers"
+
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
@@ -36,7 +38,7 @@ func InitObject(obj meta.Object, c *client.Client) error {
 	}
 
 	if c == nil {
-		c = client.DefaultClient
+		c = providers.Client
 	}
 
 	// Default the object

@@ -2,11 +2,12 @@ package source
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/providers"
 	"io"
 	"io/ioutil"
 	"log"
 	"os/exec"
+
+	"github.com/weaveworks/ignite/pkg/providers"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"

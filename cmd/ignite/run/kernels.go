@@ -2,8 +2,8 @@ package run
 
 import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -13,7 +13,7 @@ type kernelsOptions struct {
 
 func NewKernelsOptions() (ko *kernelsOptions, err error) {
 	ko = &kernelsOptions{}
-	ko.allKernels, err = client.Kernels().FindAll(filter.NewAllFilter())
+	ko.allKernels, err = providers.Client.Kernels().FindAll(filter.NewAllFilter())
 	return
 }
 

@@ -35,11 +35,6 @@ func (c *Client) Dynamic(kind meta.Kind) (dc DynamicClient) {
 	return
 }
 
-// Dynamic is a shorthand for accessing the DynamicClient using the default client
-func Dynamic(kind meta.Kind) DynamicClient {
-	return DefaultClient.Dynamic(kind)
-}
-
 // dynamicClient is a struct implementing the DynamicClient interface
 // It uses a shared storage instance passed from the Client together with its own Filterer
 type dynamicClient struct {

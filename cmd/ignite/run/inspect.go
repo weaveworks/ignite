@@ -3,12 +3,12 @@ package run
 import (
 	"bytes"
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"strings"
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
 )
 
@@ -37,7 +37,7 @@ func (i *InspectFlags) NewInspectOptions(k, objectMatch string) (*inspectOptions
 		return nil, fmt.Errorf("unrecognized kind: %q", k)
 	}
 
-	if io.object, err = client.Dynamic(kind).Find(filter.NewIDNameFilter(objectMatch)); err != nil {
+	if io.object, err = providers.Client.Dynamic(kind).Find(filter.NewIDNameFilter(objectMatch)); err != nil {
 		return nil, err
 	}
 

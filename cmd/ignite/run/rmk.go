@@ -2,9 +2,9 @@ package run
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"os"
 
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
 
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
@@ -25,7 +25,7 @@ func (rf *RmkFlags) NewRmkOptions(kernelMatches []string) (*rmkOptions, error) {
 	ro := &rmkOptions{RmkFlags: rf}
 
 	for _, match := range kernelMatches {
-		if kernel, err := client.Kernels().Find(filter.NewIDNameFilter(match)); err == nil {
+		if kernel, err := providers.Client.Kernels().Find(filter.NewIDNameFilter(match)); err == nil {
 			ro.kernels = append(ro.kernels, kernmd.WrapKernel(kernel))
 		} else {
 			return nil, err

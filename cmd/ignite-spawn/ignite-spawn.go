@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/providers"
 	"os"
 	"path"
+
+	"github.com/weaveworks/ignite/pkg/providers"
 
 	"github.com/weaveworks/ignite/pkg/constants"
 

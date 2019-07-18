@@ -2,8 +2,9 @@ package operations
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/providers"
 	"log"
+
+	"github.com/weaveworks/ignite/pkg/providers"
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
