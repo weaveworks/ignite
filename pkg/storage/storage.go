@@ -213,8 +213,8 @@ func (s *GenericStorage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKin
 		return nil, fmt.Errorf("unversioned")
 	}
 
-	if len(gvks) == 0 {
-		return nil, fmt.Errorf("unexpected gvks")
+	if len(gvks) != 1 {
+		return nil, fmt.Errorf("unexpected gvks %v", gvks)
 	}
 
 	return &gvks[0], nil

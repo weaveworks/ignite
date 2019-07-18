@@ -136,7 +136,7 @@ func (s *serializer) encode(obj runtime.Object, mediaType string, pretty bool) (
 
 func (s *serializer) externalGVKForObject(cfg runtime.Object) (*schema.GroupVersionKind, error) {
 	gvks, unversioned, err := s.scheme.ObjectKinds(cfg)
-	if unversioned || err != nil || len(gvks) == 0 {
+	if unversioned || err != nil || len(gvks) != 1 {
 		return nil, fmt.Errorf("unversioned %t or err %v or invalid gvks %v", unversioned, err, gvks)
 	}
 
