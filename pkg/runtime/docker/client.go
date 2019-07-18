@@ -123,10 +123,6 @@ func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConf
 	return c.ID, dc.client.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{})
 }
 
-func (dc *dockerClient) RemoveContainer(container string) error {
-	return dc.client.ContainerRemove(context.Background(), container, types.ContainerRemoveOptions{})
-}
-
 func (dc *dockerClient) StopContainer(container string, timeout *time.Duration) error {
 	return dc.client.ContainerStop(context.Background(), container, timeout)
 }
@@ -135,17 +131,19 @@ func (dc *dockerClient) KillContainer(container, signal string) error {
 	return dc.client.ContainerKill(context.Background(), container, signal)
 }
 
+func (dc *dockerClient) RemoveContainer(container string) error {
+	return dc.client.ContainerRemove(context.Background(), container, types.ContainerRemoveOptions{})
+}
+
 func (dc *dockerClient) ContainerLogs(container string) (io.ReadCloser, error) {
 	return dc.client.ContainerLogs(context.Background(), container, types.ContainerLogsOptions{
 		ShowStdout: true, // We only need stdout, as TTY mode merges stderr into it
 	})
 }
 
-// GetNetNS returns the network namespace of the given containerID. The ID
-// supplied is typically the ID of a pod sandbox. This getter doesn't try
-// to map non-sandbox IDs to their respective sandboxes.
-func (dc *dockerClient) GetNetNS(podSandboxID string) (string, error) {
-	r, err := dc.client.ContainerInspect(context.TODO(), podSandboxID)
+// ContainerNetNS returns the network namespace of the given container.
+func (dc *dockerClient) ContainerNetNS(container string) (string, error) {
+	r, err := dc.client.ContainerInspect(context.TODO(), container)
 	if err != nil {
 		return "", err
 	}

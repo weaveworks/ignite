@@ -35,12 +35,14 @@ type Interface interface {
 	InspectImage(image string) (*ImageInspectResult, error)
 	PullImage(image string) (io.ReadCloser, error)
 	ExportImage(image string) (io.ReadCloser, string, error)
-	GetNetNS(containerID string) (string, error)
-	RawClient() interface{}
 
+	// TODO: AttachContainer
 	RunContainer(image string, config *ContainerConfig, name string) (string, error)
-	RemoveContainer(container string) error
 	StopContainer(container string, timeout *time.Duration) error
 	KillContainer(container, signal string) error
+	RemoveContainer(container string) error
 	ContainerLogs(container string) (io.ReadCloser, error)
+	ContainerNetNS(container string) (string, error)
+
+	RawClient() interface{}
 }

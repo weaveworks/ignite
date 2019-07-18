@@ -166,7 +166,7 @@ func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string) error 
 		return err
 	}
 
-	netnsPath, err := plugin.runtime.GetNetNS(containerid)
+	netnsPath, err := plugin.runtime.ContainerNetNS(containerid)
 	if err != nil {
 		return fmt.Errorf("CNI failed to retrieve network namespace path: %v", err)
 	}
@@ -185,7 +185,7 @@ func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerid string) error
 	}
 
 	// Lack of namespace should not be fatal on teardown
-	netnsPath, err := plugin.runtime.GetNetNS(containerid)
+	netnsPath, err := plugin.runtime.ContainerNetNS(containerid)
 	if err != nil {
 		log.Infof("CNI failed to retrieve network namespace path: %v", err)
 	}
