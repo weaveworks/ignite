@@ -73,6 +73,8 @@
 * [type TypeMeta](#TypeMeta)
   * [func (t *TypeMeta) GetKind() Kind](#TypeMeta.GetKind)
   * [func (t *TypeMeta) GetTypeMeta() *TypeMeta](#TypeMeta.GetTypeMeta)
+  * [func (t *TypeMeta) GroupVersionKind() schema.GroupVersionKind](#TypeMeta.GroupVersionKind)
+  * [func (t *TypeMeta) SetGroupVersionKind(gvk schema.GroupVersionKind)](#TypeMeta.SetGroupVersionKind)
 * [type UID](#UID)
   * [func (u UID) String() string](#UID.String)
   * [func (u *UID) UnmarshalJSON(b []byte) error](#UID.UnmarshalJSON)
@@ -90,7 +92,7 @@ var EmptySize = NewSizeFromBytes(0)
 
 
 
-## <a name="APIType">type</a> [APIType](/pkg/apis/meta/v1alpha1/meta.go?s=411:495#L19)
+## <a name="APIType">type</a> [APIType](/pkg/apis/meta/v1alpha1/meta.go?s=453:537#L20)
 ``` go
 type APIType struct {
     *TypeMeta   `json:",inline"`
@@ -109,14 +111,14 @@ where .Name, .UID, .Kind and .APIVersion become easily available
 
 
 
-### <a name="APITypeFrom">func</a> [APITypeFrom](/pkg/apis/meta/v1alpha1/meta.go?s=705:742#L33)
+### <a name="APITypeFrom">func</a> [APITypeFrom](/pkg/apis/meta/v1alpha1/meta.go?s=747:784#L34)
 ``` go
 func APITypeFrom(obj Object) *APIType
 ```
 APITypeFrom is used to create a bound APIType from an Object
 
 
-### <a name="NewAPIType">func</a> [NewAPIType](/pkg/apis/meta/v1alpha1/meta.go?s=556:582#L25)
+### <a name="NewAPIType">func</a> [NewAPIType](/pkg/apis/meta/v1alpha1/meta.go?s=598:624#L26)
 ``` go
 func NewAPIType() *APIType
 ```
@@ -126,7 +128,7 @@ This constructor ensures the APIType fields are not nil
 
 
 
-## <a name="APITypeList">type</a> [APITypeList](/pkg/apis/meta/v1alpha1/meta.go?s=898:925#L43)
+## <a name="APITypeList">type</a> [APITypeList](/pkg/apis/meta/v1alpha1/meta.go?s=940:967#L44)
 ``` go
 type APITypeList []*APIType
 ```
@@ -212,7 +214,7 @@ func (i IPAddresses) String() string
 
 
 
-## <a name="Kind">type</a> [Kind](/pkg/apis/meta/v1alpha1/meta.go?s=1218:1234#L59)
+## <a name="Kind">type</a> [Kind](/pkg/apis/meta/v1alpha1/meta.go?s=1507:1523#L68)
 ``` go
 type Kind string
 ```
@@ -225,7 +227,7 @@ type Kind string
 
 
 
-### <a name="Kind.Lower">func</a> (Kind) [Lower](/pkg/apis/meta/v1alpha1/meta.go?s=1644:1672#L81)
+### <a name="Kind.Lower">func</a> (Kind) [Lower](/pkg/apis/meta/v1alpha1/meta.go?s=1933:1961#L90)
 ``` go
 func (k Kind) Lower() string
 ```
@@ -234,7 +236,7 @@ Returns a lowercase string representation of the Kind
 
 
 
-### <a name="Kind.String">func</a> (Kind) [String](/pkg/apis/meta/v1alpha1/meta.go?s=1337:1366#L64)
+### <a name="Kind.String">func</a> (Kind) [String](/pkg/apis/meta/v1alpha1/meta.go?s=1626:1655#L73)
 ``` go
 func (k Kind) String() string
 ```
@@ -243,7 +245,7 @@ Returns a string representation of the Kind suitable for sentences
 
 
 
-### <a name="Kind.Title">func</a> (Kind) [Title](/pkg/apis/meta/v1alpha1/meta.go?s=1535:1563#L76)
+### <a name="Kind.Title">func</a> (Kind) [Title](/pkg/apis/meta/v1alpha1/meta.go?s=1824:1852#L85)
 ``` go
 func (k Kind) Title() string
 ```
@@ -300,7 +302,7 @@ func (i *OCIImageRef) UnmarshalJSON(b []byte) error
 
 
 
-## <a name="Object">type</a> [Object](/pkg/apis/meta/v1alpha1/meta.go?s=3724:4069#L165)
+## <a name="Object">type</a> [Object](/pkg/apis/meta/v1alpha1/meta.go?s=4013:4448#L174)
 ``` go
 type Object interface {
     runtime.Object
@@ -309,6 +311,8 @@ type Object interface {
     GetObjectMeta() *ObjectMeta
 
     GetKind() Kind
+    GroupVersionKind() schema.GroupVersionKind
+    SetGroupVersionKind(schema.GroupVersionKind)
 
     GetName() string
     SetName(string)
@@ -338,7 +342,7 @@ extra GetName() and GetUID() methods from ObjectMeta
 
 
 
-## <a name="ObjectMeta">type</a> [ObjectMeta](/pkg/apis/meta/v1alpha1/meta.go?s=1879:2171#L88)
+## <a name="ObjectMeta">type</a> [ObjectMeta](/pkg/apis/meta/v1alpha1/meta.go?s=2168:2460#L97)
 ``` go
 type ObjectMeta struct {
     Name        string            `json:"name"`
@@ -362,7 +366,7 @@ implement the Object interface
 
 
 
-### <a name="ObjectMeta.GetAnnotation">func</a> (\*ObjectMeta) [GetAnnotation](/pkg/apis/meta/v1alpha1/meta.go?s=3279:3332#L148)
+### <a name="ObjectMeta.GetAnnotation">func</a> (\*ObjectMeta) [GetAnnotation](/pkg/apis/meta/v1alpha1/meta.go?s=3568:3621#L157)
 ``` go
 func (o *ObjectMeta) GetAnnotation(key string) string
 ```
@@ -371,7 +375,7 @@ GetAnnotation returns the label value for the key
 
 
 
-### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/pkg/apis/meta/v1alpha1/meta.go?s=2716:2754#L122)
+### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](/pkg/apis/meta/v1alpha1/meta.go?s=3005:3043#L131)
 ``` go
 func (o *ObjectMeta) GetCreated() Time
 ```
@@ -380,7 +384,7 @@ GetCreated returns when the Object was created
 
 
 
-### <a name="ObjectMeta.GetLabel">func</a> (\*ObjectMeta) [GetLabel](/pkg/apis/meta/v1alpha1/meta.go?s=2937:2985#L132)
+### <a name="ObjectMeta.GetLabel">func</a> (\*ObjectMeta) [GetLabel](/pkg/apis/meta/v1alpha1/meta.go?s=3226:3274#L141)
 ``` go
 func (o *ObjectMeta) GetLabel(key string) string
 ```
@@ -389,7 +393,7 @@ GetLabel returns the label value for the key
 
 
 
-### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/pkg/apis/meta/v1alpha1/meta.go?s=2322:2359#L102)
+### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](/pkg/apis/meta/v1alpha1/meta.go?s=2611:2648#L111)
 ``` go
 func (o *ObjectMeta) GetName() string
 ```
@@ -398,7 +402,7 @@ GetName returns the name of the Object
 
 
 
-### <a name="ObjectMeta.GetObjectMeta">func</a> (\*ObjectMeta) [GetObjectMeta](/pkg/apis/meta/v1alpha1/meta.go?s=2216:2264#L97)
+### <a name="ObjectMeta.GetObjectMeta">func</a> (\*ObjectMeta) [GetObjectMeta](/pkg/apis/meta/v1alpha1/meta.go?s=2505:2553#L106)
 ``` go
 func (o *ObjectMeta) GetObjectMeta() *ObjectMeta
 ```
@@ -407,7 +411,7 @@ This is a helper for APIType generation
 
 
 
-### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/pkg/apis/meta/v1alpha1/meta.go?s=2521:2554#L112)
+### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](/pkg/apis/meta/v1alpha1/meta.go?s=2810:2843#L121)
 ``` go
 func (o *ObjectMeta) GetUID() UID
 ```
@@ -416,7 +420,7 @@ GetUID returns the UID of the Object
 
 
 
-### <a name="ObjectMeta.SetAnnotation">func</a> (\*ObjectMeta) [SetAnnotation](/pkg/apis/meta/v1alpha1/meta.go?s=3453:3506#L156)
+### <a name="ObjectMeta.SetAnnotation">func</a> (\*ObjectMeta) [SetAnnotation](/pkg/apis/meta/v1alpha1/meta.go?s=3742:3795#L165)
 ``` go
 func (o *ObjectMeta) SetAnnotation(key, value string)
 ```
@@ -425,7 +429,7 @@ SetAnnotation sets a label value for a key
 
 
 
-### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/pkg/apis/meta/v1alpha1/meta.go?s=2829:2868#L127)
+### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](/pkg/apis/meta/v1alpha1/meta.go?s=3118:3157#L136)
 ``` go
 func (o *ObjectMeta) SetCreated(t Time)
 ```
@@ -434,7 +438,7 @@ SetCreated sets the creation time of the Object
 
 
 
-### <a name="ObjectMeta.SetLabel">func</a> (\*ObjectMeta) [SetLabel](/pkg/apis/meta/v1alpha1/meta.go?s=3091:3139#L140)
+### <a name="ObjectMeta.SetLabel">func</a> (\*ObjectMeta) [SetLabel](/pkg/apis/meta/v1alpha1/meta.go?s=3380:3428#L149)
 ``` go
 func (o *ObjectMeta) SetLabel(key, value string)
 ```
@@ -443,7 +447,7 @@ SetLabel sets a label value for a key
 
 
 
-### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/pkg/apis/meta/v1alpha1/meta.go?s=2419:2460#L107)
+### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](/pkg/apis/meta/v1alpha1/meta.go?s=2708:2749#L116)
 ``` go
 func (o *ObjectMeta) SetName(name string)
 ```
@@ -452,7 +456,7 @@ SetName sets the name of the Object
 
 
 
-### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/pkg/apis/meta/v1alpha1/meta.go?s=2611:2647#L117)
+### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](/pkg/apis/meta/v1alpha1/meta.go?s=2900:2936#L126)
 ``` go
 func (o *ObjectMeta) SetUID(uid UID)
 ```
@@ -639,7 +643,7 @@ The default string for Time is a human readable difference between the Time and 
 
 
 
-## <a name="TypeMeta">type</a> [TypeMeta](/pkg/apis/meta/v1alpha1/meta.go?s=1014:1055#L46)
+## <a name="TypeMeta">type</a> [TypeMeta](/pkg/apis/meta/v1alpha1/meta.go?s=1056:1097#L47)
 ``` go
 type TypeMeta struct {
     metav1.TypeMeta
@@ -657,19 +661,33 @@ TypeMeta is an alias for the k8s/apimachinery TypeMeta with some additional meth
 
 
 
-### <a name="TypeMeta.GetKind">func</a> (\*TypeMeta) [GetKind](/pkg/apis/meta/v1alpha1/meta.go?s=1158:1191#L55)
+### <a name="TypeMeta.GetKind">func</a> (\*TypeMeta) [GetKind](/pkg/apis/meta/v1alpha1/meta.go?s=1200:1233#L56)
 ``` go
 func (t *TypeMeta) GetKind() Kind
 ```
 
 
 
-### <a name="TypeMeta.GetTypeMeta">func</a> (\*TypeMeta) [GetTypeMeta](/pkg/apis/meta/v1alpha1/meta.go?s=1100:1142#L51)
+### <a name="TypeMeta.GetTypeMeta">func</a> (\*TypeMeta) [GetTypeMeta](/pkg/apis/meta/v1alpha1/meta.go?s=1142:1184#L52)
 ``` go
 func (t *TypeMeta) GetTypeMeta() *TypeMeta
 ```
 This is a helper for APIType generation
 
+
+
+
+### <a name="TypeMeta.GroupVersionKind">func</a> (\*TypeMeta) [GroupVersionKind](/pkg/apis/meta/v1alpha1/meta.go?s=1260:1321#L60)
+``` go
+func (t *TypeMeta) GroupVersionKind() schema.GroupVersionKind
+```
+
+
+
+### <a name="TypeMeta.SetGroupVersionKind">func</a> (\*TypeMeta) [SetGroupVersionKind](/pkg/apis/meta/v1alpha1/meta.go?s=1381:1448#L64)
+``` go
+func (t *TypeMeta) SetGroupVersionKind(gvk schema.GroupVersionKind)
+```
 
 
 

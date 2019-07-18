@@ -18,11 +18,8 @@
 ## <a name="pkg-index">Index</a>
 * [Constants](#pkg-constants)
 * [Variables](#pkg-variables)
-* [func SetDefaults_Image(obj *Image)](#SetDefaults_Image)
-* [func SetDefaults_Kernel(obj *Kernel)](#SetDefaults_Kernel)
 * [func SetDefaults_OCIImageClaim(obj *OCIImageClaim)](#SetDefaults_OCIImageClaim)
 * [func SetDefaults_PoolSpec(obj *PoolSpec)](#SetDefaults_PoolSpec)
-* [func SetDefaults_VM(obj *VM)](#SetDefaults_VM)
 * [func SetDefaults_VMKernelSpec(obj *VMKernelSpec)](#SetDefaults_VMKernelSpec)
 * [func SetDefaults_VMNetworkSpec(obj *VMNetworkSpec)](#SetDefaults_VMNetworkSpec)
 * [func SetDefaults_VMSpec(obj *VMSpec)](#SetDefaults_VMSpec)
@@ -97,57 +94,37 @@ SchemeGroupVersion is group version used to register these objects
 
 
 
-## <a name="SetDefaults_Image">func</a> [SetDefaults_Image](/pkg/apis/ignite/v1alpha1/defaults.go?s=2218:2252#L91)
-``` go
-func SetDefaults_Image(obj *Image)
-```
-
-
-## <a name="SetDefaults_Kernel">func</a> [SetDefaults_Kernel](/pkg/apis/ignite/v1alpha1/defaults.go?s=2276:2312#L95)
-``` go
-func SetDefaults_Kernel(obj *Kernel)
-```
-
-
-## <a name="SetDefaults_OCIImageClaim">func</a> [SetDefaults_OCIImageClaim](/pkg/apis/ignite/v1alpha1/defaults.go?s=275:325#L15)
+## <a name="SetDefaults_OCIImageClaim">func</a> [SetDefaults_OCIImageClaim](/pkg/apis/ignite/v1alpha1/defaults.go?s=263:313#L13)
 ``` go
 func SetDefaults_OCIImageClaim(obj *OCIImageClaim)
 ```
 
 
-## <a name="SetDefaults_PoolSpec">func</a> [SetDefaults_PoolSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=365:405#L19)
+## <a name="SetDefaults_PoolSpec">func</a> [SetDefaults_PoolSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=353:393#L17)
 ``` go
 func SetDefaults_PoolSpec(obj *PoolSpec)
 ```
 
 
-## <a name="SetDefaults_VM">func</a> [SetDefaults_VM](/pkg/apis/ignite/v1alpha1/defaults.go?s=2166:2194#L87)
-``` go
-func SetDefaults_VM(obj *VM)
-```
-TODO: Temporary hacks to populate TypeMeta until we get the generator working
-
-
-
-## <a name="SetDefaults_VMKernelSpec">func</a> [SetDefaults_VMKernelSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=1247:1295#L55)
+## <a name="SetDefaults_VMKernelSpec">func</a> [SetDefaults_VMKernelSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=1235:1283#L53)
 ``` go
 func SetDefaults_VMKernelSpec(obj *VMKernelSpec)
 ```
 
 
-## <a name="SetDefaults_VMNetworkSpec">func</a> [SetDefaults_VMNetworkSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=1532:1582#L66)
+## <a name="SetDefaults_VMNetworkSpec">func</a> [SetDefaults_VMNetworkSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=1520:1570#L64)
 ``` go
 func SetDefaults_VMNetworkSpec(obj *VMNetworkSpec)
 ```
 
 
-## <a name="SetDefaults_VMSpec">func</a> [SetDefaults_VMSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=931:967#L41)
+## <a name="SetDefaults_VMSpec">func</a> [SetDefaults_VMSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=919:955#L39)
 ``` go
 func SetDefaults_VMSpec(obj *VMSpec)
 ```
 
 
-## <a name="SetDefaults_VMStatus">func</a> [SetDefaults_VMStatus](/pkg/apis/ignite/v1alpha1/defaults.go?s=1653:1693#L72)
+## <a name="SetDefaults_VMStatus">func</a> [SetDefaults_VMStatus](/pkg/apis/ignite/v1alpha1/defaults.go?s=1641:1681#L70)
 ``` go
 func SetDefaults_VMStatus(obj *VMStatus)
 ```
