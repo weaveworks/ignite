@@ -36,6 +36,8 @@ func Attach(ao *attachOptions) error {
 	}
 
 	// Attach to the VM in Docker
+	// TODO: Implement the pseudo-TTY and remove this call, see
+	// https://github.com/weaveworks/ignite/pull/211#issuecomment-512809841
 	if ec, err := util.ExecForeground("docker", dockerArgs...); err != nil {
 		if ec != 1 { // Docker's detach sequence (^P^Q) has an exit code of -1
 			return fmt.Errorf("failed to attach to container for VM %s: %v", ao.vm.GetUID(), err)
