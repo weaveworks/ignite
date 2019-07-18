@@ -6,7 +6,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -31,7 +31,7 @@ var _ metadata.Metadata = &VM{}
 // data coming from storage.
 func WrapVM(obj *api.VM) *VM {
 	// Run the object through defaulting, just to be sure it has all the values
-	scheme.Scheme.Default(obj)
+	scheme.Serializer.DefaultInternal(obj)
 
 	vm := &VM{
 		VM: obj,

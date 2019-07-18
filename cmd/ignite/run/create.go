@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/metadata"
@@ -21,7 +21,7 @@ func NewCreateFlags() *CreateFlags {
 		VM: &api.VM{},
 	}
 
-	scheme.Scheme.Default(cf.VM)
+	scheme.Serializer.DefaultInternal(cf.VM)
 
 	return cf
 }

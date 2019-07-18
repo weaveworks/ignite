@@ -11,7 +11,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -25,7 +25,7 @@ func NewGitRawStorage(gitDir, underlyingDir string) *GitRawStorage {
 	return &GitRawStorage{
 		gitDir: gitDir,
 		gitPathPrefixes: map[string]bool{ // we only check in VM state into git atm
-			storage.KeyForKind(api.VMKind): true,
+			storage.KeyForKind(api.KindVM): true,
 		},
 		passthrough: storage.NewDefaultRawStorage(underlyingDir),
 	}

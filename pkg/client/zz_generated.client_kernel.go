@@ -9,7 +9,7 @@ package client
 
 import (
 	log "github.com/sirupsen/logrus"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/filterer"
@@ -64,7 +64,7 @@ func newKernelClient(s storage.Storage) KernelClient {
 
 // Find returns a single Kernel based on the given Filter
 func (c *kernelClient) Find(filter filterer.BaseFilter) (*api.Kernel, error) {
-	object, err := c.filterer.Find(api.KernelKind, filter)
+	object, err := c.filterer.Find(api.KindKernel, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (c *kernelClient) Find(filter filterer.BaseFilter) (*api.Kernel, error) {
 
 // FindAll returns multiple Kernels based on the given Filter
 func (c *kernelClient) FindAll(filter filterer.BaseFilter) ([]*api.Kernel, error) {
-	matches, err := c.filterer.FindAll(api.KernelKind, filter)
+	matches, err := c.filterer.FindAll(api.KindKernel, filter)
 	if err != nil {
 		return nil, err
 	}
