@@ -10,6 +10,7 @@
 +k8s:deepcopy-gen=package
 +k8s:defaulter-gen=TypeMeta
 +k8s:openapi-gen=true
++k8s:conversion-gen=github.com/weaveworks/ignite/pkg/apis/ignite
 
 
 
@@ -26,7 +27,6 @@
 * [func SetDefaults_VMNetworkSpec(obj *VMNetworkSpec)](#SetDefaults_VMNetworkSpec)
 * [func SetDefaults_VMSpec(obj *VMSpec)](#SetDefaults_VMSpec)
 * [func SetDefaults_VMStatus(obj *VMStatus)](#SetDefaults_VMStatus)
-* [func ValidateNetworkMode(mode NetworkMode) error](#ValidateNetworkMode)
 * [type FileMapping](#FileMapping)
 * [type Image](#Image)
 * [type ImageSourceType](#ImageSourceType)
@@ -36,7 +36,6 @@
 * [type KernelSpec](#KernelSpec)
 * [type KernelStatus](#KernelStatus)
 * [type NetworkMode](#NetworkMode)
-  * [func GetNetworkModes() []NetworkMode](#GetNetworkModes)
   * [func (nm NetworkMode) String() string](#NetworkMode.String)
 * [type OCIImageClaim](#OCIImageClaim)
 * [type OCIImageSource](#OCIImageSource)
@@ -49,8 +48,6 @@
   * [func (s *SSH) MarshalJSON() ([]byte, error)](#SSH.MarshalJSON)
   * [func (s *SSH) UnmarshalJSON(b []byte) error](#SSH.UnmarshalJSON)
 * [type VM](#VM)
-  * [func (vm *VM) SetImage(image *Image)](#VM.SetImage)
-  * [func (vm *VM) SetKernel(kernel *Kernel)](#VM.SetKernel)
 * [type VMImageSpec](#VMImageSpec)
 * [type VMKernelSpec](#VMKernelSpec)
 * [type VMNetworkSpec](#VMNetworkSpec)
@@ -60,30 +57,21 @@
 
 
 #### <a name="pkg-files">Package files</a>
-[defaults.go](/pkg/apis/ignite/v1alpha1/defaults.go) [doc.go](/pkg/apis/ignite/v1alpha1/doc.go) [helpers.go](/pkg/apis/ignite/v1alpha1/helpers.go) [json.go](/pkg/apis/ignite/v1alpha1/json.go) [register.go](/pkg/apis/ignite/v1alpha1/register.go) [types.go](/pkg/apis/ignite/v1alpha1/types.go) 
+[defaults.go](/pkg/apis/ignite/v1alpha1/defaults.go) [doc.go](/pkg/apis/ignite/v1alpha1/doc.go) [json.go](/pkg/apis/ignite/v1alpha1/json.go) [register.go](/pkg/apis/ignite/v1alpha1/register.go) [types.go](/pkg/apis/ignite/v1alpha1/types.go) 
 
 
 ## <a name="pkg-constants">Constants</a>
 ``` go
 const (
-    // GroupName is the group name use in this package
-    GroupName = "ignite.weave.works"
-
-    // VMKind returns the kind for the VM API type
-    VMKind = "VM"
-    // KernelKind returns the kind for the Kernel API type
-    KernelKind = "Kernel"
-    // PoolKind returns the kind for the Pool API type
-    PoolKind = "Pool"
-    // ImageKind returns the kind for the Image API type
-    ImageKind = "Image"
+    KindImage  meta.Kind = "Image"
+    KindKernel meta.Kind = "Kernel"
+    KindVM     meta.Kind = "VM"
 )
 ```
 ``` go
 const (
-    KindImage  meta.Kind = "Image"
-    KindKernel meta.Kind = "Kernel"
-    KindVM     meta.Kind = "VM"
+    // GroupName is the group name use in this package
+    GroupName = "ignite.weave.works"
 )
 ```
 
@@ -163,15 +151,6 @@ func SetDefaults_VMSpec(obj *VMSpec)
 ``` go
 func SetDefaults_VMStatus(obj *VMStatus)
 ```
-
-
-## <a name="ValidateNetworkMode">func</a> [ValidateNetworkMode](/pkg/apis/ignite/v1alpha1/helpers.go?s=317:365#L15)
-``` go
-func ValidateNetworkMode(mode NetworkMode) error
-```
-ValidateNetworkMode validates the network mode
-TODO: This should move into a dedicated validation package
-
 
 
 
@@ -362,13 +341,6 @@ const (
 
 
 
-
-
-### <a name="GetNetworkModes">func</a> [GetNetworkModes](/pkg/apis/ignite/v1alpha1/helpers.go?s=92:128#L6)
-``` go
-func GetNetworkModes() []NetworkMode
-```
-GetNetworkModes gets the list of available network modes
 
 
 
@@ -611,24 +583,6 @@ These files are stored in /var/lib/firecracker/vm/{vm-id}/metadata.json
 
 
 
-
-
-
-
-### <a name="VM.SetImage">func</a> (\*VM) [SetImage](/pkg/apis/ignite/v1alpha1/helpers.go?s=658:694#L30)
-``` go
-func (vm *VM) SetImage(image *Image)
-```
-SetImage populates relevant fields to an Image on the VM object
-
-
-
-
-### <a name="VM.SetKernel">func</a> (\*VM) [SetKernel](/pkg/apis/ignite/v1alpha1/helpers.go?s=856:895#L36)
-``` go
-func (vm *VM) SetKernel(kernel *Kernel)
-```
-SetKernel populates relevant fields to a Kernel on the VM object
 
 
 
