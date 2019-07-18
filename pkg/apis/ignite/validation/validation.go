@@ -5,7 +5,6 @@ import (
 	"path"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 

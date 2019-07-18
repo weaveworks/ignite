@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/filter"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/storage/filterer"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -36,7 +37,7 @@ func InitObject(obj meta.Object, c *client.Client) error {
 	}
 
 	if c == nil {
-		c = client.DefaultClient
+		c = providers.Client
 	}
 
 	// Default the object

@@ -2,8 +2,8 @@ package run
 
 import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -18,7 +18,7 @@ type psOptions struct {
 
 func (pf *PsFlags) NewPsOptions() (po *psOptions, err error) {
 	po = &psOptions{PsFlags: pf}
-	po.allVMs, err = client.VMs().FindAll(filter.NewVMFilterAll("", po.All))
+	po.allVMs, err = providers.Client.VMs().FindAll(filter.NewVMFilterAll("", po.All))
 	return
 }
 

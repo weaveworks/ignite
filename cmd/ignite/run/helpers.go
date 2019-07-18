@@ -1,14 +1,14 @@
 package run
 
 import (
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 // TODO: This
 func getVMForMatch(vmMatch string) (*vmmd.VM, error) {
-	apiVM, err := client.VMs().Find(filter.NewIDNameFilter(vmMatch))
+	apiVM, err := providers.Client.VMs().Find(filter.NewIDNameFilter(vmMatch))
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func getVMsForMatches(vmMatches []string) ([]*vmmd.VM, error) {
 }
 
 func getAllVMs() (allVMs []*vmmd.VM, err error) {
-	allAPIVMs, err := client.VMs().FindAll(filter.NewAllFilter())
+	allAPIVMs, err := providers.Client.VMs().FindAll(filter.NewAllFilter())
 	if err != nil {
 		return
 	}

@@ -2,11 +2,11 @@ package run
 
 import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/operations"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 func ImportImage(source string) (*imgmd.Image, error) {
@@ -15,7 +15,7 @@ func ImportImage(source string) (*imgmd.Image, error) {
 		return nil, err
 	}
 
-	runImage, err := operations.FindOrImportImage(client.DefaultClient, ociRef)
+	runImage, err := operations.FindOrImportImage(providers.Client, ociRef)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func ImportKernel(source string) (*kernmd.Kernel, error) {
 		return nil, err
 	}
 
-	runKernel, err := operations.FindOrImportKernel(client.DefaultClient, ociRef)
+	runKernel, err := operations.FindOrImportKernel(providers.Client, ociRef)
 	if err != nil {
 		return nil, err
 	}

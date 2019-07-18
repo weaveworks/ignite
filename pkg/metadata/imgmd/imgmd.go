@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 type Image struct {
@@ -27,7 +28,7 @@ func WrapImage(obj *api.Image) *Image {
 
 	return &Image{
 		Image: obj,
-		c:     client.DefaultClient,
+		c:     providers.Client,
 	}
 }
 

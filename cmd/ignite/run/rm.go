@@ -3,9 +3,9 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 type RmFlags struct {
@@ -31,7 +31,7 @@ func Rm(ro *rmOptions) error {
 		}
 
 		// This will first kill the VM container, and then remove it
-		if err := operations.RemoveVM(client.DefaultClient, vm); err != nil {
+		if err := operations.RemoveVM(providers.Client, vm); err != nil {
 			return err
 		}
 	}

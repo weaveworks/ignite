@@ -4,19 +4,16 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
-
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
-	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/logs"
+	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-var (
-	stopArgs = []string{"stop"}
-	killArgs = []string{"kill", "-s", "SIGQUIT"}
-	rmArgs   = []string{"rm", "-f"}
+const (
+	signalSIGQUIT = "SIGQUIT"
 )
 
 // RemoveVM removes the specified VM
@@ -45,12 +42,8 @@ func RemoveVM(c *client.Client, vm *vmmd.VM) error {
 }
 
 func RemoveVMContainer(vm meta.Object) error {
-	// Specify what container to remove
-	dockerArgs := append(rmArgs, constants.IGNITE_PREFIX+vm.GetUID().String())
-
 	// Remove the VM container
-	// TODO: Use pkg/runtime here instead
-	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
+	if err := providers.Runtime.RemoveContainer(util.NewPrefixer().Prefix(vm.GetUID())); err != nil {
 		return fmt.Errorf("failed to remove container for VM %q: %v", vm.GetUID(), err)
 	}
 
@@ -59,20 +52,20 @@ func RemoveVMContainer(vm meta.Object) error {
 
 // StopVM stops or kills a VM
 func StopVM(vm *vmmd.VM, kill, silent bool) error {
-	dockerArgs := stopArgs
+	var err error
+	container := util.NewPrefixer().Prefix(vm.GetUID())
+	action := "stop"
 
-	// Change to kill arguments if requested
+	// Stop or kill the VM container
 	if kill {
-		dockerArgs = killArgs
+		action = "kill"
+		err = providers.Runtime.KillContainer(container, signalSIGQUIT) // TODO: common constant for SIGQUIT
+	} else {
+		err = providers.Runtime.StopContainer(container, nil)
 	}
 
-	// Specify what container to stop/kill
-	dockerArgs = append(dockerArgs, constants.IGNITE_PREFIX+vm.GetUID().String())
-
-	// Stop/Kill the VM in docker
-	// TODO: Use pkg/runtime here instead
-	if _, err := util.ExecuteCommand("docker", dockerArgs...); err != nil {
-		return fmt.Errorf("failed to stop container for VM %q: %v", vm.GetUID(), err)
+	if err != nil {
+		return fmt.Errorf("failed to %s container for %s %q: %v", action, vm.GetKind(), vm.GetUID(), err)
 	}
 
 	if silent {

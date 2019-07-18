@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 type VM struct {
@@ -36,7 +37,7 @@ func WrapVM(obj *api.VM) *VM {
 
 	vm := &VM{
 		VM: obj,
-		c:  client.DefaultClient,
+		c:  providers.Client,
 	}
 
 	return vm

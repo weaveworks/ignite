@@ -67,6 +67,3 @@ type Client struct {
 	imageClient    ImageClient
 	dynamicClients map[meta.Kind]DynamicClient
 }
-
-// DefaultClient is the default client that can be easily used
-var DefaultClient = NewClient(storage.DefaultStorage)

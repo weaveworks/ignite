@@ -15,7 +15,6 @@ import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/util"
-
 	"sigs.k8s.io/yaml"
 )
 

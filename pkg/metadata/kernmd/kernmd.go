@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 type Kernel struct {
@@ -27,7 +28,7 @@ func WrapKernel(obj *api.Kernel) *Kernel {
 
 	return &Kernel{
 		Kernel: obj,
-		c:      client.DefaultClient,
+		c:      providers.Client,
 	}
 }
 
