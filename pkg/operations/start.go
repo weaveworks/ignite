@@ -2,13 +2,14 @@ package operations
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/runtime"
 	"io"
 	"io/ioutil"
 	"log"
 	"path"
 	"path/filepath"
 	"time"
+
+	"github.com/weaveworks/ignite/pkg/runtime"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"

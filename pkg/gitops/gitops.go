@@ -2,9 +2,10 @@ package gitops
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/runtime/docker"
 	"sync"
 	"time"
+
+	"github.com/weaveworks/ignite/pkg/runtime/docker"
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
