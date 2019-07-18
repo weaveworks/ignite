@@ -42,4 +42,5 @@ type Interface interface {
 	RemoveContainer(container string) error
 	StopContainer(container string, timeout *time.Duration) error
 	KillContainer(container, signal string) error
+	ContainerLogs(container string) (io.ReadCloser, error)
 }
