@@ -65,7 +65,7 @@ func newResourceClient(s storage.Storage) ResourceClient {
 
 // Find returns a single Resource based on the given Filter
 func (c *resourceClient) Find(filter filterer.BaseFilter) (*api.Resource, error) {
-	object, err := c.filterer.Find(api.ResourceKind, filter)
+	object, err := c.filterer.Find(api.KindResource, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (c *resourceClient) Find(filter filterer.BaseFilter) (*api.Resource, error)
 
 // FindAll returns multiple Resources based on the given Filter
 func (c *resourceClient) FindAll(filter filterer.BaseFilter) ([]*api.Resource, error) {
-	matches, err := c.filterer.FindAll(api.ResourceKind, filter)
+	matches, err := c.filterer.FindAll(api.KindResource, filter)
 	if err != nil {
 		return nil, err
 	}

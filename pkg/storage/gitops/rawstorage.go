@@ -25,7 +25,7 @@ func NewGitRawStorage(gitDir, underlyingDir string) *GitRawStorage {
 	return &GitRawStorage{
 		gitDir: gitDir,
 		gitPathPrefixes: map[string]bool{ // we only check in VM state into git atm
-			storage.KeyForKind(api.VMKind): true,
+			storage.KeyForKind(api.KindVM): true,
 		},
 		passthrough: storage.NewDefaultRawStorage(underlyingDir),
 	}
