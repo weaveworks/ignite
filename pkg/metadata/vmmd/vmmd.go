@@ -6,7 +6,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
@@ -31,9 +30,6 @@ var _ metadata.Metadata = &VM{}
 // NewVM, hence it should only be used for "safe"
 // data coming from storage.
 func WrapVM(obj *api.VM) *VM {
-	// Run the object through defaulting, just to be sure it has all the values
-	scheme.Serializer.DefaultInternal(obj)
-
 	vm := &VM{
 		VM: obj,
 		c:  client.DefaultClient,

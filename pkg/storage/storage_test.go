@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
 var s = NewGenericStorage(NewDefaultRawStorage("/tmp/bar"), scheme.Serializer)
@@ -46,6 +46,7 @@ func TestStorageSet(t *testing.T) {
 	err := s.Set(vmGVK, vm)
 	t.Fatal(err)
 }
+
 /*
 func TestStorageDelete(t *testing.T) {
 	err := s.Delete("VM", "1234")

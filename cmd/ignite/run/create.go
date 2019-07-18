@@ -17,13 +17,9 @@ import (
 )
 
 func NewCreateFlags() *CreateFlags {
-	cf := &CreateFlags{
-		VM: &api.VM{},
+	return &CreateFlags{
+		VM: client.VMs().New(),
 	}
-
-	scheme.Serializer.DefaultInternal(cf.VM)
-
-	return cf
 }
 
 type CreateFlags struct {

@@ -8,7 +8,6 @@ import (
 	"regexp"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -39,20 +38,13 @@ func InitObject(obj meta.Object, c *client.Client) error {
 		c = client.DefaultClient
 	}
 
-	// Default the object
-	scheme.Serializer.DefaultInternal(obj)
-
 	// Generate or validate the given UID, if any
 	if err := processUID(obj, c); err != nil {
 		return err
 	}
 
 	// Generate or validate the given name, if any
-	if err := processName(obj, c); err != nil {
-		return err
-	}
-
-	return nil
+	return processName(obj, c)
 }
 
 // processUID a new 8-byte ID and handles directory creation/deletion
