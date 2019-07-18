@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
@@ -25,7 +24,7 @@ func NewGitRawStorage(gitDir, underlyingDir string) *GitRawStorage {
 	return &GitRawStorage{
 		gitDir: gitDir,
 		gitPathPrefixes: map[string]bool{ // we only check in VM state into git atm
-			storage.KeyForKind(api.KindVM): true,
+			"/vm": true, // TODO: construct this in a better way
 		},
 		passthrough: storage.NewDefaultRawStorage(underlyingDir),
 	}
@@ -99,8 +98,10 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 				return err
 			}
 
+			gvk := obj.GroupVersionKind()
+
 			// Ignore unknown API objects to Ignite (e.g. Kubernetes manifests)
-			if !scheme.Scheme.Recognizes(obj.GroupVersionKind()) {
+			if !scheme.Scheme.Recognizes(gvk) {
 				log.Debugf("Ignoring file with API version %s and kind %s", obj.APIVersion, obj.Kind)
 				return nil
 			}
@@ -117,8 +118,8 @@ func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
 				return nil
 			}
 
-			keyPath := storage.KeyForUID(obj.GetKind(), obj.GetUID())
-			kindKey := storage.KeyForKind(obj.GetKind())
+			keyPath := storage.KeyForUID(gvk, obj.GetUID())
+			kindKey := storage.KeyForKind(gvk)
 
 			f := &UpdatedFile{
 				GitPath:  path,
@@ -211,7 +212,7 @@ func (r *GitRawStorage) shouldPassthrough(key string) bool {
 	// firstDirName is e.g. "vm" when key is "/vm/foobar123"
 	firstDirName := splitDirsRegex.FindStringSubmatch(key)[1]
 	// check if this kind should be managed by git. if it's git-managed return false
-	_, ok := r.gitPathPrefixes[storage.KeyForKind(meta.Kind(firstDirName))]
+	_, ok := r.gitPathPrefixes[fmt.Sprintf("/%s", strings.ToLower(firstDirName))]
 	return !ok
 }
 

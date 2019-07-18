@@ -3,14 +3,19 @@ package storage
 import (
 	"testing"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 )
 
 var s = NewGenericStorage(NewDefaultRawStorage("/tmp/foo"), scheme.Serializer)
 
+func TestStorageNew(t *testing.T) {
+	gvk := api.SchemeGroupVersion.WithKind("VM")
+	obj, err := s.New(gvk)
+	t.Fatal(*(obj.(*api.VM)), err)
+}
+
+/*
 func TestStorageGet(t *testing.T) {
 	obj := &api.VM{
 		ObjectMeta: meta.ObjectMeta{
@@ -74,3 +79,4 @@ func TestStorageListMeta(t *testing.T) {
 
 	t.Fatal("fo")
 }
+*/
