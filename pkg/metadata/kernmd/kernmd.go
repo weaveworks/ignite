@@ -23,7 +23,7 @@ var _ metadata.Metadata = &Kernel{}
 // data coming from storage.
 func WrapKernel(obj *api.Kernel) *Kernel {
 	// Run the object through defaulting, just to be sure it has all the values
-	scheme.Scheme.Default(obj)
+	scheme.Serializer.DefaultInternal(obj)
 
 	return &Kernel{
 		Kernel: obj,

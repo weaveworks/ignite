@@ -40,7 +40,7 @@ func InitObject(obj meta.Object, c *client.Client) error {
 	}
 
 	// Default the object
-	scheme.Scheme.Default(obj)
+	scheme.Serializer.DefaultInternal(obj)
 
 	// Generate or validate the given UID, if any
 	if err := processUID(obj, c); err != nil {

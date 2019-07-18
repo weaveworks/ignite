@@ -21,7 +21,7 @@ func NewCreateFlags() *CreateFlags {
 		VM: &api.VM{},
 	}
 
-	scheme.Scheme.Default(cf.VM)
+	scheme.Serializer.DefaultInternal(cf.VM)
 
 	return cf
 }

@@ -28,6 +28,9 @@ type Serializer interface {
 	// EncodeJSON encodes the specified object for a specific version to pretty JSON bytes
 	EncodeJSON(obj runtime.Object) ([]byte, error)
 
+	// DefaultInternal populates the given internal object with the preferred external version's defaults
+	DefaultInternal(cfg runtime.Object) error
+
 	// Scheme provides access to the underlying runtime.Scheme
 	Scheme() *runtime.Scheme
 }
@@ -132,6 +135,23 @@ func (s *serializer) encode(obj runtime.Object, mediaType string, pretty bool) (
 
 	encoder := s.codecs.EncoderForVersion(serializer, gvk.GroupVersion())
 	return runtime.Encode(encoder, obj)
+}
+
+// DefaultInternal populates the given internal object with the preferred external version's defaults
+func (s *serializer) DefaultInternal(cfg runtime.Object) error {
+	gvk, err := s.externalGVKForObject(cfg)
+	if err != nil {
+		return err
+	}
+	external, err := s.scheme.New(*gvk)
+	if err != nil {
+		return nil
+	}
+	if err := s.scheme.Convert(cfg, external, nil); err != nil {
+		return err
+	}
+	s.scheme.Default(external)
+	return s.scheme.Convert(external, cfg, nil)
 }
 
 func (s *serializer) externalGVKForObject(cfg runtime.Object) (*schema.GroupVersionKind, error) {
