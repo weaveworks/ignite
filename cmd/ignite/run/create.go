@@ -2,9 +2,10 @@ package run
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/providers"
 	"path"
 	"strings"
+
+	"github.com/weaveworks/ignite/pkg/providers"
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"

@@ -2,8 +2,9 @@ package run
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/providers"
 	"os"
+
+	"github.com/weaveworks/ignite/pkg/providers"
 
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
