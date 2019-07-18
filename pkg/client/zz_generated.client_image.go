@@ -64,7 +64,7 @@ func newImageClient(s storage.Storage) ImageClient {
 
 // Find returns a single Image based on the given Filter
 func (c *imageClient) Find(filter filterer.BaseFilter) (*api.Image, error) {
-	object, err := c.filterer.Find(api.ImageKind, filter)
+	object, err := c.filterer.Find(api.KindImage, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (c *imageClient) Find(filter filterer.BaseFilter) (*api.Image, error) {
 
 // FindAll returns multiple Images based on the given Filter
 func (c *imageClient) FindAll(filter filterer.BaseFilter) ([]*api.Image, error) {
-	matches, err := c.filterer.FindAll(api.ImageKind, filter)
+	matches, err := c.filterer.FindAll(api.KindImage, filter)
 	if err != nil {
 		return nil, err
 	}

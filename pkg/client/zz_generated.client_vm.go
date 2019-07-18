@@ -64,7 +64,7 @@ func newVMClient(s storage.Storage) VMClient {
 
 // Find returns a single VM based on the given Filter
 func (c *vmClient) Find(filter filterer.BaseFilter) (*api.VM, error) {
-	object, err := c.filterer.Find(api.VMKind, filter)
+	object, err := c.filterer.Find(api.KindVM, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (c *vmClient) Find(filter filterer.BaseFilter) (*api.VM, error) {
 
 // FindAll returns multiple VMs based on the given Filter
 func (c *vmClient) FindAll(filter filterer.BaseFilter) ([]*api.VM, error) {
-	matches, err := c.filterer.FindAll(api.VMKind, filter)
+	matches, err := c.filterer.FindAll(api.KindVM, filter)
 	if err != nil {
 		return nil, err
 	}
