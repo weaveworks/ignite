@@ -1,7 +1,5 @@
 package ignite
 
-import "fmt"
-
 // GetNetworkModes gets the list of available network modes
 func GetNetworkModes() []NetworkMode {
 	return []NetworkMode{
@@ -10,20 +8,20 @@ func GetNetworkModes() []NetworkMode {
 	}
 }
 
-// ValidateNetworkMode validates the network mode
-// TODO: This should move into a dedicated validation package
-func ValidateNetworkMode(mode NetworkMode) error {
-	found := false
-	modes := GetNetworkModes()
-	for _, nm := range modes {
-		if nm == mode {
-			found = true
-		}
+// GetImageSourceTypes gets the list of available network modes
+func GetImageSourceTypes() []ImageSourceType {
+	return []ImageSourceType{
+		ImageSourceTypeDocker,
 	}
-	if !found {
-		return fmt.Errorf("invalid network mode %s, must be one of %v", mode, modes)
+}
+
+// GetVMStates gets the list of available VM states
+func GetVMStates() []VMState {
+	return []VMState{
+		VMStateCreated,
+		VMStateRunning,
+		VMStateStopped,
 	}
-	return nil
 }
 
 // SetImage populates relevant fields to an Image on the VM object
