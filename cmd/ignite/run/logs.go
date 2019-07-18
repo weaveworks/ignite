@@ -2,7 +2,7 @@ package run
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/runtime/docker"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"io/ioutil"
 
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
@@ -25,14 +25,8 @@ func Logs(lo *logsOptions) error {
 		return fmt.Errorf("VM %q is not running", lo.vm.GetUID())
 	}
 
-	// Get the Docker client
-	dc, err := docker.GetDockerClient()
-	if err != nil {
-		return err
-	}
-
 	// Fetch the VM logs
-	rc, err := dc.ContainerLogs(util.NewPrefixer().Prefix(lo.vm.GetUID()))
+	rc, err := providers.Runtime.ContainerLogs(util.NewPrefixer().Prefix(lo.vm.GetUID()))
 	if err != nil {
 		return fmt.Errorf("failed to get logs for VM %q: %v", lo.vm.GetUID(), err)
 	}

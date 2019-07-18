@@ -2,6 +2,7 @@ package source
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"io"
 	"io/ioutil"
 	"log"
@@ -9,9 +10,9 @@ import (
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/runtime/docker"
 )
 
+// TODO: Make this a generic "OCISource" as it now only depends on the generic providers.Runtime
 type DockerSource struct {
 	imageID     string
 	containerID string
@@ -30,16 +31,11 @@ func (ds *DockerSource) ID() string {
 }
 
 func (ds *DockerSource) Parse(ociRef meta.OCIImageRef) (*api.OCIImageSource, error) {
-	client, err := docker.GetDockerClient()
-	if err != nil {
-		return nil, err
-	}
-
 	source := ociRef.String()
-	res, err := client.InspectImage(source)
+	res, err := providers.Runtime.InspectImage(source)
 	if err != nil {
 		log.Printf("Docker image %q not found locally, pulling...", source)
-		rc, err := client.PullImage(source)
+		rc, err := providers.Runtime.PullImage(source)
 		if err != nil {
 			return nil, err
 		}
@@ -47,7 +43,7 @@ func (ds *DockerSource) Parse(ociRef meta.OCIImageRef) (*api.OCIImageSource, err
 		// Don't output the pull command
 		io.Copy(ioutil.Discard, rc)
 		rc.Close()
-		res, err = client.InspectImage(source)
+		res, err = providers.Runtime.InspectImage(source)
 		if err != nil {
 			return nil, err
 		}
@@ -66,27 +62,15 @@ func (ds *DockerSource) Parse(ociRef meta.OCIImageRef) (*api.OCIImageSource, err
 }
 
 func (ds *DockerSource) Reader() (rc io.ReadCloser, err error) {
-	// Get the Docker client
-	dc, err := docker.GetDockerClient()
-	if err != nil {
-		return nil, err
-	}
-
 	// Export the image
-	rc, ds.containerID, err = dc.ExportImage(ds.imageID)
+	rc, ds.containerID, err = providers.Runtime.ExportImage(ds.imageID)
 	return
 }
 
 func (ds *DockerSource) Cleanup() (err error) {
 	if len(ds.containerID) > 0 {
-		// Get the Docker client
-		dc, err := docker.GetDockerClient()
-		if err != nil {
-			return err
-		}
-
 		// Remove the temporary container
-		err = dc.RemoveContainer(ds.containerID)
+		err = providers.Runtime.RemoveContainer(ds.containerID)
 	}
 
 	return

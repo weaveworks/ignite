@@ -5,8 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/weaveworks/ignite/pkg/runtime/docker"
-
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
@@ -215,14 +213,8 @@ func start(vm *vmmd.VM) error {
 }
 
 func stop(vm *vmmd.VM) error {
-	// Get the Docker client
-	dc, err := docker.GetDockerClient()
-	if err != nil {
-		return err
-	}
-
 	log.Printf("Stopping VM %q with name %q...", vm.GetUID(), vm.GetName())
-	return operations.StopVM(dc, vm, true, false)
+	return operations.StopVM(vm, true, false)
 }
 
 func remove(vm *vmmd.VM) error {

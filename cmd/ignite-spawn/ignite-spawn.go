@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"os"
 	"path"
 
@@ -23,6 +24,11 @@ func main() {
 
 // Run runs the main cobra command of this application
 func Run() error {
+	// Populate the providers
+	if err := providers.Populate(); err != nil {
+		return err
+	}
+
 	if len(os.Args) != 2 {
 		fmt.Printf("Usage: ignite-spawn [VM ID]")
 		os.Exit(0)

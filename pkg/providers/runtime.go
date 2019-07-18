@@ -5,9 +5,9 @@ import (
 	"github.com/weaveworks/ignite/pkg/runtime/docker"
 )
 
-var DefaultRuntime runtime.Interface
+var Runtime runtime.Interface
 
-func DefaultDockerRuntime() (err error) {
-	DefaultRuntime, err = docker.GetDockerClient()
+func SetDockerRuntime() (err error) {
+	Runtime, err = docker.GetDockerClient()
 	return
 }

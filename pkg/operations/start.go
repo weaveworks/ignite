@@ -2,6 +2,7 @@ package operations
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"io"
 	"io/ioutil"
 	"log"
@@ -14,21 +15,13 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
-	"github.com/weaveworks/ignite/pkg/network/cni"
-	"github.com/weaveworks/ignite/pkg/runtime/docker"
 	"github.com/weaveworks/ignite/pkg/util"
 	"github.com/weaveworks/ignite/pkg/version"
 )
 
 func StartVM(vm *vmmd.VM, debug bool) error {
-	// Get the Docker client
-	dc, err := docker.GetDockerClient()
-	if err != nil {
-		return err
-	}
-
 	// Make sure the VM container does not exist. Don't care about the error.
-	_ = RemoveVMContainer(dc, vm.VM)
+	_ = RemoveVMContainer(vm.VM)
 
 	// Setup the snapshot overlay filesystem
 	if err := vm.SetupSnapshot(); err != nil {
@@ -83,13 +76,15 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 	}
 
 	// Run the VM container in Docker
-	containerID, err := dc.RunContainer(igniteImage, config, util.NewPrefixer().Prefix(vm.GetUID()))
+	containerID, err := providers.Runtime.RunContainer(igniteImage, config, util.NewPrefixer().Prefix(vm.GetUID()))
 	if err != nil {
 		return fmt.Errorf("failed to start container for VM %q: %v", vm.GetUID(), err)
 	}
 
 	if vm.Spec.Network.Mode == api.NetworkModeCNI {
-		if err := setupCNINetworking(containerID); err != nil {
+		// TODO: Right now IP addresses aren't reclaimed when the VM is removed.
+		// NetworkPlugin.RemoveContainerNetwork needs to be called when removing the VM.
+		if err := providers.NetworkPlugin.SetupContainerNetwork(containerID); err != nil {
 			return err
 		}
 
@@ -104,33 +99,10 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 	return waitForSpawn(vm)
 }
 
-func setupCNINetworking(containerID string) error {
-	// TODO: Both the client and networkPlugin variables should be constructed once,
-	// and accessible throughout the program.
-	// TODO: Right now IP addresses aren't reclaimed when the VM is removed.
-	// networkPlugin.RemoveContainerNetwork need to be called when removing the VM.
-	client, err := docker.GetDockerClient()
-	if err != nil {
-		return err
-	}
-
-	networkPlugin, err := cni.GetCNINetworkPlugin(client)
-	if err != nil {
-		return err
-	}
-
-	return networkPlugin.SetupContainerNetwork(containerID)
-}
-
 func verifyPulled(image string) error {
-	client, err := docker.GetDockerClient()
-	if err != nil {
-		return err
-	}
-
-	if _, err = client.InspectImage(image); err != nil {
+	if _, err := providers.Runtime.InspectImage(image); err != nil {
 		log.Printf("Pulling image %q...", image)
-		rc, err := client.PullImage(image)
+		rc, err := providers.Runtime.PullImage(image)
 		if err != nil {
 			return err
 		}
@@ -145,7 +117,7 @@ func verifyPulled(image string) error {
 		}
 
 		// Verify the image was pulled
-		if _, err = client.InspectImage(image); err != nil {
+		if _, err = providers.Runtime.InspectImage(image); err != nil {
 			return err
 		}
 	}

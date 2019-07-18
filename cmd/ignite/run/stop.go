@@ -3,8 +3,6 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/pkg/runtime/docker"
-
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
 )
@@ -25,12 +23,6 @@ func (sf *StopFlags) NewStopOptions(vmMatches []string) (so *stopOptions, err er
 }
 
 func Stop(so *stopOptions) error {
-	// Get the Docker client
-	dc, err := docker.GetDockerClient()
-	if err != nil {
-		return err
-	}
-
 	for _, vm := range so.vms {
 		// Check if the VM is running
 		if !vm.Running() {
@@ -38,7 +30,7 @@ func Stop(so *stopOptions) error {
 		}
 
 		// Stop the VM, and optionally kill it
-		if err := operations.StopVM(dc, vm, so.Kill, false); err != nil {
+		if err := operations.StopVM(vm, so.Kill, false); err != nil {
 			return err
 		}
 	}
