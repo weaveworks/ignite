@@ -5,8 +5,9 @@ import (
 	"path"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -47,7 +48,10 @@ func NewVM(obj *api.VM, c *client.Client) (*VM, error) {
 		return nil, err
 	}
 
-	// TODO: Validate the API object here
+	// Validate the VM object
+	if err := validation.ValidateVM(obj).ToAggregate(); err != nil {
+		return nil, err
+	}
 
 	// Construct the runtime object
 	vm := &VM{

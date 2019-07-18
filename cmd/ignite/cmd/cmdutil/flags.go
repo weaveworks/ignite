@@ -119,11 +119,7 @@ type NetworkModeFlag struct {
 }
 
 func (nf *NetworkModeFlag) Set(val string) error {
-	nm := api.NetworkMode(val)
-	if err := api.ValidateNetworkMode(nm); err != nil {
-		return err
-	}
-	*nf.value = nm
+	*nf.value = api.NetworkMode(val)
 	return nil
 }
 
