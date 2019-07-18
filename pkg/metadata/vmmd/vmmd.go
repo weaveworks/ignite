@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/providers"
-
 	log "github.com/sirupsen/logrus"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 type VM struct {
@@ -33,7 +33,7 @@ var _ metadata.Metadata = &VM{}
 // data coming from storage.
 func WrapVM(obj *api.VM) *VM {
 	// Run the object through defaulting, just to be sure it has all the values
-	scheme.Scheme.Default(obj)
+	scheme.Serializer.DefaultInternal(obj)
 
 	vm := &VM{
 		VM: obj,
@@ -49,7 +49,10 @@ func NewVM(obj *api.VM, c *client.Client) (*VM, error) {
 		return nil, err
 	}
 
-	// TODO: Validate the API object here
+	// Validate the VM object
+	if err := validation.ValidateVM(obj).ToAggregate(); err != nil {
+		return nil, err
+	}
 
 	// Construct the runtime object
 	vm := &VM{

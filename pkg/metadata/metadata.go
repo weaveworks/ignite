@@ -7,14 +7,13 @@ import (
 	"path"
 	"regexp"
 
-	"github.com/weaveworks/ignite/pkg/providers"
-
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/filter"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/storage/filterer"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -42,7 +41,7 @@ func InitObject(obj meta.Object, c *client.Client) error {
 	}
 
 	// Default the object
-	scheme.Scheme.Default(obj)
+	scheme.Serializer.DefaultInternal(obj)
 
 	// Generate or validate the given UID, if any
 	if err := processUID(obj, c); err != nil {

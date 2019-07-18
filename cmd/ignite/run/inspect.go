@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/weaveworks/ignite/pkg/providers"
-
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/filter"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 type InspectFlags struct {

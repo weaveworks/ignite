@@ -3,13 +3,12 @@ package kernmd
 import (
 	"path"
 
-	"github.com/weaveworks/ignite/pkg/providers"
-
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 type Kernel struct {
@@ -25,7 +24,7 @@ var _ metadata.Metadata = &Kernel{}
 // data coming from storage.
 func WrapKernel(obj *api.Kernel) *Kernel {
 	// Run the object through defaulting, just to be sure it has all the values
-	scheme.Scheme.Default(obj)
+	scheme.Serializer.DefaultInternal(obj)
 
 	return &Kernel{
 		Kernel: obj,

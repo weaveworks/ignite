@@ -14,13 +14,15 @@ ifeq ($(WHAT),)
 endif
 	@ls ${WHAT} >/dev/null
 	docker build --build-arg RELEASE -t ${DOCKER_USER}/ignite-${WHAT}:${TAG} ${WHAT}
+	docker tag ${DOCKER_USER}/ignite-${WHAT}:${TAG} ${DOCKER_USER}/ignite-${WHAT}:${RELEASE}
+ifeq ($(IS_LATEST),true)
+	docker tag ${DOCKER_USER}/ignite-${WHAT}:${TAG} ${DOCKER_USER}/ignite-${WHAT}:latest
+endif
 
 push:
 	docker push ${DOCKER_USER}/ignite-${WHAT}:${TAG}
-	docker tag ${DOCKER_USER}/ignite-${WHAT}:${TAG} ${DOCKER_USER}/ignite-${WHAT}:${RELEASE}
 	docker push ${DOCKER_USER}/ignite-${WHAT}:${RELEASE}
 ifeq ($(IS_LATEST),true)
-	docker tag ${DOCKER_USER}/ignite-${WHAT}:${TAG} ${DOCKER_USER}/ignite-${WHAT}:latest
 	docker push ${DOCKER_USER}/ignite-${WHAT}:latest
 endif
 

@@ -5,16 +5,15 @@ import (
 	"path"
 	"strings"
 
-	"github.com/weaveworks/ignite/pkg/providers"
-
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 func NewCreateFlags() *CreateFlags {
@@ -22,7 +21,7 @@ func NewCreateFlags() *CreateFlags {
 		VM: &api.VM{},
 	}
 
-	scheme.Scheme.Default(cf.VM)
+	scheme.Serializer.DefaultInternal(cf.VM)
 
 	return cf
 }
@@ -97,8 +96,8 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 
 	co := &createOptions{CreateFlags: cf}
 
-	var err error
 	// Get the image, or import it if it doesn't exist
+	var err error
 	co.image, err = operations.FindOrImportImage(providers.Client, cf.VM.Spec.Image.OCIClaim.Ref)
 	if err != nil {
 		return nil, err

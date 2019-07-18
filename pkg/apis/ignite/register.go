@@ -1,4 +1,4 @@
-package v1alpha1
+package ignite
 
 import (
 	"k8s.io/apimachinery/pkg/runtime"
@@ -9,7 +9,6 @@ var (
 	// SchemeBuilder the schema builder
 	SchemeBuilder = runtime.NewSchemeBuilder(
 		addKnownTypes,
-		addDefaultingFuncs,
 	)
 
 	localSchemeBuilder = &SchemeBuilder
@@ -24,7 +23,7 @@ const (
 // SchemeGroupVersion is group version used to register these objects
 var SchemeGroupVersion = schema.GroupVersion{
 	Group:   GroupName,
-	Version: "v1alpha1",
+	Version: runtime.APIVersionInternal,
 }
 
 // Adds the list of known types to the given scheme.

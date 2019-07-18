@@ -7,10 +7,9 @@ import (
 	"log"
 	"os/exec"
 
-	"github.com/weaveworks/ignite/pkg/providers"
-
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 // TODO: Make this a generic "OCISource" as it now only depends on the generic providers.Runtime

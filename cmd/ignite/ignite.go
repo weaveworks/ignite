@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/weaveworks/ignite/pkg/providers"
-
 	"github.com/weaveworks/ignite/cmd/ignite/cmd"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 func main() {

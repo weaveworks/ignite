@@ -163,7 +163,7 @@ See the [FAQ.md](FAQ.md) document.
 Want to know how Ignite really works under the hood?
 Check out this [TGIK](https://github.com/heptio/tgik) session from [Joe Beda](https://twitter.com/jbeda) about it:
 
-[[![TGIK 082](https://img.youtube.com/vi/aq-wlslJ5MQ/0.jpg)]](https://youtu.be/aq-wlslJ5MQ)
+[![TGIK 082](https://img.youtube.com/vi/aq-wlslJ5MQ/0.jpg)](https://youtu.be/aq-wlslJ5MQ)
 
 ### Base images and kernels
 

@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/weaveworks/ignite/pkg/providers"
-
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 type RmiFlags struct {

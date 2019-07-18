@@ -6,11 +6,10 @@ import (
 	"io"
 	"time"
 
-	"github.com/docker/go-connections/nat"
-
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 	"github.com/weaveworks/ignite/pkg/runtime"
 )
 

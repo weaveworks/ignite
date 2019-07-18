@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/weaveworks/ignite/pkg/providers"
-
 	"github.com/weaveworks/ignite/pkg/logs"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 // TODO: Get rid of this

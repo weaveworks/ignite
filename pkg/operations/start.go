@@ -9,13 +9,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/weaveworks/ignite/pkg/providers"
-
-	"github.com/weaveworks/ignite/pkg/runtime"
-
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/util"
 	"github.com/weaveworks/ignite/pkg/version"
 )

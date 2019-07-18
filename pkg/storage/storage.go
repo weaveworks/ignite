@@ -6,7 +6,6 @@ import (
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage/serializer"
-
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
@@ -72,17 +71,18 @@ func (s *GenericStorage) GetByID(kind meta.Kind, uid meta.UID) (meta.Object, err
 		return nil, err
 	}
 
-	obj, err := s.serializer.Decode(content)
+	// Decode the bytes to the internal version of the object
+	internalobj, err := s.serializer.Decode(content, true)
 	if err != nil {
 		return nil, err
 	}
 
-	igniteObj, ok := obj.(meta.Object)
+	obj, ok := internalobj.(meta.Object)
 	if !ok {
-		return nil, fmt.Errorf("cannot convert ignite Object")
+		return nil, fmt.Errorf("cannot convert to ignite Object")
 	}
 
-	return igniteObj, nil
+	return obj, nil
 }
 
 // Set saves the Object to disk
@@ -110,12 +110,13 @@ func (s *GenericStorage) Delete(kind meta.Kind, uid meta.UID) error {
 func (s *GenericStorage) List(kind meta.Kind) ([]meta.Object, error) {
 	result := []meta.Object{} // TODO: Fix these initializations
 	err := s.walkKind(kind, func(content []byte) error {
-		runtimeobj, err := s.serializer.Decode(content)
+		// Decode the bytes to the internal version of the object
+		internalobj, err := s.serializer.Decode(content, true)
 		if err != nil {
 			return err
 		}
 
-		obj, ok := runtimeobj.(meta.Object)
+		obj, ok := internalobj.(meta.Object)
 		if !ok {
 			return fmt.Errorf("can't convert to ignite object")
 		}
@@ -206,8 +207,8 @@ func (s *GenericStorage) gvkFromObj(obj runtime.Object) (*schema.GroupVersionKin
 		return nil, fmt.Errorf("unversioned")
 	}
 
-	if len(gvks) == 0 {
-		return nil, fmt.Errorf("unexpected gvks")
+	if len(gvks) != 1 {
+		return nil, fmt.Errorf("unexpected gvks %v", gvks)
 	}
 
 	return &gvks[0], nil

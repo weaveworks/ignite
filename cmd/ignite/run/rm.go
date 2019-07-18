@@ -3,10 +3,9 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/pkg/providers"
-
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 type RmFlags struct {
