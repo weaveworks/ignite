@@ -92,10 +92,7 @@ func (s *GenericStorage) Get(gvk schema.GroupVersionKind, uid meta.UID) (meta.Ob
 	if err != nil {
 		return nil, err
 	}
-
-	// Decode the bytes to the internal version of the object, if desired
-	isInternal := gvk.Version == runtime.APIVersionInternal
-	return s.decode(content, isInternal)
+	return s.decode(content, gvk)
 }
 
 // Set saves the Object to disk
@@ -118,8 +115,7 @@ func (s *GenericStorage) Delete(gvk schema.GroupVersionKind, uid meta.UID) error
 // List lists objects for the specific kind
 func (s *GenericStorage) List(gvk schema.GroupVersionKind) (result []meta.Object, walkerr error) {
 	walkerr = s.walkKind(gvk, func(content []byte) error {
-		isInternal := gvk.Version == runtime.APIVersionInternal
-		obj, err := s.decode(content, isInternal)
+		obj, err := s.decode(content, gvk)
 		if err != nil {
 			return err
 		}
@@ -159,9 +155,11 @@ func (s *GenericStorage) Count(gvk schema.GroupVersionKind) (uint64, error) {
 	return uint64(len(entries)), err
 }
 
-func (s *GenericStorage) decode(content []byte, internal bool) (meta.Object, error) {
-	// Decode the bytes to the internal version of the object
-	obj, err := s.serializer.Decode(content, internal)
+func (s *GenericStorage) decode(content []byte, gvk schema.GroupVersionKind) (meta.Object, error) {
+	// Decode the bytes to the internal version of the object, if desired
+	isInternal := gvk.Version == runtime.APIVersionInternal
+	// Decode the bytes into an object
+	obj, err := s.serializer.Decode(content, isInternal)
 	if err != nil {
 		return nil, err
 	}
@@ -170,6 +168,8 @@ func (s *GenericStorage) decode(content []byte, internal bool) (meta.Object, err
 	if !ok {
 		return nil, fmt.Errorf("can't convert to ignite object")
 	}
+	// Set the desired gvk from the caller of this object
+	metaObj.SetGroupVersionKind(gvk)
 	return metaObj, nil
 }
 
