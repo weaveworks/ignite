@@ -5,9 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/weaveworks/ignite/pkg/util"
-
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type blockDevice interface {

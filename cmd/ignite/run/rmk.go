@@ -6,9 +6,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 type RmkFlags struct {
@@ -25,7 +25,7 @@ func (rf *RmkFlags) NewRmkOptions(kernelMatches []string) (*rmkOptions, error) {
 	ro := &rmkOptions{RmkFlags: rf}
 
 	for _, match := range kernelMatches {
-		if kernel, err := client.Kernels().Find(filter.NewIDNameFilter(match)); err == nil {
+		if kernel, err := providers.Client.Kernels().Find(filter.NewIDNameFilter(match)); err == nil {
 			ro.kernels = append(ro.kernels, kernel)
 		} else {
 			return nil, err
@@ -44,7 +44,7 @@ func (rf *RmkFlags) NewRmkOptions(kernelMatches []string) (*rmkOptions, error) {
 func Rmk(ro *rmkOptions) error {
 	for _, kernel := range ro.kernels {
 		for _, vm := range ro.allVMs {
-			kernelUID, err := lookup.KernelUIDForVM(vm, client.DefaultClient)
+			kernelUID, err := lookup.KernelUIDForVM(vm, providers.Client)
 			if err != nil {
 				log.Warnf("Could not lookup kernel UID for VM %q: %v", vm.GetUID(), err)
 				continue

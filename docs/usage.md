@@ -28,7 +28,7 @@ Here's a [demo](https://www.youtube.com/watch?v=s_O75zt-oBg) that shows the topi
 
 Alternatively, you might want to check out the [TGIK](https://github.com/heptio/tgik) deep-dive session from [Joe Beda](https://twitter.com/jbeda) on what Ignite is and how it works:
 
-[[![TGIK 082](https://img.youtube.com/vi/aq-wlslJ5MQ/0.jpg)]](https://youtu.be/aq-wlslJ5MQ)
+[![TGIK 082](https://img.youtube.com/vi/aq-wlslJ5MQ/0.jpg)](https://youtu.be/aq-wlslJ5MQ)
 
 ### Importing a VM base image
 

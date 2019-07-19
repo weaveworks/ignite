@@ -48,11 +48,6 @@ func (c *IgniteInternalClient) Kernels() KernelClient {
 	return c.kernelClient
 }
 
-// Kernels is a shorthand for accessing Kernels using the default client
-func Kernels() KernelClient {
-	return DefaultClient.Kernels()
-}
-
 // kernelClient is a struct implementing the KernelClient interface
 // It uses a shared storage instance passed from the Client together with its own Filterer
 type kernelClient struct {

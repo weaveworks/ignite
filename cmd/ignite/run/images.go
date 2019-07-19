@@ -2,8 +2,8 @@ package run
 
 import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -13,7 +13,7 @@ type imagesOptions struct {
 
 func NewImagesOptions() (io *imagesOptions, err error) {
 	io = &imagesOptions{}
-	io.allImages, err = client.Images().FindAll(filter.NewAllFilter())
+	io.allImages, err = providers.Client.Images().FindAll(filter.NewAllFilter())
 	return
 }
 

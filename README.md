@@ -28,7 +28,7 @@ execute **`ignite run`** instead of **`docker run`**.  There’s no need to use 
 `.vdi`, `.vmdk`, or `.qcow2` images, just do a `docker build` from any base image you want
 (e.g. `ubuntu:18.04` from Docker Hub), and add your preferred contents.
 
-When you run your OCI image using `ignite run`, Firecracker will boot a new VM in c.125 milliseconds (!) for you, using a default 4.19 linux kernel. If you want to use some other kernel, just specify the --kernel flag, pointing to another OCI image containing a kernel at /boot/vmlinux, and optionally your preferred modules. Next, the kernel executes /sbin/init in the VM, and it all starts up.  After this, Ignite connects the VMs to any CNI network, integrating with e.g. Weave Net.
+When you run your OCI image using `ignite run`, Firecracker will boot a new VM in c.125 milliseconds (!) for you, using a default 4.19 linux kernel. If you want to use some other kernel, just specify the `--kernel-image` flag, pointing to another OCI image containing a kernel at /boot/vmlinux, and optionally your preferred modules. Next, the kernel executes /sbin/init in the VM, and it all starts up.  After this, Ignite connects the VMs to any CNI network, integrating with e.g. Weave Net.
 
 Ignite is a declarative Firecracker microVM administration tool, like Docker manages
 runC containers.

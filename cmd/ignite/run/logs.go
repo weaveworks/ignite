@@ -2,9 +2,10 @@ package run
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -24,18 +25,19 @@ func Logs(lo *logsOptions) error {
 		return fmt.Errorf("VM %q is not running", lo.vm.GetUID())
 	}
 
-	dockerArgs := []string{
-		"logs",
-		constants.IGNITE_PREFIX + lo.vm.GetUID().String(),
-	}
-
-	// Fetch the VM logs from docker
-	output, err := util.ExecuteCommand("docker", dockerArgs...)
+	// Fetch the VM logs
+	rc, err := providers.Runtime.ContainerLogs(util.NewPrefixer().Prefix(lo.vm.GetUID()))
 	if err != nil {
 		return fmt.Errorf("failed to get logs for VM %q: %v", lo.vm.GetUID(), err)
 	}
 
-	// Print the ID and the VM logs
-	fmt.Println(output)
+	// Read the stream to a byte buffer
+	b, err := ioutil.ReadAll(rc)
+	if err != nil {
+		return err
+	}
+
+	// Print the logs
+	fmt.Printf("%s\n", b)
 	return nil
 }

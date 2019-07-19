@@ -48,11 +48,6 @@ func (c *IgniteInternalClient) Images() ImageClient {
 	return c.imageClient
 }
 
-// Images is a shorthand for accessing Images using the default client
-func Images() ImageClient {
-	return DefaultClient.Images()
-}
-
 // imageClient is a struct implementing the ImageClient interface
 // It uses a shared storage instance passed from the Client together with its own Filterer
 type imageClient struct {

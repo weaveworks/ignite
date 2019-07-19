@@ -84,6 +84,3 @@ type IgniteInternalClient struct {
 	imageClient    ImageClient
 	dynamicClients map[schema.GroupVersionKind]DynamicClient
 }
-
-// DefaultClient is the default client that can be easily used
-var DefaultClient = NewClient(storage.DefaultStorage)

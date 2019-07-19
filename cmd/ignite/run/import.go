@@ -3,9 +3,9 @@ package run
 import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/operations"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 func ImportImage(source string) (*api.Image, error) {
@@ -14,7 +14,7 @@ func ImportImage(source string) (*api.Image, error) {
 		return nil, err
 	}
 
-	image, err := operations.FindOrImportImage(client.DefaultClient, ociRef)
+	image, err := operations.FindOrImportImage(providers.Client, ociRef)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func ImportKernel(source string) (*api.Kernel, error) {
 		return nil, err
 	}
 
-	kernel, err := operations.FindOrImportKernel(client.DefaultClient, ociRef)
+	kernel, err := operations.FindOrImportKernel(providers.Client, ociRef)
 	if err != nil {
 		return nil, err
 	}

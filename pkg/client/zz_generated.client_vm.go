@@ -48,11 +48,6 @@ func (c *IgniteInternalClient) VMs() VMClient {
 	return c.vmClient
 }
 
-// VMs is a shorthand for accessing VMs using the default client
-func VMs() VMClient {
-	return DefaultClient.VMs()
-}
-
 // vmClient is a struct implementing the VMClient interface
 // It uses a shared storage instance passed from the Client together with its own Filterer
 type vmClient struct {

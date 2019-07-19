@@ -137,9 +137,15 @@ func NewPrefixer() *Prefixer {
 	}
 }
 
-func (p *Prefixer) Prefix(input ...string) string {
+func (p *Prefixer) Prefix(input ...interface{}) string {
 	if len(input) > 0 {
-		p.prefix += p.separator + strings.Join(input, p.separator)
+		s := make([]string, 0, len(input))
+
+		for _, data := range input {
+			s = append(s, fmt.Sprintf("%v", data))
+		}
+
+		p.prefix += p.separator + strings.Join(s, p.separator)
 	}
 
 	return p.prefix

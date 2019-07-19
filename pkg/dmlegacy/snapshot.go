@@ -6,9 +6,9 @@ import (
 	"path"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -23,7 +23,7 @@ func ActivateSnapshot(vm *api.VM) error {
 	}
 
 	// Get the image UID from the VM
-	imageUID, err := lookup.ImageUIDForVM(vm, client.DefaultClient)
+	imageUID, err := lookup.ImageUIDForVM(vm, providers.Client)
 	if err != nil {
 		return err
 	}

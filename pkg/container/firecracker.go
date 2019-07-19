@@ -12,9 +12,9 @@ import (
 	"github.com/firecracker-microvm/firecracker-go-sdk"
 	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 // ExecuteFirecracker executes the firecracker process using the Go SDK
@@ -38,7 +38,7 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 		cvmLine = constants.VM_DEFAULT_KERNEL_ARGS
 	}
 
-	kernelUID, err := lookup.KernelUIDForVM(vm, client.DefaultClient)
+	kernelUID, err := lookup.KernelUIDForVM(vm, providers.Client)
 	if err != nil {
 		return err
 	}

@@ -6,9 +6,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 type RmiFlags struct {
@@ -25,7 +25,7 @@ func (rf *RmiFlags) NewRmiOptions(imageMatches []string) (*rmiOptions, error) {
 	ro := &rmiOptions{RmiFlags: rf}
 
 	for _, match := range imageMatches {
-		if image, err := client.Images().Find(filter.NewIDNameFilter(match)); err == nil {
+		if image, err := providers.Client.Images().Find(filter.NewIDNameFilter(match)); err == nil {
 			ro.images = append(ro.images, image)
 		} else {
 			return nil, err
@@ -44,7 +44,7 @@ func (rf *RmiFlags) NewRmiOptions(imageMatches []string) (*rmiOptions, error) {
 func Rmi(ro *rmiOptions) error {
 	for _, image := range ro.images {
 		for _, vm := range ro.allVMs {
-			imageUID, err := lookup.ImageUIDForVM(vm, client.DefaultClient)
+			imageUID, err := lookup.ImageUIDForVM(vm, providers.Client)
 			if err != nil {
 				log.Warnf("Could not lookup image UID for VM %q: %v", vm.GetUID(), err)
 				continue

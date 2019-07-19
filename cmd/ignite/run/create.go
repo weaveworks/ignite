@@ -9,15 +9,15 @@ import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/operations"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 func NewCreateFlags() *CreateFlags {
 	return &CreateFlags{
-		VM: client.VMs().New(),
+		VM: providers.Client.VMs().New(),
 	}
 }
 
@@ -92,7 +92,7 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 
 	// Get the image, or import it if it doesn't exist
 	var err error
-	co.image, err = operations.FindOrImportImage(client.DefaultClient, cf.VM.Spec.Image.OCIClaim.Ref)
+	co.image, err = operations.FindOrImportImage(providers.Client, cf.VM.Spec.Image.OCIClaim.Ref)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 	cf.VM.SetImage(co.image)
 
 	// Get the kernel, or import it if it doesn't exist
-	co.kernel, err = operations.FindOrImportKernel(client.DefaultClient, cf.VM.Spec.Kernel.OCIClaim.Ref)
+	co.kernel, err = operations.FindOrImportKernel(providers.Client, cf.VM.Spec.Kernel.OCIClaim.Ref)
 	if err != nil {
 		return nil, err
 	}
@@ -113,12 +113,12 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 
 func Create(co *createOptions) error {
 	// Generate a random UID and Name
-	if err := metadata.SetNameAndUID(co.VM, client.DefaultClient); err != nil {
+	if err := metadata.SetNameAndUID(co.VM, providers.Client); err != nil {
 		return err
 	}
 	defer metadata.Cleanup(co.VM, false) // TODO: Handle silent
 
-	if err := client.DefaultClient.VMs().Set(co.VM); err != nil {
+	if err := providers.Client.VMs().Set(co.VM); err != nil {
 		return err
 	}
 

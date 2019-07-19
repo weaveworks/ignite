@@ -49,11 +49,6 @@ func (c *IgniteInternalClient) Resources() ResourceClient {
 	return c.resourceClient
 }
 
-// Resources is a shorthand for accessing Resources using the default client
-func Resources() ResourceClient {
-	return DefaultClient.Resources()
-}
-
 // resourceClient is a struct implementing the ResourceClient interface
 // It uses a shared storage instance passed from the Client together with its own Filterer
 type resourceClient struct {

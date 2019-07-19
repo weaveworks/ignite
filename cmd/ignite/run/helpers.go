@@ -2,13 +2,13 @@ package run
 
 import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 // TODO: This
 func getVMForMatch(vmMatch string) (*api.VM, error) {
-	return client.VMs().Find(filter.NewIDNameFilter(vmMatch))
+	return providers.Client.VMs().Find(filter.NewIDNameFilter(vmMatch))
 }
 
 // TODO: This
@@ -25,5 +25,5 @@ func getVMsForMatches(vmMatches []string) ([]*api.VM, error) {
 }
 
 func getAllVMs() ([]*api.VM, error) {
-	return client.VMs().FindAll(filter.NewAllFilter())
+	return providers.Client.VMs().FindAll(filter.NewAllFilter())
 }

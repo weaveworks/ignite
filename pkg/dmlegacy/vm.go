@@ -13,9 +13,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -43,7 +43,7 @@ func AllocateAndPopulateOverlay(vm *api.VM) error {
 	}
 
 	// Get the image UID from the VM
-	imageUID, err := lookup.ImageUIDForVM(vm, client.DefaultClient)
+	imageUID, err := lookup.ImageUIDForVM(vm, providers.Client)
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func copyToOverlay(vm *api.VM) error {
 }
 
 func copyKernelToOverlay(vm *api.VM, mountPoint string) error {
-	kernelUID, err := lookup.KernelUIDForVM(vm, client.DefaultClient)
+	kernelUID, err := lookup.KernelUIDForVM(vm, providers.Client)
 	if err != nil {
 		return err
 	}

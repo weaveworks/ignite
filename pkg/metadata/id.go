@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/logs"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 // TODO: Get rid of this
@@ -21,7 +21,8 @@ func Cleanup(md Metadata, silent bool) error {
 		} else if !silent {
 			fmt.Println(md.GetUID())
 		}
-		return client.Dynamic(md.GetKind()).Delete(md.GetUID())
+
+		return providers.Client.Dynamic(md.GetKind()).Delete(md.GetUID())
 	}
 
 	if !logs.Quiet {
