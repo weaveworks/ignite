@@ -42,7 +42,8 @@ func StartDHCPServers(vm *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 		// Add the DNS servers from the container
 		dhcpIface.SetDNSServers(clientConfig.Servers)
 
-		vm.AddIPAddress(dhcpIface.VMIPNet.IP)
+		// Register what IP address this VM has in the API object
+		vm.Status.IPAddresses = append(vm.Status.IPAddresses, dhcpIface.VMIPNet.IP)
 
 		go func() {
 			log.Infof("Starting DHCP server for interface %s (%s)\n", dhcpIface.Bridge, dhcpIface.VMIPNet.IP)

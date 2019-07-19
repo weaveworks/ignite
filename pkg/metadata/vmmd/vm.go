@@ -164,20 +164,8 @@ func (md *VM) writeEtcHosts(tmpDir, hostname string, primaryIP net.IP) error {
 	return ioutil.WriteFile(hostFilePath, content, 0644)
 }
 
-func (md *VM) Running() bool {
-	return md.Status.State == api.VMStateRunning
-}
-
 func (md *VM) OverlayFile() string {
 	return path.Join(md.ObjectPath(), constants.OVERLAY_FILE)
-}
-
-func (md *VM) AddIPAddress(address net.IP) {
-	md.Status.IPAddresses = append(md.Status.IPAddresses, address)
-}
-
-func (md *VM) ClearIPAddresses() {
-	md.Status.IPAddresses = nil
 }
 
 // Generate a new SSH keypair for the vm

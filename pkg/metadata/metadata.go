@@ -23,7 +23,6 @@ var (
 
 type Metadata interface {
 	meta.Object
-	ObjectPath() string
 }
 
 // InitObject shall be run in all New{Kind} methods. This method should be

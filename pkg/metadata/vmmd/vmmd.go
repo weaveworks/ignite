@@ -2,14 +2,12 @@ package vmmd
 
 import (
 	"fmt"
-	"path"
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
-	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
@@ -114,9 +112,4 @@ func (vm *VM) GetKernelUID() meta.UID {
 	}
 
 	return vm.kernelUID
-}
-
-func (vm *VM) ObjectPath() string {
-	// TODO: Move this into storage
-	return path.Join(constants.DATA_DIR, vm.GetKind().Lower(), vm.GetUID().String())
 }

@@ -1,11 +1,8 @@
 package kernmd
 
 import (
-	"path"
-
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/client"
-	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
@@ -42,9 +39,4 @@ func NewKernel(obj *api.Kernel, c *client.Client) (*Kernel, error) {
 	}
 
 	return kernel, nil
-}
-
-func (k *Kernel) ObjectPath() string {
-	// TODO: Move this into storage
-	return path.Join(constants.DATA_DIR, k.GetKind().Lower(), k.GetUID().String())
 }

@@ -1,11 +1,8 @@
 package imgmd
 
 import (
-	"path"
-
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/client"
-	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
 )
 
@@ -41,9 +38,4 @@ func NewImage(obj *api.Image, c *client.Client) (*Image, error) {
 		c:     c,
 	}
 	return md, nil
-}
-
-func (img *Image) ObjectPath() string {
-	// TODO: Move this into storage
-	return path.Join(constants.DATA_DIR, img.GetKind().Lower(), img.GetUID().String())
 }
