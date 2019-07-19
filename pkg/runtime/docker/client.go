@@ -3,7 +3,6 @@ package docker
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/util"
 	"io"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/weaveworks/ignite/pkg/runtime"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 const (
