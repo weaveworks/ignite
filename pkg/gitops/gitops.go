@@ -12,7 +12,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/operations"
-	"github.com/weaveworks/ignite/pkg/storage"
+	"github.com/weaveworks/ignite/pkg/storage/cache"
 	"github.com/weaveworks/ignite/pkg/storage/gitops"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -29,7 +29,7 @@ func RunLoop(url, branch string) error {
 
 	s := gitops.NewGitOpsStorage(url, branch)
 	// Wrap the GitOps storage with a cache for better performance
-	c = client.NewClient(storage.NewCache(s))
+	c = client.NewClient(cache.NewCache(s))
 
 	for {
 		if !s.Ready() {

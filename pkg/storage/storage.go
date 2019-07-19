@@ -18,6 +18,8 @@ type Storage interface {
 	New(gvk schema.GroupVersionKind) (meta.Object, error)
 	// Get returns a new Object for the resource at the specified kind/uid path, based on the file content
 	Get(gvk schema.GroupVersionKind, uid meta.UID) (meta.Object, error)
+	// GetMeta returns a new Object's APIType representation for the resource at the specified kind/uid path
+	GetMeta(gvk schema.GroupVersionKind, uid meta.UID) (meta.Object, error)
 	// Set saves the Object to disk. If the Object does not exist, the
 	// ObjectMeta.Created field is set automatically
 	Set(gvk schema.GroupVersionKind, obj meta.Object) error
@@ -91,7 +93,20 @@ func (s *GenericStorage) Get(gvk schema.GroupVersionKind, uid meta.UID) (meta.Ob
 	if err != nil {
 		return nil, err
 	}
+
 	return s.decode(content, gvk)
+}
+
+// TODO: Verify this works
+// GetMeta returns a new Object's APIType representation for the resource at the specified kind/uid path
+func (s *GenericStorage) GetMeta(gvk schema.GroupVersionKind, uid meta.UID) (meta.Object, error) {
+	storageKey := KeyForUID(gvk, uid)
+	content, err := s.raw.Read(storageKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.decodeMeta(content, gvk)
 }
 
 // Set saves the Object to disk
@@ -162,19 +177,36 @@ func (s *GenericStorage) Checksum(gvk schema.GroupVersionKind, uid meta.UID) (st
 func (s *GenericStorage) decode(content []byte, gvk schema.GroupVersionKind) (meta.Object, error) {
 	// Decode the bytes to the internal version of the Object, if desired
 	isInternal := gvk.Version == runtime.APIVersionInternal
+
 	// Decode the bytes into an Object
 	obj, err := s.serializer.Decode(content, isInternal)
 	if err != nil {
 		return nil, err
 	}
+
 	// Cast to meta.Object, and make sure it works
 	metaObj, ok := obj.(meta.Object)
 	if !ok {
 		return nil, fmt.Errorf("can't convert to ignite object")
 	}
-	// Set the desired gvk from the caller of this Object
+
+	// Set the desired gvk of this Object from the caller
 	metaObj.SetGroupVersionKind(gvk)
 	return metaObj, nil
+}
+
+func (s *GenericStorage) decodeMeta(content []byte, gvk schema.GroupVersionKind) (meta.Object, error) {
+	// Create a new APType object
+	obj := meta.NewAPIType()
+
+	// Decode the bytes into the APIType object
+	if err := s.serializer.DecodeInto(content, obj); err != nil {
+		return nil, err
+	}
+
+	// Set the desired gvk of this APIType object from the caller
+	obj.SetGroupVersionKind(gvk)
+	return obj, nil
 }
 
 func (s *GenericStorage) walkKind(gvk schema.GroupVersionKind, fn func(content []byte) error) error {
