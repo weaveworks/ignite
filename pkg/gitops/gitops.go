@@ -7,6 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
@@ -68,6 +69,13 @@ func RunLoop(url, branch string) error {
 					Status: api.VMStatus{
 						State: api.VMStateStopped,
 					},
+				}
+			} else {
+				// If the object was existent in the storage; validate it
+				// Validate the VM object
+				if err := validation.ValidateVM(vm).ToAggregate(); err != nil {
+					log.Warn("Skipping %s of %s with UID %s, VM not valid %v.", file.Type, file.APIType.GetKind(), file.APIType.GetUID(), err)
+					continue
 				}
 			}
 
@@ -175,10 +183,6 @@ func create(vm *vmmd.VM) error {
 
 // ensureOCIImages imports the base/kernel OCI images if needed
 func ensureOCIImages(vm *vmmd.VM) error {
-	if vm.Spec.Image.OCIClaim.Ref.IsUnset() {
-		return fmt.Errorf("vm must specify image ref to run! image is empty for vm %s", vm.GetUID())
-	}
-
 	// Check if a image with this name already exists, or import it
 	runImg, err := operations.FindOrImportImage(c, vm.Spec.Image.OCIClaim.Ref)
 	if err != nil {

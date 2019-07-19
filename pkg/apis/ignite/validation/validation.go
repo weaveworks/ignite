@@ -5,6 +5,7 @@ import (
 	"path"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
@@ -23,6 +24,16 @@ func ValidateVM(obj *api.VM) (allErrs field.ErrorList) {
 // ValidateOCIImageClaim validates an OCI image claim
 func ValidateOCIImageClaim(c *api.OCIImageClaim, fldPath *field.Path) (allErrs field.ErrorList) {
 	allErrs = append(allErrs, ValidateImageSourceType(c.Type, fldPath.Child("type"))...)
+	allErrs = append(allErrs, RequireOCIImageRef(&c.Ref, fldPath.Child("ref"))...)
+
+	return
+}
+
+// RequireOCIImageRef
+func RequireOCIImageRef(ref *meta.OCIImageRef, fldPath *field.Path) (allErrs field.ErrorList) {
+	if ref.IsUnset() {
+		allErrs = append(allErrs, field.Required(fldPath, "ociRef is mandatory"))
+	}
 	return
 }
 

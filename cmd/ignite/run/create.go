@@ -7,6 +7,7 @@ import (
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
@@ -86,9 +87,9 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 		}
 	}
 
-	// Specifying an image either way is mandatory
-	if cf.VM.Spec.Image.OCIClaim.Ref.IsUnset() {
-		return nil, fmt.Errorf("you must specify an image to run either via CLI args or a config file")
+	// Validate the VM object
+	if err := validation.ValidateVM(cf.VM).ToAggregate(); err != nil {
+		return nil, err
 	}
 
 	co := &createOptions{CreateFlags: cf}

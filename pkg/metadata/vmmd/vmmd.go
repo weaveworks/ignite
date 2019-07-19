@@ -1,11 +1,8 @@
 package vmmd
 
 import (
-	"fmt"
-
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
@@ -42,11 +39,6 @@ func NewVM(obj *api.VM, c *client.Client) (*VM, error) {
 		return nil, err
 	}
 
-	// Validate the VM object
-	if err := validation.ValidateVM(obj).ToAggregate(); err != nil {
-		return nil, err
-	}
-
 	// Construct the runtime object
 	vm := &VM{
 		VM: obj,
@@ -66,11 +58,6 @@ func NewVM(obj *api.VM, c *client.Client) (*VM, error) {
 }
 
 func (vm *VM) setImageUID() error {
-	// TODO: Centralize validation
-	if vm.Spec.Image.OCIClaim.Ref.IsUnset() {
-		return fmt.Errorf("the image's OCIClaim ref field is mandatory")
-	}
-
 	image, err := vm.c.Images().Find(filter.NewNameFilter(vm.Spec.Image.OCIClaim.Ref.String()))
 	if err != nil {
 		return err
@@ -81,10 +68,6 @@ func (vm *VM) setImageUID() error {
 }
 
 func (vm *VM) setKernelUID() error {
-	if vm.Spec.Kernel.OCIClaim.Ref.IsUnset() {
-		return fmt.Errorf("the kernel's OCIClaim ref field is mandatory")
-	}
-
 	kernel, err := vm.c.Kernels().Find(filter.NewNameFilter(vm.Spec.Kernel.OCIClaim.Ref.String()))
 	if err != nil {
 		return err
