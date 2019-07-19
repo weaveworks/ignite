@@ -36,7 +36,7 @@ type Interface interface {
 	PullImage(image string) (io.ReadCloser, error)
 	ExportImage(image string) (io.ReadCloser, string, error)
 
-	// TODO: AttachContainer
+	AttachContainer(container string) error
 	RunContainer(image string, config *ContainerConfig, name string) (string, error)
 	StopContainer(container string, timeout *time.Duration) error
 	KillContainer(container, signal string) error
