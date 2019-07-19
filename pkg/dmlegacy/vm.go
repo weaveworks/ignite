@@ -36,11 +36,12 @@ ff02::2 ip6-allrouters
 // configures the snapshot in all ways needed. It also copies in contents from the
 // host as needed, and configures networking.
 func AllocateAndPopulateOverlay(vm *api.VM) error {
-	size := int64(vm.Spec.DiskSize.Bytes())
+	requestedSize := vm.Spec.DiskSize.Bytes()
 	// Truncate only accepts an int64
-	if size > math.MaxInt64 {
-		return fmt.Errorf("requested size %d too large, cannot truncate", size)
+	if requestedSize > math.MaxInt64 {
+		return fmt.Errorf("requested size %d too large, cannot truncate", requestedSize)
 	}
+	size := int64(requestedSize)
 
 	// Get the image UID from the VM
 	imageUID, err := lookup.ImageUIDForVM(vm, providers.Client)

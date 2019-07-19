@@ -2,8 +2,8 @@ package main
 
 import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 type options struct {
@@ -13,7 +13,7 @@ type options struct {
 func NewOptions(vmMatch string) (*options, error) {
 	co := &options{}
 
-	if vm, err := client.VMs().Find(filter.NewIDNameFilter(vmMatch)); err == nil {
+	if vm, err := providers.Client.VMs().Find(filter.NewIDNameFilter(vmMatch)); err == nil {
 		co.vm = vm
 	} else {
 		return nil, err

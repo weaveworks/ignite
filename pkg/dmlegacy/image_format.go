@@ -56,18 +56,18 @@ func addFiles(img *api.Image, src source.Source) error {
 	}
 	defer util.ExecuteCommand("umount", tempDir)
 
-	tarCimg := exec.Command("tar", "-x", "-C", tempDir)
+	tarCmd := exec.Command("tar", "-x", "-C", tempDir)
 	reader, err := src.Reader()
 	if err != nil {
 		return err
 	}
 
-	tarCimg.Stdin = reader
-	if err := tarCimg.Start(); err != nil {
+	tarCmd.Stdin = reader
+	if err := tarCmd.Start(); err != nil {
 		return err
 	}
 
-	if err := tarCimg.Wait(); err != nil {
+	if err := tarCmd.Wait(); err != nil {
 		return err
 	}
 

@@ -32,10 +32,10 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	vCPUCount := int64(vm.Spec.CPUs)
 	memSizeMib := int64(vm.Spec.Memory.MBytes())
 
-	cvmLine := vm.Spec.Kernel.CvmLine
-	if len(cvmLine) == 0 {
-		// if for some reason cvmline would be unpopulated, set it to the default
-		cvmLine = constants.VM_DEFAULT_KERNEL_ARGS
+	cmdLine := vm.Spec.Kernel.CmdLine
+	if len(cmdLine) == 0 {
+		// if for some reason cmdline would be unpopulated, set it to the default
+		cmdLine = constants.VM_DEFAULT_KERNEL_ARGS
 	}
 
 	kernelUID, err := lookup.KernelUIDForVM(vm, providers.Client)
@@ -49,7 +49,7 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	cfg := firecracker.Config{
 		SocketPath:      firecrackerSocketPath,
 		KernelImagePath: path.Join(constants.KERNEL_DIR, kernelUID.String(), constants.KERNEL_FILE),
-		KernelArgs:      cvmLine,
+		KernelArgs:      cmdLine,
 		Drives: []models.Drive{{
 			DriveID:      firecracker.String("1"),
 			PathOnHost:   &drivePath,
@@ -60,7 +60,7 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 		MachineCfg: models.MachineConfiguration{
 			VcpuCount:  &vCPUCount,
 			MemSizeMib: &memSizeMib,
-			HtEnabled:  boolPtr(true),
+			HtEnabled:  firecracker.Bool(true),
 		},
 		//JailerCfg: firecracker.JailerConfig{
 		//	GID:      firecracker.Int(0),
@@ -83,7 +83,7 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	ctx, vmmCancel := context.WithCancel(context.Background())
 	defer vmmCancel()
 
-	cvm := firecracker.VMCommandBuilder{}.
+	cmd := firecracker.VMCommandBuilder{}.
 		WithBin("firecracker").
 		WithSocketPath(firecrackerSocketPath).
 		WithStdin(os.Stdin).
@@ -91,7 +91,7 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 		WithStderr(os.Stderr).
 		Build(ctx)
 
-	m, err := firecracker.NewMachine(ctx, cfg, firecracker.WithProcessRunner(cvm))
+	m, err := firecracker.NewMachine(ctx, cfg, firecracker.WithProcessRunner(cmd))
 	if err != nil {
 		return fmt.Errorf("failed to create machine: %s", err)
 	}
@@ -144,8 +144,4 @@ func installSignalHandlers(ctx context.Context, m *firecracker.Machine) {
 			}
 		}
 	}()
-}
-
-func boolPtr(val bool) *bool {
-	return &val
 }
