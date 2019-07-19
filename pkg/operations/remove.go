@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
-
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -20,7 +19,7 @@ var (
 )
 
 // RemoveVM removes the specified VM
-func RemoveVM(c *client.Client, vm *vmmd.VM) error {
+func RemoveVM(c *client.Client, vm *api.VM) error {
 	// If the VM is running, try to kill it first so we don't leave dangling containers
 	if vm.Running() {
 		if err := StopVM(vm, true, true); err != nil {
@@ -58,7 +57,7 @@ func RemoveVMContainer(vm meta.Object) error {
 }
 
 // StopVM stops or kills a VM
-func StopVM(vm *vmmd.VM, kill, silent bool) error {
+func StopVM(vm *api.VM, kill, silent bool) error {
 	dockerArgs := stopArgs
 
 	// Change to kill arguments if requested

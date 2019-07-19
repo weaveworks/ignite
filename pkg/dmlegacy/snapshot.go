@@ -5,15 +5,15 @@ import (
 	"os"
 	"path"
 
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 // ActivateSnapshot sets up the snapshot with devicemapper so that it is active and can be used
-func ActivateSnapshot(vm *vmmd.VM) error {
+func ActivateSnapshot(vm *api.VM) error {
 	device := constants.IGNITE_PREFIX + vm.GetUID().String()
 	devicePath := vm.SnapshotDev()
 
@@ -23,7 +23,7 @@ func ActivateSnapshot(vm *vmmd.VM) error {
 	}
 
 	// Get the image UID from the VM
-	imageUID, err := lookup.ImageUIDForVM(vm.VM, client.DefaultClient)
+	imageUID, err := lookup.ImageUIDForVM(vm, client.DefaultClient)
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func ActivateSnapshot(vm *vmmd.VM) error {
 }
 
 // DeactivateSnapshot deactivates the snapshot by removing it with dmsetup
-func DeactivateSnapshot(vm *vmmd.VM) error {
+func DeactivateSnapshot(vm *api.VM) error {
 	dmArgs := []string{
 		"remove",
 		vm.SnapshotDev(),

@@ -12,7 +12,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/metadata"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
 )
 
@@ -38,7 +37,6 @@ type createOptions struct {
 	*CreateFlags
 	image  *api.Image
 	kernel *api.Kernel
-	newVM  *vmmd.VM
 }
 
 func (cf *CreateFlags) constructVMFromCLI(args []string) error {
@@ -114,23 +112,22 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 }
 
 func Create(co *createOptions) error {
-	// Create new metadata for the VM
-	var err error
-	if co.newVM, err = vmmd.NewVM(co.VM, client.DefaultClient); err != nil {
+	// Generate a random UID and Name
+	if err := metadata.SetNameAndUID(co.VM, client.DefaultClient); err != nil {
 		return err
 	}
-	defer metadata.Cleanup(co.newVM, false) // TODO: Handle silent
+	defer metadata.Cleanup(co.VM, false) // TODO: Handle silent
 
-	if err := client.DefaultClient.VMs().Set(co.newVM.VM); err != nil {
+	if err := client.DefaultClient.VMs().Set(co.VM); err != nil {
 		return err
 	}
 
 	// Allocate and populate the overlay file
-	if err := dmlegacy.AllocateAndPopulateOverlay(co.newVM); err != nil {
+	if err := dmlegacy.AllocateAndPopulateOverlay(co.VM); err != nil {
 		return err
 	}
 
-	return metadata.Success(co.newVM)
+	return metadata.Success(co.VM)
 }
 
 // TODO: Move this to meta, or an helper in api

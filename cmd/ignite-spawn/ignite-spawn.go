@@ -57,16 +57,16 @@ func StartVM(co *options) error {
 
 	// VM state handling
 	// TODO: Use a .Patch here instead
-	if err := setState(co.vm.VM, api.VMStateRunning); err != nil {
+	if err := setState(co.vm, api.VMStateRunning); err != nil {
 		return fmt.Errorf("failed to update VM state: %v", err)
 	}
-	defer setState(co.vm.VM, api.VMStateStopped) // Performs a save, all other metadata-modifying defers need to be after this
+	defer setState(co.vm, api.VMStateStopped) // Performs a save, all other metadata-modifying defers need to be after this
 
 	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
 	defer co.vm.DeactivateSnapshot()
 
 	// Remove the IP addresses post-run
-	defer clearIPAddresses(co.vm.VM)
+	defer clearIPAddresses(co.vm)
 
 	// Remove the Prometheus socket post-run
 	defer os.Remove(metricsSocket)

@@ -1,20 +1,20 @@
 package main
 
 import (
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
 type options struct {
-	vm *vmmd.VM
+	vm *api.VM
 }
 
 func NewOptions(vmMatch string) (*options, error) {
 	co := &options{}
 
 	if vm, err := client.VMs().Find(filter.NewIDNameFilter(vmMatch)); err == nil {
-		co.vm = vmmd.WrapVM(vm)
+		co.vm = vm
 	} else {
 		return nil, err
 	}

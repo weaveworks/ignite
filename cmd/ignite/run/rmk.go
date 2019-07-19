@@ -8,7 +8,6 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
 )
 
@@ -19,7 +18,7 @@ type RmkFlags struct {
 type rmkOptions struct {
 	*RmkFlags
 	kernels []*api.Kernel
-	allVMs  []*vmmd.VM
+	allVMs  []*api.VM
 }
 
 func (rf *RmkFlags) NewRmkOptions(kernelMatches []string) (*rmkOptions, error) {
@@ -45,7 +44,7 @@ func (rf *RmkFlags) NewRmkOptions(kernelMatches []string) (*rmkOptions, error) {
 func Rmk(ro *rmkOptions) error {
 	for _, kernel := range ro.kernels {
 		for _, vm := range ro.allVMs {
-			kernelUID, err := lookup.KernelUIDForVM(vm.VM, client.DefaultClient)
+			kernelUID, err := lookup.KernelUIDForVM(vm, client.DefaultClient)
 			if err != nil {
 				log.Warnf("Could not lookup kernel UID for VM %q: %v", vm.GetUID(), err)
 				continue
@@ -57,7 +56,7 @@ func Rmk(ro *rmkOptions) error {
 					// Force-kill and remove the VM used by this kernel
 					if err := Rm(&rmOptions{
 						&RmFlags{Force: true},
-						[]*vmmd.VM{vm},
+						[]*api.VM{vm},
 					}); err != nil {
 						return err
 					}

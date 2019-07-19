@@ -34,7 +34,7 @@ func Run(ro *runOptions) error {
 
 	// Copy the pointer over for Start
 	// TODO: This is pretty bad, fix this
-	ro.vm = ro.newVM
+	ro.vm = ro.VM
 
 	return Start(ro.startOptions)
 }

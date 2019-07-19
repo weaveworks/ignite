@@ -14,7 +14,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/network/cni"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/runtime/docker"
@@ -22,16 +21,16 @@ import (
 	"github.com/weaveworks/ignite/pkg/version"
 )
 
-func StartVM(vm *vmmd.VM, debug bool) error {
+func StartVM(vm *api.VM, debug bool) error {
 	// Make sure the VM container does not exist. Don't care about the error.
-	RemoveVMContainer(vm.VM)
+	RemoveVMContainer(vm)
 
 	// Setup the snapshot overlay filesystem
 	if err := dmlegacy.ActivateSnapshot(vm); err != nil {
 		return err
 	}
 
-	kernelUID, err := lookup.KernelUIDForVM(vm.VM, client.DefaultClient)
+	kernelUID, err := lookup.KernelUIDForVM(vm, client.DefaultClient)
 	if err != nil {
 		return err
 	}
@@ -155,7 +154,7 @@ func verifyPulled(image string) error {
 
 // TODO: This check for the Prometheus socket file is temporary
 // until we get a proper ignite <-> ignite-spawn communication channel
-func waitForSpawn(vm *vmmd.VM) error {
+func waitForSpawn(vm *api.VM) error {
 	const timeout = 10 * time.Second
 	const checkInterval = 100 * time.Millisecond
 

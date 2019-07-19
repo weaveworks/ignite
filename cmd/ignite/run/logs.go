@@ -3,13 +3,13 @@ package run
 import (
 	"fmt"
 
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type logsOptions struct {
-	vm *vmmd.VM
+	vm *api.VM
 }
 
 func NewLogsOptions(vmMatch string) (lo *logsOptions, err error) {

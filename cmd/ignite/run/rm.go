@@ -3,8 +3,8 @@ package run
 import (
 	"fmt"
 
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/client"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
 )
 
@@ -14,7 +14,7 @@ type RmFlags struct {
 
 type rmOptions struct {
 	*RmFlags
-	vms []*vmmd.VM
+	vms []*api.VM
 }
 
 func (rf *RmFlags) NewRmOptions(vmMatches []string) (ro *rmOptions, err error) {

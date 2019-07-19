@@ -15,7 +15,6 @@ import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -36,7 +35,7 @@ ff02::2 ip6-allrouters
 // AllocateAndPopulateOverlay creates the overlay.dm file on top of an image, and
 // configures the snapshot in all ways needed. It also copies in contents from the
 // host as needed, and configures networking.
-func AllocateAndPopulateOverlay(vm *vmmd.VM) error {
+func AllocateAndPopulateOverlay(vm *api.VM) error {
 	size := int64(vm.Spec.DiskSize.Bytes())
 	// Truncate only accepts an int64
 	if size > math.MaxInt64 {
@@ -44,7 +43,7 @@ func AllocateAndPopulateOverlay(vm *vmmd.VM) error {
 	}
 
 	// Get the image UID from the VM
-	imageUID, err := lookup.ImageUIDForVM(vm.VM, client.DefaultClient)
+	imageUID, err := lookup.ImageUIDForVM(vm, client.DefaultClient)
 	if err != nil {
 		return err
 	}
@@ -82,7 +81,7 @@ func AllocateAndPopulateOverlay(vm *vmmd.VM) error {
 	return copyToOverlay(vm)
 }
 
-func copyToOverlay(vm *vmmd.VM) error {
+func copyToOverlay(vm *api.VM) error {
 	if err := ActivateSnapshot(vm); err != nil {
 		return err
 	}
@@ -106,7 +105,7 @@ func copyToOverlay(vm *vmmd.VM) error {
 		pubKeyPath := vm.Spec.SSH.PublicKey
 		if vm.Spec.SSH.Generate {
 			// generate a key if PublicKey is empty
-			pubKeyPath, err = newSSHKeypair(vm.VM)
+			pubKeyPath, err = newSSHKeypair(vm)
 			if err != nil {
 				return err
 			}
@@ -137,7 +136,7 @@ func copyToOverlay(vm *vmmd.VM) error {
 		ip = vm.Status.IPAddresses[0]
 	}
 
-	if err := writeEtcHosts(vm.VM, mp.Path, vm.GetUID().String(), ip); err != nil {
+	if err := writeEtcHosts(vm, mp.Path, vm.GetUID().String(), ip); err != nil {
 		return err
 	}
 
@@ -146,8 +145,8 @@ func copyToOverlay(vm *vmmd.VM) error {
 	return nil
 }
 
-func copyKernelToOverlay(vm *vmmd.VM, mountPoint string) error {
-	kernelUID, err := lookup.KernelUIDForVM(vm.VM, client.DefaultClient)
+func copyKernelToOverlay(vm *api.VM, mountPoint string) error {
+	kernelUID, err := lookup.KernelUIDForVM(vm, client.DefaultClient)
 	if err != nil {
 		return err
 	}

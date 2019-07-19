@@ -8,7 +8,6 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
 )
 
@@ -19,7 +18,7 @@ type RmiFlags struct {
 type rmiOptions struct {
 	*RmiFlags
 	images []*api.Image
-	allVMs []*vmmd.VM
+	allVMs []*api.VM
 }
 
 func (rf *RmiFlags) NewRmiOptions(imageMatches []string) (*rmiOptions, error) {
@@ -45,7 +44,7 @@ func (rf *RmiFlags) NewRmiOptions(imageMatches []string) (*rmiOptions, error) {
 func Rmi(ro *rmiOptions) error {
 	for _, image := range ro.images {
 		for _, vm := range ro.allVMs {
-			imageUID, err := lookup.ImageUIDForVM(vm.VM, client.DefaultClient)
+			imageUID, err := lookup.ImageUIDForVM(vm, client.DefaultClient)
 			if err != nil {
 				log.Warnf("Could not lookup image UID for VM %q: %v", vm.GetUID(), err)
 				continue
@@ -57,7 +56,7 @@ func Rmi(ro *rmiOptions) error {
 					// Force-kill and remove the VM used by this image
 					if err := Rm(&rmOptions{
 						&RmFlags{Force: true},
-						[]*vmmd.VM{vm},
+						[]*api.VM{vm},
 					}); err != nil {
 						return err
 					}
