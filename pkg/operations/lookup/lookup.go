@@ -16,7 +16,7 @@ func ImageUIDForVM(vm *api.VM, c *client.Client) (meta.UID, error) {
 }
 
 func KernelUIDForVM(vm *api.VM, c *client.Client) (meta.UID, error) {
-	kernel, err := c.Images().Find(filter.NewNameFilter(vm.Spec.Kernel.OCIClaim.Ref.String()))
+	kernel, err := c.Kernels().Find(filter.NewNameFilter(vm.Spec.Kernel.OCIClaim.Ref.String()))
 	if err != nil {
 		return meta.UID(""), err
 	}
