@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
-	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
@@ -16,7 +16,7 @@ type RmiFlags struct {
 
 type rmiOptions struct {
 	*RmiFlags
-	images []*imgmd.Image
+	images []*api.Image
 	allVMs []*vmmd.VM
 }
 
@@ -25,7 +25,7 @@ func (rf *RmiFlags) NewRmiOptions(imageMatches []string) (*rmiOptions, error) {
 
 	for _, match := range imageMatches {
 		if image, err := client.Images().Find(filter.NewIDNameFilter(match)); err == nil {
-			ro.images = append(ro.images, imgmd.WrapImage(image))
+			ro.images = append(ro.images, image)
 		} else {
 			return nil, err
 		}

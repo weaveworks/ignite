@@ -25,9 +25,8 @@ type Metadata interface {
 	meta.Object
 }
 
-// InitObject shall be run in all New{Kind} methods. This method should be
-// private once possible (the runtime objects should move into this pkg)
-func InitObject(obj meta.Object, c *client.Client) error {
+// SetNameAndUID sets the name and UID for an object if that isn't set automatically
+func SetNameAndUID(obj meta.Object, c *client.Client) error {
 	if obj == nil {
 		return fmt.Errorf("object cannot be nil when initializing runtime data")
 	}

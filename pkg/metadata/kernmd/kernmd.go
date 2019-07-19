@@ -26,7 +26,7 @@ func WrapKernel(obj *api.Kernel) *Kernel {
 
 func NewKernel(obj *api.Kernel, c *client.Client) (*Kernel, error) {
 	// Initialize UID, name, defaulting, etc. that is common for all kinds
-	if err := metadata.InitObject(obj, c); err != nil {
+	if err := metadata.SetNameAndUID(obj, c); err != nil {
 		return nil, err
 	}
 

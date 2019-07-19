@@ -184,13 +184,13 @@ func create(vm *vmmd.VM) error {
 // ensureOCIImages imports the base/kernel OCI images if needed
 func ensureOCIImages(vm *vmmd.VM) error {
 	// Check if a image with this name already exists, or import it
-	runImg, err := operations.FindOrImportImage(c, vm.Spec.Image.OCIClaim.Ref)
+	image, err := operations.FindOrImportImage(c, vm.Spec.Image.OCIClaim.Ref)
 	if err != nil {
 		return err
 	}
 
 	// Populate relevant data from the Image on the VM object
-	vm.SetImage(runImg.Image)
+	vm.SetImage(image)
 
 	// Check if a kernel with this name already exists, or import it
 	runKernel, err := operations.FindOrImportKernel(c, vm.Spec.Kernel.OCIClaim.Ref)

@@ -35,7 +35,7 @@ func WrapVM(obj *api.VM) *VM {
 
 func NewVM(obj *api.VM, c *client.Client) (*VM, error) {
 	// Initialize UID, name, defaulting, etc. that is common for all kinds
-	if err := metadata.InitObject(obj, c); err != nil {
+	if err := metadata.SetNameAndUID(obj, c); err != nil {
 		return nil, err
 	}
 

@@ -12,7 +12,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/metadata"
-	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
@@ -38,7 +37,7 @@ type CreateFlags struct {
 
 type createOptions struct {
 	*CreateFlags
-	image  *imgmd.Image
+	image  *api.Image
 	kernel *kernmd.Kernel
 	newVM  *vmmd.VM
 }
@@ -102,7 +101,7 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 	}
 
 	// Populate relevant data from the Image on the VM object
-	cf.VM.SetImage(co.image.Image)
+	cf.VM.SetImage(co.image)
 
 	// Get the kernel, or import it if it doesn't exist
 	co.kernel, err = operations.FindOrImportKernel(client.DefaultClient, cf.VM.Spec.Kernel.OCIClaim.Ref)

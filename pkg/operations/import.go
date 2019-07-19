@@ -8,12 +8,13 @@ import (
 	"path"
 
 	log "github.com/sirupsen/logrus"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/filter"
-	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
+	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/storage/filterer"
@@ -23,13 +24,13 @@ import (
 // FindOrImportImage returns an image based on the source string.
 // If the image already exists, it is returned. If the image doesn't
 // exist, it is imported
-func FindOrImportImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error) {
+func FindOrImportImage(c *client.Client, ociRef meta.OCIImageRef) (*api.Image, error) {
 	log.Debugf("Ensuring image %s exists, or importing it...", ociRef)
 	image, err := c.Images().Find(filter.NewIDNameFilter(ociRef.String()))
 	if err == nil {
 		// Return the image found
 		log.Debugf("Found image with UID %s", image.GetUID())
-		return imgmd.WrapImage(image), nil
+		return image, nil
 	}
 
 	switch err.(type) {
@@ -41,7 +42,7 @@ func FindOrImportImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image,
 }
 
 // importKernel imports an image from an OCI image
-func importImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error) {
+func importImage(c *client.Client, ociRef meta.OCIImageRef) (*api.Image, error) {
 	log.Debugf("Importing image with ociRef %q", ociRef)
 	// Parse the source
 	dockerSource := source.NewDockerSource()
@@ -58,25 +59,24 @@ func importImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error
 	// Set the image's ociSource
 	image.Status.OCISource = *src
 
-	// Create a new image runtime object
-	runImage, err := imgmd.NewImage(image, c)
-	if err != nil {
+	// Generate UID automatically
+	if err := metadata.SetNameAndUID(image, c); err != nil {
 		return nil, err
 	}
 
 	log.Println("Starting image import...")
 
 	// Truncate a file for the filesystem, format it with ext4, and copy in the files from the source
-	if err := dmlegacy.CreateImageFilesystem(runImage.Image, dockerSource); err != nil {
+	if err := dmlegacy.CreateImageFilesystem(image, dockerSource); err != nil {
 		return nil, err
 	}
 
-	if err := c.Images().Set(runImage.Image); err != nil {
+	if err := c.Images().Set(image); err != nil {
 		return nil, err
 	}
 
-	log.Printf("Imported OCI image %q (%s) to base image with UID %q", ociRef, runImage.Status.OCISource.Size, runImage.GetUID())
-	return runImage, nil
+	log.Printf("Imported OCI image %q (%s) to base image with UID %q", ociRef, image.Status.OCISource.Size, image.GetUID())
+	return image, nil
 }
 
 // FindOrImportKernel returns an kernel based on the source string.
