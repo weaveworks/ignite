@@ -11,35 +11,53 @@ import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
+	"github.com/weaveworks/ignite/pkg/gitops/gitdir"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/storage"
-	"github.com/weaveworks/ignite/pkg/storage/gitops"
+	"github.com/weaveworks/ignite/pkg/storage/manifest"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 var (
-	vmMap map[meta.UID]*api.VM
-	c     *client.Client
+	vmMap           map[meta.UID]*api.VM
+	c               *client.Client
+	gitDir          *gitdir.GitDirectory
+	syncInterval, _ = time.ParseDuration("10s")
 )
+
+const dataDir = "/tmp/ignite-gitops"
 
 func RunLoop(url, branch string) error {
 	log.Printf("Starting GitOps loop for repo at %q\n", url)
 	log.Printf("Whenever changes are pushed to the %s branch, Ignite will apply the desired state locally\n", branch)
 	log.Println("Initializing the Git repo...")
 
-	s := gitops.NewGitOpsStorage(url, branch)
-	// Wrap the GitOps storage with a cache for better performance
+	// Construct a manifest storage for the path backed by git
+	s := manifest.NewManifestStorage(dataDir)
+	// Wrap the Manifest Storage with a cache for better performance, and create a client
 	c = client.NewClient(storage.NewCache(s))
+	// Construct the GitDirectory implementation which backs the storage
+	gitDir = gitdir.NewGitDirectory(url, dataDir, branch, syncInterval)
+	// Start the GitDirectory sync loop
+	gitDir.StartLoop()
 
 	for {
-		if !s.Ready() {
+		if !gitDir.Ready() {
 			// poll until the git repo is initialized
 			time.Sleep(5 * time.Second)
 			continue
 		}
 
+		// Wait for changes to happen in the Git repo
 		log.Println("Waiting for updates in the Git repo...")
-		diff := s.WaitForUpdate()
+		_ = gitDir.WaitForUpdate()
+
+		// When we know the underlying state has changed, reload the storage mappings, and get what's changed
+		diff, err := s.Sync()
+		if err != nil {
+			log.Warnf("Syncing the new directory state returned an error: %v. Retrying...", err)
+			continue
+		}
 
 		list, err := c.VMs().List()
 		if err != nil {
@@ -53,7 +71,7 @@ func RunLoop(url, branch string) error {
 		for _, file := range diff {
 			vm := vmMap[file.APIType.UID]
 			if vm == nil {
-				if file.Type != gitops.UpdateTypeDeleted {
+				if file.Type != manifest.UpdateTypeDeleted {
 					// This is unexpected
 					log.Warn("Skipping %s of %s with UID %s, no such object found through the client.", file.Type, file.APIType.GetKind(), file.APIType.GetUID())
 					continue
@@ -84,17 +102,17 @@ func RunLoop(url, branch string) error {
 
 			// TODO: At the moment there aren't running in parallel, shall they?
 			switch file.Type {
-			case gitops.UpdateTypeCreated:
+			case manifest.UpdateTypeCreated:
 				// TODO: Run this as a goroutine
 				runHandle(wg, func() error {
 					return handleCreate(vm)
 				})
-			case gitops.UpdateTypeChanged:
+			case manifest.UpdateTypeChanged:
 				// TODO: Run this as a goroutine
 				runHandle(wg, func() error {
 					return handleChange(vm)
 				})
-			case gitops.UpdateTypeDeleted:
+			case manifest.UpdateTypeDeleted:
 				// TODO: Run this as a goroutine
 				runHandle(wg, func() error {
 					// TODO: Temporary VM Object for removal

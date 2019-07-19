@@ -1,4 +1,4 @@
-package gitops
+package manifest
 
 import (
 	"crypto/sha256"
@@ -19,9 +19,9 @@ import (
 
 var splitDirsRegex = regexp.MustCompile(`/?([a-z0-9]+)(/[a-z0-9]*)*`)
 
-func NewGitRawStorage(gitDir, underlyingDir string) *GitRawStorage {
-	return &GitRawStorage{
-		gitDir: gitDir,
+func NewManifestRawStorage(manifestDir, underlyingDir string) *ManifestRawStorage {
+	return &ManifestRawStorage{
+		manifestDir: manifestDir,
 		gitPathPrefixes: map[string]bool{ // we only check in VM state into git atm
 			"/vm": true, // TODO: construct this in a better way
 		},
@@ -46,9 +46,9 @@ type UpdatedFile struct {
 	APIType  *meta.APIType
 }
 
-type GitRawStorage struct {
+type ManifestRawStorage struct {
 	// directory that is managed by git
-	gitDir string
+	manifestDir string
 	// keyFileMap maps the virtual key path to real file paths in the repo
 	keyFileMap map[string]*UpdatedFile
 	// byKind maps a kind to many virtual key paths for the storage impl
@@ -59,14 +59,14 @@ type GitRawStorage struct {
 	passthrough storage.RawStorage
 }
 
-func (r *GitRawStorage) Sync() (UpdatedFiles, error) {
+func (r *ManifestRawStorage) Sync() (UpdatedFiles, error) {
 	// provide empty placeholders for new data, overwrite .keyFileMap and .byKind in the end
 	newKeyFileMap := map[string]*UpdatedFile{}
 	newByKind := map[string][]string{}
 	// a slice of files that
 	diff := UpdatedFiles{}
-	// walk the git repo
-	dirToWalk := r.gitDir
+	// walk the manifest dir
+	dirToWalk := r.manifestDir
 	if !strings.HasSuffix(dirToWalk, "/") {
 		// filepath.Walk needs a trailing slash to start traversing the directory
 		dirToWalk += "/"
@@ -188,11 +188,11 @@ func sha256sum(content []byte) string {
 	return fmt.Sprintf("%x", hasher.Sum(nil))
 }
 
-func (r *GitRawStorage) gitRelativePath(fullPath string) string {
-	return strings.TrimPrefix(fullPath, r.gitDir+"/")
+func (r *ManifestRawStorage) gitRelativePath(fullPath string) string {
+	return strings.TrimPrefix(fullPath, r.manifestDir+"/")
 }
 
-func (r *GitRawStorage) realPath(key string) string {
+func (r *ManifestRawStorage) realPath(key string) string {
 	// The "/" prefix is enforced
 	if !strings.HasPrefix(key, "/") {
 		key = "/" + key
@@ -200,14 +200,14 @@ func (r *GitRawStorage) realPath(key string) string {
 
 	info, ok := r.keyFileMap[key]
 	if !ok {
-		log.Debugf("GitRawStorage.realPath returned an empty string for key %s", key)
+		log.Debugf("ManifestRawStorage.realPath returned an empty string for key %s", key)
 		return ""
 	}
 
 	return info.GitPath
 }
 
-func (r *GitRawStorage) shouldPassthrough(key string) bool {
+func (r *ManifestRawStorage) shouldPassthrough(key string) bool {
 	// firstDirName is e.g. "vm" when key is "/vm/foobar123"
 	firstDirName := splitDirsRegex.FindStringSubmatch(key)[1]
 	// check if this kind should be managed by git. if it's git-managed return false
@@ -215,8 +215,8 @@ func (r *GitRawStorage) shouldPassthrough(key string) bool {
 	return !ok
 }
 
-func (r *GitRawStorage) Read(key string) ([]byte, error) {
-	log.Debugf("GitRawStorage.Read: %q", key)
+func (r *ManifestRawStorage) Read(key string) ([]byte, error) {
+	log.Debugf("ManifestRawStorage.Read: %q", key)
 	if r.shouldPassthrough(key) {
 		return r.passthrough.Read(key)
 	}
@@ -225,8 +225,8 @@ func (r *GitRawStorage) Read(key string) ([]byte, error) {
 	return ioutil.ReadFile(file)
 }
 
-func (r *GitRawStorage) Exists(key string) bool {
-	log.Debugf("GitRawStorage.Exists: %q", key)
+func (r *ManifestRawStorage) Exists(key string) bool {
+	log.Debugf("ManifestRawStorage.Exists: %q", key)
 	if r.shouldPassthrough(key) {
 		return r.passthrough.Exists(key)
 	}
@@ -235,8 +235,8 @@ func (r *GitRawStorage) Exists(key string) bool {
 	return util.FileExists(file)
 }
 
-func (r *GitRawStorage) Write(key string, content []byte) error {
-	log.Debugf("GitRawStorage.Write: %q", key)
+func (r *ManifestRawStorage) Write(key string, content []byte) error {
+	log.Debugf("ManifestRawStorage.Write: %q", key)
 	// Write always writes to the underlying (expected) place, and to Git
 	if err := r.passthrough.Write(key, content); err != nil {
 		return err
@@ -257,8 +257,8 @@ func (r *GitRawStorage) Write(key string, content []byte) error {
 	return nil
 }
 
-func (r *GitRawStorage) Delete(key string) error {
-	log.Debugf("GitRawStorage.Delete: %q", key)
+func (r *ManifestRawStorage) Delete(key string) error {
+	log.Debugf("ManifestRawStorage.Delete: %q", key)
 	// Delete always deletes in the underlying (expected) place, and in Git
 	if err := r.passthrough.Delete(key); err != nil {
 		return err
@@ -279,8 +279,8 @@ func (r *GitRawStorage) Delete(key string) error {
 	// TODO: Do a git commit here!
 }
 
-func (r *GitRawStorage) List(parentKey string) ([]string, error) {
-	log.Debugf("GitRawStorage.List: %q", parentKey)
+func (r *ManifestRawStorage) List(parentKey string) ([]string, error) {
+	log.Debugf("ManifestRawStorage.List: %q", parentKey)
 	if r.shouldPassthrough(parentKey) {
 		return r.passthrough.List(parentKey)
 	}
