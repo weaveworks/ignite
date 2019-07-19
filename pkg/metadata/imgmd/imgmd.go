@@ -4,7 +4,6 @@ import (
 	"path"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata"
@@ -23,9 +22,6 @@ var _ metadata.Metadata = &Image{}
 // NewImage, hence it should only be used for "safe"
 // data coming from storage.
 func WrapImage(obj *api.Image) *Image {
-	// Run the object through defaulting, just to be sure it has all the values
-	scheme.Serializer.DefaultInternal(obj)
-
 	return &Image{
 		Image: obj,
 		c:     providers.Client,

@@ -99,6 +99,9 @@ func (s *serializer) Decode(content []byte, internal bool) (runtime.Object, erro
 	if err != nil {
 		return nil, err
 	}
+	// Default the object
+	s.scheme.Default(obj)
+
 	// If we did not request an internal conversion, return quickly
 	if !internal {
 		return obj, nil

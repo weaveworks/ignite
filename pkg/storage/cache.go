@@ -2,8 +2,9 @@ package storage
 
 import (
 	log "github.com/sirupsen/logrus"
-
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // Cache is an intermediate caching layer, which conforms to Storage
@@ -18,7 +19,7 @@ type Cache interface {
 func NewCache(backingStorage Storage) Cache {
 	c := &cache{
 		storage:     backingStorage,
-		objectCache: newObjectCache(backingStorage.GetByID),
+		objectCache: newObjectCache(backingStorage.Get),
 	}
 
 	return c
@@ -41,51 +42,34 @@ type cacheObject struct {
 	apiType bool
 }
 
-type loadFunc func(meta.Kind, meta.UID) (meta.Object, error)
+type loadFunc func(schema.GroupVersionKind, meta.UID) (meta.Object, error)
 
 type objectCache struct {
-	objects  map[meta.Kind]map[meta.UID]cacheObject
+	objects  map[schema.GroupVersionKind]map[meta.UID]cacheObject
 	loadFunc loadFunc
 }
 
 func newObjectCache(l loadFunc) *objectCache {
 	return &objectCache{
-		objects:  make(map[meta.Kind]map[meta.UID]cacheObject),
+		objects:  make(map[schema.GroupVersionKind]map[meta.UID]cacheObject),
 		loadFunc: l,
 	}
 }
 
-func (c *cache) Get(obj meta.Object) error {
-	var err error
-
-	// Try to load from cache first
-	if obj, err = c.objectCache.load(obj); err != nil {
-		return err
-	} else if obj != nil {
-		return nil
-	}
-
-	// If not cached, request loading from storage
-	return c.storage.Get(obj)
+func (c *cache) New(gvk schema.GroupVersionKind) (meta.Object, error) {
+	// passthrough to storage
+	return c.storage.New(gvk)
 }
 
-func (c *cache) Set(obj meta.Object) error {
-	// Store the changed Object in the cache
-	c.objectCache.store(obj)
-
-	// TODO: For now the cache always flushes, we might add a Cache.Flush() later
-	return c.storage.Set(obj)
-}
-
-func (c *cache) GetByID(kind meta.Kind, uid meta.UID) (meta.Object, error) {
+func (c *cache) Get(gvk schema.GroupVersionKind, uid meta.UID) (meta.Object, error) {
 	// If the requested Object resides in the cache, return it
-	if obj, err := c.objectCache.loadByID(kind, uid); err != nil {
+	if obj, err := c.objectCache.loadByID(gvk, uid); err != nil {
 		return nil, err
 	} else if obj != nil {
 		return obj, nil
 	}
 
-	obj, err := c.storage.GetByID(kind, uid)
+	obj, err := c.storage.Get(gvk, uid)
 
 	// If no errors occurred while loading, store the Object in the cache
 	if err != nil {
@@ -95,50 +79,58 @@ func (c *cache) GetByID(kind meta.Kind, uid meta.UID) (meta.Object, error) {
 	return obj, err
 }
 
-func (c *cache) Delete(kind meta.Kind, uid meta.UID) error {
-	// Delete the given Object from the cache and storage
-	c.objectCache.delete(kind, uid)
-	return c.storage.Delete(kind, uid)
+func (c *cache) Set(gvk schema.GroupVersionKind, obj meta.Object) error {
+	// Store the changed Object in the cache
+	c.objectCache.store(obj)
+
+	// TODO: For now the cache always flushes, we might add a Cache.Flush() later
+	return c.storage.Set(gvk, obj)
 }
 
-type listFunc func(meta.Kind) ([]meta.Object, error)
+func (c *cache) Delete(gvk schema.GroupVersionKind, uid meta.UID) error {
+	// Delete the given Object from the cache and storage
+	c.objectCache.delete(gvk, uid)
+	return c.storage.Delete(gvk, uid)
+}
+
+type listFunc func(gvk schema.GroupVersionKind) ([]meta.Object, error)
 type cacheStoreFunc func([]meta.Object)
 
 // list is a common handler for List and ListMeta
-func (c *cache) list(kind meta.Kind, slf, clf listFunc, csf cacheStoreFunc) ([]meta.Object, error) {
+func (c *cache) list(gvk schema.GroupVersionKind, slf, clf listFunc, csf cacheStoreFunc) ([]meta.Object, error) {
 	var objs []meta.Object
 	var storageCount uint64
 	var err error
 
-	if storageCount, err = c.storage.Count(kind); err != nil {
+	if storageCount, err = c.storage.Count(gvk); err != nil {
 		return nil, err
 	}
 
-	if c.objectCache.count(kind) != storageCount {
+	if c.objectCache.count(gvk) != storageCount {
 		// If the cache doesn't track all of the Objects, request them from the storage
-		if objs, err = slf(kind); err != nil {
+		if objs, err = slf(gvk); err != nil {
 			// If no errors occurred, store the Objects in the cache
 			csf(objs)
 		}
 	} else {
 		// If the cache tracks everything, return the cache's contents
-		objs, err = clf(kind)
+		objs, err = clf(gvk)
 	}
 
 	return objs, err
 }
 
-func (c *cache) List(kind meta.Kind) ([]meta.Object, error) {
-	return c.list(kind, c.storage.List, c.objectCache.list, c.objectCache.storeAll)
+func (c *cache) List(gvk schema.GroupVersionKind) ([]meta.Object, error) {
+	return c.list(gvk, c.storage.List, c.objectCache.list, c.objectCache.storeAll)
 }
 
-func (c *cache) ListMeta(kind meta.Kind) ([]meta.Object, error) {
-	return c.list(kind, c.storage.ListMeta, c.objectCache.listMeta, c.objectCache.storeAllMeta)
+func (c *cache) ListMeta(gvk schema.GroupVersionKind) ([]meta.Object, error) {
+	return c.list(gvk, c.storage.ListMeta, c.objectCache.listMeta, c.objectCache.storeAllMeta)
 }
 
-func (c *cache) Count(kind meta.Kind) (uint64, error) {
+func (c *cache) Count(gvk schema.GroupVersionKind) (uint64, error) {
 	// The cache is transparent about how many items it has cached
-	return c.storage.Count(kind)
+	return c.storage.Count(gvk)
 }
 
 func (c *cache) Flush() error {
@@ -150,7 +142,8 @@ func (c *cache) Flush() error {
 
 	for _, obj := range allObjects {
 		// Request the storage to save each Object
-		if err := c.storage.Set(obj); err != nil {
+		gvk := obj.GroupVersionKind()
+		if err := c.storage.Set(gvk, obj); err != nil {
 			return err
 		}
 	}
@@ -166,7 +159,7 @@ func (c *objectCache) loadFull(obj cacheObject) (meta.Object, error) {
 	}
 
 	log.Debugf("cache: loading full %s object\n", obj.object.GetKind())
-	result, err := c.loadFunc(obj.object.GetKind(), obj.object.GetUID())
+	result, err := c.loadFunc(obj.object.GroupVersionKind(), obj.object.GetUID())
 	if err != nil {
 		return nil, err
 	}
@@ -176,11 +169,11 @@ func (c *objectCache) loadFull(obj cacheObject) (meta.Object, error) {
 }
 
 func (c *objectCache) load(obj meta.Object) (meta.Object, error) {
-	return c.loadByID(obj.GetKind(), obj.GetUID())
+	return c.loadByID(obj.GroupVersionKind(), obj.GetUID())
 }
 
-func (c *objectCache) loadByID(kind meta.Kind, uid meta.UID) (meta.Object, error) {
-	if uids, ok := c.objects[kind]; ok {
+func (c *objectCache) loadByID(gvk schema.GroupVersionKind, uid meta.UID) (meta.Object, error) {
+	if uids, ok := c.objects[gvk]; ok {
 		if obj, ok := uids[uid]; ok {
 			return c.loadFull(obj)
 		}
@@ -192,14 +185,14 @@ func (c *objectCache) loadByID(kind meta.Kind, uid meta.UID) (meta.Object, error
 func (c *objectCache) loadAll() ([]meta.Object, error) {
 	var size uint64
 
-	for kind := range c.objects {
-		size += c.count(kind)
+	for gvk := range c.objects {
+		size += c.count(gvk)
 	}
 
 	all := make([]meta.Object, 0, size)
 
-	for kind := range c.objects {
-		if objects, err := c.list(kind); err == nil {
+	for gvk := range c.objects {
+		if objects, err := c.list(gvk); err == nil {
 			all = append(all, objects...)
 		} else {
 			return nil, err
@@ -210,13 +203,13 @@ func (c *objectCache) loadAll() ([]meta.Object, error) {
 }
 
 func (c *objectCache) storeCO(obj cacheObject) {
-	kind := obj.object.GetKind()
+	gvk := obj.object.GroupVersionKind()
 
-	if _, ok := c.objects[kind]; !ok {
-		c.objects[kind] = make(map[meta.UID]cacheObject)
+	if _, ok := c.objects[gvk]; !ok {
+		c.objects[gvk] = make(map[meta.UID]cacheObject)
 	}
 
-	c.objects[kind][obj.object.GetUID()] = obj
+	c.objects[gvk][obj.object.GetUID()] = obj
 }
 
 func (c *objectCache) store(obj meta.Object) {
@@ -237,7 +230,7 @@ func (c *objectCache) storeMeta(obj meta.Object) {
 
 func (c *objectCache) storeAllMeta(objs []meta.Object) {
 	for _, obj := range objs {
-		if uids, ok := c.objects[obj.GetKind()]; ok {
+		if uids, ok := c.objects[obj.GroupVersionKind()]; ok {
 			if _, ok := uids[obj.GetUID()]; ok {
 				continue
 			}
@@ -247,20 +240,20 @@ func (c *objectCache) storeAllMeta(objs []meta.Object) {
 	}
 }
 
-func (c *objectCache) delete(kind meta.Kind, uid meta.UID) {
-	if uids, ok := c.objects[kind]; ok {
+func (c *objectCache) delete(gvk schema.GroupVersionKind, uid meta.UID) {
+	if uids, ok := c.objects[gvk]; ok {
 		delete(uids, uid)
 	}
 }
 
-func (c *objectCache) count(kind meta.Kind) uint64 {
-	count := uint64(len(c.objects[kind]))
-	log.Debugf("cache: counted %d %s objects\n", count, kind)
+func (c *objectCache) count(gvk schema.GroupVersionKind) uint64 {
+	count := uint64(len(c.objects[gvk]))
+	log.Debugf("cache: counted %d %s objects\n", count, gvk.Kind)
 	return count
 }
 
-func (c *objectCache) list(kind meta.Kind) ([]meta.Object, error) {
-	uids := c.objects[kind]
+func (c *objectCache) list(gvk schema.GroupVersionKind) ([]meta.Object, error) {
+	uids := c.objects[gvk]
 	list := make([]meta.Object, 0, len(uids))
 
 	for _, obj := range uids {
@@ -274,8 +267,8 @@ func (c *objectCache) list(kind meta.Kind) ([]meta.Object, error) {
 	return list, nil
 }
 
-func (c *objectCache) listMeta(kind meta.Kind) ([]meta.Object, error) {
-	uids := c.objects[kind]
+func (c *objectCache) listMeta(gvk schema.GroupVersionKind) ([]meta.Object, error) {
+	uids := c.objects[gvk]
 	list := make([]meta.Object, 0, len(uids))
 
 	for _, obj := range uids {

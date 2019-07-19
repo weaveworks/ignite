@@ -8,7 +8,6 @@ import (
 	"path"
 
 	log "github.com/sirupsen/logrus"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -50,19 +49,13 @@ func importImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error
 		return nil, err
 	}
 
-	image := &api.Image{
-		ObjectMeta: meta.ObjectMeta{
-			Name: ociRef.String(),
-		},
-		Spec: api.ImageSpec{
-			OCIClaim: api.OCIImageClaim{
-				Ref: ociRef,
-			},
-		},
-		Status: api.ImageStatus{
-			OCISource: *src,
-		},
-	}
+	image := client.Images().New()
+	// Set the image name
+	image.Name = ociRef.String()
+	// Set the image's ociRef
+	image.Spec.OCIClaim.Ref = ociRef
+	// Set the image's ociSource
+	image.Status.OCISource = *src
 
 	// Create a new image runtime object
 	runImage, err := imgmd.NewImage(image, c)
@@ -120,19 +113,13 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, er
 		return nil, err
 	}
 
-	kernel := &api.Kernel{
-		ObjectMeta: meta.ObjectMeta{
-			Name: ociRef.String(),
-		},
-		Spec: api.KernelSpec{
-			OCIClaim: api.OCIImageClaim{
-				Ref: ociRef,
-			},
-		},
-		Status: api.KernelStatus{
-			OCISource: *src,
-		},
-	}
+	kernel := client.Kernels().New()
+	// Set the kernel name
+	kernel.Name = ociRef.String()
+	// Set the kernel's ociRef
+	kernel.Spec.OCIClaim.Ref = ociRef
+	// Set the kernel's ociSource
+	kernel.Status.OCISource = *src
 
 	// Create new kernel metadata
 	runKernel, err := kernmd.NewKernel(kernel, c)

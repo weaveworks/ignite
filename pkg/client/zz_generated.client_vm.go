@@ -7,15 +7,21 @@
 package client
 
 import (
+	"fmt"
+
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/filterer"
+
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // VMClient is an interface for accessing VM-specific API objects
 type VMClient interface {
+	// New returns a new VM
+	New() *api.VM
 	// Get returns the VM matching given UID from the storage
 	Get(meta.UID) (*api.VM, error)
 	// Set saves the given VM into persistent storage
@@ -32,10 +38,10 @@ type VMClient interface {
 	List() ([]*api.VM, error)
 }
 
-// VMs returns the VMClient for the Client instance
-func (c *Client) VMs() VMClient {
+// VMs returns the VMClient for the IgniteInternalClient instance
+func (c *IgniteInternalClient) VMs() VMClient {
 	if c.vmClient == nil {
-		c.vmClient = newVMClient(c.storage)
+		c.vmClient = newVMClient(c.storage, c.gv)
 	}
 
 	return c.vmClient
@@ -46,19 +52,32 @@ func (c *Client) VMs() VMClient {
 type vmClient struct {
 	storage  storage.Storage
 	filterer *filterer.Filterer
+	gvk      schema.GroupVersionKind
 }
 
 // newVMClient builds the vmClient struct using the storage implementation and a new Filterer
-func newVMClient(s storage.Storage) VMClient {
+func newVMClient(s storage.Storage, gv schema.GroupVersion) VMClient {
 	return &vmClient{
 		storage:  s,
 		filterer: filterer.NewFilterer(s),
+		gvk:      gv.WithKind(api.KindVM.Title()),
 	}
+}
+
+// New returns a new Object of its kind
+func (c *vmClient) New() *api.VM {
+	log.Tracef("Client.New; GVK: %v", c.gvk)
+	obj, err := c.storage.New(c.gvk)
+	if err != nil {
+		panic(fmt.Sprintf("Client.New must not return an error: %v", err))
+	}
+	return obj.(*api.VM)
 }
 
 // Find returns a single VM based on the given Filter
 func (c *vmClient) Find(filter filterer.BaseFilter) (*api.VM, error) {
-	object, err := c.filterer.Find(api.KindVM, filter)
+	log.Tracef("Client.Find; GVK: %v", c.gvk)
+	object, err := c.filterer.Find(c.gvk, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +87,8 @@ func (c *vmClient) Find(filter filterer.BaseFilter) (*api.VM, error) {
 
 // FindAll returns multiple VMs based on the given Filter
 func (c *vmClient) FindAll(filter filterer.BaseFilter) ([]*api.VM, error) {
-	matches, err := c.filterer.FindAll(api.KindVM, filter)
+	log.Tracef("Client.FindAll; GVK: %v", c.gvk)
+	matches, err := c.filterer.FindAll(c.gvk, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -83,8 +103,8 @@ func (c *vmClient) FindAll(filter filterer.BaseFilter) ([]*api.VM, error) {
 
 // Get returns the VM matching given UID from the storage
 func (c *vmClient) Get(uid meta.UID) (*api.VM, error) {
-	log.Debugf("Client.Get; UID: %q, Kind: %s", uid, api.KindVM)
-	object, err := c.storage.GetByID(api.KindVM, uid)
+	log.Tracef("Client.Get; UID: %q, GVK: %v", uid, c.gvk)
+	object, err := c.storage.Get(c.gvk, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -94,19 +114,20 @@ func (c *vmClient) Get(uid meta.UID) (*api.VM, error) {
 
 // Set saves the given VM into the persistent storage
 func (c *vmClient) Set(vm *api.VM) error {
-	log.Debugf("Client.Set; UID: %q, Kind: %s", vm.GetUID(), vm.GetKind())
-	return c.storage.Set(vm)
+	log.Tracef("Client.Set; UID: %q, GVK: %v", vm.GetUID(), c.gvk)
+	return c.storage.Set(c.gvk, vm)
 }
 
 // Delete deletes the VM from the storage
 func (c *vmClient) Delete(uid meta.UID) error {
-	log.Debugf("Client.Delete; UID: %q, Kind: %s", uid, api.KindVM)
-	return c.storage.Delete(api.KindVM, uid)
+	log.Tracef("Client.Delete; UID: %q, GVK: %v", uid, c.gvk)
+	return c.storage.Delete(c.gvk, uid)
 }
 
 // List returns a list of all VMs available
 func (c *vmClient) List() ([]*api.VM, error) {
-	list, err := c.storage.List(api.KindVM)
+	log.Tracef("Client.List; GVK: %v", c.gvk)
+	list, err := c.storage.List(c.gvk)
 	if err != nil {
 		return nil, err
 	}

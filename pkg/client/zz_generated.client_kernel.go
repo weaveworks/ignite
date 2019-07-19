@@ -7,15 +7,21 @@
 package client
 
 import (
+	"fmt"
+
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/filterer"
+
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // KernelClient is an interface for accessing Kernel-specific API objects
 type KernelClient interface {
+	// New returns a new Kernel
+	New() *api.Kernel
 	// Get returns the Kernel matching given UID from the storage
 	Get(meta.UID) (*api.Kernel, error)
 	// Set saves the given Kernel into persistent storage
@@ -32,10 +38,10 @@ type KernelClient interface {
 	List() ([]*api.Kernel, error)
 }
 
-// Kernels returns the KernelClient for the Client instance
-func (c *Client) Kernels() KernelClient {
+// Kernels returns the KernelClient for the IgniteInternalClient instance
+func (c *IgniteInternalClient) Kernels() KernelClient {
 	if c.kernelClient == nil {
-		c.kernelClient = newKernelClient(c.storage)
+		c.kernelClient = newKernelClient(c.storage, c.gv)
 	}
 
 	return c.kernelClient
@@ -46,19 +52,32 @@ func (c *Client) Kernels() KernelClient {
 type kernelClient struct {
 	storage  storage.Storage
 	filterer *filterer.Filterer
+	gvk      schema.GroupVersionKind
 }
 
 // newKernelClient builds the kernelClient struct using the storage implementation and a new Filterer
-func newKernelClient(s storage.Storage) KernelClient {
+func newKernelClient(s storage.Storage, gv schema.GroupVersion) KernelClient {
 	return &kernelClient{
 		storage:  s,
 		filterer: filterer.NewFilterer(s),
+		gvk:      gv.WithKind(api.KindKernel.Title()),
 	}
+}
+
+// New returns a new Object of its kind
+func (c *kernelClient) New() *api.Kernel {
+	log.Tracef("Client.New; GVK: %v", c.gvk)
+	obj, err := c.storage.New(c.gvk)
+	if err != nil {
+		panic(fmt.Sprintf("Client.New must not return an error: %v", err))
+	}
+	return obj.(*api.Kernel)
 }
 
 // Find returns a single Kernel based on the given Filter
 func (c *kernelClient) Find(filter filterer.BaseFilter) (*api.Kernel, error) {
-	object, err := c.filterer.Find(api.KindKernel, filter)
+	log.Tracef("Client.Find; GVK: %v", c.gvk)
+	object, err := c.filterer.Find(c.gvk, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +87,8 @@ func (c *kernelClient) Find(filter filterer.BaseFilter) (*api.Kernel, error) {
 
 // FindAll returns multiple Kernels based on the given Filter
 func (c *kernelClient) FindAll(filter filterer.BaseFilter) ([]*api.Kernel, error) {
-	matches, err := c.filterer.FindAll(api.KindKernel, filter)
+	log.Tracef("Client.FindAll; GVK: %v", c.gvk)
+	matches, err := c.filterer.FindAll(c.gvk, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -83,8 +103,8 @@ func (c *kernelClient) FindAll(filter filterer.BaseFilter) ([]*api.Kernel, error
 
 // Get returns the Kernel matching given UID from the storage
 func (c *kernelClient) Get(uid meta.UID) (*api.Kernel, error) {
-	log.Debugf("Client.Get; UID: %q, Kind: %s", uid, api.KindKernel)
-	object, err := c.storage.GetByID(api.KindKernel, uid)
+	log.Tracef("Client.Get; UID: %q, GVK: %v", uid, c.gvk)
+	object, err := c.storage.Get(c.gvk, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -94,19 +114,20 @@ func (c *kernelClient) Get(uid meta.UID) (*api.Kernel, error) {
 
 // Set saves the given Kernel into the persistent storage
 func (c *kernelClient) Set(kernel *api.Kernel) error {
-	log.Debugf("Client.Set; UID: %q, Kind: %s", kernel.GetUID(), kernel.GetKind())
-	return c.storage.Set(kernel)
+	log.Tracef("Client.Set; UID: %q, GVK: %v", kernel.GetUID(), c.gvk)
+	return c.storage.Set(c.gvk, kernel)
 }
 
 // Delete deletes the Kernel from the storage
 func (c *kernelClient) Delete(uid meta.UID) error {
-	log.Debugf("Client.Delete; UID: %q, Kind: %s", uid, api.KindKernel)
-	return c.storage.Delete(api.KindKernel, uid)
+	log.Tracef("Client.Delete; UID: %q, GVK: %v", uid, c.gvk)
+	return c.storage.Delete(c.gvk, uid)
 }
 
 // List returns a list of all Kernels available
 func (c *kernelClient) List() ([]*api.Kernel, error) {
-	list, err := c.storage.List(api.KindKernel)
+	log.Tracef("Client.List; GVK: %v", c.gvk)
+	list, err := c.storage.List(c.gvk)
 	if err != nil {
 		return nil, err
 	}
