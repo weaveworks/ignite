@@ -3,7 +3,7 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/operations"
 )
 
@@ -13,7 +13,7 @@ type StopFlags struct {
 
 type stopOptions struct {
 	*StopFlags
-	vms []*vmmd.VM
+	vms []*api.VM
 }
 
 func (sf *StopFlags) NewStopOptions(vmMatches []string) (so *stopOptions, err error) {

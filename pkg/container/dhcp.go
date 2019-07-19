@@ -10,15 +10,15 @@ import (
 	"github.com/krolaw/dhcp4/conn"
 	"github.com/miekg/dns"
 	log "github.com/sirupsen/logrus"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 var leaseDuration, _ = time.ParseDuration(constants.DHCP_INFINITE_LEASE) // Infinite lease time
 
 // StartDHCPServers starts multiple DHCP servers for the VM, one per interface
-func StartDHCPServers(vm *vmmd.VM, dhcpIfaces []DHCPInterface) error {
+func StartDHCPServers(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	// Generate the MAC addresses for the VM's adapters
 	macAddresses := make([]string, 0, len(dhcpIfaces))
 	if err := util.NewMAC(&macAddresses); err != nil {
@@ -42,7 +42,8 @@ func StartDHCPServers(vm *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 		// Add the DNS servers from the container
 		dhcpIface.SetDNSServers(clientConfig.Servers)
 
-		vm.AddIPAddress(dhcpIface.VMIPNet.IP)
+		// Register what IP address this VM has in the API object
+		vm.Status.IPAddresses = append(vm.Status.IPAddresses, dhcpIface.VMIPNet.IP)
 
 		go func() {
 			log.Infof("Starting DHCP server for interface %s (%s)\n", dhcpIface.Bridge, dhcpIface.VMIPNet.IP)

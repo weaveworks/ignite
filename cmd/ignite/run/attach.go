@@ -3,7 +3,7 @@ package run
 import (
 	"fmt"
 
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -12,7 +12,7 @@ import (
 // as the in-container ignite takes some time to start up and update the state
 type attachOptions struct {
 	checkRunning bool
-	vm           *vmmd.VM
+	vm           *api.VM
 }
 
 func NewAttachOptions(vmMatch string) (ao *attachOptions, err error) {
