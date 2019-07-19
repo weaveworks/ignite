@@ -38,8 +38,33 @@ type cache struct {
 var _ Cache = &cache{}
 
 type cacheObject struct {
-	object  meta.Object
-	apiType bool
+	object   meta.Object
+	apiType  bool
+	checksum string
+}
+
+func (c *cacheObject) loadFull(s Storage, gvk schema.GroupVersionKind, uid meta.UID) (meta.Object, error) {
+	checksum, err := s.Checksum(gvk, uid)
+
+	if c.apiType {
+		obj, err := s.Get(gvk, uid)
+		if err != nil {
+			return nil, err
+		}
+
+		c.object = obj
+		c.apiType = false
+	}
+
+	return c.object, nil
+}
+
+func (c *cacheObject) loadAPI() meta.Object {
+	if c.apiType {
+		return c.object
+	}
+
+	return meta.APITypeFrom(c.object)
 }
 
 type loadFunc func(schema.GroupVersionKind, meta.UID) (meta.Object, error)
@@ -131,6 +156,11 @@ func (c *cache) ListMeta(gvk schema.GroupVersionKind) ([]meta.Object, error) {
 func (c *cache) Count(gvk schema.GroupVersionKind) (uint64, error) {
 	// The cache is transparent about how many items it has cached
 	return c.storage.Count(gvk)
+}
+
+func (c *cache) Checksum(gvk schema.GroupVersionKind, uid meta.UID) (string, error) {
+	// The cache is transparent about the checksums
+	return c.storage.Checksum(gvk, uid)
 }
 
 func (c *cache) Flush() error {
