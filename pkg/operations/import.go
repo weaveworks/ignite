@@ -11,6 +11,7 @@ import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
@@ -65,13 +66,8 @@ func importImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error
 
 	log.Println("Starting image import...")
 
-	// Create new file to host the filesystem and format it
-	if err := runImage.AllocateAndFormat(); err != nil {
-		return nil, err
-	}
-
-	// Add the files to the filesystem
-	if err := runImage.AddFiles(dockerSource); err != nil {
+	// Truncate a file for the filesystem, format it with ext4, and copy in the files from the source
+	if err := dmlegacy.CreateImageFilesystem(runImage.Image, dockerSource); err != nil {
 		return nil, err
 	}
 
