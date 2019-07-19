@@ -15,7 +15,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata"
-	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/storage/filterer"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -82,13 +81,13 @@ func importImage(c *client.Client, ociRef meta.OCIImageRef) (*api.Image, error) 
 // FindOrImportKernel returns an kernel based on the source string.
 // If the image already exists, it is returned. If the image doesn't
 // exist, it is imported
-func FindOrImportKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, error) {
+func FindOrImportKernel(c *client.Client, ociRef meta.OCIImageRef) (*api.Kernel, error) {
 	log.Debugf("Ensuring kernel %s exists, or importing it...", ociRef)
 	kernel, err := c.Kernels().Find(filter.NewIDNameFilter(ociRef.String()))
 	if err == nil {
 		// Return the kernel found
 		log.Debugf("Found kernel with UID %s", kernel.GetUID())
-		return kernmd.WrapKernel(kernel), nil
+		return kernel, nil
 	}
 
 	switch err.(type) {
@@ -100,7 +99,7 @@ func FindOrImportKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kern
 }
 
 // importKernel imports a kernel from an OCI image
-func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, error) {
+func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*api.Kernel, error) {
 	log.Debugf("Importing kernel with ociRef %q", ociRef)
 	// Parse the source
 	dockerSource := source.NewDockerSource()
@@ -117,17 +116,16 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, er
 	// Set the kernel's ociSource
 	kernel.Status.OCISource = *src
 
-	// Create new kernel metadata
-	runKernel, err := kernmd.NewKernel(kernel, c)
-	if err != nil {
+	// Generate UID automatically
+	if err := metadata.SetNameAndUID(kernel, c); err != nil {
 		return nil, err
 	}
 
 	// Cache the kernel contents in the kernel tar file
-	kernelTarFile := path.Join(runKernel.ObjectPath(), constants.KERNEL_TAR)
+	kernelTarFile := path.Join(kernel.ObjectPath(), constants.KERNEL_TAR)
 
 	// vmlinuxFile describes the uncompressed kernel file at /var/lib/firecracker/kernel/<id>/vmlinux
-	vmlinuxFile := path.Join(runKernel.ObjectPath(), constants.KERNEL_FILE)
+	vmlinuxFile := path.Join(kernel.ObjectPath(), constants.KERNEL_FILE)
 
 	// Create both the kernel tar file and the vmlinux file it either doesn't exist
 	if !util.FileExists(kernelTarFile) || !util.FileExists(vmlinuxFile) {
@@ -169,7 +167,7 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, er
 
 		// Copy the vmlinux file
 		if err := util.CopyFile(kernelTmpFile, vmlinuxFile); err != nil {
-			return nil, fmt.Errorf("failed to copy kernel file %q to kernel %q: %v", kernelTmpFile, runKernel.GetUID(), err)
+			return nil, fmt.Errorf("failed to copy kernel file %q to kernel %q: %v", kernelTmpFile, kernel.GetUID(), err)
 		}
 
 		// Pack the kernel tar with unnecessary data removed
@@ -184,23 +182,23 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, er
 	}
 
 	// Populate the kernel version field if possible
-	if len(runKernel.Status.Version) == 0 {
+	if len(kernel.Status.Version) == 0 {
 		cmd := fmt.Sprintf("strings %s | grep 'Linux version' | awk '{print $3}'", vmlinuxFile)
 		// Use the pipefail option to return an error if any of the pipeline commands is not available
 		out, err := util.ExecuteCommand("/bin/bash", "-o", "pipefail", "-c", cmd)
 		if err != nil {
-			runKernel.Status.Version = "<unknown>"
+			kernel.Status.Version = "<unknown>"
 		} else {
-			runKernel.Status.Version = string(out)
+			kernel.Status.Version = string(out)
 		}
 	}
 
-	if err := c.Kernels().Set(runKernel.Kernel); err != nil {
+	if err := c.Kernels().Set(kernel); err != nil {
 		return nil, err
 	}
 
-	log.Printf("Imported OCI image %q (%s) to kernel image with UID %q", ociRef, runKernel.Status.OCISource.Size, runKernel.GetUID())
-	return runKernel, nil
+	log.Printf("Imported OCI image %q (%s) to kernel image with UID %q", ociRef, kernel.Status.OCISource.Size, kernel.GetUID())
+	return kernel, nil
 }
 
 func findKernel(tmpDir string) (string, error) {

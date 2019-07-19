@@ -5,7 +5,6 @@ import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/metadata"
-	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/operations"
 )
 
@@ -24,7 +23,7 @@ func ImportImage(source string) (*api.Image, error) {
 	return runImage, metadata.Success(runImage)
 }
 
-func ImportKernel(source string) (*kernmd.Kernel, error) {
+func ImportKernel(source string) (*api.Kernel, error) {
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {
 		return nil, err

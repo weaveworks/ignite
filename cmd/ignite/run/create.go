@@ -12,7 +12,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/metadata"
-	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
 )
@@ -38,7 +37,7 @@ type CreateFlags struct {
 type createOptions struct {
 	*CreateFlags
 	image  *api.Image
-	kernel *kernmd.Kernel
+	kernel *api.Kernel
 	newVM  *vmmd.VM
 }
 
@@ -110,7 +109,7 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 	}
 
 	// Populate relevant data from the Kernel on the VM object
-	cf.VM.SetKernel(co.kernel.Kernel)
+	cf.VM.SetKernel(co.kernel)
 	return co, nil
 }
 

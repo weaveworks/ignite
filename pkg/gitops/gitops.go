@@ -193,13 +193,13 @@ func ensureOCIImages(vm *vmmd.VM) error {
 	vm.SetImage(image)
 
 	// Check if a kernel with this name already exists, or import it
-	runKernel, err := operations.FindOrImportKernel(c, vm.Spec.Kernel.OCIClaim.Ref)
+	kernel, err := operations.FindOrImportKernel(c, vm.Spec.Kernel.OCIClaim.Ref)
 	if err != nil {
 		return err
 	}
 
 	// Populate relevant data from the Kernel on the VM object
-	vm.SetKernel(runKernel.Kernel)
+	vm.SetKernel(kernel)
 
 	// Save the file to disk. This will also write the file to /var/lib/firecracker for compability
 	return client.DefaultClient.VMs().Set(vm.VM)

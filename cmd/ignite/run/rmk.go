@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
-
-	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 )
 
@@ -17,7 +16,7 @@ type RmkFlags struct {
 
 type rmkOptions struct {
 	*RmkFlags
-	kernels []*kernmd.Kernel
+	kernels []*api.Kernel
 	allVMs  []*vmmd.VM
 }
 
@@ -26,7 +25,7 @@ func (rf *RmkFlags) NewRmkOptions(kernelMatches []string) (*rmkOptions, error) {
 
 	for _, match := range kernelMatches {
 		if kernel, err := client.Kernels().Find(filter.NewIDNameFilter(match)); err == nil {
-			ro.kernels = append(ro.kernels, kernmd.WrapKernel(kernel))
+			ro.kernels = append(ro.kernels, kernel)
 		} else {
 			return nil, err
 		}
