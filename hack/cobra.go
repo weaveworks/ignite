@@ -11,7 +11,9 @@ import (
 )
 
 func main() {
-	providers.Populate()
+	if err := providers.Populate(); err != nil {
+		log.Fatal(err)
+	}
 	ignite := cmd.NewIgniteCommand(os.Stdin, os.Stdout, os.Stderr)
 	if err := doc.GenMarkdownTree(ignite, "./docs/cli"); err != nil {
 		log.Fatal(err)

@@ -10,12 +10,14 @@ import (
 	"time"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/util"
+	patchutil "github.com/weaveworks/ignite/pkg/util/patch"
 	"github.com/weaveworks/ignite/pkg/version"
 )
 
@@ -97,6 +99,20 @@ func StartVM(vm *api.VM, debug bool) error {
 	}
 
 	log.Printf("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
+
+	// Set an annotation on the VM object with the containerID for now
+	patch, err := patchutil.Create(vm, func(obj meta.Object) error {
+		patchVM := obj.(*api.VM)
+		patchVM.SetAnnotation("v1alpha1.ignite.weave.works.containerID", containerID)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	// Perform the patch
+	if err := providers.Client.VMs().Patch(vm.GetUID(), patch); err != nil {
+		return err
+	}
 
 	// TODO: Follow-up the container here with a defer, or dedicated goroutine. We should output
 	// if it started successfully or not

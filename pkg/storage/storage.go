@@ -6,6 +6,7 @@ import (
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage/serializer"
+	patchutil "github.com/weaveworks/ignite/pkg/util/patch"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
@@ -21,6 +22,8 @@ type Storage interface {
 	// Set saves the Object to disk. If the object does not exist, the
 	// ObjectMeta.Created field is set automatically
 	Set(gvk schema.GroupVersionKind, obj meta.Object) error
+	// Patch performs a strategic merge patch on the object with the given UID, using the byte-encoded patch given
+	Patch(gvk schema.GroupVersionKind, uid meta.UID, patch []byte) error
 	// Delete removes an object from the storage
 	Delete(gvk schema.GroupVersionKind, uid meta.UID) error
 	// List lists objects for the specific kind
@@ -98,6 +101,22 @@ func (s *GenericStorage) Set(gvk schema.GroupVersionKind, obj meta.Object) error
 
 	storageKey := KeyForUID(gvk, obj.GetUID())
 	return s.raw.Write(storageKey, b)
+}
+
+// Patch performs a strategic merge patch on the object with the given UID, using the byte-encoded patch given
+func (s *GenericStorage) Patch(gvk schema.GroupVersionKind, uid meta.UID, patch []byte) error {
+	storageKey := KeyForUID(gvk, uid)
+	oldContent, err := s.raw.Read(storageKey)
+	if err != nil {
+		return err
+	}
+
+	newContent, err := patchutil.Apply(oldContent, patch, gvk)
+	if err != nil {
+		return err
+	}
+
+	return s.raw.Write(storageKey, newContent)
 }
 
 // Delete removes an object from the storage

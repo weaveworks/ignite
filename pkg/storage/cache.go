@@ -87,6 +87,13 @@ func (c *cache) Set(gvk schema.GroupVersionKind, obj meta.Object) error {
 	return c.storage.Set(gvk, obj)
 }
 
+// Patch performs a strategic merge patch on the object with the given UID, using the byte-encoded patch given
+func (s *cache) Patch(gvk schema.GroupVersionKind, uid meta.UID, patch []byte) error {
+	// TODO: Should we do something here to cache the change? I don't think so, but...
+	// Just passthrough to the storage here
+	return s.storage.Patch(gvk, uid, patch)
+}
+
 func (c *cache) Delete(gvk schema.GroupVersionKind, uid meta.UID) error {
 	// Delete the given Object from the cache and storage
 	c.objectCache.delete(gvk, uid)

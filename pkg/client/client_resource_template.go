@@ -28,6 +28,9 @@ type ResourceClient interface {
 	Get(meta.UID) (*api.Resource, error)
 	// Set saves the given Resource into persistent storage
 	Set(*api.Resource) error
+	// Patch performs a strategic merge patch on the object with
+	// the given UID, using the byte-encoded patch given
+	Patch(meta.UID, []byte) error
 	// Find returns the Resource matching the given filter, filters can
 	// match e.g. the Object's Name, UID or a specific property
 	Find(filter filterer.BaseFilter) (*api.Resource, error)
@@ -118,6 +121,12 @@ func (c *resourceClient) Get(uid meta.UID) (*api.Resource, error) {
 func (c *resourceClient) Set(resource *api.Resource) error {
 	log.Tracef("Client.Set; UID: %q, GVK: %v", resource.GetUID(), c.gvk)
 	return c.storage.Set(c.gvk, resource)
+}
+
+// Patch performs a strategic merge patch on the object with
+// the given UID, using the byte-encoded patch given
+func (c *resourceClient) Patch(uid meta.UID, patch []byte) error {
+	return c.storage.Patch(c.gvk, uid, patch)
 }
 
 // Delete deletes the Resource from the storage

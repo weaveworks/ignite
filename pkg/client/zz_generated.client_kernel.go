@@ -27,6 +27,9 @@ type KernelClient interface {
 	Get(meta.UID) (*api.Kernel, error)
 	// Set saves the given Kernel into persistent storage
 	Set(*api.Kernel) error
+	// Patch performs a strategic merge patch on the object with
+	// the given UID, using the byte-encoded patch given
+	Patch(meta.UID, []byte) error
 	// Find returns the Kernel matching the given filter, filters can
 	// match e.g. the Object's Name, UID or a specific property
 	Find(filter filterer.BaseFilter) (*api.Kernel, error)
@@ -117,6 +120,12 @@ func (c *kernelClient) Get(uid meta.UID) (*api.Kernel, error) {
 func (c *kernelClient) Set(kernel *api.Kernel) error {
 	log.Tracef("Client.Set; UID: %q, GVK: %v", kernel.GetUID(), c.gvk)
 	return c.storage.Set(c.gvk, kernel)
+}
+
+// Patch performs a strategic merge patch on the object with
+// the given UID, using the byte-encoded patch given
+func (c *kernelClient) Patch(uid meta.UID, patch []byte) error {
+	return c.storage.Patch(c.gvk, uid, patch)
 }
 
 // Delete deletes the Kernel from the storage

@@ -18,6 +18,9 @@ type DynamicClient interface {
 	Get(meta.UID) (meta.Object, error)
 	// Set saves an Object into the persistent storage
 	Set(meta.Object) error
+	// Patch performs a strategic merge patch on the object with
+	// the given UID, using the byte-encoded patch given
+	Patch(meta.UID, []byte) error
 	// Find returns an Object based on the given filter, filters can
 	// match e.g. the Object's Name, UID or a specific property
 	Find(filter filterer.BaseFilter) (meta.Object, error)
@@ -76,6 +79,12 @@ func (c *dynamicClient) Get(uid meta.UID) (meta.Object, error) {
 // Set saves an Object into the persistent storage
 func (c *dynamicClient) Set(resource meta.Object) error {
 	return c.storage.Set(c.gvk, resource)
+}
+
+// Patch performs a strategic merge patch on the object with
+// the given UID, using the byte-encoded patch given
+func (c *dynamicClient) Patch(uid meta.UID, patch []byte) error {
+	return c.storage.Patch(c.gvk, uid, patch)
 }
 
 // Find returns an Object based on a given Filter

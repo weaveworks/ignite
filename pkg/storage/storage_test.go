@@ -47,6 +47,12 @@ func TestStorageSet(t *testing.T) {
 	t.Fatal(err)
 }
 
+func TestStoragePatch(t *testing.T) {
+	patch := []byte(`{"status":{"state":"Running"}}`)
+	err := s.Patch(vmGVK, meta.UID("0123456789101112"), patch)
+	t.Fatal(err)
+}
+
 /*
 func TestStorageDelete(t *testing.T) {
 	err := s.Delete("VM", "1234")
