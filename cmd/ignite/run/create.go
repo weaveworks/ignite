@@ -7,18 +7,17 @@ import (
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/metadata"
-	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
-	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 func NewCreateFlags() *CreateFlags {
 	return &CreateFlags{
-		VM: client.VMs().New(),
+		VM: providers.Client.VMs().New(),
 	}
 }
 
@@ -36,9 +35,8 @@ type CreateFlags struct {
 
 type createOptions struct {
 	*CreateFlags
-	image  *imgmd.Image
-	kernel *kernmd.Kernel
-	newVM  *vmmd.VM
+	image  *api.Image
+	kernel *api.Kernel
 }
 
 func (cf *CreateFlags) constructVMFromCLI(args []string) error {
@@ -85,9 +83,9 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 		}
 	}
 
-	// Specifying an image either way is mandatory
-	if cf.VM.Spec.Image.OCIClaim.Ref.IsUnset() {
-		return nil, fmt.Errorf("you must specify an image to run either via CLI args or a config file")
+	// Validate the VM object
+	if err := validation.ValidateVM(cf.VM).ToAggregate(); err != nil {
+		return nil, err
 	}
 
 	co := &createOptions{CreateFlags: cf}
@@ -100,7 +98,7 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 	}
 
 	// Populate relevant data from the Image on the VM object
-	cf.VM.SetImage(co.image.Image)
+	cf.VM.SetImage(co.image)
 
 	// Get the kernel, or import it if it doesn't exist
 	co.kernel, err = operations.FindOrImportKernel(providers.Client, cf.VM.Spec.Kernel.OCIClaim.Ref)
@@ -109,29 +107,27 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 	}
 
 	// Populate relevant data from the Kernel on the VM object
-	cf.VM.SetKernel(co.kernel.Kernel)
+	cf.VM.SetKernel(co.kernel)
 	return co, nil
 }
 
 func Create(co *createOptions) error {
-	// Create new metadata for the VM
-	var err error
-	if co.newVM, err = vmmd.NewVM(co.VM, providers.Client); err != nil {
+	// Generate a random UID and Name
+	if err := metadata.SetNameAndUID(co.VM, providers.Client); err != nil {
 		return err
 	}
-	defer metadata.Cleanup(co.newVM, false) // TODO: Handle silent
+	defer metadata.Cleanup(co.VM, false) // TODO: Handle silent
 
-	// Save the metadata
-	if err := co.newVM.Save(); err != nil {
+	if err := providers.Client.VMs().Set(co.VM); err != nil {
 		return err
 	}
 
 	// Allocate and populate the overlay file
-	if err := co.newVM.AllocateAndPopulateOverlay(); err != nil {
+	if err := dmlegacy.AllocateAndPopulateOverlay(co.VM); err != nil {
 		return err
 	}
 
-	return metadata.Success(co.newVM)
+	return metadata.Success(co.VM)
 }
 
 // TODO: Move this to meta, or an helper in api

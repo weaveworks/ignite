@@ -1,4 +1,4 @@
-package imgmd
+package dmlegacy
 
 import (
 	"fmt"
@@ -10,38 +10,41 @@ import (
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-func (md *Image) AllocateAndFormat() error {
+// CreateImageFilesystem creates an ext4 filesystem in a file, containing the files from the source
+func CreateImageFilesystem(img *api.Image, src source.Source) error {
 	log.Debugf("Allocating image file and formatting it with ext4...")
-	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
+	p := path.Join(img.ObjectPath(), constants.IMAGE_FS)
 	imageFile, err := os.Create(p)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create image file for %s", md.GetUID())
+		return errors.Wrapf(err, "failed to create image file for %s", img.GetUID())
 	}
 	defer imageFile.Close()
 
 	// The base image is the size of the tar file, plus 100MB
-	if err := imageFile.Truncate(int64(md.Status.OCISource.Size.Bytes()) + 100*1024*1024); err != nil {
-		return errors.Wrapf(err, "failed to allocate space for image %s", md.GetUID())
+	if err := imageFile.Truncate(int64(img.Status.OCISource.Size.Bytes()) + 100*1024*1024); err != nil {
+		return errors.Wrapf(err, "failed to allocate space for image %s", img.GetUID())
 	}
 
 	// Use mkfs.ext4 to create the new image with an inode size of 256
 	// (gexto doesn't support anything but 128, but as long as we're not using that it's fine)
 	if _, err := util.ExecuteCommand("mkfs.ext4", "-I", "256", "-F", "-E", "lazy_itable_init=0,lazy_journal_init=0", p); err != nil {
-		return errors.Wrapf(err, "failed to format image %s", md.GetUID())
+		return errors.Wrapf(err, "failed to format image %s", img.GetUID())
 	}
 
-	return nil
+	// Proceed with populating the image with files
+	return addFiles(img, src)
 }
 
-// AddFiles copies the contents of the tar file into the ext4 filesystem
-func (md *Image) AddFiles(src source.Source) error {
+// addFiles copies the contents of the tar file into the ext4 filesystem
+func addFiles(img *api.Image, src source.Source) error {
 	log.Debugf("Copying in files to the image file from a source...")
-	p := path.Join(md.ObjectPath(), constants.IMAGE_FS)
+	p := path.Join(img.ObjectPath(), constants.IMAGE_FS)
 	tempDir, err := ioutil.TempDir("", "")
 	if err != nil {
 		return err
@@ -72,14 +75,14 @@ func (md *Image) AddFiles(src source.Source) error {
 		return err
 	}
 
-	return md.SetupResolvConf(tempDir)
+	return setupResolvConf(tempDir)
 }
 
-// SetupResolvConf makes sure there is a resolv.conf file, otherwise
+// setupResolvConf makes sure there is a resolv.conf file, otherwise
 // name resolution won't work. The kernel uses DHCP by default, and
 // puts the nameservers in /proc/net/pnp at runtime. Hence, as a default,
 // if /etc/resolv.conf doesn't exist, we can use /proc/net/pnp as /etc/resolv.conf
-func (md *Image) SetupResolvConf(tempDir string) error {
+func setupResolvConf(tempDir string) error {
 	resolvConf := filepath.Join(tempDir, "/etc/resolv.conf")
 	empty, err := util.FileIsEmpty(resolvConf)
 	if err != nil {
@@ -90,6 +93,5 @@ func (md *Image) SetupResolvConf(tempDir string) error {
 		return nil
 	}
 
-	//fmt.Println("Symlinking /etc/resolv.conf to /proc/net/pnp")
 	return os.Symlink("../proc/net/pnp", resolvConf)
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/container"
 	"github.com/weaveworks/ignite/pkg/container/prometheus"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/providers"
 )
@@ -60,16 +61,17 @@ func StartVM(co *options) error {
 	go prometheus.ServeMetrics(metricsSocket)
 
 	// VM state handling
-	if err := co.vm.SetState(api.VMStateRunning); err != nil {
+	// TODO: Use a .Patch here instead
+	if err := setState(co.vm, api.VMStateRunning); err != nil {
 		return fmt.Errorf("failed to update VM state: %v", err)
 	}
-	defer co.vm.SetState(api.VMStateStopped) // Performs a save, all other metadata-modifying defers need to be after this
+	defer setState(co.vm, api.VMStateStopped) // Performs a save, all other metadata-modifying defers need to be after this
 
 	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
-	defer co.vm.RemoveSnapshot()
+	defer dmlegacy.DeactivateSnapshot(co.vm)
 
 	// Remove the IP addresses post-run
-	defer co.vm.ClearIPAddresses()
+	defer clearIPAddresses(co.vm)
 
 	// Remove the Prometheus socket post-run
 	defer os.Remove(metricsSocket)
@@ -80,4 +82,15 @@ func StartVM(co *options) error {
 	}
 
 	return nil
+}
+
+func setState(vm *api.VM, s api.VMState) error {
+	vm.Status.State = s
+
+	return providers.Client.VMs().Set(vm)
+}
+
+func clearIPAddresses(vm *api.VM) {
+	vm.Status.IPAddresses = nil
+	// TODO: This currently relies on the ordering of a set of defers. Make this more robust in the future.
 }

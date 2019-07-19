@@ -11,24 +11,30 @@ import (
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
+	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/util"
 	"github.com/weaveworks/ignite/pkg/version"
 )
 
-func StartVM(vm *vmmd.VM, debug bool) error {
+func StartVM(vm *api.VM, debug bool) error {
 	// Make sure the VM container does not exist. Don't care about the error.
-	_ = RemoveVMContainer(vm.VM)
+	_ = RemoveVMContainer(vm)
 
 	// Setup the snapshot overlay filesystem
-	if err := vm.SetupSnapshot(); err != nil {
+	if err := dmlegacy.ActivateSnapshot(vm); err != nil {
+		return err
+	}
+
+	kernelUID, err := lookup.KernelUIDForVM(vm, providers.Client)
+	if err != nil {
 		return err
 	}
 
 	vmDir := filepath.Join(constants.VM_DIR, vm.GetUID().String())
-	kernelDir := filepath.Join(constants.KERNEL_DIR, vm.GetKernelUID().String())
+	kernelDir := filepath.Join(constants.KERNEL_DIR, kernelUID.String())
 	igniteImage := fmt.Sprintf("weaveworks/ignite:%s", version.GetIgnite().ImageTag())
 
 	// Verify that the image containing ignite-spawn is pulled
@@ -126,7 +132,7 @@ func verifyPulled(image string) error {
 
 // TODO: This check for the Prometheus socket file is temporary
 // until we get a proper ignite <-> ignite-spawn communication channel
-func waitForSpawn(vm *vmmd.VM) error {
+func waitForSpawn(vm *api.VM) error {
 	const timeout = 10 * time.Second
 	const checkInterval = 100 * time.Millisecond
 
