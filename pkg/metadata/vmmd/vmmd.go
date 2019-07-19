@@ -120,7 +120,3 @@ func (vm *VM) ObjectPath() string {
 	// TODO: Move this into storage
 	return path.Join(constants.DATA_DIR, vm.GetKind().Lower(), vm.GetUID().String())
 }
-
-func (vm *VM) Save() error {
-	return vm.c.VMs().Set(vm.VM)
-}

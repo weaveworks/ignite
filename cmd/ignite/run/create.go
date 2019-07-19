@@ -121,8 +121,7 @@ func Create(co *createOptions) error {
 	}
 	defer metadata.Cleanup(co.newVM, false) // TODO: Handle silent
 
-	// Save the metadata
-	if err := co.newVM.Save(); err != nil {
+	if err := client.DefaultClient.VMs().Set(co.newVM.VM); err != nil {
 		return err
 	}
 

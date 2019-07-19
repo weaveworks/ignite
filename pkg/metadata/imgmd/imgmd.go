@@ -47,7 +47,3 @@ func (img *Image) ObjectPath() string {
 	// TODO: Move this into storage
 	return path.Join(constants.DATA_DIR, img.GetKind().Lower(), img.GetUID().String())
 }
-
-func (img *Image) Save() error {
-	return img.c.Images().Set(img.Image)
-}

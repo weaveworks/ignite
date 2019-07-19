@@ -48,7 +48,3 @@ func (k *Kernel) ObjectPath() string {
 	// TODO: Move this into storage
 	return path.Join(constants.DATA_DIR, k.GetKind().Lower(), k.GetUID().String())
 }
-
-func (k *Kernel) Save() error {
-	return k.c.Kernels().Set(k.Kernel)
-}

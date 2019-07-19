@@ -24,7 +24,6 @@ var (
 type Metadata interface {
 	meta.Object
 	ObjectPath() string
-	Save() error
 }
 
 // InitObject shall be run in all New{Kind} methods. This method should be

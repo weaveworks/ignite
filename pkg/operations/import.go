@@ -75,7 +75,7 @@ func importImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error
 		return nil, err
 	}
 
-	if err := runImage.Save(); err != nil {
+	if err := c.Images().Set(runImage.Image); err != nil {
 		return nil, err
 	}
 
@@ -199,8 +199,7 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, er
 		}
 	}
 
-	// Save the metadata
-	if err := runKernel.Save(); err != nil {
+	if err := c.Kernels().Set(runKernel.Kernel); err != nil {
 		return nil, err
 	}
 

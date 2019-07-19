@@ -197,7 +197,7 @@ func ensureOCIImages(vm *vmmd.VM) error {
 	vm.SetKernel(runKernel.Kernel)
 
 	// Save the file to disk. This will also write the file to /var/lib/firecracker for compability
-	return vm.Save()
+	return client.DefaultClient.VMs().Set(vm.VM)
 }
 
 func start(vm *vmmd.VM) error {

@@ -164,16 +164,6 @@ func (md *VM) writeEtcHosts(tmpDir, hostname string, primaryIP net.IP) error {
 	return ioutil.WriteFile(hostFilePath, content, 0644)
 }
 
-func (md *VM) SetState(s api.VMState) error {
-	md.Status.State = s
-
-	if err := md.Save(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (md *VM) Running() bool {
 	return md.Status.State == api.VMStateRunning
 }
