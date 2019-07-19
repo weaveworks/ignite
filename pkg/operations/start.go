@@ -11,10 +11,12 @@ import (
 	"time"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/network/cni"
+	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/runtime/docker"
 	"github.com/weaveworks/ignite/pkg/util"
 	"github.com/weaveworks/ignite/pkg/version"
@@ -29,8 +31,13 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 		return err
 	}
 
+	kernelUID, err := lookup.KernelUIDForVM(vm.VM, client.DefaultClient)
+	if err != nil {
+		return err
+	}
+
 	vmDir := filepath.Join(constants.VM_DIR, vm.GetUID().String())
-	kernelDir := filepath.Join(constants.KERNEL_DIR, vm.GetKernelUID().String())
+	kernelDir := filepath.Join(constants.KERNEL_DIR, kernelUID.String())
 
 	dockerArgs := []string{
 		"-itd",

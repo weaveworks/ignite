@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"os"
 
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/operations/lookup"
 )
 
 type RmkFlags struct {
@@ -43,8 +45,14 @@ func (rf *RmkFlags) NewRmkOptions(kernelMatches []string) (*rmkOptions, error) {
 func Rmk(ro *rmkOptions) error {
 	for _, kernel := range ro.kernels {
 		for _, vm := range ro.allVMs {
+			kernelUID, err := lookup.KernelUIDForVM(vm.VM, client.DefaultClient)
+			if err != nil {
+				log.Warnf("Could not lookup kernel UID for VM %q: %v", vm.GetUID(), err)
+				continue
+			}
+
 			// Check if there's any VM using this kernel
-			if vm.GetKernelUID() == kernel.GetUID() {
+			if kernelUID == kernel.GetUID() {
 				if ro.Force {
 					// Force-kill and remove the VM used by this kernel
 					if err := Rm(&rmOptions{

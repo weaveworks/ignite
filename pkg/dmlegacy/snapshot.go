@@ -5,8 +5,10 @@ import (
 	"os"
 	"path"
 
+	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -20,8 +22,14 @@ func ActivateSnapshot(vm *vmmd.VM) error {
 		return nil
 	}
 
+	// Get the image UID from the VM
+	imageUID, err := lookup.ImageUIDForVM(vm.VM, client.DefaultClient)
+	if err != nil {
+		return err
+	}
+
 	// Setup loop device for the image
-	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, vm.GetImageUID().String(), constants.IMAGE_FS), true)
+	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, imageUID.String(), constants.IMAGE_FS), true)
 	if err != nil {
 		return err
 	}

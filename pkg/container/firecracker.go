@@ -11,8 +11,10 @@ import (
 
 	"github.com/firecracker-microvm/firecracker-go-sdk"
 	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/operations/lookup"
 )
 
 // ExecuteFirecracker executes the firecracker process using the Go SDK
@@ -36,12 +38,17 @@ func ExecuteFirecracker(md *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 		cmdLine = constants.VM_DEFAULT_KERNEL_ARGS
 	}
 
+	kernelUID, err := lookup.KernelUIDForVM(md, client.DefaultClient)
+	if err != nil {
+		return err
+	}
+
 	firecrackerSocketPath := path.Join(md.ObjectPath(), constants.FIRECRACKER_API_SOCKET)
 	logSocketPath := path.Join(md.ObjectPath(), constants.LOG_FIFO)
 	metricsSocketPath := path.Join(md.ObjectPath(), constants.METRICS_FIFO)
 	cfg := firecracker.Config{
 		SocketPath:      firecrackerSocketPath,
-		KernelImagePath: path.Join(constants.KERNEL_DIR, md.GetKernelUID().String(), constants.KERNEL_FILE),
+		KernelImagePath: path.Join(constants.KERNEL_DIR, kernelUID.String(), constants.KERNEL_FILE),
 		KernelArgs:      cmdLine,
 		Drives: []models.Drive{{
 			DriveID:      firecracker.String("1"),

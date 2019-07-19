@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"os"
 
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/operations/lookup"
 )
 
 type RmiFlags struct {
@@ -43,8 +45,14 @@ func (rf *RmiFlags) NewRmiOptions(imageMatches []string) (*rmiOptions, error) {
 func Rmi(ro *rmiOptions) error {
 	for _, image := range ro.images {
 		for _, vm := range ro.allVMs {
+			imageUID, err := lookup.ImageUIDForVM(vm.VM, client.DefaultClient)
+			if err != nil {
+				log.Warnf("Could not lookup image UID for VM %q: %v", vm.GetUID(), err)
+				continue
+			}
+
 			// Check if there's any VM using this image
-			if vm.GetImageUID() == image.GetUID() {
+			if imageUID == image.GetUID() {
 				if ro.Force {
 					// Force-kill and remove the VM used by this image
 					if err := Rm(&rmOptions{

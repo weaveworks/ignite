@@ -13,8 +13,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -41,8 +43,14 @@ func AllocateAndPopulateOverlay(vm *vmmd.VM) error {
 		return fmt.Errorf("requested size %d too large, cannot truncate", size)
 	}
 
+	// Get the image UID from the VM
+	imageUID, err := lookup.ImageUIDForVM(vm.VM, client.DefaultClient)
+	if err != nil {
+		return err
+	}
+
 	// Get the size of the image ext4 file
-	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, vm.GetImageUID().String(), constants.IMAGE_FS))
+	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, imageUID.String(), constants.IMAGE_FS))
 	if err != nil {
 		return err
 	}
@@ -139,7 +147,10 @@ func copyToOverlay(vm *vmmd.VM) error {
 }
 
 func copyKernelToOverlay(vm *vmmd.VM, mountPoint string) error {
-	kernelUID := vm.GetKernelUID()
+	kernelUID, err := lookup.KernelUIDForVM(vm.VM, client.DefaultClient)
+	if err != nil {
+		return err
+	}
 	kernelTarPath := path.Join(constants.KERNEL_DIR, kernelUID.String(), constants.KERNEL_TAR)
 
 	if !util.FileExists(kernelTarPath) {
@@ -147,7 +158,7 @@ func copyKernelToOverlay(vm *vmmd.VM, mountPoint string) error {
 		return nil
 	}
 
-	_, err := util.ExecuteCommand("tar", "-xf", kernelTarPath, "-C", mountPoint)
+	_, err = util.ExecuteCommand("tar", "-xf", kernelTarPath, "-C", mountPoint)
 	return err
 }
 
