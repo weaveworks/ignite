@@ -49,7 +49,7 @@ func importImage(c *client.Client, ociRef meta.OCIImageRef) (*imgmd.Image, error
 		return nil, err
 	}
 
-	image := client.Images().New()
+	image := c.Images().New()
 	// Set the image name
 	image.Name = ociRef.String()
 	// Set the image's ociRef
@@ -113,7 +113,7 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*kernmd.Kernel, er
 		return nil, err
 	}
 
-	kernel := client.Kernels().New()
+	kernel := c.Kernels().New()
 	// Set the kernel name
 	kernel.Name = ociRef.String()
 	// Set the kernel's ociRef

@@ -18,7 +18,7 @@ import (
 
 func NewCreateFlags() *CreateFlags {
 	return &CreateFlags{
-		VM: client.VMs().New(),
+		VM: providers.Client.VMs().New(),
 	}
 }
 
