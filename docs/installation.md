@@ -50,7 +50,7 @@ Amazon EC2 [bare metal instances](https://aws.amazon.com/about-aws/whats-new/201
 Here's a list of instances with KVM support, with pricing (as of July 2019), to help you test Ignite. All the instances listed below are EBS-optimized, with 25 Gigabit available network performance and IPv6 support.
 
 | Family | Type | Pricing (US-West-2) per On Demand Linux Instance Hr | vCPUs | Memory (GiB) | Instance Storage (GB) | 
-| ---- | ---- | ---- | ---- | ---- | ---- | 
+| ---- | ---- | :----: | :----: | :----: | ---- | 
 |Compute optimized | c5.metal | $4.08 | 96 |192 |EBS only | 
 | General purpose | m5.metal | $4.608 | 96 | 384 | EBS only |
 | General purpose |  m5d.metal | $5.424 | 96 | 384  |4 x 900 (SSD) |
