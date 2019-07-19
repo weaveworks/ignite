@@ -53,6 +53,12 @@ func (vm *VM) Running() bool {
 	return vm.Status.State == VMStateRunning
 }
 
+// OverlayFile returns the path to the overlay.dm file for the VM.
+// TODO: This will be removed once we have the new snapshotter in place.
+func (vm *VM) OverlayFile() string {
+	return path.Join(vm.ObjectPath(), constants.OVERLAY_FILE)
+}
+
 // ObjectPath returns the directory where this VM's data is stored
 func (vm *VM) ObjectPath() string {
 	// TODO: Move this into storage

@@ -63,7 +63,7 @@ func StartVM(co *options) error {
 	defer setState(co.vm.VM, api.VMStateStopped) // Performs a save, all other metadata-modifying defers need to be after this
 
 	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
-	defer co.vm.RemoveSnapshot()
+	defer co.vm.DeactivateSnapshot()
 
 	// Remove the IP addresses post-run
 	defer clearIPAddresses(co.vm.VM)

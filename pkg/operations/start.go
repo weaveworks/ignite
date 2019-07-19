@@ -12,6 +12,7 @@ import (
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/network/cni"
 	"github.com/weaveworks/ignite/pkg/runtime/docker"
@@ -24,7 +25,7 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 	RemoveVMContainer(vm.VM)
 
 	// Setup the snapshot overlay filesystem
-	if err := vm.SetupSnapshot(); err != nil {
+	if err := dmlegacy.ActivateSnapshot(vm); err != nil {
 		return err
 	}
 

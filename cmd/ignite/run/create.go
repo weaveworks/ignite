@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
 	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
@@ -126,7 +127,7 @@ func Create(co *createOptions) error {
 	}
 
 	// Allocate and populate the overlay file
-	if err := co.newVM.AllocateAndPopulateOverlay(); err != nil {
+	if err := dmlegacy.AllocateAndPopulateOverlay(co.newVM); err != nil {
 		return err
 	}
 

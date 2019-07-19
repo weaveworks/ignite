@@ -1,25 +1,19 @@
-package vmmd
+package dmlegacy
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
-	"strconv"
 
-	"github.com/freddierice/go-losetup"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-func (md *VM) SnapshotDev() string {
-	return path.Join("/dev/mapper", constants.IGNITE_PREFIX+md.GetUID().String())
-}
-
-func (md *VM) SetupSnapshot() error {
-	device := constants.IGNITE_PREFIX + md.GetUID().String()
-	devicePath := md.SnapshotDev()
+// ActivateSnapshot sets up the snapshot with devicemapper so that it is active and can be used
+func ActivateSnapshot(vm *vmmd.VM) error {
+	device := constants.IGNITE_PREFIX + vm.GetUID().String()
+	devicePath := vm.SnapshotDev()
 
 	// Return if the snapshot is already setup
 	if util.FileExists(devicePath) {
@@ -27,18 +21,18 @@ func (md *VM) SetupSnapshot() error {
 	}
 
 	// Setup loop device for the image
-	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, md.GetImageUID().String(), constants.IMAGE_FS), true)
+	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, vm.GetImageUID().String(), constants.IMAGE_FS), true)
 	if err != nil {
 		return err
 	}
 
 	// Make sure the all directories above the snapshot directory exists
-	if err := os.MkdirAll(path.Dir(md.OverlayFile()), 0755); err != nil {
+	if err := os.MkdirAll(path.Dir(vm.OverlayFile()), 0755); err != nil {
 		return err
 	}
 
 	// Setup loop device for the VM overlay
-	overlayLoop, err := newLoopDev(md.OverlayFile(), false)
+	overlayLoop, err := newLoopDev(vm.OverlayFile(), false)
 	if err != nil {
 		return err
 	}
@@ -97,77 +91,24 @@ func (md *VM) SetupSnapshot() error {
 		return err
 	}
 
-	if err := overlayLoop.Detach(); err != nil {
-		return err
-	}
-
-	return nil
+	return overlayLoop.Detach()
 }
 
-func (md *VM) RemoveSnapshot() error {
+// DeactivateSnapshot deactivates the snapshot by removing it with dmsetup
+func DeactivateSnapshot(vm *vmmd.VM) error {
 	dmArgs := []string{
 		"remove",
-		md.SnapshotDev(),
+		vm.SnapshotDev(),
 	}
 
 	// If the base device is visible in "dmsetup", we should remove it
 	// The device itself is not forwarded to docker, so we can't query its path
 	// TODO: Improve this detection
-	baseDev := fmt.Sprintf("%s-base", constants.IGNITE_PREFIX+md.GetUID())
+	baseDev := fmt.Sprintf("%s-base", constants.IGNITE_PREFIX+vm.GetUID())
 	if _, err := util.ExecuteCommand("dmsetup", "info", baseDev); err == nil {
 		dmArgs = append(dmArgs, baseDev)
 	}
 
-	if _, err := util.ExecuteCommand("dmsetup", dmArgs...); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-type loopDevice struct {
-	losetup.Device
-}
-
-func newLoopDev(file string, readOnly bool) (*loopDevice, error) {
-	dev, err := losetup.Attach(file, 0, readOnly)
-	if err != nil {
-		return nil, fmt.Errorf("failed to setup loop device for %q: %v", file, err)
-	}
-
-	return &loopDevice{dev}, nil
-}
-
-func (ld *loopDevice) Size512K() (uint64, error) {
-	data, err := ioutil.ReadFile(path.Join("/sys/class/block", path.Base(ld.Device.Path()), "size"))
-	if err != nil {
-		return 0, err
-	}
-
-	// Remove the trailing newline and parse to uint64
-	return strconv.ParseUint(string(data[:len(data)-1]), 10, 64)
-}
-
-// dmsetup uses stdin to read multiline tables, this is a helper function for that
-func runDMSetup(name string, table []byte) error {
-	cmd := exec.Command("dmsetup", "create", name)
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		return err
-	}
-
-	if _, err := stdin.Write(table); err != nil {
-		return err
-	}
-
-	if err := stdin.Close(); err != nil {
-		return err
-	}
-
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("command %q exited with %q: %v", cmd.Args, out, err)
-	}
-
-	return nil
+	_, err := util.ExecuteCommand("dmsetup", dmArgs...)
+	return err
 }

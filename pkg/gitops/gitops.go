@@ -9,6 +9,7 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/storage"
@@ -169,7 +170,7 @@ func create(vm *vmmd.VM) error {
 	}
 
 	// Allocate and populate the overlay file
-	return vm.AllocateAndPopulateOverlay()
+	return dmlegacy.AllocateAndPopulateOverlay(vm)
 }
 
 // ensureOCIImages imports the base/kernel OCI images if needed

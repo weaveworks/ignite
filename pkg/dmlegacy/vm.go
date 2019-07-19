@@ -1,4 +1,4 @@
-package vmmd
+package dmlegacy
 
 import (
 	"fmt"
@@ -10,10 +10,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/c2h5oh/datasize"
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -30,71 +31,74 @@ ff02::2 ip6-allrouters
 	vmAuthorizedKeys = "/root/.ssh/authorized_keys"
 )
 
-func (md *VM) AllocateAndPopulateOverlay() error {
-	requestedSize := md.Spec.DiskSize.Bytes()
+// AllocateAndPopulateOverlay creates the overlay.dm file on top of an image, and
+// configures the snapshot in all ways needed. It also copies in contents from the
+// host as needed, and configures networking.
+func AllocateAndPopulateOverlay(vm *vmmd.VM) error {
+	size := int64(vm.Spec.DiskSize.Bytes())
 	// Truncate only accepts an int64
-	if requestedSize > math.MaxInt64 {
-		return fmt.Errorf("requested size %d too large, cannot truncate", requestedSize)
+	if size > math.MaxInt64 {
+		return fmt.Errorf("requested size %d too large, cannot truncate", size)
 	}
 
-	size := int64(requestedSize)
-
-	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, md.GetImageUID().String(), constants.IMAGE_FS))
+	// Get the size of the image ext4 file
+	fi, err := os.Stat(path.Join(constants.IMAGE_DIR, vm.GetImageUID().String(), constants.IMAGE_FS))
 	if err != nil {
 		return err
 	}
+	imageSize := fi.Size()
 
 	// The overlay needs to be at least as large as the image
-	if size < fi.Size() {
-		size = fi.Size()
+	if size < imageSize {
 		log.Warnf("warning: requested overlay size (%s) < image size (%s), using image size for overlay\n",
-			datasize.ByteSize(requestedSize).HR(), datasize.ByteSize(size).HR())
+			vm.Spec.DiskSize.String(), meta.NewSizeFromBytes(uint64(imageSize)).String())
+		size = imageSize
 	}
 
 	// Make sure the all directories above the snapshot directory exists
-	if err := os.MkdirAll(path.Dir(md.OverlayFile()), constants.DATA_DIR_PERM); err != nil {
+	if err := os.MkdirAll(path.Dir(vm.OverlayFile()), constants.DATA_DIR_PERM); err != nil {
 		return err
 	}
 
-	overlayFile, err := os.Create(md.OverlayFile())
+	overlayFile, err := os.Create(vm.OverlayFile())
 	if err != nil {
-		return fmt.Errorf("failed to create overlay file for %q, %v", md.GetUID(), err)
+		return fmt.Errorf("failed to create overlay file for %q, %v", vm.GetUID(), err)
 	}
 	defer overlayFile.Close()
 
 	if err := overlayFile.Truncate(size); err != nil {
-		return fmt.Errorf("failed to allocate overlay file for VM %q: %v", md.GetUID(), err)
+		return fmt.Errorf("failed to allocate overlay file for VM %q: %v", vm.GetUID(), err)
 	}
 
 	// populate the filesystem
-	return md.copyToOverlay()
+	return copyToOverlay(vm)
 }
 
-func (md *VM) copyToOverlay() error {
-	if err := md.SetupSnapshot(); err != nil {
+func copyToOverlay(vm *vmmd.VM) error {
+	if err := ActivateSnapshot(vm); err != nil {
 		return err
 	}
-	defer md.RemoveSnapshot()
+	defer DeactivateSnapshot(vm)
 
-	mp, err := util.Mount(md.SnapshotDev())
+	mp, err := util.Mount(vm.SnapshotDev())
 	if err != nil {
 		return err
 	}
 	defer mp.Umount()
 
 	// Copy the kernel files to the VM. TODO: Use snapshot overlaying instead.
-	if err := md.copyKernelToOverlay(mp.Path); err != nil {
+	if err := copyKernelToOverlay(vm, mp.Path); err != nil {
 		return err
 	}
 
-	// do not mutate md.Spec.CopyFiles
-	fileMappings := md.Spec.CopyFiles
+	// do not mutate vm.Spec.CopyFiles
+	fileMappings := vm.Spec.CopyFiles
 
-	if md.Spec.SSH != nil {
-		pubKeyPath := md.Spec.SSH.PublicKey
-		if md.Spec.SSH.Generate {
+	if vm.Spec.SSH != nil {
+		pubKeyPath := vm.Spec.SSH.PublicKey
+		if vm.Spec.SSH.Generate {
 			// generate a key if PublicKey is empty
-			pubKeyPath, err = md.newSSHKeypair()
+			pubKeyPath, err = newSSHKeypair(vm.VM)
 			if err != nil {
 				return err
 			}
@@ -121,11 +125,11 @@ func (md *VM) copyToOverlay() error {
 	}
 
 	ip := net.IP{127, 0, 0, 1}
-	if len(md.Status.IPAddresses) > 0 {
-		ip = md.Status.IPAddresses[0]
+	if len(vm.Status.IPAddresses) > 0 {
+		ip = vm.Status.IPAddresses[0]
 	}
 
-	if err := md.writeEtcHosts(mp.Path, md.GetUID().String(), ip); err != nil {
+	if err := writeEtcHosts(vm.VM, mp.Path, vm.GetUID().String(), ip); err != nil {
 		return err
 	}
 
@@ -134,8 +138,8 @@ func (md *VM) copyToOverlay() error {
 	return nil
 }
 
-func (md *VM) copyKernelToOverlay(mountPoint string) error {
-	kernelUID := md.GetKernelUID()
+func copyKernelToOverlay(vm *vmmd.VM, mountPoint string) error {
+	kernelUID := vm.GetKernelUID()
 	kernelTarPath := path.Join(constants.KERNEL_DIR, kernelUID.String(), constants.KERNEL_TAR)
 
 	if !util.FileExists(kernelTarPath) {
@@ -149,7 +153,7 @@ func (md *VM) copyKernelToOverlay(mountPoint string) error {
 
 // writeEtcHosts populates the /etc/hosts file to avoid errors like
 // sudo: unable to resolve host 4462576f8bf5b689
-func (md *VM) writeEtcHosts(tmpDir, hostname string, primaryIP net.IP) error {
+func writeEtcHosts(vm *api.VM, tmpDir, hostname string, primaryIP net.IP) error {
 	hostFilePath := filepath.Join(tmpDir, "/etc/hosts")
 	empty, err := util.FileIsEmpty(hostFilePath)
 	if err != nil {
@@ -164,20 +168,16 @@ func (md *VM) writeEtcHosts(tmpDir, hostname string, primaryIP net.IP) error {
 	return ioutil.WriteFile(hostFilePath, content, 0644)
 }
 
-func (md *VM) OverlayFile() string {
-	return path.Join(md.ObjectPath(), constants.OVERLAY_FILE)
-}
-
 // Generate a new SSH keypair for the vm
-func (md *VM) newSSHKeypair() (string, error) {
-	privKeyPath := path.Join(md.ObjectPath(), fmt.Sprintf(constants.VM_SSH_KEY_TEMPLATE, md.GetUID()))
+func newSSHKeypair(vm *api.VM) (string, error) {
+	privKeyPath := path.Join(vm.ObjectPath(), fmt.Sprintf(constants.VM_SSH_KEY_TEMPLATE, vm.GetUID()))
 	// TODO: In future versions, let the user specify what key algorithm to use through the API types
-	ssh_key_algorithm := "ed25519"
+	sshKeyAlgorithm := "ed25519"
 	if util.FIPSEnabled() {
 		// Use rsa on FIPS machines
-		ssh_key_algorithm = "rsa"
+		sshKeyAlgorithm = "rsa"
 	}
-	_, err := util.ExecuteCommand("ssh-keygen", "-q", "-t", ssh_key_algorithm, "-N", "", "-f", privKeyPath)
+	_, err := util.ExecuteCommand("ssh-keygen", "-q", "-t", sshKeyAlgorithm, "-N", "", "-f", privKeyPath)
 	if err != nil {
 		return "", err
 	}
