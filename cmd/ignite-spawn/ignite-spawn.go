@@ -2,16 +2,20 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"path"
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/container"
 	"github.com/weaveworks/ignite/pkg/container/prometheus"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/providers"
+	patchutil "github.com/weaveworks/ignite/pkg/util/patch"
 )
 
 func main() {
@@ -50,8 +54,12 @@ func StartVM(co *options) error {
 	if err != nil {
 		return fmt.Errorf("network setup failed: %v", err)
 	}
+
 	// Serve DHCP requests for those interfaces
-	if err := container.StartDHCPServers(co.vm, dhcpIfaces); err != nil {
+	// This function returns the available IP addresses that are being
+	// served over DHCP now
+	ipAddrs, err := container.StartDHCPServers(co.vm, dhcpIfaces)
+	if err != nil {
 		return err
 	}
 
@@ -59,17 +67,16 @@ func StartVM(co *options) error {
 	metricsSocket := path.Join(co.vm.ObjectPath(), constants.PROMETHEUS_SOCKET)
 	go prometheus.ServeMetrics(metricsSocket)
 
-	// VM state handling
-	if err := co.vm.SetState(api.VMStateRunning); err != nil {
-		return fmt.Errorf("failed to update VM state: %v", err)
+	// Update the VM status and IP address information
+	if err := patchRunning(co.vm, ipAddrs); err != nil {
+		return fmt.Errorf("failed to patch VM state: %v", err)
 	}
-	defer co.vm.SetState(api.VMStateStopped) // Performs a save, all other metadata-modifying defers need to be after this
+
+	// Patches the VM object to set state to stopped, and clear IP addresses
+	defer patchStopped(co.vm)
 
 	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
-	defer co.vm.RemoveSnapshot()
-
-	// Remove the IP addresses post-run
-	defer co.vm.ClearIPAddresses()
+	defer dmlegacy.DeactivateSnapshot(co.vm)
 
 	// Remove the Prometheus socket post-run
 	defer os.Remove(metricsSocket)
@@ -80,4 +87,32 @@ func StartVM(co *options) error {
 	}
 
 	return nil
+}
+
+func patchRunning(vm *api.VM, ipAddrs []net.IP) error {
+	patch, err := patchutil.Create(vm, func(obj meta.Object) error {
+		patchVM := obj.(*api.VM)
+		patchVM.Status.State = api.VMStateRunning
+		patchVM.Status.IPAddresses = ipAddrs
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	// Perform the patch
+	return providers.Client.VMs().Patch(vm.GetUID(), patch)
+}
+
+func patchStopped(vm *api.VM) error {
+	patch, err := patchutil.Create(vm, func(obj meta.Object) error {
+		patchVM := obj.(*api.VM)
+		patchVM.Status.State = api.VMStateStopped
+		patchVM.Status.IPAddresses = nil
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	// Perform the patch
+	return providers.Client.VMs().Patch(vm.GetUID(), patch)
 }

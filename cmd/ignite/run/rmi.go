@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	log "github.com/sirupsen/logrus"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/filter"
-	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/providers"
 )
 
@@ -16,8 +17,8 @@ type RmiFlags struct {
 
 type rmiOptions struct {
 	*RmiFlags
-	images []*imgmd.Image
-	allVMs []*vmmd.VM
+	images []*api.Image
+	allVMs []*api.VM
 }
 
 func (rf *RmiFlags) NewRmiOptions(imageMatches []string) (*rmiOptions, error) {
@@ -25,7 +26,7 @@ func (rf *RmiFlags) NewRmiOptions(imageMatches []string) (*rmiOptions, error) {
 
 	for _, match := range imageMatches {
 		if image, err := providers.Client.Images().Find(filter.NewIDNameFilter(match)); err == nil {
-			ro.images = append(ro.images, imgmd.WrapImage(image))
+			ro.images = append(ro.images, image)
 		} else {
 			return nil, err
 		}
@@ -43,13 +44,19 @@ func (rf *RmiFlags) NewRmiOptions(imageMatches []string) (*rmiOptions, error) {
 func Rmi(ro *rmiOptions) error {
 	for _, image := range ro.images {
 		for _, vm := range ro.allVMs {
+			imageUID, err := lookup.ImageUIDForVM(vm, providers.Client)
+			if err != nil {
+				log.Warnf("Could not lookup image UID for VM %q: %v", vm.GetUID(), err)
+				continue
+			}
+
 			// Check if there's any VM using this image
-			if vm.GetImageUID() == image.GetUID() {
+			if imageUID == image.GetUID() {
 				if ro.Force {
 					// Force-kill and remove the VM used by this image
 					if err := Rm(&rmOptions{
 						&RmFlags{Force: true},
-						[]*vmmd.VM{vm},
+						[]*api.VM{vm},
 					}); err != nil {
 						return err
 					}

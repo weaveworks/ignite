@@ -11,6 +11,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/weaveworks/ignite/pkg/runtime"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 const (
@@ -70,6 +71,21 @@ func (dc *dockerClient) ExportImage(image string) (io.ReadCloser, string, error)
 
 	rc, err := dc.client.ContainerExport(context.Background(), config.ID)
 	return rc, config.ID, err
+}
+
+func (dc *dockerClient) AttachContainer(container string) (err error) {
+	// TODO: Rework to perform the attach via the Docker client,
+	// this will require manual TTY and signal emulation/handling.
+	// Implement the pseudo-TTY and remove this call, see
+	// https://github.com/weaveworks/ignite/pull/211#issuecomment-512809841
+	var ec int
+	if ec, err = util.ExecForeground("docker", "attach", container); err != nil {
+		if ec == 1 { // Docker's detach sequence (^P^Q) has an exit code of -1
+			err = nil // Don't treat it as an error
+		}
+	}
+
+	return
 }
 
 func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConfig, name string) (string, error) {

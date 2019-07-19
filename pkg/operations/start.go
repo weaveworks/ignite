@@ -10,25 +10,33 @@ import (
 	"time"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
+	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/util"
+	patchutil "github.com/weaveworks/ignite/pkg/util/patch"
 	"github.com/weaveworks/ignite/pkg/version"
 )
 
-func StartVM(vm *vmmd.VM, debug bool) error {
+func StartVM(vm *api.VM, debug bool) error {
 	// Make sure the VM container does not exist. Don't care about the error.
-	_ = RemoveVMContainer(vm.VM)
+	_ = RemoveVMContainer(vm)
 
 	// Setup the snapshot overlay filesystem
-	if err := vm.SetupSnapshot(); err != nil {
+	if err := dmlegacy.ActivateSnapshot(vm); err != nil {
+		return err
+	}
+
+	kernelUID, err := lookup.KernelUIDForVM(vm, providers.Client)
+	if err != nil {
 		return err
 	}
 
 	vmDir := filepath.Join(constants.VM_DIR, vm.GetUID().String())
-	kernelDir := filepath.Join(constants.KERNEL_DIR, vm.GetKernelUID().String())
+	kernelDir := filepath.Join(constants.KERNEL_DIR, kernelUID.String())
 	igniteImage := fmt.Sprintf("weaveworks/ignite:%s", version.GetIgnite().ImageTag())
 
 	// Verify that the image containing ignite-spawn is pulled
@@ -92,6 +100,20 @@ func StartVM(vm *vmmd.VM, debug bool) error {
 
 	log.Printf("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
 
+	// Set an annotation on the VM object with the containerID for now
+	patch, err := patchutil.Create(vm, func(obj meta.Object) error {
+		patchVM := obj.(*api.VM)
+		patchVM.SetAnnotation("v1alpha1.ignite.weave.works.containerID", containerID)
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	// Perform the patch
+	if err := providers.Client.VMs().Patch(vm.GetUID(), patch); err != nil {
+		return err
+	}
+
 	// TODO: Follow-up the container here with a defer, or dedicated goroutine. We should output
 	// if it started successfully or not
 	// TODO: This is temporary until we have proper communication to the container
@@ -126,7 +148,7 @@ func verifyPulled(image string) error {
 
 // TODO: This check for the Prometheus socket file is temporary
 // until we get a proper ignite <-> ignite-spawn communication channel
-func waitForSpawn(vm *vmmd.VM) error {
+func waitForSpawn(vm *api.VM) error {
 	const timeout = 10 * time.Second
 	const checkInterval = 100 * time.Millisecond
 

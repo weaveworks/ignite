@@ -6,6 +6,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 const (
@@ -54,6 +55,14 @@ func (t *TypeMeta) GetTypeMeta() *TypeMeta {
 
 func (t *TypeMeta) GetKind() Kind {
 	return Kind(t.Kind)
+}
+
+func (t *TypeMeta) GroupVersionKind() schema.GroupVersionKind {
+	return t.TypeMeta.GetObjectKind().GroupVersionKind()
+}
+
+func (t *TypeMeta) SetGroupVersionKind(gvk schema.GroupVersionKind) {
+	t.TypeMeta.GetObjectKind().SetGroupVersionKind(gvk)
 }
 
 type Kind string
@@ -169,6 +178,8 @@ type Object interface {
 	GetObjectMeta() *ObjectMeta
 
 	GetKind() Kind
+	GroupVersionKind() schema.GroupVersionKind
+	SetGroupVersionKind(schema.GroupVersionKind)
 
 	GetName() string
 	SetName(string)
