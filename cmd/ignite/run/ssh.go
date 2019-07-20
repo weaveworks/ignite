@@ -8,6 +8,8 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/util"
+
+	_ "golang.org/x/crypto/ssh"
 )
 
 type SSHFlags struct {
