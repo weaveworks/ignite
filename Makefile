@@ -60,6 +60,7 @@ $(API_DOCS): api/%.md: $(CACHE_DIR)/go/bin/godoc2md
 	rm -r bin/tmp/$*
 
 $(CACHE_DIR)/go/bin/godoc2md:
+	mkdir -p $(CACHE_DIR)/go/bin/
 	curl -sSL https://github.com/luxas/godoc2md/releases/download/v0.1.0/godoc2md > $@
 	chmod +x $@
 
