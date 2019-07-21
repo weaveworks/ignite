@@ -205,6 +205,8 @@ google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.21.1
 google.golang.org/grpc/codes
 google.golang.org/grpc/status
+# gopkg.in/alessio/shellescape.v1 v1.0.0-20170105083845-52074bc9df61
+gopkg.in/alessio/shellescape.v1
 # gopkg.in/inf.v0 v0.9.1
 gopkg.in/inf.v0
 # gopkg.in/yaml.v2 v2.2.2
