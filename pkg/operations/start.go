@@ -22,8 +22,10 @@ import (
 )
 
 func StartVM(vm *api.VM, debug bool) error {
-	// Make sure the VM container does not exist. Don't care about the error.
-	_ = RemoveVMContainer(vm)
+	// Remove the VM container if it exists
+	if err := RemoveVMContainer(vm); err != nil {
+		return err
+	}
 
 	// Setup the snapshot overlay filesystem
 	if err := dmlegacy.ActivateSnapshot(vm); err != nil {

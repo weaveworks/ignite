@@ -73,6 +73,19 @@ func (dc *dockerClient) ExportImage(image string) (io.ReadCloser, string, error)
 	return rc, config.ID, err
 }
 
+func (dc *dockerClient) InspectContainer(container string) (*runtime.ContainerInspectResult, error) {
+	res, _, err := dc.client.ContainerInspectWithRaw(context.Background(), container, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return &runtime.ContainerInspectResult{
+		ID:     res.ID,
+		Image:  res.Image,
+		Status: res.State.Status,
+	}, nil
+}
+
 func (dc *dockerClient) AttachContainer(container string) (err error) {
 	// TODO: Rework to perform the attach via the Docker client,
 	// this will require manual TTY and signal emulation/handling.
