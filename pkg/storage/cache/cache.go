@@ -106,20 +106,20 @@ type cacheStoreFunc func([]meta.Object) error
 
 // list is a common handler for List and ListMeta
 func (c *cache) list(gvk schema.GroupVersionKind, slf, clf listFunc, csf cacheStoreFunc) (objs []meta.Object, err error) {
-	log.Tracef("cache: listing: %s", gvk)
-
 	var storageCount uint64
 	if storageCount, err = c.storage.Count(gvk); err != nil {
 		return
 	}
 
 	if c.index.count(gvk) != storageCount {
+		log.Tracef("cache: miss when listing: %s", gvk)
 		// If the cache doesn't track all of the Objects, request them from the storage
 		if objs, err = slf(gvk); err != nil {
 			// If no errors occurred, store the Objects in the cache
 			err = csf(objs)
 		}
 	} else {
+		log.Tracef("cache: hit when listing: %s", gvk)
 		// If the cache tracks everything, return the cache's contents
 		objs, err = clf(gvk)
 	}
