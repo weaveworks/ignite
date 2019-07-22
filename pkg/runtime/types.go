@@ -13,6 +13,12 @@ type ImageInspectResult struct {
 	Size        int64
 }
 
+type ContainerInspectResult struct {
+	ID     string
+	Image  string
+	Status string
+}
+
 type Bind struct {
 	HostPath      string
 	ContainerPath string
@@ -36,6 +42,7 @@ type Interface interface {
 	PullImage(image string) (io.ReadCloser, error)
 	ExportImage(image string) (io.ReadCloser, string, error)
 
+	InspectContainer(container string) (*ContainerInspectResult, error)
 	AttachContainer(container string) error
 	RunContainer(image string, config *ContainerConfig, name string) (string, error)
 	StopContainer(container string, timeout *time.Duration) error

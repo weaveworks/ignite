@@ -56,6 +56,12 @@ func (i *index) loadAll() ([]meta.Object, error) {
 }
 
 func store(i *index, obj meta.Object, apiType bool) error {
+	// If store is called for an invalid Object lacking an UID,
+	// panic and print the stack trace. This should never happen.
+	if obj.GetUID() == "" {
+		panic("Attempt to cache invalid Object: missing UID")
+	}
+
 	co, err := newCacheObject(i.storage, obj, apiType)
 	if err != nil {
 		return err

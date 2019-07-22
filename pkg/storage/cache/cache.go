@@ -37,16 +37,12 @@ func NewCache(backingStorage storage.Storage) Cache {
 	return c
 }
 
-func (c *cache) New(gvk schema.GroupVersionKind) (obj meta.Object, err error) {
-	// Request the storage to create the Object
-	obj, err = c.storage.New(gvk)
-
-	// If no errors occurred, cache it
-	if err == nil {
-		err = c.index.store(obj)
-	}
-
-	return
+func (c *cache) New(gvk schema.GroupVersionKind) (meta.Object, error) {
+	// Request the storage to create the Object. The
+	// newly generated Object has not got an UID which
+	// is required for indexing, so just return it
+	// without storing it into the cache
+	return c.storage.New(gvk)
 }
 
 func (c *cache) Get(gvk schema.GroupVersionKind, uid meta.UID) (obj meta.Object, err error) {

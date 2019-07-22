@@ -2,8 +2,8 @@ package operations
 
 import (
 	"fmt"
-	"log"
 
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
@@ -29,8 +29,10 @@ func RemoveVM(c *client.Client, vm *api.VM) error {
 		return err
 	}
 
-	// Force-remove the VM container. Don't care about the error.
-	_ = RemoveVMContainer(vm)
+	// Remove the VM container if it exists
+	if err := RemoveVMContainer(vm); err != nil {
+		return err
+	}
 
 	if logs.Quiet {
 		fmt.Println(vm.GetUID())
@@ -42,12 +44,19 @@ func RemoveVM(c *client.Client, vm *api.VM) error {
 }
 
 func RemoveVMContainer(vm meta.Object) error {
+	containerName := util.NewPrefixer().Prefix(vm.GetUID())
+	result, err := providers.Runtime.InspectContainer(containerName)
+	if err != nil {
+		return nil // The container doesn't exist, bail out
+	}
+
 	// Remove the VM container
-	if err := providers.Runtime.RemoveContainer(util.NewPrefixer().Prefix(vm.GetUID())); err != nil {
+	if err := providers.Runtime.RemoveContainer(result.ID); err != nil {
 		return fmt.Errorf("failed to remove container for VM %q: %v", vm.GetUID(), err)
 	}
 
-	return nil
+	// Remove the CNI networking of the VM
+	return removeCNINetworking(vm.(*api.VM), result.ID)
 }
 
 // StopVM stops or kills a VM
@@ -79,4 +88,15 @@ func StopVM(vm *api.VM, kill, silent bool) error {
 	}
 
 	return nil
+}
+
+func removeCNINetworking(vm *api.VM, containerID string) error {
+	// Skip all other network modes
+	if vm.Spec.Network.Mode != api.NetworkModeCNI {
+		return nil
+	}
+
+	// Perform the removal
+	log.Printf("Trying to remove the container with ID %q from the CNI network", containerID)
+	return providers.NetworkPlugin.RemoveContainerNetwork(containerID)
 }
