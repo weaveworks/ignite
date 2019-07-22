@@ -5,9 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/weaveworks/ignite/pkg/util"
-
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type blockDevice interface {
@@ -26,6 +25,7 @@ func mkfs(device blockDevice) error {
 	mkfsArgs := []string{
 		"-I",
 		"256",
+		"-F",
 		"-E",
 		"lazy_itable_init=0,lazy_journal_init=0",
 		device.Path(),

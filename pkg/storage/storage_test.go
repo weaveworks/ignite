@@ -3,38 +3,57 @@ package storage
 import (
 	"testing"
 
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
-var s = NewStorage("/tmp/foo")
+var s = NewGenericStorage(NewDefaultRawStorage("/tmp/bar"), scheme.Serializer)
+var vmGVK = api.SchemeGroupVersion.WithKind("VM")
+
+func TestStorageNew(t *testing.T) {
+	obj, err := s.New(vmGVK)
+	t.Fatal(*(obj.(*api.VM)), err)
+}
 
 func TestStorageGet(t *testing.T) {
-	obj := &api.VM{
-		ObjectMeta: meta.ObjectMeta{
-			UID: meta.UID("1234"),
-		},
-	}
-	err := s.Get(obj)
-	t.Fatal(*obj, err)
+	obj, err := s.Get(vmGVK, meta.UID("0123456789101112"))
+	t.Error(err)
+	t.Error(*(obj.(*api.VM)))
 }
 
 func TestStorageSet(t *testing.T) {
-	err := s.Set(&api.VM{
+	vm := &api.VM{
 		ObjectMeta: meta.ObjectMeta{
 			Name: "foo",
-			UID:  meta.UID("1234"),
+			UID:  meta.UID("0123456789101112"),
 		},
 		Spec: api.VMSpec{
 			CPUs:   2,
 			Memory: meta.NewSizeFromBytes(4 * 1024 * 1024),
+			Image: api.VMImageSpec{
+				OCIClaim: api.OCIImageClaim{
+					Ref: meta.OCIImageRef("centos:7"),
+				},
+			},
+			Kernel: api.VMKernelSpec{
+				OCIClaim: api.OCIImageClaim{
+					Ref: meta.OCIImageRef("ubuntu:18.04"),
+				},
+			},
 		},
-	})
-	if err != nil {
-		t.Fatal(err)
 	}
+	err := s.Set(vmGVK, vm)
+	t.Fatal(err)
 }
 
+func TestStoragePatch(t *testing.T) {
+	patch := []byte(`{"status":{"state":"Running"}}`)
+	err := s.Patch(vmGVK, meta.UID("0123456789101112"), patch)
+	t.Fatal(err)
+}
+
+/*
 func TestStorageDelete(t *testing.T) {
 	err := s.Delete("VM", "1234")
 	t.Fatal("foo", err)
@@ -45,13 +64,16 @@ func TestStorageList(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	for _, vmobj := range list {
 		vm, ok := vmobj.(*api.VM)
 		if !ok {
 			t.Fatalf("can't convert")
 		}
-		t.Logf("name: %s, id: %s, cpus: %d, memory: %s\n", vm.Name, string(vm.UID), vm.Spec.CPUs, vm.Spec.Memory)
+
+		t.Logf("name: %s, id: %s, cpus: %d, memory: %s\n", vm.GetName(), vm.GetUID(), vm.Spec.CPUs, vm.Spec.Memory)
 	}
+
 	t.Fatal("fo")
 }
 
@@ -60,8 +82,11 @@ func TestStorageListMeta(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	for _, item := range list {
-		t.Logf("name: %s, id: %s, kind: %s, apiversion: %s\n", item.Name, string(item.UID), item.Kind, item.APIVersion)
+		t.Logf("name: %s, id: %s, kind: %s, apiversion: %s\n", item.GetName(), item.GetUID(), item.GetKind(), item.GetTypeMeta().APIVersion)
 	}
+
 	t.Fatal("fo")
 }
+*/

@@ -5,108 +5,38 @@ import (
 	"path"
 	"strings"
 
-	"github.com/spf13/pflag"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/metadata"
-	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
-	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/operations"
-	"github.com/weaveworks/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
-// SSHFlag is the pflag.Value custom flag for ignite create --ssh
-// TODO: Move SSHFlag somewhere else, e.g. cmdutils
-type SSHFlag struct {
-	value    *string
-	generate bool
-}
-
-func (sf *SSHFlag) Set(x string) error {
-	if x != "<path>" {
-		sf.value = &x
-	} else {
-		sf.generate = true
-	}
-
-	return nil
-}
-
-func (sf *SSHFlag) String() string {
-	if sf.value == nil {
-		return ""
-	}
-
-	return *sf.value
-}
-
-func (sf *SSHFlag) Generate() bool {
-	return sf.generate
-}
-
-func (sf *SSHFlag) Type() string {
-	return ""
-}
-
-func (sf *SSHFlag) IsBoolFlag() bool {
-	return true
-}
-
-// Parse sets the right values on the VM API object if requested to import or generate an SSH key
-func (sf *SSHFlag) Parse(vm *api.VM) error {
-	importKey := sf.String()
-	// Check if an SSH key should be generated
-	if sf.Generate() {
-		// An empty struct means "generate"
-		vm.Spec.SSH = &api.SSH{}
-	} else if len(importKey) > 0 {
-		// Always digest the public key
-		if !strings.HasSuffix(importKey, ".pub") {
-			importKey = fmt.Sprintf("%s.pub", importKey)
-		}
-		// verify the file exists
-		if !util.FileExists(importKey) {
-			return fmt.Errorf("invalid SSH key: %s", importKey)
-		}
-
-		// Set the SSH field on the API object
-		vm.Spec.SSH = &api.SSH{
-			PublicKey: importKey,
-		}
-	}
-
-	return nil
-}
-
-var _ pflag.Value = &SSHFlag{}
-
 func NewCreateFlags() *CreateFlags {
-	cf := &CreateFlags{
-		VM: &api.VM{},
+	return &CreateFlags{
+		VM: providers.Client.VMs().New(),
 	}
-
-	scheme.Scheme.Default(cf.VM)
-
-	return cf
 }
 
 type CreateFlags struct {
-	// TODO: Also respect PortMappings, Networking mode, and kernel stuff from the config file
 	PortMappings []string
 	CopyFiles    []string
-	SSH          *SSHFlag
-	ConfigFile   string
-	VM           *api.VM
+	// This is a placeholder value here for now.
+	// If it was set using flags, it will be copied over to
+	// the API type. TODO: When we later have internal types
+	// this can go away
+	SSH        api.SSH
+	ConfigFile string
+	VM         *api.VM
 }
 
 type createOptions struct {
 	*CreateFlags
-	image  *imgmd.Image
-	kernel *kernmd.Kernel
-	newVM  *vmmd.VM
+	image  *api.Image
+	kernel *api.Kernel
 }
 
 func (cf *CreateFlags) constructVMFromCLI(args []string) error {
@@ -131,6 +61,11 @@ func (cf *CreateFlags) constructVMFromCLI(args []string) error {
 		return err
 	}
 
+	// If the SSH flag was set, copy it over to the API type
+	if cf.SSH.Generate || cf.SSH.PublicKey != "" {
+		cf.VM.Spec.SSH = &cf.SSH
+	}
+
 	return nil
 }
 
@@ -148,58 +83,51 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 		}
 	}
 
-	// Specifying an image either way is mandatory
-	if cf.VM.Spec.Image.OCIClaim.Ref.IsUnset() {
-		return nil, fmt.Errorf("you must specify an image to run either via CLI args or a config file")
+	// Validate the VM object
+	if err := validation.ValidateVM(cf.VM).ToAggregate(); err != nil {
+		return nil, err
 	}
 
 	co := &createOptions{CreateFlags: cf}
 
 	// Get the image, or import it if it doesn't exist
 	var err error
-	co.image, err = operations.FindOrImportImage(client.DefaultClient, cf.VM.Spec.Image.OCIClaim.Ref)
+	co.image, err = operations.FindOrImportImage(providers.Client, cf.VM.Spec.Image.OCIClaim.Ref)
 	if err != nil {
 		return nil, err
 	}
 
 	// Populate relevant data from the Image on the VM object
-	cf.VM.SetImage(co.image.Image)
+	cf.VM.SetImage(co.image)
 
 	// Get the kernel, or import it if it doesn't exist
-	co.kernel, err = operations.FindOrImportKernel(client.DefaultClient, cf.VM.Spec.Kernel.OCIClaim.Ref)
+	co.kernel, err = operations.FindOrImportKernel(providers.Client, cf.VM.Spec.Kernel.OCIClaim.Ref)
 	if err != nil {
 		return nil, err
 	}
 
 	// Populate relevant data from the Kernel on the VM object
-	cf.VM.SetKernel(co.kernel.Kernel)
+	cf.VM.SetKernel(co.kernel)
 	return co, nil
 }
 
 func Create(co *createOptions) error {
-	// Parse SSH key importing
-	if err := co.SSH.Parse(co.VM); err != nil {
+	// Generate a random UID and Name
+	if err := metadata.SetNameAndUID(co.VM, providers.Client); err != nil {
 		return err
 	}
+	defer metadata.Cleanup(co.VM, false) // TODO: Handle silent
 
-	// Create new metadata for the VM
-	var err error
-	if co.newVM, err = vmmd.NewVM(co.VM, client.DefaultClient); err != nil {
-		return err
-	}
-	defer metadata.Cleanup(co.newVM, false) // TODO: Handle silent
-
-	// Save the metadata
-	if err := co.newVM.Save(); err != nil {
+	if err := providers.Client.VMs().Set(co.VM); err != nil {
 		return err
 	}
 
 	// Allocate and populate the overlay file
-	if err := co.newVM.AllocateAndPopulateOverlay(); err != nil {
+	if err := dmlegacy.AllocateAndPopulateOverlay(co.VM); err != nil {
 		return err
 	}
 
-	return metadata.Success(co.newVM)
+	return metadata.Success(co.VM)
 }
 
 // TODO: Move this to meta, or an helper in api

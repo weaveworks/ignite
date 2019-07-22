@@ -10,7 +10,8 @@ import (
 type BaseFilter interface {
 	// AmbiguousError specifies what to error if
 	// a single request returned multiple matches
-	AmbiguousError() *AmbiguousError
+	// The matches are given as an argument
+	AmbiguousError([]Match) *AmbiguousError
 	// NonexistentError specifies what to error if
 	// a single request returned no matches
 	NonexistentError() *NonexistentError
@@ -22,8 +23,9 @@ type BaseFilter interface {
 type ObjectFilter interface {
 	BaseFilter
 	// Every Object to be filtered is passed though Filter, which should
-	// return the Object on match, or nil if it doesn't match
-	Filter(meta.Object) (meta.Object, error)
+	// return the Object on match, or nil if it doesn't match.
+	// The boolean indicates an exact match.
+	Filter(meta.Object) (Match, error)
 }
 
 // MetaFilter implementations operate on meta.APIType objects,
@@ -33,7 +35,8 @@ type MetaFilter interface {
 	// Every Object to be filtered is passed though FilterMeta, which should
 	// return the Object on match, or nil if it doesn't match. The Objects
 	// given to FilterMeta are of type meta.APIType, stripped of other contents.
-	FilterMeta(meta.Object) (meta.Object, error)
+	// The boolean indicates an exact match.
+	FilterMeta(meta.Object) (Match, error)
 }
 
 type AmbiguousError struct {

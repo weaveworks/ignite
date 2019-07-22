@@ -45,28 +45,42 @@ VM with a new IP address:
 package client
 
 import (
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/storage"
+
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // NewClient creates a client for the specified storage
 func NewClient(s storage.Storage) *Client {
 	return &Client{
-		storage:        s,
-		dynamicClients: map[meta.Kind]DynamicClient{},
+		IgniteInternalClient: NewIgniteInternalClient(s),
 	}
 }
 
 // Client is a struct providing high-level access to objects in a storage
 // The resource-specific client interfaces are automatically generated based
 // off client_resource_template.go. The auto-generation can be done with hack/client.sh
+// At the moment IgniteInternalClient is the default client. If more than this client
+// is created in the future, the IgniteInternalClient will be accessible under
+// Client.IgniteInternal() instead.
 type Client struct {
+	*IgniteInternalClient
+}
+
+func NewIgniteInternalClient(s storage.Storage) *IgniteInternalClient {
+	return &IgniteInternalClient{
+		storage:        s,
+		dynamicClients: map[schema.GroupVersionKind]DynamicClient{},
+		gv:             api.SchemeGroupVersion,
+	}
+}
+
+type IgniteInternalClient struct {
 	storage        storage.Storage
+	gv             schema.GroupVersion
 	vmClient       VMClient
 	kernelClient   KernelClient
 	imageClient    ImageClient
-	dynamicClients map[meta.Kind]DynamicClient
+	dynamicClients map[schema.GroupVersionKind]DynamicClient
 }
-
-// DefaultClient is the default client that can be easily used
-var DefaultClient = NewClient(storage.DefaultStorage)

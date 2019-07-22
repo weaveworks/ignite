@@ -1,18 +1,46 @@
 # Weave Ignite
 
-Ignite is a Firecracker microVM administration tool, like Docker manages
+![Ignite Logo](docs/logo.png)
+
+Weave Ignite is an open source Virtual Machine (VM) manager with a container UX and
+built-in GitOps management.
+
+ - Combines [Firecracker MicroVMs](https://aws.amazon.com/about-aws/whats-new/2018/11/firecracker-lightweight-virtualization-for-serverless-computing/) with Docker /
+ [OCI images](https://github.com/opencontainers/image-spec) to unify containers and VMs.
+ - Works in a [GitOps](https://www.weave.works/blog/what-is-gitops-really) fashion and can
+ manage VMs declaratively and automatically like Kubernetes and Terraform.
+
+
+Ignite is fast and secure because of Firecracker. This is an
+[open source KVM implementation](https://firecracker-microvm.github.io/) from AWS that is
+optimised for [high security](https://github.com/firecracker-microvm/firecracker/blob/master/docs/design.md#threat-containment), isolation, speed and low resource consumption. AWS uses it as the foundation for their
+serverless offerings (AWS Lambda and Fargate) that need to load nearly instantly while also
+keeping users isolated (multitenancy). Firecracker has proven to be able to run
+[4000 micro-VMs on the same host](https://github.com/firecracker-microvm/firecracker-demo)!
+
+## What is Ignite?
+
+**Read the announcement blog post here:** https://www.weave.works/blog/fire-up-your-vms-with-weave-ignite
+
+Ignite makes Firecracker easy to use by adopting its developer experience from _containers_.
+With Ignite, you pick an OCI-compliant image (Docker image) that you want to run as a VM, and then just
+execute **`ignite run`** instead of **`docker run`**.  There’s no need to use VM-specific tools to build
+`.vdi`, `.vmdk`, or `.qcow2` images, just do a `docker build` from any base image you want
+(e.g. `ubuntu:18.04` from Docker Hub), and add your preferred contents.
+
+When you run your OCI image using `ignite run`, Firecracker will boot a new VM in c.125 milliseconds (!) for you, using a default 4.19 linux kernel. If you want to use some other kernel, just specify the `--kernel-image` flag, pointing to another OCI image containing a kernel at /boot/vmlinux, and optionally your preferred modules. Next, the kernel executes /sbin/init in the VM, and it all starts up.  After this, Ignite connects the VMs to any CNI network, integrating with e.g. Weave Net.
+
+Ignite is a declarative Firecracker microVM administration tool, like Docker manages
 runC containers.
-It builds VM images from OCI images, spin VMs up/down in lightning speed,
-and manages multiple VMs efficiently.
+Ignite runs VM from OCI images, spins VMs up/down in lightning speed,
+and can manage fleets of VMs efficiently using [GitOps](https://www.weave.works/technologies/gitops/).
 
 The idea is that Ignite makes Firecracker VMs look like Docker containers.
-So we can deploy and manage full-blown VM systems just like e.g. Kubernetes workloads.
-The images used are Docker images, but instead of running them in a container, the root
-filesystem of the image executes as a real VM with a dedicated kernel and `/sbin/init` as
-PID 1.
+Now we can deploy and manage full-blown VM systems just like e.g. Kubernetes workloads.
+The images used are OCI/Docker images, but instead of running them as containers, it executes
+as a real VM with a dedicated kernel and `/sbin/init` as PID 1.
 
-Networking is set up automatically, the VM gets the same IP as any docker
-container on the host would.
+Networking is set up automatically, the VM gets the same IP as any docker container on the host would.
 
 And Firecracker is **fast**! Building and starting VMs takes just some _fraction of a second_, or
 at most some seconds. With Ignite you can get started with Firecracker in no time!
@@ -28,28 +56,29 @@ normal Linux OS, like Ubuntu, Debian or CentOS, running an init system like `sys
 Having a super-fast way of spinning up a new VM, with a kernel of choice, running an init system
 like `systemd` allows to run system-level applications like the kubelet, which needs to “own” the full system.
 
-This allows for:
-* Legacy applications which cannot be containerized (e.g. they need a specific kernel)
-  * Alternative, a very new type of application requiring e.g. a custom kernel
-* Reproducible, fast testing of system-wide programs (like Weave Net)
-* Super fast Kubernetes Cluster Lifecycle with multiple machines (without docker hacks)
-* A k8s-managed private VM cloud, on which a layer of k8s container clusters may run
-* No need to run containers in VMs to combine container UX with VM security and isolation, Ignite combines both!
+Example use-cases:
+
+ - Set up many secure VMs lightning fast. It's great for testing, CI and ephemeral workloads
+ - Launch and manage entire “app ready” stacks from Git because Ignite supports GitOps!
+ - Run even legacy or special apps in lightweight VMs (eg for multi-tenancy, or using weird/edge kernels)
+
+And - potentially - we can run a cloud of VMs ‘anywhere’ using Kubernetes for orchestration, Ignite for virtualization, GitOps for management, and supporting cloud native tools and APIs.
 
 ### Scope
 
-If you want to run _applications_ in **containers** with added _Firecracker isolation_, use
-[firecracker-containerd](https://github.com/firecracker-microvm/firecracker-containerd).
-Or a similar solution like Kata Containers or gVisor, that are complementary to firecracker-containerd.
+Ignite is different from Kata Containers or gVisor. They don’t let you run real VMs, but only wrap a container in new layer providing some kind of security boundary (or sandbox).
 
-Firecracker Ignite, however, is operating at another layer. Ignite isn’t concerned with **containers**
-as the primary unit, but whole yet lightweight VMs that integrate with the container landscape.
+Ignite on the other hand lets you run a full-blown VM, easily and super-fast, but with the familiar container UX. This means you can “move down one layer” and start managing your fleet of VMs powering e.g. a Kubernetes cluster, but still package your VMs like containers.
 
-## How to use
+## Installing
 
-Before starting, you might want to read about the dependencies and non-goals of Ignite in [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md).
+Please check out the [Releases Page](https://github.com/weaveworks/ignite/releases).
 
-**WARNING**: In it's `v0.X` series, Ignite is in _alpha_, which means that it might change in backwards-incompatible ways.
+How to install Ignite is covered in [docs/installation.md](docs/installation.md).
+
+## Getting Started
+
+**WARNING**: In it's `v0.X` series, Ignite is in **alpha**, which means that it might change in backwards-incompatible ways.
 
 [![asciicast](https://asciinema.org/a/252221.svg)](https://asciinema.org/a/252221)
 
@@ -61,7 +90,7 @@ for certain specific operations (e.g. `mount`). This will change in the future.
 # Use 2 vCPUs and 1GB of RAM, enable automatic SSH access and name it my-vm
 ignite run weaveworks/ignite-ubuntu \
     --cpus 2 \
-    --memory 1024 \
+    --memory 1GB \
     --ssh \
     --name my-vm
 
@@ -92,31 +121,80 @@ ignite ssh my-vm
 ignite rm my-vm
 ```
 
-### CLI documentation
+For a walkthrough of how to use Ignite, go to [**docs/usage.md**](docs/usage.md).
 
-See the [CLI Reference](docs/cli/ignite.md).
+## Getting Started the GitOps way
+
+In Git you [declaratively store](docs/declarative-config.md) the desired state of a set of VMs you want to manage.
+`ignite gitops` reconciles the state from Git, and applies the desired changes as state is updated in the repo.
+
+This can then be automated, tracked for correctness, and managed at scale - [just some of the benefits of GitOps](https://www.weave.works/technologies/gitops/).
+
+The workflow is simply this:
+
+ - Run `ignite gitops [repo]`, where repo points to your Git repo
+ - Create a file with the VM specification, specifying how much vCPUs, RAM, disk, etc. you’d like from the VM
+ - Run `git push` and see your VM start on the host
+
+See it in action!
+
+[![asciicast](https://asciinema.org/a/255797.svg)](https://asciinema.org/a/255797)
+
+### Documentation
+
+Please refer to the following documents:
+
+- [Documentation Page](docs/)
+- [Installing Ignite](docs/installation.md)
+- [Scope and Dependencies](docs/dependencies.md)
+- [Getting Started Walkthrough](docs/usage.md)
+- [Declaratively Controlling Ignite](docs/declarative-config.md)
+- [CLI Reference](docs/cli/ignite.md)
+- [API Reference](api)
+
+### Frequently Asked Questions
+
+See the [FAQ.md](FAQ.md) document.
 
 ### Architecture
 
 ![docs/architecture.png](docs/architecture.png)
+
+Want to know how Ignite really works under the hood?
+Check out this [TGIK](https://github.com/heptio/tgik) session from [Joe Beda](https://twitter.com/jbeda) about it:
+
+[![TGIK 082](https://img.youtube.com/vi/aq-wlslJ5MQ/0.jpg)](https://youtu.be/aq-wlslJ5MQ)
 
 ### Base images and kernels
 
 A _base image_ is an OCI-compliant image containing some operating system (e.g. Ubuntu).
 You can follow normal `docker build` patterns for customizing your VM's rootfs.
 
-A _kernel binary_ is today expected to be inside of the rootfs, at `/boot/vmlinux` (may
-be a symlink). It is also recommended to put supported kernel modules in `/lib/modules`
-if you need that. Today we couple the kernel and the base image, this will however change
-in future releases so you can mix and match kernel and base image OCI-images at `ignite run`-time.
+A _kernel image_ is an OCI-compliant image containing a `/boot/vmlinux` (an uncompressed kernel)
+executable (can be a symlink). You can also put supporting kernel modules in `/lib/modules`
+if needed. You can match and mix any kernel and any base image.
 
 As the upstream `centos:7` and `ubuntu:18.04` images from Docker Hub doesn't
 have all the utilities and packages you'd expect in a VM (e.g. an init system), we have packaged some
 reference base images and a sample kernel image to get started quickly.
 
- - [Kernel Builder Image](images/kernel/Dockerfile) (`weaveworks/ignite-centos`)
+You can use the following pre-built images with Ignite. They are built on the normal Docker Hub images,
+but add `systemd`, `openssh`, and similar utilities.
+
+#### Base Images
+
  - [Ubuntu 18.04 Dockerfile](images/ubuntu/Dockerfile) (`weaveworks/ignite-ubuntu`)
- - [CentOS 7 Dockerfile](images/ubuntu/Dockerfile) (`weaveworks/ignite-kernel`)
+ - [CentOS 7 Dockerfile](images/centos/Dockerfile) (`weaveworks/ignite-centos`)
+ - [Amazon Linux 2 Dockerfile](images/amazonlinux/Dockerfile) (`weaveworks/ignite-amazonlinux`)
+ - [The Firecracker Team's Alpine Image](images/alpine/Dockerfile) (`weaveworks/ignite-alpine`)
+
+#### Kernel Images
+
+ - [Default Kernel Image](images/kernel/Dockerfile) (`weaveworks/ignite-kernel`)
+ - [The Firecracker Team's Kernel](images/amazon-kernel/Dockerfile) (`weaveworks/ignite-amazon-kernel`)
+
+#### Tutorials
+
  - [Guide: Run a HA Kubernetes cluster with Ignite and kubeadm](images/kubeadm) (`weaveworks/ignite-kubeadm`)
 
 These prebuilt images can be given to `ignite run` directly.
@@ -136,7 +214,7 @@ Other interesting resources include:
 If you have any questions about, feedback for or problems with `ignite`:
 
 - Invite yourself to the <a href="https://slack.weave.works/" target="_blank">Weave Users Slack</a>.
-- Ask a question on the [#general](https://weave-community.slack.com/messages/general/) slack channel.
+- Ask a question on the [#ignite](https://weave-community.slack.com/messages/ignite/) slack channel.
 - [File an issue](https://github.com/weaveworks/ignite/issues/new).
 
 Your feedback is always welcome!

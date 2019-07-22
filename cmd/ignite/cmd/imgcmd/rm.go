@@ -11,7 +11,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
-// NewCmdRm removes an images
+// NewCmdRm removes images
 func NewCmdRm(out io.Writer) *cobra.Command {
 	rf := &run.RmiFlags{}
 

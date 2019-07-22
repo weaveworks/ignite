@@ -11,13 +11,15 @@ import (
 
 	"github.com/firecracker-microvm/firecracker-go-sdk"
 	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
+	"github.com/weaveworks/ignite/pkg/operations/lookup"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 // ExecuteFirecracker executes the firecracker process using the Go SDK
-func ExecuteFirecracker(md *vmmd.VM, dhcpIfaces []DHCPInterface) error {
-	drivePath := md.SnapshotDev()
+func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
+	drivePath := vm.SnapshotDev()
 
 	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(dhcpIfaces))
 	for _, dhcpIface := range dhcpIfaces {
@@ -27,18 +29,26 @@ func ExecuteFirecracker(md *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 		})
 	}
 
-	vCPUCount := int64(md.Spec.CPUs)
-	memSizeMib := int64(md.Spec.Memory.MBytes())
+	vCPUCount := int64(vm.Spec.CPUs)
+	memSizeMib := int64(vm.Spec.Memory.MBytes())
 
-	cmdLine := md.Spec.Kernel.CmdLine
+	cmdLine := vm.Spec.Kernel.CmdLine
 	if len(cmdLine) == 0 {
 		// if for some reason cmdline would be unpopulated, set it to the default
 		cmdLine = constants.VM_DEFAULT_KERNEL_ARGS
 	}
 
+	kernelUID, err := lookup.KernelUIDForVM(vm, providers.Client)
+	if err != nil {
+		return err
+	}
+
+	firecrackerSocketPath := path.Join(vm.ObjectPath(), constants.FIRECRACKER_API_SOCKET)
+	logSocketPath := path.Join(vm.ObjectPath(), constants.LOG_FIFO)
+	metricsSocketPath := path.Join(vm.ObjectPath(), constants.METRICS_FIFO)
 	cfg := firecracker.Config{
-		SocketPath:      constants.SOCKET_PATH,
-		KernelImagePath: path.Join(constants.KERNEL_DIR, md.GetKernelUID().String(), constants.KERNEL_FILE),
+		SocketPath:      firecrackerSocketPath,
+		KernelImagePath: path.Join(constants.KERNEL_DIR, kernelUID.String(), constants.KERNEL_FILE),
 		KernelArgs:      cmdLine,
 		Drives: []models.Drive{{
 			DriveID:      firecracker.String("1"),
@@ -50,32 +60,32 @@ func ExecuteFirecracker(md *vmmd.VM, dhcpIfaces []DHCPInterface) error {
 		MachineCfg: models.MachineConfiguration{
 			VcpuCount:  &vCPUCount,
 			MemSizeMib: &memSizeMib,
-			HtEnabled:  boolPtr(true),
+			HtEnabled:  firecracker.Bool(true),
 		},
 		//JailerCfg: firecracker.JailerConfig{
 		//	GID:      firecracker.Int(0),
 		//	UID:      firecracker.Int(0),
-		//	ID:       md.ID,
+		//	ID:       vm.ID,
 		//	NumaNode: firecracker.Int(0),
 		//	ExecFile: "firecracker",
 		//},
 
 		// TODO: We could use /dev/null, but firecracker-go-sdk issues Mkfifo which collides with the existing device
 		LogLevel:    constants.VM_LOG_LEVEL,
-		LogFifo:     constants.LOG_FIFO,
-		MetricsFifo: constants.METRICS_FIFO,
+		LogFifo:     logSocketPath,
+		MetricsFifo: metricsSocketPath,
 	}
 
 	// Remove these FIFOs for now
-	defer os.Remove(constants.LOG_FIFO)
-	defer os.Remove(constants.METRICS_FIFO)
+	defer os.Remove(logSocketPath)
+	defer os.Remove(metricsSocketPath)
 
 	ctx, vmmCancel := context.WithCancel(context.Background())
 	defer vmmCancel()
 
 	cmd := firecracker.VMCommandBuilder{}.
 		WithBin("firecracker").
-		WithSocketPath(constants.SOCKET_PATH).
+		WithSocketPath(firecrackerSocketPath).
 		WithStdin(os.Stdin).
 		WithStdout(os.Stdout).
 		WithStderr(os.Stderr).
@@ -134,8 +144,4 @@ func installSignalHandlers(ctx context.Context, m *firecracker.Machine) {
 			}
 		}
 	}()
-}
-
-func boolPtr(val bool) *bool {
-	return &val
 }

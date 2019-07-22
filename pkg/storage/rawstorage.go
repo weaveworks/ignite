@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -16,6 +17,7 @@ type RawStorage interface {
 	Write(key string, content []byte) error
 	Delete(key string) error
 	List(directory string) ([]string, error)
+	Checksum(key string) (string, error)
 }
 
 func NewDefaultRawStorage(dir string) RawStorage {
@@ -33,10 +35,12 @@ func (r *DefaultRawStorage) realPath(key string) string {
 	if !strings.HasPrefix(key, "/") {
 		key = "/" + key
 	}
+
 	// If a top-level kind is described, and not a file, return the kind directory path
 	if len(strings.Split(key, "/")) == 2 {
 		return path.Join(r.dir, key)
 	}
+
 	// Return the file location, with the metadata.json suffix
 	return path.Join(r.dir, key, constants.METADATA)
 }
@@ -60,6 +64,7 @@ func (r *DefaultRawStorage) Write(key string, content []byte) error {
 			return err
 		}
 	}
+
 	return ioutil.WriteFile(file, content, 0644)
 }
 
@@ -75,10 +80,26 @@ func (r *DefaultRawStorage) List(parentKey string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	result := []string{}
 	for _, entry := range entries {
 		entryPath := path.Join(parentKey, entry.Name())
 		result = append(result, entryPath)
 	}
+
 	return result, nil
+}
+
+// This returns the modification time as a UnixNano string
+// If the file doesn't exist, return blank
+func (r *DefaultRawStorage) Checksum(key string) (s string, err error) {
+	var fi os.FileInfo
+
+	if r.Exists(key) {
+		if fi, err = os.Stat(r.realPath(key)); err == nil {
+			s = strconv.FormatInt(fi.ModTime().UnixNano(), 10)
+		}
+	}
+
+	return
 }

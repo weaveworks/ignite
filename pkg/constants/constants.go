@@ -28,15 +28,18 @@ const (
 	// Additional timeout in seconds for docker to wait for ignite to save and quit
 	IGNITE_TIMEOUT = 10
 
-	// In-container path for the firecracker socket
-	SOCKET_PATH = "/tmp/firecracker.sock"
+	// In-container file name for the firecracker socket
+	FIRECRACKER_API_SOCKET = "firecracker.sock"
 
-	// In-container path for the firecracker log FIFO
-	LOG_FIFO = "/tmp/firecracker_log.fifo"
+	// In-container file name for the firecracker log FIFO
+	LOG_FIFO = "firecracker_log.fifo"
 
-	// In-container path for the firecracker metrics FIFO
-	METRICS_FIFO = "/tmp/firecracker_metrics.fifo"
+	// In-container file name for the firecracker metrics FIFO
+	METRICS_FIFO = "firecracker_metrics.fifo"
 
 	// Log level for the firecracker VM
 	VM_LOG_LEVEL = "Error"
+
+	// How many characters Ignite UIDs should have
+	IGNITE_UID_LENGTH = 16
 )

@@ -2,7 +2,6 @@ package cni
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -43,9 +42,7 @@ func GetCNINetworkPlugin(runtime runtime.Interface) (NetworkPlugin, error) {
 		confDir:        CNIConfDir,
 		binDirs:        binDirs,
 	}
-	if err := plugin.syncNetworkConfig(); err != nil {
-		return nil, err
-	}
+
 	return plugin, nil
 }
 
@@ -56,6 +53,7 @@ func getLoNetwork(binDirs []string) *cniNetwork {
 		// catch this
 		panic(err)
 	}
+
 	return &cniNetwork{
 		name:          "lo",
 		NetworkConfig: loConfig,
@@ -69,7 +67,7 @@ func getDefaultCNINetwork(confDir string, binDirs []string) (*cniNetwork, error)
 	case err != nil:
 		return nil, err
 	case len(files) == 0:
-		return nil, fmt.Errorf("No networks found in %s", confDir)
+		return nil, fmt.Errorf("no networks found in %s", confDir)
 	}
 
 	sort.Strings(files)
@@ -87,6 +85,7 @@ func getDefaultCNINetwork(confDir string, binDirs []string) (*cniNetwork, error)
 				log.Infof("Error loading CNI config file %s: %v", confFile, err)
 				continue
 			}
+
 			// Ensure the config has a "type" so we know what plugin to run.
 			// Also catches the case where somebody put a conflist into a conf file.
 			if conf.Network.Type == "" {
@@ -100,6 +99,7 @@ func getDefaultCNINetwork(confDir string, binDirs []string) (*cniNetwork, error)
 				continue
 			}
 		}
+
 		if len(confList.Plugins) == 0 {
 			log.Infof("CNI config list %s has no networks, skipping", confFile)
 			continue
@@ -112,9 +112,11 @@ func getDefaultCNINetwork(confDir string, binDirs []string) (*cniNetwork, error)
 			NetworkConfig: confList,
 			CNIConfig:     &libcni.CNIConfig{Path: binDirs},
 		}
+
 		return network, nil
 	}
-	return nil, fmt.Errorf("No valid networks found in %s", confDir)
+
+	return nil, fmt.Errorf("no valid networks found in %s", confDir)
 }
 
 func (plugin *cniNetworkPlugin) syncNetworkConfig() error {
@@ -122,6 +124,7 @@ func (plugin *cniNetworkPlugin) syncNetworkConfig() error {
 	if err != nil {
 		return fmt.Errorf("unable to get default CNI network: %v", err)
 	}
+
 	plugin.setDefaultNetwork(network)
 	return nil
 }
@@ -140,8 +143,12 @@ func (plugin *cniNetworkPlugin) setDefaultNetwork(n *cniNetwork) {
 
 func (plugin *cniNetworkPlugin) checkInitialized() error {
 	if plugin.getDefaultNetwork() == nil {
-		return errors.New("cni config uninitialized")
+		// Sync the network configuration if the plugin is not initialized
+		if err := plugin.syncNetworkConfig(); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
@@ -158,7 +165,8 @@ func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string) error 
 	if err := plugin.checkInitialized(); err != nil {
 		return err
 	}
-	netnsPath, err := plugin.runtime.GetNetNS(containerid)
+
+	netnsPath, err := plugin.runtime.ContainerNetNS(containerid)
 	if err != nil {
 		return fmt.Errorf("CNI failed to retrieve network namespace path: %v", err)
 	}
@@ -177,7 +185,7 @@ func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerid string) error
 	}
 
 	// Lack of namespace should not be fatal on teardown
-	netnsPath, err := plugin.runtime.GetNetNS(containerid)
+	netnsPath, err := plugin.runtime.ContainerNetNS(containerid)
 	if err != nil {
 		log.Infof("CNI failed to retrieve network namespace path: %v", err)
 	}
@@ -197,6 +205,7 @@ func (plugin *cniNetworkPlugin) addToNetwork(network *cniNetwork, containerID st
 	if err != nil {
 		return nil, fmt.Errorf("Error adding %s to network %s/%s: %v", containerID, netConf.Plugins[0].Network.Type, netConf.Name, err)
 	}
+
 	log.Debugf("Added %s to network %s: %v", containerID, netConf.Name, res)
 	return res, nil
 }
@@ -215,6 +224,7 @@ func (plugin *cniNetworkPlugin) deleteFromNetwork(network *cniNetwork, container
 	if err != nil && !strings.Contains(err.Error(), "no such file or directory") {
 		return fmt.Errorf("Error deleting %s from network %s/%s: %v", containerID, netConf.Plugins[0].Network.Type, netConf.Name, err)
 	}
+
 	log.Debugf("Deleted %s from network %s/%s", containerID, netConf.Plugins[0].Network.Type, netConf.Name)
 	return nil
 }
@@ -225,5 +235,6 @@ func (plugin *cniNetworkPlugin) buildCNIRuntimeConf(containerID string, netnsPat
 		NetNS:       netnsPath,
 		IfName:      DefaultInterfaceName,
 	}
+
 	return rt, nil
 }

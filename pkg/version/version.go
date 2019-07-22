@@ -41,6 +41,7 @@ func (info Info) ImageTag() string {
 	if GetIgnite().GitTreeState == "dirty" {
 		return "dev"
 	}
+
 	// Replace plus signs
 	return strings.ReplaceAll(GetIgnite().GitVersion, "+", "-")
 }

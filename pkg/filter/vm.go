@@ -3,7 +3,7 @@ package filter
 import (
 	"fmt"
 
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage/filterer"
 )
@@ -30,7 +30,7 @@ func NewVMFilterAll(p string, all bool) *VMFilter {
 	}
 }
 
-func (f *VMFilter) Filter(object meta.Object) (meta.Object, error) {
+func (f *VMFilter) Filter(object meta.Object) (filterer.Match, error) {
 	// Option to list just running VMs
 	if !f.all {
 		vm, ok := object.(*api.VM)

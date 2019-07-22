@@ -6,6 +6,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 const (
@@ -56,6 +57,14 @@ func (t *TypeMeta) GetKind() Kind {
 	return Kind(t.Kind)
 }
 
+func (t *TypeMeta) GroupVersionKind() schema.GroupVersionKind {
+	return t.TypeMeta.GetObjectKind().GroupVersionKind()
+}
+
+func (t *TypeMeta) SetGroupVersionKind(gvk schema.GroupVersionKind) {
+	t.TypeMeta.GetObjectKind().SetGroupVersionKind(gvk)
+}
+
 type Kind string
 
 var _ fmt.Stringer = Kind("")
@@ -88,7 +97,7 @@ func (k Kind) Lower() string {
 type ObjectMeta struct {
 	Name        string            `json:"name"`
 	UID         UID               `json:"uid,omitempty"`
-	Created     *Time             `json:"created,omitempty"`
+	Created     Time              `json:"created"`
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
@@ -119,12 +128,12 @@ func (o *ObjectMeta) SetUID(uid UID) {
 }
 
 // GetCreated returns when the Object was created
-func (o *ObjectMeta) GetCreated() *Time {
+func (o *ObjectMeta) GetCreated() Time {
 	return o.Created
 }
 
-// SetCreated returns when the Object was created
-func (o *ObjectMeta) SetCreated(t *Time) {
+// SetCreated sets the creation time of the Object
+func (o *ObjectMeta) SetCreated(t Time) {
 	o.Created = t
 }
 
@@ -169,6 +178,8 @@ type Object interface {
 	GetObjectMeta() *ObjectMeta
 
 	GetKind() Kind
+	GroupVersionKind() schema.GroupVersionKind
+	SetGroupVersionKind(schema.GroupVersionKind)
 
 	GetName() string
 	SetName(string)
@@ -176,8 +187,8 @@ type Object interface {
 	GetUID() UID
 	SetUID(UID)
 
-	GetCreated() *Time
-	SetCreated(t *Time)
+	GetCreated() Time
+	SetCreated(t Time)
 
 	GetLabel(key string) string
 	SetLabel(key, value string)

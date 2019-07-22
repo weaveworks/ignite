@@ -11,7 +11,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
-// NewCmdRm removes a VM
+// NewCmdRm removes VMs
 func NewCmdRm(out io.Writer) *cobra.Command {
 	rf := &run.RmFlags{}
 

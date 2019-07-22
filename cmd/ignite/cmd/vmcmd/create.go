@@ -1,6 +1,7 @@
 package vmcmd
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/lithammer/dedent"
@@ -8,6 +9,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
@@ -18,8 +20,11 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create <OCI image>",
 		Short: "Create a new VM without starting it",
-		Long: dedent.Dedent(`
-			Create a new VM by combining the given image and kernel.
+		Long: dedent.Dedent(fmt.Sprintf(`
+			Create a new VM by combining the given image with a kernel. If no
+			kernel is given using the kernel flag (-k, --kernel-image), use the
+			default kernel (%s).
+
 			Various configuration options can be set during creation by using
 			the flags for this command.
 			
@@ -35,7 +40,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 					--ssh \
 					--memory 2GB \
 					--size 6GB
-		`),
+		`, constants.DEFAULT_KERNEL_IMAGE)),
 		Args: cobra.RangeArgs(0, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			errutils.Check(func() error {
@@ -54,21 +59,22 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 }
 
 func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
+	// Register common flags
 	cmdutil.AddNameFlag(fs, &cf.VM.ObjectMeta.Name)
 	cmdutil.AddConfigFlag(fs, &cf.ConfigFile)
-	fs.StringSliceVarP(&cf.PortMappings, "ports", "p", nil, "Map host ports to VM ports")
+
+	// Register flags bound to temporary holder values
+	fs.StringSliceVarP(&cf.PortMappings, "ports", "p", cf.PortMappings, "Map host ports to VM ports")
+	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", cf.CopyFiles, "Copy files from the host to the created VM")
+
+	// Register flags for simple types (int, string, etc.)
 	fs.Uint64Var(&cf.VM.Spec.CPUs, "cpus", cf.VM.Spec.CPUs, "VM vCPU count, 1 or even numbers between 1 and 32")
-	cmdutil.SizeVar(fs, &cf.VM.Spec.Memory, "memory", cf.VM.Spec.Memory, "Amount of RAM to allocate for the VM")
-	cmdutil.SizeVarP(fs, &cf.VM.Spec.DiskSize, "size", "s", cf.VM.Spec.DiskSize, "VM filesystem size, for example 5GB or 2048MB")
-	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", nil, "Copy files from the host to the created VM")
-	cmdutil.OCIImageRefVarP(fs, &cf.VM.Spec.Kernel.OCIClaim.Ref, "kernel-image", "k", cf.VM.Spec.Kernel.OCIClaim.Ref, "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
 	fs.StringVar(&cf.VM.Spec.Kernel.CmdLine, "kernel-args", cf.VM.Spec.Kernel.CmdLine, "Set the command line for the kernel")
+
+	// Register more complex flags with their own flag types
+	cmdutil.SizeVar(fs, &cf.VM.Spec.Memory, "memory", "Amount of RAM to allocate for the VM")
+	cmdutil.SizeVarP(fs, &cf.VM.Spec.DiskSize, "size", "s", "VM filesystem size, for example 5GB or 2048MB")
+	cmdutil.OCIImageRefVarP(fs, &cf.VM.Spec.Kernel.OCIClaim.Ref, "kernel-image", "k", "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
 	cmdutil.NetworkModeVar(fs, &cf.VM.Spec.Network.Mode)
-
-	cf.SSH = &run.SSHFlag{}
-	fs.Var(cf.SSH, "ssh", "Enable SSH for the VM. If <path> is given, it will be imported as the public key. If just '--ssh' is specified, a new keypair will be generated.")
-
-	sshFlag := fs.Lookup("ssh")
-	sshFlag.NoOptDefVal = "<path>"
-	sshFlag.DefValue = "is unset, which disables SSH access to the VM"
+	cmdutil.SSHVar(fs, &cf.SSH)
 }

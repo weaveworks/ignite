@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/logs"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
+// TODO: Get rid of this
 var success = make(map[Metadata]bool)
 
 // silent specifies if the ID should be printed, when chaining commands
@@ -20,7 +21,8 @@ func Cleanup(md Metadata, silent bool) error {
 		} else if !silent {
 			fmt.Println(md.GetUID())
 		}
-		return client.Dynamic(md.GetKind()).Delete(md.GetUID())
+
+		return providers.Client.Dynamic(md.GetKind()).Delete(md.GetUID())
 	}
 
 	if !logs.Quiet {

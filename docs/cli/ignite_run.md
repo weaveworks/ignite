@@ -5,8 +5,8 @@ Create a new VM and start it
 ### Synopsis
 
 
-Create and start a new VM immediately. The image and kernel are matched by
-prefix based on their ID and name. This command accepts all flags used to
+Create and start a new VM immediately. The image (and kernel) is matched by
+prefix based on its ID and name. This command accepts all flags used to
 create and start a VM. The interactive flag (-i, --interactive) can be
 specified to immediately attach to the started VM after creation.
 

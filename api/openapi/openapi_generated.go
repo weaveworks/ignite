@@ -457,16 +457,8 @@ func schema_pkg_apis_ignite_v1alpha1_SSH(ref common.ReferenceCallback) common.Op
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "SSH specifies different ways to connect via SSH to the VM",
+				Description: "SSH specifies different ways to connect via SSH to the VM SSH uses a custom marshaller/unmarshaller. If generate is true, it marshals to true (a JSON bool). If PublicKey is set, it marshals to that string.",
 				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"publicKey": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-				},
 			},
 		},
 	}
@@ -641,7 +633,7 @@ func schema_pkg_apis_ignite_v1alpha1_VMSpec(ref common.ReferenceCallback) common
 					},
 					"ssh": {
 						SchemaProps: spec.SchemaProps{
-							Description: "SSH specifies how the SSH setup should be done SSH appends to CopyFiles when active nil here means \"don't do anything special\" An empty struct means \"generate a new SSH key and copy it in\" Specifying a path means \"use this public key\"",
+							Description: "SSH specifies how the SSH setup should be done nil here means \"don't do anything special\" If SSH.Generate is set, Ignite will generate a new SSH key and copy it in to authorized_keys in the VM Specifying a path in SSH.Generate means \"use this public key\" If SSH.PublicKey is set, this struct will marshal as a string using that path If SSH.Generate is set, this struct will marshal as a bool => true",
 							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.SSH"),
 						},
 					},
@@ -793,7 +785,7 @@ func schema_pkg_apis_meta_v1alpha1_ObjectMeta(ref common.ReferenceCallback) comm
 						},
 					},
 				},
-				Required: []string{"name"},
+				Required: []string{"name", "created"},
 			},
 		},
 		Dependencies: []string{

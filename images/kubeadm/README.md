@@ -23,7 +23,7 @@ For the bootstap master, copy over the CA cert and key to use, and the kubeadm c
 ```bash
 ignite run weaveworks/ignite-kubeadm:latest \
     --cpus 2 \
-    --memory 1024 \
+    --memory 1GB \
     --ssh \
     --copy-files $(pwd)/run/config.yaml:/kubeadm.yaml \
     --copy-files $(pwd)/run/pki/ca.crt:/etc/kubernetes/pki/ca.crt \
@@ -45,7 +45,7 @@ Create more master VMs, but copy only the variables we need for joining:
 for i in {1..2}; do
     ignite run weaveworks/ignite-kubeadm:latest \
         --cpus 2 \
-        --memory 1024 \
+        --memory 1GB \
         --ssh \
         --copy-files $(pwd)/run/k8s-vars.sh:/etc/profile.d/02-k8s.sh \
         --name master-${i}
@@ -77,6 +77,18 @@ export KUBECONFIG=$(pwd)/run/admin.conf
 
 kubectl get nodes
 ```
+
+Right now it's expected that the nodes are in state `NotReady`, as CNI networking isn't set up.
+
+#### Install a CNI Network -- Weave Net
+
+We're gonna use [Weave Net](https://github.com/weaveworks/weave).
+
+```bash
+kubectl apply -f https://git.io/weave-kube-1.6
+```
+
+With this, the nodes should transition into the `Ready` state in a minute or so.
 
 ### Watch the cluster heal
 

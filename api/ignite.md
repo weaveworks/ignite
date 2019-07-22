@@ -10,6 +10,7 @@
 +k8s:deepcopy-gen=package
 +k8s:defaulter-gen=TypeMeta
 +k8s:openapi-gen=true
++k8s:conversion-gen=github.com/weaveworks/ignite/pkg/apis/ignite
 
 
 
@@ -17,16 +18,12 @@
 ## <a name="pkg-index">Index</a>
 * [Constants](#pkg-constants)
 * [Variables](#pkg-variables)
-* [func SetDefaults_Image(obj *Image)](#SetDefaults_Image)
-* [func SetDefaults_Kernel(obj *Kernel)](#SetDefaults_Kernel)
 * [func SetDefaults_OCIImageClaim(obj *OCIImageClaim)](#SetDefaults_OCIImageClaim)
 * [func SetDefaults_PoolSpec(obj *PoolSpec)](#SetDefaults_PoolSpec)
-* [func SetDefaults_VM(obj *VM)](#SetDefaults_VM)
 * [func SetDefaults_VMKernelSpec(obj *VMKernelSpec)](#SetDefaults_VMKernelSpec)
 * [func SetDefaults_VMNetworkSpec(obj *VMNetworkSpec)](#SetDefaults_VMNetworkSpec)
 * [func SetDefaults_VMSpec(obj *VMSpec)](#SetDefaults_VMSpec)
 * [func SetDefaults_VMStatus(obj *VMStatus)](#SetDefaults_VMStatus)
-* [func ValidateNetworkMode(mode NetworkMode) error](#ValidateNetworkMode)
 * [type FileMapping](#FileMapping)
 * [type Image](#Image)
 * [type ImageSourceType](#ImageSourceType)
@@ -36,7 +33,6 @@
 * [type KernelSpec](#KernelSpec)
 * [type KernelStatus](#KernelStatus)
 * [type NetworkMode](#NetworkMode)
-  * [func GetNetworkModes() []NetworkMode](#GetNetworkModes)
   * [func (nm NetworkMode) String() string](#NetworkMode.String)
 * [type OCIImageClaim](#OCIImageClaim)
 * [type OCIImageSource](#OCIImageSource)
@@ -46,9 +42,9 @@
 * [type PoolSpec](#PoolSpec)
 * [type PoolStatus](#PoolStatus)
 * [type SSH](#SSH)
+  * [func (s *SSH) MarshalJSON() ([]byte, error)](#SSH.MarshalJSON)
+  * [func (s *SSH) UnmarshalJSON(b []byte) error](#SSH.UnmarshalJSON)
 * [type VM](#VM)
-  * [func (vm *VM) SetImage(image *Image)](#VM.SetImage)
-  * [func (vm *VM) SetKernel(kernel *Kernel)](#VM.SetKernel)
 * [type VMImageSpec](#VMImageSpec)
 * [type VMKernelSpec](#VMKernelSpec)
 * [type VMNetworkSpec](#VMNetworkSpec)
@@ -58,30 +54,21 @@
 
 
 #### <a name="pkg-files">Package files</a>
-[defaults.go](/pkg/apis/ignite/v1alpha1/defaults.go) [doc.go](/pkg/apis/ignite/v1alpha1/doc.go) [helpers.go](/pkg/apis/ignite/v1alpha1/helpers.go) [register.go](/pkg/apis/ignite/v1alpha1/register.go) [types.go](/pkg/apis/ignite/v1alpha1/types.go) 
+[defaults.go](/pkg/apis/ignite/v1alpha1/defaults.go) [doc.go](/pkg/apis/ignite/v1alpha1/doc.go) [json.go](/pkg/apis/ignite/v1alpha1/json.go) [register.go](/pkg/apis/ignite/v1alpha1/register.go) [types.go](/pkg/apis/ignite/v1alpha1/types.go) 
 
 
 ## <a name="pkg-constants">Constants</a>
 ``` go
 const (
-    // GroupName is the group name use in this package
-    GroupName = "ignite.weave.works"
-
-    // VMKind returns the kind for the VM API type
-    VMKind = "VM"
-    // KernelKind returns the kind for the Kernel API type
-    KernelKind = "Kernel"
-    // PoolKind returns the kind for the Pool API type
-    PoolKind = "Pool"
-    // ImageKind returns the kind for the Image API type
-    ImageKind = "Image"
+    KindImage  meta.Kind = "Image"
+    KindKernel meta.Kind = "Kernel"
+    KindVM     meta.Kind = "VM"
 )
 ```
 ``` go
 const (
-    KindImage  meta.Kind = "Image"
-    KindKernel meta.Kind = "Kernel"
-    KindVM     meta.Kind = "VM"
+    // GroupName is the group name use in this package
+    GroupName = "ignite.weave.works"
 )
 ```
 
@@ -107,73 +94,44 @@ SchemeGroupVersion is group version used to register these objects
 
 
 
-## <a name="SetDefaults_Image">func</a> [SetDefaults_Image](/pkg/apis/ignite/v1alpha1/defaults.go?s=2218:2252#L91)
-``` go
-func SetDefaults_Image(obj *Image)
-```
-
-
-## <a name="SetDefaults_Kernel">func</a> [SetDefaults_Kernel](/pkg/apis/ignite/v1alpha1/defaults.go?s=2276:2312#L95)
-``` go
-func SetDefaults_Kernel(obj *Kernel)
-```
-
-
-## <a name="SetDefaults_OCIImageClaim">func</a> [SetDefaults_OCIImageClaim](/pkg/apis/ignite/v1alpha1/defaults.go?s=275:325#L15)
+## <a name="SetDefaults_OCIImageClaim">func</a> [SetDefaults_OCIImageClaim](/pkg/apis/ignite/v1alpha1/defaults.go?s=263:313#L13)
 ``` go
 func SetDefaults_OCIImageClaim(obj *OCIImageClaim)
 ```
 
 
-## <a name="SetDefaults_PoolSpec">func</a> [SetDefaults_PoolSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=365:405#L19)
+## <a name="SetDefaults_PoolSpec">func</a> [SetDefaults_PoolSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=353:393#L17)
 ``` go
 func SetDefaults_PoolSpec(obj *PoolSpec)
 ```
 
 
-## <a name="SetDefaults_VM">func</a> [SetDefaults_VM](/pkg/apis/ignite/v1alpha1/defaults.go?s=2166:2194#L87)
-``` go
-func SetDefaults_VM(obj *VM)
-```
-TODO: Temporary hacks to populate TypeMeta until we get the generator working
-
-
-
-## <a name="SetDefaults_VMKernelSpec">func</a> [SetDefaults_VMKernelSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=1247:1295#L55)
+## <a name="SetDefaults_VMKernelSpec">func</a> [SetDefaults_VMKernelSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=1235:1283#L53)
 ``` go
 func SetDefaults_VMKernelSpec(obj *VMKernelSpec)
 ```
 
 
-## <a name="SetDefaults_VMNetworkSpec">func</a> [SetDefaults_VMNetworkSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=1532:1582#L66)
+## <a name="SetDefaults_VMNetworkSpec">func</a> [SetDefaults_VMNetworkSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=1520:1570#L64)
 ``` go
 func SetDefaults_VMNetworkSpec(obj *VMNetworkSpec)
 ```
 
 
-## <a name="SetDefaults_VMSpec">func</a> [SetDefaults_VMSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=931:967#L41)
+## <a name="SetDefaults_VMSpec">func</a> [SetDefaults_VMSpec](/pkg/apis/ignite/v1alpha1/defaults.go?s=919:955#L39)
 ``` go
 func SetDefaults_VMSpec(obj *VMSpec)
 ```
 
 
-## <a name="SetDefaults_VMStatus">func</a> [SetDefaults_VMStatus](/pkg/apis/ignite/v1alpha1/defaults.go?s=1653:1693#L72)
+## <a name="SetDefaults_VMStatus">func</a> [SetDefaults_VMStatus](/pkg/apis/ignite/v1alpha1/defaults.go?s=1641:1681#L70)
 ``` go
 func SetDefaults_VMStatus(obj *VMStatus)
 ```
 
 
-## <a name="ValidateNetworkMode">func</a> [ValidateNetworkMode](/pkg/apis/ignite/v1alpha1/helpers.go?s=317:365#L15)
-``` go
-func ValidateNetworkMode(mode NetworkMode) error
-```
-ValidateNetworkMode validates the network mode
-TODO: This should move into a dedicated validation package
 
-
-
-
-## <a name="FileMapping">type</a> [FileMapping](/pkg/apis/ignite/v1alpha1/types.go?s=7503:7598#L203)
+## <a name="FileMapping">type</a> [FileMapping](/pkg/apis/ignite/v1alpha1/types.go?s=7677:7772#L206)
 ``` go
 type FileMapping struct {
     HostPath string `json:"hostPath"`
@@ -192,7 +150,7 @@ FileMapping defines mappings between files on the host and VM
 
 
 
-## <a name="Image">type</a> [Image](/pkg/apis/ignite/v1alpha1/types.go?s=334:798#L15)
+## <a name="Image">type</a> [Image](/pkg/apis/ignite/v1alpha1/types.go?s=342:806#L17)
 ``` go
 type Image struct {
     meta.TypeMeta `json:",inline"`
@@ -218,7 +176,7 @@ Image represents a cached OCI image ready to be used with Ignite
 
 
 
-## <a name="ImageSourceType">type</a> [ImageSourceType](/pkg/apis/ignite/v1alpha1/types.go?s=987:1014#L32)
+## <a name="ImageSourceType">type</a> [ImageSourceType](/pkg/apis/ignite/v1alpha1/types.go?s=995:1022#L34)
 ``` go
 type ImageSourceType string
 ```
@@ -240,7 +198,7 @@ const (
 
 
 
-## <a name="ImageSpec">type</a> [ImageSpec](/pkg/apis/ignite/v1alpha1/types.go?s=846:913#L27)
+## <a name="ImageSpec">type</a> [ImageSpec](/pkg/apis/ignite/v1alpha1/types.go?s=854:921#L29)
 ``` go
 type ImageSpec struct {
     OCIClaim OCIImageClaim `json:"ociClaim"`
@@ -258,7 +216,7 @@ ImageSpec declares what the image contains
 
 
 
-## <a name="ImageStatus">type</a> [ImageStatus](/pkg/apis/ignite/v1alpha1/types.go?s=2312:2461#L66)
+## <a name="ImageStatus">type</a> [ImageStatus](/pkg/apis/ignite/v1alpha1/types.go?s=2320:2469#L68)
 ``` go
 type ImageStatus struct {
     // OCISource contains the information about how this OCI image was imported
@@ -277,7 +235,7 @@ ImageStatus defines the status of the image
 
 
 
-## <a name="Kernel">type</a> [Kernel](/pkg/apis/ignite/v1alpha1/types.go?s=4840:5307#L130)
+## <a name="Kernel">type</a> [Kernel](/pkg/apis/ignite/v1alpha1/types.go?s=4848:5315#L132)
 ``` go
 type Kernel struct {
     meta.TypeMeta `json:",inline"`
@@ -304,7 +262,7 @@ This file is stored in /var/lib/firecracker/kernels/{oci-image-digest}/metadata.
 
 
 
-## <a name="KernelSpec">type</a> [KernelSpec](/pkg/apis/ignite/v1alpha1/types.go?s=5360:5533#L142)
+## <a name="KernelSpec">type</a> [KernelSpec](/pkg/apis/ignite/v1alpha1/types.go?s=5368:5541#L144)
 ``` go
 type KernelSpec struct {
     OCIClaim OCIImageClaim `json:"ociClaim"`
@@ -322,7 +280,7 @@ KernelSpec describes the properties of a kernel
 
 
 
-## <a name="KernelStatus">type</a> [KernelStatus](/pkg/apis/ignite/v1alpha1/types.go?s=5584:5700#L149)
+## <a name="KernelStatus">type</a> [KernelStatus](/pkg/apis/ignite/v1alpha1/types.go?s=5592:5708#L151)
 ``` go
 type KernelStatus struct {
     Version   string         `json:"version"`
@@ -341,7 +299,7 @@ KernelStatus describes the status of a kernel
 
 
 
-## <a name="NetworkMode">type</a> [NetworkMode](/pkg/apis/ignite/v1alpha1/types.go?s=7784:7807#L214)
+## <a name="NetworkMode">type</a> [NetworkMode](/pkg/apis/ignite/v1alpha1/types.go?s=8126:8149#L221)
 ``` go
 type NetworkMode string
 ```
@@ -362,24 +320,17 @@ const (
 
 
 
-### <a name="GetNetworkModes">func</a> [GetNetworkModes](/pkg/apis/ignite/v1alpha1/helpers.go?s=92:128#L6)
-``` go
-func GetNetworkModes() []NetworkMode
-```
-GetNetworkModes gets the list of available network modes
 
 
 
-
-
-### <a name="NetworkMode.String">func</a> (NetworkMode) [String](/pkg/apis/ignite/v1alpha1/types.go?s=7809:7846#L216)
+### <a name="NetworkMode.String">func</a> (NetworkMode) [String](/pkg/apis/ignite/v1alpha1/types.go?s=8189:8226#L225)
 ``` go
 func (nm NetworkMode) String() string
 ```
 
 
 
-## <a name="OCIImageClaim">type</a> [OCIImageClaim](/pkg/apis/ignite/v1alpha1/types.go?s=1210:1628#L40)
+## <a name="OCIImageClaim">type</a> [OCIImageClaim](/pkg/apis/ignite/v1alpha1/types.go?s=1218:1636#L42)
 ``` go
 type OCIImageClaim struct {
     // Type defines how the image should be imported
@@ -403,7 +354,7 @@ OCIImageClaim defines a claim for importing an OCI image
 
 
 
-## <a name="OCIImageSource">type</a> [OCIImageSource](/pkg/apis/ignite/v1alpha1/types.go?s=1735:2263#L52)
+## <a name="OCIImageSource">type</a> [OCIImageSource](/pkg/apis/ignite/v1alpha1/types.go?s=1743:2271#L54)
 ``` go
 type OCIImageSource struct {
     // ID defines the source's ID (e.g. the Docker image ID)
@@ -431,7 +382,7 @@ It is the status variant of OCIImageClaim
 
 
 
-## <a name="Pool">type</a> [Pool](/pkg/apis/ignite/v1alpha1/types.go?s=2736:2916#L75)
+## <a name="Pool">type</a> [Pool](/pkg/apis/ignite/v1alpha1/types.go?s=2744:2924#L77)
 ``` go
 type Pool struct {
     meta.TypeMeta `json:",inline"`
@@ -455,7 +406,7 @@ is present at /var/lib/firecracker/snapshotter/pool.json
 
 
 
-## <a name="PoolDevice">type</a> [PoolDevice](/pkg/apis/ignite/v1alpha1/types.go?s=4207:4597#L117)
+## <a name="PoolDevice">type</a> [PoolDevice](/pkg/apis/ignite/v1alpha1/types.go?s=4215:4605#L119)
 ``` go
 type PoolDevice struct {
     Size   meta.Size `json:"size"`
@@ -479,7 +430,7 @@ PoolDevice defines one device in the pool
 
 
 
-## <a name="PoolDeviceType">type</a> [PoolDeviceType](/pkg/apis/ignite/v1alpha1/types.go?s=3936:3962#L107)
+## <a name="PoolDeviceType">type</a> [PoolDeviceType](/pkg/apis/ignite/v1alpha1/types.go?s=3944:3970#L109)
 ``` go
 type PoolDeviceType string
 ```
@@ -501,7 +452,7 @@ const (
 
 
 
-## <a name="PoolSpec">type</a> [PoolSpec](/pkg/apis/ignite/v1alpha1/types.go?s=2963:3676#L85)
+## <a name="PoolSpec">type</a> [PoolSpec](/pkg/apis/ignite/v1alpha1/types.go?s=2971:3684#L87)
 ``` go
 type PoolSpec struct {
     // MetadataSize specifies the size of the pool's metadata
@@ -530,7 +481,7 @@ PoolSpec defines the Pool's specification
 
 
 
-## <a name="PoolStatus">type</a> [PoolStatus](/pkg/apis/ignite/v1alpha1/types.go?s=3726:3934#L101)
+## <a name="PoolStatus">type</a> [PoolStatus](/pkg/apis/ignite/v1alpha1/types.go?s=3734:3942#L103)
 ``` go
 type PoolStatus struct {
     // The Devices array needs to contain pointers to accommodate "holes" in the mapping
@@ -550,14 +501,18 @@ PoolStatus defines the Pool's current status
 
 
 
-## <a name="SSH">type</a> [SSH](/pkg/apis/ignite/v1alpha1/types.go?s=7661:7727#L209)
+## <a name="SSH">type</a> [SSH](/pkg/apis/ignite/v1alpha1/types.go?s=7992:8069#L215)
 ``` go
 type SSH struct {
-    PublicKey string `json:"publicKey,omitempty"`
+    Generate  bool   `json:"-"`
+    PublicKey string `json:"-"`
 }
 
 ```
 SSH specifies different ways to connect via SSH to the VM
+SSH uses a custom marshaller/unmarshaller. If generate is true,
+it marshals to true (a JSON bool). If PublicKey is set, it marshals
+to that string.
 
 
 
@@ -568,7 +523,21 @@ SSH specifies different ways to connect via SSH to the VM
 
 
 
-## <a name="VM">type</a> [VM](/pkg/apis/ignite/v1alpha1/types.go?s=5902:6357#L157)
+### <a name="SSH.MarshalJSON">func</a> (\*SSH) [MarshalJSON](/pkg/apis/ignite/v1alpha1/json.go?s=117:160#L9)
+``` go
+func (s *SSH) MarshalJSON() ([]byte, error)
+```
+
+
+
+### <a name="SSH.UnmarshalJSON">func</a> (\*SSH) [UnmarshalJSON](/pkg/apis/ignite/v1alpha1/json.go?s=308:351#L21)
+``` go
+func (s *SSH) UnmarshalJSON(b []byte) error
+```
+
+
+
+## <a name="VM">type</a> [VM](/pkg/apis/ignite/v1alpha1/types.go?s=5910:6365#L159)
 ``` go
 type VM struct {
     meta.TypeMeta `json:",inline"`
@@ -595,25 +564,7 @@ These files are stored in /var/lib/firecracker/vm/{vm-id}/metadata.json
 
 
 
-### <a name="VM.SetImage">func</a> (\*VM) [SetImage](/pkg/apis/ignite/v1alpha1/helpers.go?s=658:694#L30)
-``` go
-func (vm *VM) SetImage(image *Image)
-```
-SetImage populates relevant fields to an Image on the VM object
-
-
-
-
-### <a name="VM.SetKernel">func</a> (\*VM) [SetKernel](/pkg/apis/ignite/v1alpha1/helpers.go?s=856:895#L36)
-``` go
-func (vm *VM) SetKernel(kernel *Kernel)
-```
-SetKernel populates relevant fields to a Kernel on the VM object
-
-
-
-
-## <a name="VMImageSpec">type</a> [VMImageSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7124:7193#L188)
+## <a name="VMImageSpec">type</a> [VMImageSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7298:7367#L191)
 ``` go
 type VMImageSpec struct {
     OCIClaim OCIImageClaim `json:"ociClaim"`
@@ -629,7 +580,7 @@ type VMImageSpec struct {
 
 
 
-## <a name="VMKernelSpec">type</a> [VMKernelSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7195:7316#L192)
+## <a name="VMKernelSpec">type</a> [VMKernelSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7369:7490#L195)
 ``` go
 type VMKernelSpec struct {
     OCIClaim OCIImageClaim `json:"ociClaim"`
@@ -646,7 +597,7 @@ type VMKernelSpec struct {
 
 
 
-## <a name="VMNetworkSpec">type</a> [VMNetworkSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7318:7436#L197)
+## <a name="VMNetworkSpec">type</a> [VMNetworkSpec](/pkg/apis/ignite/v1alpha1/types.go?s=7492:7610#L200)
 ``` go
 type VMNetworkSpec struct {
     Mode  NetworkMode       `json:"mode"`
@@ -663,7 +614,7 @@ type VMNetworkSpec struct {
 
 
 
-## <a name="VMSpec">type</a> [VMSpec](/pkg/apis/ignite/v1alpha1/types.go?s=6405:7122#L169)
+## <a name="VMSpec">type</a> [VMSpec](/pkg/apis/ignite/v1alpha1/types.go?s=6413:7296#L171)
 ``` go
 type VMSpec struct {
     Image    VMImageSpec   `json:"image"`
@@ -674,13 +625,14 @@ type VMSpec struct {
     Network  VMNetworkSpec `json:"network"`
 
     // This will be done at either "ignite start" or "ignite create" time
-    // TODO: We might to revisit this later
+    // TODO: We might revisit this later
     CopyFiles []FileMapping `json:"copyFiles,omitempty"`
     // SSH specifies how the SSH setup should be done
-    // SSH appends to CopyFiles when active
     // nil here means "don't do anything special"
-    // An empty struct means "generate a new SSH key and copy it in"
-    // Specifying a path means "use this public key"
+    // If SSH.Generate is set, Ignite will generate a new SSH key and copy it in to authorized_keys in the VM
+    // Specifying a path in SSH.Generate means "use this public key"
+    // If SSH.PublicKey is set, this struct will marshal as a string using that path
+    // If SSH.Generate is set, this struct will marshal as a bool => true
     SSH *SSH `json:"ssh,omitempty"`
 }
 
@@ -696,7 +648,7 @@ VMSpec describes the configuration of a VM
 
 
 
-## <a name="VMState">type</a> [VMState](/pkg/apis/ignite/v1alpha1/types.go?s=8243:8262#L229)
+## <a name="VMState">type</a> [VMState](/pkg/apis/ignite/v1alpha1/types.go?s=8623:8642#L238)
 ``` go
 type VMState string
 ```
@@ -719,7 +671,7 @@ const (
 
 
 
-## <a name="VMStatus">type</a> [VMStatus](/pkg/apis/ignite/v1alpha1/types.go?s=8422:8643#L238)
+## <a name="VMStatus">type</a> [VMStatus](/pkg/apis/ignite/v1alpha1/types.go?s=8802:9023#L247)
 ``` go
 type VMStatus struct {
     State       VMState          `json:"state"`

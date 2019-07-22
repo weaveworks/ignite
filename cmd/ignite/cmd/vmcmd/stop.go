@@ -12,7 +12,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
-// NewCmdStop stops a VM
+// NewCmdStop stops VMs
 func NewCmdStop(out io.Writer) *cobra.Command {
 	sf := &run.StopFlags{}
 

@@ -13,12 +13,9 @@ const (
 	// SSH key template for VMs
 	VM_SSH_KEY_TEMPLATE = "id_%s"
 
-	// Filename for VM overlay metadata storage
-	VM_METADATA_FILE = "metadata.dm"
-
-	// Filename for VM overlay data storage
-	VM_DATA_FILE = "data.dm"
-
 	// TODO: remove this when the old dm code is removed
 	OVERLAY_FILE = "overlay.dm"
+
+	// Prometheus socket filename
+	PROMETHEUS_SOCKET = "prometheus.sock"
 )
