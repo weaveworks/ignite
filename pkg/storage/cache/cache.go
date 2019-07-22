@@ -93,6 +93,11 @@ func (c *cache) Set(gvk schema.GroupVersionKind, obj meta.Object) error {
 	return c.storage.Set(gvk, obj)
 }
 
+func (c *cache) Patch(gvk schema.GroupVersionKind, uid meta.UID, patch []byte) error {
+	// TODO: For now patches are always flushed, the cache will load the updated Object on-demand on access
+	return c.storage.Patch(gvk, uid, patch)
+}
+
 func (c *cache) Delete(gvk schema.GroupVersionKind, uid meta.UID) error {
 	log.Tracef("cache: Delete %s with UID %q", gvk.Kind, uid)
 

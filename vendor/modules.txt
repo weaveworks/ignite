@@ -21,6 +21,8 @@ github.com/containernetworking/cni/pkg/types/current
 github.com/containers/image/docker/reference
 # github.com/cpuguy83/go-md2man v1.0.10
 github.com/cpuguy83/go-md2man/md2man
+# github.com/davecgh/go-spew v1.1.1
+github.com/davecgh/go-spew/spew
 # github.com/docker/distribution v2.7.1+incompatible => github.com/docker/distribution v2.7.1+incompatible
 github.com/docker/distribution/reference
 github.com/docker/distribution/digestset
@@ -102,6 +104,10 @@ github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/google/gofuzz v1.0.0
 github.com/google/gofuzz
+# github.com/googleapis/gnostic v0.2.0
+github.com/googleapis/gnostic/OpenAPIv2
+github.com/googleapis/gnostic/compiler
+github.com/googleapis/gnostic/extensions
 # github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 github.com/goombaio/namegenerator
 # github.com/inconshreveable/mousetrap v1.0.0
@@ -208,6 +214,7 @@ k8s.io/apimachinery/pkg/apis/meta/v1
 k8s.io/apimachinery/pkg/util/duration
 k8s.io/apimachinery/pkg/util/wait
 k8s.io/apimachinery/pkg/runtime/serializer/json
+k8s.io/apimachinery/pkg/util/strategicpatch
 k8s.io/apimachinery/pkg/conversion/queryparams
 k8s.io/apimachinery/pkg/util/errors
 k8s.io/apimachinery/pkg/util/json
@@ -227,11 +234,14 @@ k8s.io/apimachinery/pkg/watch
 k8s.io/apimachinery/pkg/util/framer
 k8s.io/apimachinery/pkg/util/yaml
 k8s.io/apimachinery/pkg/apis/meta/v1/unstructured
+k8s.io/apimachinery/pkg/util/mergepatch
+k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/pkg/util/validation
 k8s.io/apimachinery/pkg/util/net
 # k8s.io/klog v0.3.1
 k8s.io/klog
 # k8s.io/kube-openapi v0.0.0-20190401085232-94e1e7b7574c
 k8s.io/kube-openapi/pkg/common
+k8s.io/kube-openapi/pkg/util/proto
 # sigs.k8s.io/yaml v1.1.0
 sigs.k8s.io/yaml

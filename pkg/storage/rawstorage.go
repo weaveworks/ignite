@@ -1,13 +1,14 @@
 package storage
 
 import (
-	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/util"
 	"io/ioutil"
 	"os"
 	"path"
 	"strconv"
 	"strings"
+
+	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type RawStorage interface {
