@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -58,6 +59,8 @@ type ManifestRawStorage struct {
 	// passthrough defines the underlying storage for Kinds we don't care about in git
 	passthrough storage.RawStorage
 }
+
+var _ storage.RawStorage = &ManifestRawStorage{}
 
 func (r *ManifestRawStorage) Sync() (UpdatedFiles, error) {
 	// provide empty placeholders for new data, overwrite .keyFileMap and .byKind in the end
@@ -286,4 +289,18 @@ func (r *ManifestRawStorage) List(parentKey string) ([]string, error) {
 	}
 
 	return r.byKind[parentKey], nil
+}
+
+// This returns the modification time as a UnixNano string
+// If the file doesn't exist, return blank
+func (r *ManifestRawStorage) Checksum(key string) (s string, err error) {
+	var fi os.FileInfo
+
+	if r.Exists(key) {
+		if fi, err = os.Stat(r.realPath(key)); err == nil {
+			s = strconv.FormatInt(fi.ModTime().UnixNano(), 10)
+		}
+	}
+
+	return
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/gitops/gitdir"
 	"github.com/weaveworks/ignite/pkg/operations"
-	"github.com/weaveworks/ignite/pkg/storage"
+	"github.com/weaveworks/ignite/pkg/storage/cache"
 	"github.com/weaveworks/ignite/pkg/storage/manifest"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -35,7 +35,7 @@ func RunLoop(url, branch string) error {
 	// Construct a manifest storage for the path backed by git
 	s := manifest.NewManifestStorage(dataDir)
 	// Wrap the Manifest Storage with a cache for better performance, and create a client
-	c = client.NewClient(storage.NewCache(s))
+	c = client.NewClient(cache.NewCache(s))
 	// Construct the GitDirectory implementation which backs the storage
 	gitDir = gitdir.NewGitDirectory(url, dataDir, branch, syncInterval)
 	// Start the GitDirectory sync loop

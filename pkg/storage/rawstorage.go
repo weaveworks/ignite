@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -16,6 +17,7 @@ type RawStorage interface {
 	Write(key string, content []byte) error
 	Delete(key string) error
 	List(directory string) ([]string, error)
+	Checksum(key string) (string, error)
 }
 
 func NewDefaultRawStorage(dir string) RawStorage {
@@ -86,4 +88,18 @@ func (r *DefaultRawStorage) List(parentKey string) ([]string, error) {
 	}
 
 	return result, nil
+}
+
+// This returns the modification time as a UnixNano string
+// If the file doesn't exist, return blank
+func (r *DefaultRawStorage) Checksum(key string) (s string, err error) {
+	var fi os.FileInfo
+
+	if r.Exists(key) {
+		if fi, err = os.Stat(r.realPath(key)); err == nil {
+			s = strconv.FormatInt(fi.ModTime().UnixNano(), 10)
+		}
+	}
+
+	return
 }
