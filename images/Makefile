@@ -38,3 +38,4 @@ build-all:
 	$(MAKE) ${OP} WHAT=ubuntu        RELEASE=19.04
 	$(MAKE) ${OP} WHAT=centos        RELEASE=7     IS_LATEST=true
 	$(MAKE) ${OP} WHAT=kubeadm
+	$(MAKE) ${OP} WHAT=debian        RELEASE=10    IS_LATEST=true
