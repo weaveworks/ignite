@@ -47,8 +47,10 @@ tidy: $(API_DOCS)
 	gofmt -s -w pkg cmd
 	goimports -w pkg cmd
 	hack/generate-client.sh
-	hack/graph.sh
 	go run hack/cobra.go
+
+graph:
+	hack/graph.sh
 
 .PHONY: $(API_DOCS)
 $(API_DOCS): api/%.md: $(CACHE_DIR)/go/bin/godoc2md
