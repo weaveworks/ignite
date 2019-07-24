@@ -18,6 +18,7 @@ type RawStorage interface {
 	Delete(key string) error
 	List(directory string) ([]string, error)
 	Checksum(key string) (string, error)
+	Dir() string
 }
 
 func NewDefaultRawStorage(dir string) RawStorage {
@@ -102,4 +103,8 @@ func (r *DefaultRawStorage) Checksum(key string) (s string, err error) {
 	}
 
 	return
+}
+
+func (r *DefaultRawStorage) Dir() string {
+	return r.dir
 }

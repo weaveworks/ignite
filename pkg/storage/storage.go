@@ -43,6 +43,8 @@ type Storage interface {
 	// Object on disk, it can be e.g. the Object's modification timestamp or
 	// calculated checksum
 	Checksum(gvk schema.GroupVersionKind, uid meta.UID) (string, error)
+	// RawStorage returns the RawStorage instance backing this Storage
+	RawStorage() RawStorage
 }
 
 // NewGenericStorage constructs a new Storage
@@ -191,6 +193,11 @@ func (s *GenericStorage) Count(gvk schema.GroupVersionKind) (uint64, error) {
 // Checksum returns a string representing the state of an Object on disk
 func (s *GenericStorage) Checksum(gvk schema.GroupVersionKind, uid meta.UID) (string, error) {
 	return s.raw.Checksum(KeyForUID(gvk, uid))
+}
+
+// RawStorage returns the RawStorage instance backing this Storage
+func (s *GenericStorage) RawStorage() RawStorage {
+	return s.raw
 }
 
 func (s *GenericStorage) decode(content []byte, gvk schema.GroupVersionKind) (meta.Object, error) {

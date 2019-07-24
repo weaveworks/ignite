@@ -17,13 +17,32 @@ import (
 type SyncStorage struct {
 	storage.Storage
 	storages []storage.Storage
+	watchers []*watcher
 }
 
 var _ storage.Storage = &SyncStorage{}
 
 // NewSyncStorage constructs a new SyncStorage
-func NewSyncStorage(rwStorage storage.Storage, wStorages ...storage.Storage) storage.Storage {
-	return &SyncStorage{rwStorage, append(wStorages, rwStorage)}
+func NewSyncStorage(rwStorage storage.Storage) storage.Storage {
+	return &SyncStorage{Storage: rwStorage}
+}
+
+func (s *SyncStorage) Add(wStorages ...storage.Storage) storage.Storage {
+	s.storages = append(s.storages, wStorages...)
+	return s
+}
+
+func (s *SyncStorage) AddWatched(wStorages ...storage.Storage) (storage.Storage, error) {
+	for _, st := range wStorages {
+		w, err := newWatcher(st, s.update)
+		if err != nil {
+			return nil, err
+		}
+
+		s.watchers = append(s.watchers, w)
+	}
+
+	return s.Add(wStorages...), nil
 }
 
 // Set is propagated to all Storages
@@ -74,4 +93,24 @@ func (s *SyncStorage) runAll(f callFunc) (err error) {
 	}
 
 	return
+}
+
+type event int
+
+const (
+	eventCreate event = iota + 1
+	eventDelete
+	eventModify
+)
+
+type fileUpdate struct {
+	storage storage.Storage
+	event   event
+	path    string
+}
+
+func (s *SyncStorage) update(fu *fileUpdate) error {
+	fmt.Println("Update:", fu)
+
+	return nil
 }

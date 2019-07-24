@@ -62,6 +62,8 @@ github.com/firecracker-microvm/firecracker-go-sdk/client
 github.com/firecracker-microvm/firecracker-go-sdk/client/operations
 # github.com/freddierice/go-losetup v0.0.0-20170407175016-fc9adea44124
 github.com/freddierice/go-losetup
+# github.com/fsnotify/fsnotify v1.4.7
+github.com/fsnotify/fsnotify
 # github.com/globalsign/mgo v0.0.0-20180905125535-1ca0a4f7cbcb
 github.com/globalsign/mgo/bson
 github.com/globalsign/mgo/internal/json

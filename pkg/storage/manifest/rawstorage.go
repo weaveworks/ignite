@@ -304,3 +304,7 @@ func (r *ManifestRawStorage) Checksum(key string) (s string, err error) {
 
 	return
 }
+
+func (r *ManifestRawStorage) Dir() string {
+	return r.manifestDir
+}
