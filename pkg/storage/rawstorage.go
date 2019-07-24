@@ -1,23 +1,24 @@
 package storage
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 	"strconv"
-	"strings"
 
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type RawStorage interface {
-	Read(key string) ([]byte, error)
-	Exists(key string) bool
-	Write(key string, content []byte) error
-	Delete(key string) error
-	List(directory string) ([]string, error)
-	Checksum(key string) (string, error)
+	Read(key Key) ([]byte, error)
+	Exists(key Key) bool
+	Write(key Key, content []byte) error
+	Delete(key Key) error
+	List(key KindKey) ([]Key, error)
+	Checksum(key Key) (string, error)
 	Dir() string
 }
 
@@ -31,37 +32,36 @@ type DefaultRawStorage struct {
 	dir string
 }
 
-func (r *DefaultRawStorage) realPath(key string) string {
-	// The "/" prefix is enforced
-	if !strings.HasPrefix(key, "/") {
-		key = "/" + key
+func (r *DefaultRawStorage) realPath(key AnyKey) string {
+	var file string
+
+	switch key.(type) {
+	case KindKey:
+	// KindKeys get no special treatment
+	case Key:
+		// Keys get the metadata filename added to the returned path
+		file = constants.METADATA
+	default:
+		panic(fmt.Sprintf("invalid key type received: %T", key))
 	}
 
-	// If a top-level kind is described, and not a file, return the kind directory path
-	if len(strings.Split(key, "/")) == 2 {
-		return path.Join(r.dir, key)
-	}
-
-	// Return the file location, with the metadata.json suffix
-	return path.Join(r.dir, key, constants.METADATA)
+	return path.Join(r.dir, key.String(), file)
 }
 
-func (r *DefaultRawStorage) Read(key string) ([]byte, error) {
-	file := r.realPath(key)
-	return ioutil.ReadFile(file)
+func (r *DefaultRawStorage) Read(key Key) ([]byte, error) {
+	return ioutil.ReadFile(r.realPath(key))
 }
 
-func (r *DefaultRawStorage) Exists(key string) bool {
-	file := r.realPath(key)
-	return util.FileExists(file)
+func (r *DefaultRawStorage) Exists(key Key) bool {
+	return util.FileExists(r.realPath(key))
 }
 
-func (r *DefaultRawStorage) Write(key string, content []byte) error {
+func (r *DefaultRawStorage) Write(key Key, content []byte) error {
 	file := r.realPath(key)
 
 	// Create the underlying directories if they do not exist already
 	if !r.Exists(key) {
-		if err := os.MkdirAll(path.Dir(file), 0755); err != nil {
+		if err := os.MkdirAll(path.Dir(file), constants.DATA_DIR_PERM); err != nil {
 			return err
 		}
 	}
@@ -69,23 +69,19 @@ func (r *DefaultRawStorage) Write(key string, content []byte) error {
 	return ioutil.WriteFile(file, content, 0644)
 }
 
-func (r *DefaultRawStorage) Delete(key string) error {
-	file := r.realPath(key)
-	dir := path.Dir(file)
-	return os.RemoveAll(dir)
+func (r *DefaultRawStorage) Delete(key Key) error {
+	return os.RemoveAll(path.Dir(r.realPath(key)))
 }
 
-func (r *DefaultRawStorage) List(parentKey string) ([]string, error) {
-	realPath := r.realPath(parentKey)
-	entries, err := ioutil.ReadDir(realPath)
+func (r *DefaultRawStorage) List(key KindKey) ([]Key, error) {
+	entries, err := ioutil.ReadDir(r.realPath(key))
 	if err != nil {
 		return nil, err
 	}
 
-	result := []string{}
+	result := make([]Key, 0, len(entries))
 	for _, entry := range entries {
-		entryPath := path.Join(parentKey, entry.Name())
-		result = append(result, entryPath)
+		result = append(result, NewKey(key.Kind, meta.UID(entry.Name())))
 	}
 
 	return result, nil
@@ -93,7 +89,7 @@ func (r *DefaultRawStorage) List(parentKey string) ([]string, error) {
 
 // This returns the modification time as a UnixNano string
 // If the file doesn't exist, return blank
-func (r *DefaultRawStorage) Checksum(key string) (s string, err error) {
+func (r *DefaultRawStorage) Checksum(key Key) (s string, err error) {
 	var fi os.FileInfo
 
 	if r.Exists(key) {

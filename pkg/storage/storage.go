@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"path"
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage/serializer"
@@ -261,10 +260,10 @@ func (s *GenericStorage) walkKind(gvk schema.GroupVersionKind, fn func(content [
 	return nil
 }
 
-func KeyForUID(gvk schema.GroupVersionKind, uid meta.UID) string {
-	return "/" + path.Join(meta.Kind(gvk.Kind).Lower(), uid.String())
+func KeyForUID(gvk schema.GroupVersionKind, uid meta.UID) Key {
+	return NewKey(meta.Kind(gvk.Kind), uid)
 }
 
-func KeyForKind(gvk schema.GroupVersionKind) string {
-	return "/" + meta.Kind(gvk.Kind).Lower()
+func KeyForKind(gvk schema.GroupVersionKind) KindKey {
+	return NewKindKey(meta.Kind(gvk.Kind))
 }

@@ -20,11 +20,13 @@ import (
 
 var splitDirsRegex = regexp.MustCompile(`/?([a-z0-9]+)(/[a-z0-9]*)*`)
 
+// TODO: This is undergoing major rework! Do not use!
+
 func NewManifestRawStorage(manifestDir, underlyingDir string) *ManifestRawStorage {
 	return &ManifestRawStorage{
 		manifestDir: manifestDir,
 		gitPathPrefixes: map[string]bool{ // we only check in VM state into git atm
-			"/vm": true, // TODO: construct this in a better way
+			"vm": true, // TODO: construct this in a better way
 		},
 		passthrough: storage.NewDefaultRawStorage(underlyingDir),
 	}
@@ -128,12 +130,12 @@ func (r *ManifestRawStorage) Sync() (UpdatedFiles, error) {
 				Checksum: sha256sum(content),
 				APIType:  obj,
 			}
-			newKeyFileMap[keyPath] = f
-			newByKind[kindKey] = append(newByKind[kindKey], keyPath)
+			newKeyFileMap[keyPath.String()] = f
+			newByKind[kindKey.String()] = append(newByKind[kindKey.String()], keyPath.String())
 			log.Debugf("Stored file info %v at path %q and parent kind %q", *f, keyPath, kindKey)
 
 			// calculate a diff if files change
-			if prevFile, ok := r.keyFileMap[keyPath]; ok {
+			if prevFile, ok := r.keyFileMap[keyPath.String()]; ok {
 				// file existed already on the last check
 				if prevFile.Checksum != f.Checksum {
 					f.Type = UpdateTypeChanged
@@ -170,7 +172,7 @@ func (r *ManifestRawStorage) Sync() (UpdatedFiles, error) {
 	}
 
 	r.keyFileMap = newKeyFileMap
-	r.byKind = newByKind
+	//r.byKind = newByKind
 
 	for _, file := range diff {
 		gitFilePath := r.gitRelativePath(file.GitPath)
@@ -195,13 +197,8 @@ func (r *ManifestRawStorage) gitRelativePath(fullPath string) string {
 	return strings.TrimPrefix(fullPath, r.manifestDir+"/")
 }
 
-func (r *ManifestRawStorage) realPath(key string) string {
-	// The "/" prefix is enforced
-	if !strings.HasPrefix(key, "/") {
-		key = "/" + key
-	}
-
-	info, ok := r.keyFileMap[key]
+func (r *ManifestRawStorage) realPath(key storage.AnyKey) string {
+	info, ok := r.keyFileMap[key.String()]
 	if !ok {
 		log.Debugf("ManifestRawStorage.realPath returned an empty string for key %s", key)
 		return ""
@@ -210,15 +207,24 @@ func (r *ManifestRawStorage) realPath(key string) string {
 	return info.GitPath
 }
 
-func (r *ManifestRawStorage) shouldPassthrough(key string) bool {
-	// firstDirName is e.g. "vm" when key is "/vm/foobar123"
-	firstDirName := splitDirsRegex.FindStringSubmatch(key)[1]
+func (r *ManifestRawStorage) shouldPassthrough(input storage.AnyKey) bool {
+	var key storage.KindKey
+
+	switch k := input.(type) {
+	case storage.KindKey:
+		key = k
+	case storage.Key:
+		key = k.ToKindKey()
+	default:
+		panic(fmt.Sprintf("invalid key type received: %T", input))
+	}
+
 	// check if this kind should be managed by git. if it's git-managed return false
-	_, ok := r.gitPathPrefixes[fmt.Sprintf("/%s", strings.ToLower(firstDirName))]
+	_, ok := r.gitPathPrefixes[key.String()]
 	return !ok
 }
 
-func (r *ManifestRawStorage) Read(key string) ([]byte, error) {
+func (r *ManifestRawStorage) Read(key storage.Key) ([]byte, error) {
 	log.Debugf("ManifestRawStorage.Read: %q", key)
 	if r.shouldPassthrough(key) {
 		return r.passthrough.Read(key)
@@ -228,7 +234,7 @@ func (r *ManifestRawStorage) Read(key string) ([]byte, error) {
 	return ioutil.ReadFile(file)
 }
 
-func (r *ManifestRawStorage) Exists(key string) bool {
+func (r *ManifestRawStorage) Exists(key storage.Key) bool {
 	log.Debugf("ManifestRawStorage.Exists: %q", key)
 	if r.shouldPassthrough(key) {
 		return r.passthrough.Exists(key)
@@ -238,7 +244,7 @@ func (r *ManifestRawStorage) Exists(key string) bool {
 	return util.FileExists(file)
 }
 
-func (r *ManifestRawStorage) Write(key string, content []byte) error {
+func (r *ManifestRawStorage) Write(key storage.Key, content []byte) error {
 	log.Debugf("ManifestRawStorage.Write: %q", key)
 	// Write always writes to the underlying (expected) place, and to Git
 	if err := r.passthrough.Write(key, content); err != nil {
@@ -260,7 +266,7 @@ func (r *ManifestRawStorage) Write(key string, content []byte) error {
 	return nil
 }
 
-func (r *ManifestRawStorage) Delete(key string) error {
+func (r *ManifestRawStorage) Delete(key storage.Key) error {
 	log.Debugf("ManifestRawStorage.Delete: %q", key)
 	// Delete always deletes in the underlying (expected) place, and in Git
 	if err := r.passthrough.Delete(key); err != nil {
@@ -282,18 +288,18 @@ func (r *ManifestRawStorage) Delete(key string) error {
 	// TODO: Do a git commit here!
 }
 
-func (r *ManifestRawStorage) List(parentKey string) ([]string, error) {
-	log.Debugf("ManifestRawStorage.List: %q", parentKey)
-	if r.shouldPassthrough(parentKey) {
-		return r.passthrough.List(parentKey)
-	}
+func (r *ManifestRawStorage) List(key storage.KindKey) ([]storage.Key, error) {
+	log.Debugf("ManifestRawStorage.List: %q", key)
+	//if r.shouldPassthrough(key) {
+	return r.passthrough.List(key)
+	//}
 
-	return r.byKind[parentKey], nil
+	//return r.byKind[key.String()], nil
 }
 
 // This returns the modification time as a UnixNano string
 // If the file doesn't exist, return blank
-func (r *ManifestRawStorage) Checksum(key string) (s string, err error) {
+func (r *ManifestRawStorage) Checksum(key storage.Key) (s string, err error) {
 	var fi os.FileInfo
 
 	if r.Exists(key) {
