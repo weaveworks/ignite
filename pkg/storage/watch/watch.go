@@ -13,6 +13,7 @@ import (
 )
 
 const eventBuffer = 4096 // How many events we can buffer before watching is interrupted
+var excludeDirs = []string{".git"}
 
 var eventMap = map[fsnotify.Op]update.Event{
 	fsnotify.Create: update.EventCreate,
@@ -29,7 +30,10 @@ type watcher struct {
 	suspendEvent update.Event
 }
 
-func newWatcher(dir string) (w *watcher, err error) {
+// newWatcher returns a list of files in the watched directory in
+// addition to the generated watcher, it can be used to populate
+// MappedRawStorage fileMappings
+func newWatcher(dir string) (w *watcher, files []string, err error) {
 	w = &watcher{
 		dir:    dir,
 		events: make(EventStream, eventBuffer),
@@ -37,7 +41,7 @@ func newWatcher(dir string) (w *watcher, err error) {
 
 	w.watcher, err = fsnotify.NewWatcher()
 	if err == nil {
-		err = w.start()
+		files, err = w.start()
 	}
 
 	if err != nil {
@@ -51,7 +55,7 @@ func newWatcher(dir string) (w *watcher, err error) {
 
 // start discovers all subdirectories and adds paths to
 // fsnotify before starting the monitoring goroutine
-func (w *watcher) start() (err error) {
+func (w *watcher) start() (files []string, err error) {
 	if err = filepath.Walk(w.dir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -59,7 +63,18 @@ func (w *watcher) start() (err error) {
 			}
 
 			if info.IsDir() {
+				for _, dir := range excludeDirs {
+					if info.Name() == dir {
+						return filepath.SkipDir // Skip excluded directories
+					}
+				}
+
 				return w.watcher.Add(path)
+			}
+
+			// Only include files with a valid suffix
+			if validSuffix(info.Name()) {
+				files = append(files, path)
 			}
 
 			return nil

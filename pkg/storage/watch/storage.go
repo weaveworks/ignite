@@ -2,8 +2,6 @@ package watch
 
 import (
 	"fmt"
-	"io/ioutil"
-
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
@@ -11,6 +9,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/manifest"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
+	"io/ioutil"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
@@ -34,12 +33,13 @@ func NewGenericWatchStorage(storage storage.Storage) (WatchStorage, error) {
 	}
 
 	var err error
-	if s.watcher, err = newWatcher(storage.RawStorage().Dir()); err != nil {
+	var files []string
+	if s.watcher, files, err = newWatcher(storage.RawStorage().Dir()); err != nil {
 		return nil, err
 	}
 
 	if mapped, ok := s.RawStorage().(manifest.MappedRawStorage); ok {
-		go s.monitor(mapped)
+		go s.monitor(mapped, files) // Offload the file registration to the goroutine
 	}
 
 	return s, nil
@@ -58,6 +58,7 @@ var _ WatchStorage = &GenericWatchStorage{}
 func (s *GenericWatchStorage) Set(gvk schema.GroupVersionKind, obj meta.Object) error {
 	s.watcher.suspend(update.EventModify)
 	defer s.watcher.resume()
+	// TODO: GenericStorage should support the correct output format, so it doesn't try to put JSON into a .yaml file
 	return s.Storage.Set(gvk, obj)
 }
 
@@ -65,6 +66,7 @@ func (s *GenericWatchStorage) Set(gvk schema.GroupVersionKind, obj meta.Object) 
 func (s *GenericWatchStorage) Patch(gvk schema.GroupVersionKind, uid meta.UID, patch []byte) error {
 	s.watcher.suspend(update.EventModify)
 	defer s.watcher.resume()
+	// TODO: GenericStorage should support the correct output format, so it doesn't try to put JSON into a .yaml file
 	return s.Storage.Patch(gvk, uid, patch)
 }
 
@@ -79,7 +81,16 @@ func (s *GenericWatchStorage) SetEventStream(eventStream AssociatedEventStream) 
 	s.events = &eventStream
 }
 
-func (s *GenericWatchStorage) monitor(mapped manifest.MappedRawStorage) {
+func (s *GenericWatchStorage) monitor(mapped manifest.MappedRawStorage, files []string) {
+	// Fill the mappings of the MappedRawStorage before starting to monitor changes
+	for _, file := range files {
+		if obj, err := resolveAPIType(file); err != nil {
+			log.Warnf("Ignoring %q: %v", file, err)
+		} else {
+			mapped.AddMapping(storage.NewKey(obj.GetKind(), obj.GetUID()), file)
+		}
+	}
+
 	for {
 		if event, ok := <-s.watcher.events; ok {
 			var obj meta.Object

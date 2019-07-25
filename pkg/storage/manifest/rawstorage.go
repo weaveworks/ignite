@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/util"
 	"io/ioutil"
@@ -117,6 +118,7 @@ func (r *ManifestRawStorage) Dir() string {
 }
 
 func (r *ManifestRawStorage) AddMapping(key storage.Key, path string) {
+	log.Debugf("ManifestRawStorage: AddMapping: %q -> %q", key, path)
 	r.fileMappings[key] = path
 }
 
@@ -131,5 +133,6 @@ func (r *ManifestRawStorage) GetMapping(path string) (storage.Key, error) {
 }
 
 func (r *ManifestRawStorage) RemoveMapping(key storage.Key) {
+	log.Debugf("ManifestRawStorage: RemoveMapping: %q", key)
 	delete(r.fileMappings, key)
 }

@@ -7,8 +7,9 @@ func Populate() error {
 	providers := []func() error{
 		SetDockerRuntime,    // Use the Docker runtime
 		SetCNINetworkPlugin, // Use the CNI Network plugin
-		SetCachedStorage,    // Use a generic storage implementation backed by a cache
-		SetClient,           // Set the globally available client
+		//SetCachedStorage,    // Use a generic storage implementation backed by a cache
+		SetTestManifestStorage, // Use the test version of the Manifest Storage
+		SetClient,              // Set the globally available client
 	}
 
 	for _, init := range providers {
