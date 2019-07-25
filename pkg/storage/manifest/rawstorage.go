@@ -14,6 +14,7 @@ type MappedRawStorage interface {
 	storage.RawStorage
 
 	AddMapping(key storage.Key, path string)
+	GetMapping(path string) (storage.Key, error)
 	RemoveMapping(key storage.Key)
 }
 
@@ -117,6 +118,16 @@ func (r *ManifestRawStorage) Dir() string {
 
 func (r *ManifestRawStorage) AddMapping(key storage.Key, path string) {
 	r.fileMappings[key] = path
+}
+
+func (r *ManifestRawStorage) GetMapping(path string) (storage.Key, error) {
+	for key, p := range r.fileMappings {
+		if p == path {
+			return key, nil
+		}
+	}
+
+	return storage.Key{}, fmt.Errorf("no mapping found for path %q", path)
 }
 
 func (r *ManifestRawStorage) RemoveMapping(key storage.Key) {
