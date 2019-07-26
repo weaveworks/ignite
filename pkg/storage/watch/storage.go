@@ -103,7 +103,7 @@ func (s *GenericWatchStorage) monitorFunc(mapped manifest.MappedRawStorage, file
 	}
 
 	for {
-		if event, ok := <-s.watcher.events; ok {
+		if event, ok := <-s.watcher.updates; ok {
 			var obj meta.Object
 			var err error
 
