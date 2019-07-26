@@ -19,6 +19,7 @@ type RawStorage interface {
 	Delete(key Key) error
 	List(key KindKey) ([]Key, error)
 	Checksum(key Key) (string, error)
+	Format(key Key) Format
 	Dir() string
 }
 
@@ -66,7 +67,7 @@ func (r *DefaultRawStorage) Write(key Key, content []byte) error {
 		}
 	}
 
-	return ioutil.WriteFile(file, content, 0644)
+	return util.AtomicWrite(file, content, 0644)
 }
 
 func (r *DefaultRawStorage) Delete(key Key) error {
@@ -99,6 +100,10 @@ func (r *DefaultRawStorage) Checksum(key Key) (s string, err error) {
 	}
 
 	return
+}
+
+func (r *DefaultRawStorage) Format(key Key) Format {
+	return FormatJSON // The DefaultRawStorage always uses JSON
 }
 
 func (r *DefaultRawStorage) Dir() string {

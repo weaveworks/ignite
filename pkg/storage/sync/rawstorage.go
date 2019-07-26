@@ -311,6 +311,10 @@ func (r *ManifestRawStorage) Checksum(key storage.Key) (s string, err error) {
 	return
 }
 
+func (r *ManifestRawStorage) Format(key storage.Key) storage.Format {
+	return storage.FormatJSON
+}
+
 func (r *ManifestRawStorage) Dir() string {
 	return r.manifestDir
 }

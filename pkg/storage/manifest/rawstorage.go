@@ -7,10 +7,10 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 )
 
-// TODO: Support automatic change detection via inotify on the MappedRawStorage level?
 type MappedRawStorage interface {
 	storage.RawStorage
 
@@ -66,7 +66,7 @@ func (r *ManifestRawStorage) Write(key storage.Key, content []byte) error {
 		return nil
 	}
 
-	return ioutil.WriteFile(file, content, 0644)
+	return util.AtomicWrite(file, content, 0644)
 }
 
 func (r *ManifestRawStorage) Delete(key storage.Key) (err error) {
@@ -108,6 +108,14 @@ func (r *ManifestRawStorage) Checksum(key storage.Key) (s string, err error) {
 		if fi, err = os.Stat(file); err == nil {
 			s = strconv.FormatInt(fi.ModTime().UnixNano(), 10)
 		}
+	}
+
+	return
+}
+
+func (r *ManifestRawStorage) Format(key storage.Key) (f storage.Format) {
+	if file, err := r.realPath(key); err == nil {
+		f = storage.Formats[filepath.Ext(file)] // Retrieve the correct format based on the extension
 	}
 
 	return

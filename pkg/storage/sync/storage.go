@@ -2,7 +2,6 @@ package sync
 
 import (
 	"fmt"
-
 	log "github.com/sirupsen/logrus"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
@@ -22,6 +21,7 @@ type SyncStorage struct {
 	storage.Storage
 	storages    []storage.Storage
 	eventStream watch.AssociatedEventStream
+	monitor     *watch.Monitor
 }
 
 var _ storage.Storage = &SyncStorage{}
@@ -33,8 +33,6 @@ func NewSyncStorage(rwStorage storage.Storage, wStorages ...storage.Storage) sto
 		storages: append(wStorages, rwStorage),
 	}
 
-	fmt.Println("Storages: %v", ss.storages)
-
 	for _, s := range ss.storages {
 		if watchStorage, ok := s.(watch.WatchStorage); ok {
 			watchStorage.SetEventStream(ss.getEventStream())
@@ -42,8 +40,7 @@ func NewSyncStorage(rwStorage storage.Storage, wStorages ...storage.Storage) sto
 	}
 
 	if ss.eventStream != nil {
-		fmt.Println("Started thread!")
-		go ss.monitor()
+		ss.monitor = watch.RunMonitor(ss.monitorFunc)
 	}
 
 	return ss
@@ -78,6 +75,18 @@ func (ss *SyncStorage) Delete(gvk schema.GroupVersionKind, uid meta.UID) error {
 	})
 }
 
+func (ss *SyncStorage) Close() {
+	// Close all WatchStorages
+	for _, s := range ss.storages {
+		if watchStorage, ok := s.(watch.WatchStorage); ok {
+			watchStorage.Close()
+		}
+	}
+
+	close(ss.eventStream) // Close the event stream
+	ss.monitor.Wait()     // Wait for the monitor goroutine
+}
+
 // runAll runs the given function for all Storages in parallel and aggregates all errors
 func (ss *SyncStorage) runAll(f func(storage.Storage) error) (err error) {
 	type result struct {
@@ -105,13 +114,16 @@ func (ss *SyncStorage) runAll(f func(storage.Storage) error) (err error) {
 	return
 }
 
-func (ss *SyncStorage) monitor() {
+func (ss *SyncStorage) monitorFunc() {
+	defer log.Debug("SyncStorage: monitoring thread stopped")
+
 	// This is the internal client for propagating updates
 	c := client.NewClient(ss)
 
 	// TODO: Support detecting changes done when Ignite isn't running
 	// This is difficult to do though, as we have don't know which state is the latest
 	// For now, only update the state on write when Ignite is running
+	// TODO: Trigger a modify event for all existing files on startup?
 	for {
 		if event, ok := <-ss.eventStream; ok {
 			switch event.Event {

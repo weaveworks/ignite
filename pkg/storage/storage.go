@@ -115,12 +115,19 @@ func (s *GenericStorage) GetMeta(gvk schema.GroupVersionKind, uid meta.UID) (met
 
 // Set saves the Object to disk
 func (s *GenericStorage) Set(gvk schema.GroupVersionKind, obj meta.Object) error {
-	b, err := s.serializer.EncodeJSON(obj)
+	storageKey := KeyForUID(gvk, obj.GetUID())
+
+	// Set the serializer based on the format given by the RawStorage
+	serializeFunc := s.serializer.EncodeJSON
+	if s.raw.Format(storageKey) != FormatJSON {
+		serializeFunc = s.serializer.EncodeYAML
+	}
+
+	b, err := serializeFunc(obj)
 	if err != nil {
 		return err
 	}
 
-	storageKey := KeyForUID(gvk, obj.GetUID())
 	return s.raw.Write(storageKey, b)
 }
 

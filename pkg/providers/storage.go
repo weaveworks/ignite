@@ -12,6 +12,7 @@ import (
 
 // Storage is the default storage implementation
 var Storage storage.Storage
+var SS *sync.SyncStorage
 
 func SetCachedStorage() error {
 	Storage = cache.NewCache(
@@ -27,9 +28,13 @@ func SetTestManifestStorage() error {
 		return err
 	}
 
-	Storage = cache.NewCache(
-		sync.NewSyncStorage(
-			storage.NewGenericStorage(storage.NewDefaultRawStorage(constants.DATA_DIR), scheme.Serializer),
-			ws))
+	ss := sync.NewSyncStorage(
+		storage.NewGenericStorage(storage.NewDefaultRawStorage(constants.DATA_DIR), scheme.Serializer),
+		ws)
+
+	SS = ss.(*sync.SyncStorage)
+
+	Storage = cache.NewCache(ss)
+
 	return nil
 }

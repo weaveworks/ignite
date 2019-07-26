@@ -22,6 +22,8 @@ type WatchStorage interface {
 	storage.Storage
 	// GetTrigger returns a hook that can be used to detect a watch event
 	SetEventStream(AssociatedEventStream)
+	// Close is used to stop monitoring goroutines
+	Close()
 }
 
 type AssociatedEventStream chan update.AssociatedUpdate
@@ -39,7 +41,9 @@ func NewGenericWatchStorage(storage storage.Storage) (WatchStorage, error) {
 	}
 
 	if mapped, ok := s.RawStorage().(manifest.MappedRawStorage); ok {
-		go s.monitor(mapped, files) // Offload the file registration to the goroutine
+		s.monitor = RunMonitor(func() {
+			s.monitorFunc(mapped, files) // Offload the file registration to the goroutine
+		})
 	}
 
 	return s, nil
@@ -50,6 +54,7 @@ type GenericWatchStorage struct {
 	storage.Storage
 	watcher *watcher
 	events  *AssociatedEventStream
+	monitor *Monitor
 }
 
 var _ WatchStorage = &GenericWatchStorage{}
@@ -58,7 +63,7 @@ var _ WatchStorage = &GenericWatchStorage{}
 func (s *GenericWatchStorage) Set(gvk schema.GroupVersionKind, obj meta.Object) error {
 	s.watcher.suspend(update.EventModify)
 	defer s.watcher.resume()
-	// TODO: GenericStorage should support the correct output format, so it doesn't try to put JSON into a .yaml file
+	// TODO: This completes before the Object is written to disk, resulting in an inotify event flood
 	return s.Storage.Set(gvk, obj)
 }
 
@@ -66,7 +71,6 @@ func (s *GenericWatchStorage) Set(gvk schema.GroupVersionKind, obj meta.Object) 
 func (s *GenericWatchStorage) Patch(gvk schema.GroupVersionKind, uid meta.UID, patch []byte) error {
 	s.watcher.suspend(update.EventModify)
 	defer s.watcher.resume()
-	// TODO: GenericStorage should support the correct output format, so it doesn't try to put JSON into a .yaml file
 	return s.Storage.Patch(gvk, uid, patch)
 }
 
@@ -81,7 +85,14 @@ func (s *GenericWatchStorage) SetEventStream(eventStream AssociatedEventStream) 
 	s.events = &eventStream
 }
 
-func (s *GenericWatchStorage) monitor(mapped manifest.MappedRawStorage, files []string) {
+func (s *GenericWatchStorage) Close() {
+	s.watcher.close()
+	s.monitor.Wait()
+}
+
+func (s *GenericWatchStorage) monitorFunc(mapped manifest.MappedRawStorage, files []string) {
+	defer log.Debug("GenericWatchStorage: monitoring thread stopped")
+
 	// Fill the mappings of the MappedRawStorage before starting to monitor changes
 	for _, file := range files {
 		if obj, err := resolveAPIType(file); err != nil {

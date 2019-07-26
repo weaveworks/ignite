@@ -2,9 +2,9 @@ package watch
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/storage"
 	"os"
 	"path/filepath"
-	"strings"
 	"syscall"
 
 	"github.com/fsnotify/fsnotify"
@@ -28,6 +28,7 @@ type watcher struct {
 	events       EventStream
 	watcher      *fsnotify.Watcher
 	suspendEvent update.Event
+	monitor      *Monitor
 }
 
 // newWatcher returns a list of files in the watched directory in
@@ -79,18 +80,15 @@ func (w *watcher) start() (files []string, err error) {
 
 			return nil
 		}); err == nil {
-		go w.monitor()
+		w.monitor = RunMonitor(w.monitorFunc)
 	}
 
 	return
 }
 
-func (w *watcher) monitor() {
-	defer func() {
-		if err := w.watcher.Close(); err != nil {
-			log.Errorf("Failed to close watcher: %v", err)
-		}
-	}()
+func (w *watcher) monitorFunc() {
+	defer log.Debug("Watcher: monitoring thread stopped")
+	defer close(w.events) // Close the event stream after the watcher has stopped
 
 	for {
 		select {
@@ -101,16 +99,16 @@ func (w *watcher) monitor() {
 
 			event := convertEvent(e)
 			if event == 0 {
-				log.Debugf("Watcher: skipping unregistered event: %v", event)
+				log.Debug("Watcher: skipping unregistered event")
 				continue // Skip all unregistered events
 			}
 
 			if event == w.suspendEvent {
-				log.Debugf("Watcher: skipping suspended event: %v", event)
+				log.Debugf("Watcher: skipping suspended event: %s", event)
 				continue // Skip suspended events
 			}
 
-			log.Debugf("Watcher: event: %v", event)
+			log.Debugf("Watcher: event: %s", event)
 
 			if event == update.EventDelete {
 				if err := w.watcher.Remove(e.Name); err != nil {
@@ -136,6 +134,7 @@ func (w *watcher) monitor() {
 
 			// Only fire events for files with valid extensions: .yaml, .yml, .json
 			if validSuffix(e.Name) {
+				log.Debugf("Watcher: sending update: %s -> %q", event, e.Name)
 				w.events <- &update.FileUpdate{
 					Event: event,
 					Path:  e.Name,
@@ -149,6 +148,11 @@ func (w *watcher) monitor() {
 			log.Errorf("Watcher: error: %v", err)
 		}
 	}
+}
+
+func (w *watcher) close() {
+	_ = w.watcher.Close() // This returns only nil errors
+	w.monitor.Wait()
 }
 
 func (w *watcher) suspend(event update.Event) {
@@ -170,10 +174,8 @@ func convertEvent(event fsnotify.Event) update.Event {
 }
 
 func validSuffix(path string) bool {
-	filename := filepath.Base(path)
-
-	for _, suffix := range []string{".json", ".yaml", ".yml"} {
-		if strings.HasSuffix(filename, suffix) {
+	for suffix := range storage.Formats {
+		if filepath.Ext(path) == suffix {
 			return true
 		}
 	}
