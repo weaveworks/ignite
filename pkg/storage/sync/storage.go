@@ -157,8 +157,15 @@ func (ss *SyncStorage) monitorFunc() {
 				}
 			}
 
-			// Send the update to the listeners
-			ss.updateStream <- upd.Update
+			// Send the update to the listeners unless the channel is full,
+			// in which case issue a warning. The channel can hold as many
+			// updates as updateBuffer specifies.
+			select {
+			case ss.updateStream <- upd.Update:
+				log.Debugf("SyncStorage: sent update: %v", upd.Update)
+			default:
+				log.Warn("SyncStorage: failed to send update, channel full")
+			}
 		} else {
 			return
 		}
