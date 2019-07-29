@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/errutils"
 	"io"
 	"os"
 	"os/signal"
@@ -11,12 +12,16 @@ import (
 	"github.com/weaveworks/ignite/pkg/providers"
 )
 
-func NewCmdHang(out io.Writer) *cobra.Command {
+func NewCmdDaemon(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:    "hang",
-		Short:  "Causes Ignite to hang indefinitely. Used for testing purposes.",
+		Use:    "daemon",
+		Short:  "For now causes Ignite to hang indefinitely. Used for testing purposes.",
 		Hidden: true,
 		Run: func(cmd *cobra.Command, args []string) {
+			// Initialize the daemon providers (e.g. ManifestStorage)
+			errutils.Check(providers.Populate(providers.DaemonProviders))
+
+			// Wait for Ctrl + C
 			var endWaiter sync.WaitGroup
 			endWaiter.Add(1)
 
@@ -30,9 +35,10 @@ func NewCmdHang(out io.Writer) *cobra.Command {
 
 			endWaiter.Wait()
 
-			if providers.SS != nil {
+			// Close the SyncStorage's watcher threads
+			if providers.SyncStorage != nil {
 				fmt.Println("Closing...")
-				providers.SS.Close()
+				providers.SyncStorage.Close()
 			}
 		},
 	}
