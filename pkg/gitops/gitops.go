@@ -1,6 +1,16 @@
 package gitops
 
 import (
+	"fmt"
+	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
+	"github.com/weaveworks/ignite/pkg/operations"
+	"github.com/weaveworks/ignite/pkg/storage/cache"
+	"github.com/weaveworks/ignite/pkg/storage/manifest"
+	"github.com/weaveworks/ignite/pkg/storage/watch/update"
+	"github.com/weaveworks/ignite/pkg/util"
+	"sync"
 	"time"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
@@ -19,22 +29,19 @@ var (
 const dataDir = "/tmp/ignite-gitops"
 
 func RunLoop(url, branch string) error {
-	// TODO: STUB
-	return nil
-}
-
-/*
-func RunLoop(url, branch string) error {
 	log.Printf("Starting GitOps loop for repo at %q\n", url)
 	log.Printf("Whenever changes are pushed to the %s branch, Ignite will apply the desired state locally\n", branch)
 	log.Println("Initializing the Git repo...")
 
-	// Construct a manifest storage for the path backed by git
-	s := manifest.NewManifestStorage(dataDir)
-	// Wrap the Manifest Storage with a cache for better performance, and create a client
-	c = client.NewClient(cache.NewCache(s))
 	// Construct the GitDirectory implementation which backs the storage
 	gitDir = gitdir.NewGitDirectory(url, dataDir, branch, syncInterval)
+	// Construct a manifest storage for the path backed by git
+	s, err := manifest.NewManifestStorage(dataDir)
+	if err != nil {
+		return err
+	}
+	// Wrap the Manifest Storage with a cache for better performance, and create a client
+	c = client.NewClient(cache.NewCache(s))
 	// Start the GitDirectory sync loop
 	gitDir.StartLoop()
 
@@ -50,7 +57,7 @@ func RunLoop(url, branch string) error {
 		_ = gitDir.WaitForUpdate()
 
 		// When we know the underlying state has changed, reload the storage mappings, and get what's changed
-		diff, err := s.Sync()
+		diff := s.Sync()
 		if err != nil {
 			log.Warnf("Syncing the new directory state returned an error: %v. Retrying...", err)
 			continue
@@ -66,19 +73,19 @@ func RunLoop(url, branch string) error {
 
 		wg := &sync.WaitGroup{}
 		for _, file := range diff {
-			vm := vmMap[file.APIType.UID]
+			vm := vmMap[file.APIType.GetUID()]
 			if vm == nil {
-				if file.Type != manifest.UpdateTypeDeleted {
+				if file.Event != update.EventDelete {
 					// This is unexpected
-					log.Warn("Skipping %s of %s with UID %s, no such object found through the client.", file.Type, file.APIType.GetKind(), file.APIType.GetUID())
+					log.Warn("Skipping %s of %s with UID %s, no such object found through the client.", file.Event, file.APIType.GetKind(), file.APIType.GetUID())
 					continue
 				}
 
 				// As we know this VM was deleted, it's logical that it wasn't found in the VMs().List() call above
 				// Construct a temporary VM object for passing to the delete function
 				vm = &api.VM{
-					TypeMeta:   *file.APIType.TypeMeta,
-					ObjectMeta: *file.APIType.ObjectMeta,
+					TypeMeta:   *file.APIType.GetTypeMeta(),
+					ObjectMeta: *file.APIType.GetObjectMeta(),
 					Status: api.VMStatus{
 						State: api.VMStateStopped,
 					},
@@ -87,7 +94,7 @@ func RunLoop(url, branch string) error {
 				// If the object was existent in the storage; validate it
 				// Validate the VM object
 				if err := validation.ValidateVM(vm).ToAggregate(); err != nil {
-					log.Warn("Skipping %s of %s with UID %s, VM not valid %v.", file.Type, file.APIType.GetKind(), file.APIType.GetUID(), err)
+					log.Warn("Skipping %s of %s with UID %s, VM not valid %v.", file.Event, file.APIType.GetKind(), file.APIType.GetUID(), err)
 					continue
 				}
 			}
@@ -98,25 +105,25 @@ func RunLoop(url, branch string) error {
 			//return metadata.Success(vm)
 
 			// TODO: At the moment there aren't running in parallel, shall they?
-			switch file.Type {
-			case manifest.UpdateTypeCreated:
+			switch file.Event {
+			case update.EventCreate:
 				// TODO: Run this as a goroutine
 				runHandle(wg, func() error {
 					return handleCreate(vm)
 				})
-			case manifest.UpdateTypeChanged:
+			case update.EventModify:
 				// TODO: Run this as a goroutine
 				runHandle(wg, func() error {
 					return handleChange(vm)
 				})
-			case manifest.UpdateTypeDeleted:
+			case update.EventDelete:
 				// TODO: Run this as a goroutine
 				runHandle(wg, func() error {
 					// TODO: Temporary VM Object for removal
 					return handleDelete(vm)
 				})
 			default:
-				log.Printf("Unrecognized Git update type %s\n", file.Type)
+				log.Printf("Unrecognized Git update type %s\n", file.Event)
 				continue
 			}
 		}
@@ -238,4 +245,3 @@ func remove(vm *api.VM) error {
 	log.Printf("Removing VM %q with name %q...", vm.GetUID(), vm.GetName())
 	return operations.RemoveVM(c, vm)
 }
-*/
