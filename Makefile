@@ -44,9 +44,9 @@ endif
 tidy: $(API_DOCS)
 	go mod tidy
 	go mod vendor
+	hack/generate-client.sh
 	gofmt -s -w pkg cmd
 	goimports -w pkg cmd
-	hack/generate-client.sh
 	go run hack/cobra.go
 
 graph:

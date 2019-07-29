@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -34,6 +36,9 @@ func Check(err error) {
 	switch err.(type) {
 	case nil:
 		return
+	case *ssh.ExitError:
+		exitError := err.(*ssh.ExitError)
+		fatal(err.Error(), exitError.ExitStatus())
 	default:
 		fatal(err.Error(), DefaultErrorExitCode)
 	}
