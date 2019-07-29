@@ -1,6 +1,6 @@
 package update
 
-// Event is an enum describing a change in a file's state.
+// Event is an enum describing a change in a file's/Object's state.
 // Unknown state changes can be signaled with a zero value.
 type Event uint8
 
@@ -21,11 +21,4 @@ func (e Event) String() string {
 	}
 
 	return "NONE"
-}
-
-// FileUpdate is used by watchers to
-// signal the state change of a file.
-type FileUpdate struct {
-	Event Event
-	Path  string
 }
