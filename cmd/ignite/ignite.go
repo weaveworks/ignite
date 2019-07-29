@@ -19,7 +19,7 @@ func main() {
 // Run runs the main cobra command of this application
 func Run() error {
 	// Populate the providers
-	if err := providers.Populate(); err != nil {
+	if err := providers.Populate(providers.Providers); err != nil {
 		return err
 	}
 

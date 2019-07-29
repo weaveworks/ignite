@@ -12,7 +12,9 @@ import (
 
 // Storage is the default storage implementation
 var Storage storage.Storage
-var SS *sync.SyncStorage
+
+// SyncStorage is used to close the ManifestStorage
+var SyncStorage *sync.SyncStorage
 
 func SetCachedStorage() error {
 	Storage = cache.NewCache(
@@ -21,9 +23,9 @@ func SetCachedStorage() error {
 	return nil
 }
 
-// TODO: Special constructor for this setup
-func SetTestManifestStorage() error {
-	ws, err := watch.NewGenericWatchStorage(storage.NewGenericStorage(raw.NewManifestRawStorage("/etc/firecracker/manifests"), scheme.Serializer))
+// TODO: Special ManifestStorage type
+func SetManifestStorage() error {
+	ws, err := watch.NewGenericWatchStorage(storage.NewGenericStorage(raw.NewGenericMappedRawStorage("/etc/firecracker/manifests"), scheme.Serializer))
 	if err != nil {
 		return err
 	}
@@ -32,8 +34,7 @@ func SetTestManifestStorage() error {
 		storage.NewGenericStorage(storage.NewDefaultRawStorage(constants.DATA_DIR), scheme.Serializer),
 		ws)
 
-	SS = ss.(*sync.SyncStorage)
-
+	SyncStorage = ss.(*sync.SyncStorage)
 	Storage = cache.NewCache(ss)
 
 	return nil

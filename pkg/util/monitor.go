@@ -1,7 +1,11 @@
-package watch
+package util
 
 import "sync"
 
+// Monitor is a convenience wrapper around
+// starting a goroutine with a wait group,
+// which can be used to wait for the
+// goroutine to stop.
 type Monitor struct {
 	wg *sync.WaitGroup
 }

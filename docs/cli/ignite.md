@@ -43,6 +43,7 @@ Example usage:
 * [ignite attach](ignite_attach.md)	 - Attach to a running VM
 * [ignite completion](ignite_completion.md)	 - Output bash completion for ignite to stdout
 * [ignite create](ignite_create.md)	 - Create a new VM without starting it
+* [ignite exec](ignite_exec.md)	 - execute a command in a running VM
 * [ignite gitops](ignite_gitops.md)	 - Run the GitOps feature of Ignite
 * [ignite image](ignite_image.md)	 - Manage base images for VMs
 * [ignite inspect](ignite_inspect.md)	 - Inspect an Ignite Object

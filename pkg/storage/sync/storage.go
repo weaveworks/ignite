@@ -2,18 +2,20 @@ package sync
 
 import (
 	"fmt"
+
 	log "github.com/sirupsen/logrus"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/watch"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
+	"github.com/weaveworks/ignite/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 type UpdateStream chan update.Update
 
-const updateBuffer = 4096 // How many updates to buffer
+const updateBuffer = 4096 // How many updates to buffer, 4096 should be enough for even a high update frequency
 
 // SyncStorage is a Storage implementation taking in multiple Storages and
 // keeping them in sync. Any write operation executed on the SyncStorage
@@ -26,7 +28,7 @@ type SyncStorage struct {
 	storages     []storage.Storage
 	eventStream  watch.AssociatedEventStream
 	updateStream UpdateStream
-	monitor      *watch.Monitor
+	monitor      *util.Monitor
 }
 
 var _ storage.Storage = &SyncStorage{}
@@ -46,7 +48,7 @@ func NewSyncStorage(rwStorage storage.Storage, wStorages ...storage.Storage) sto
 	}
 
 	if ss.eventStream != nil {
-		ss.monitor = watch.RunMonitor(ss.monitorFunc)
+		ss.monitor = util.RunMonitor(ss.monitorFunc)
 	}
 
 	return ss
@@ -140,7 +142,8 @@ func (ss *SyncStorage) monitorFunc() {
 			case update.EventModify, update.EventCreate:
 				// First load the Object using the Storage given in the update,
 				// then set it using the client constructed above
-				if obj, err := client.NewClient(upd.Storage).Dynamic(upd.APIType.GetKind()).Get(upd.APIType.GetUID()); err != nil {
+				updClient := client.NewClient(upd.Storage).Dynamic(upd.APIType.GetKind())
+				if obj, err := updClient.Get(upd.APIType.GetUID()); err != nil {
 					log.Errorf("Failed to get Object with UID %q: %v", upd.APIType.GetUID(), err)
 					continue
 				} else if err = c.Dynamic(upd.APIType.GetKind()).Set(obj); err != nil {
@@ -155,8 +158,15 @@ func (ss *SyncStorage) monitorFunc() {
 				}
 			}
 
-			// Send the update to the listeners
-			ss.updateStream <- upd.Update
+			// Send the update to the listeners unless the channel is full,
+			// in which case issue a warning. The channel can hold as many
+			// updates as updateBuffer specifies.
+			select {
+			case ss.updateStream <- upd.Update:
+				log.Debugf("SyncStorage: sent update: %v", upd.Update)
+			default:
+				log.Warn("SyncStorage: failed to send update, channel full")
+			}
 		} else {
 			return
 		}

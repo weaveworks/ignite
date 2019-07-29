@@ -6,9 +6,6 @@ RUN apk add --no-cache \
     iproute2 \
     device-mapper
 
-# Remove unused files
-RUN rm -r /lib/apk /etc/apk
-
 # Download the Firecracker binary from Github
 ARG FIRECRACKER_VERSION
 RUN wget -q -O /usr/local/bin/firecracker https://github.com/firecracker-microvm/firecracker/releases/download/${FIRECRACKER_VERSION}/firecracker-${FIRECRACKER_VERSION}

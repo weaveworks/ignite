@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	if err := providers.Populate(); err != nil {
+	if err := providers.Populate(providers.Providers); err != nil {
 		log.Fatal(err)
 	}
 	ignite := cmd.NewIgniteCommand(os.Stdin, os.Stdout, os.Stderr)
