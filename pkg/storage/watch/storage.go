@@ -11,13 +11,16 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/manifest/raw"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
+	"github.com/weaveworks/ignite/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
 )
 
-// Storage is an interface for persisting and retrieving API objects to/from a backend
-// One Storage instance handles all different Kinds of Objects
+// WatchStorage is an extended Storage implementation, which provides a watcher
+// for watching changes in the directory managed by the embedded Storage's RawStorage.
+// If the RawStorage is a MappedRawStorage instance, it's mappings will automatically
+// be updated by the WatchStorage. Update events are sent to the given event stream.
 type WatchStorage interface {
 	// WatchStorage extends the Storage interface
 	storage.Storage
@@ -42,7 +45,7 @@ func NewGenericWatchStorage(storage storage.Storage) (WatchStorage, error) {
 	}
 
 	if mapped, ok := s.RawStorage().(raw.MappedRawStorage); ok {
-		s.monitor = RunMonitor(func() {
+		s.monitor = util.RunMonitor(func() {
 			s.monitorFunc(mapped, files) // Offload the file registration to the goroutine
 		})
 	}
@@ -55,7 +58,7 @@ type GenericWatchStorage struct {
 	storage.Storage
 	watcher *watcher
 	events  *AssociatedEventStream
-	monitor *Monitor
+	monitor *util.Monitor
 }
 
 var _ WatchStorage = &GenericWatchStorage{}
