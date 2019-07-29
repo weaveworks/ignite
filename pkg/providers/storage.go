@@ -25,7 +25,7 @@ func SetCachedStorage() error {
 
 // TODO: Special ManifestStorage type
 func SetManifestStorage() error {
-	ws, err := watch.NewGenericWatchStorage(storage.NewGenericStorage(raw.NewManifestRawStorage("/etc/firecracker/manifests"), scheme.Serializer))
+	ws, err := watch.NewGenericWatchStorage(storage.NewGenericStorage(raw.NewGenericMappedRawStorage("/etc/firecracker/manifests"), scheme.Serializer))
 	if err != nil {
 		return err
 	}
