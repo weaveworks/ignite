@@ -14,7 +14,7 @@ import (
 
 type UpdateStream chan update.Update
 
-const updateBuffer = 4096 // How many updates to buffer
+const updateBuffer = 4096 // How many updates to buffer, 4096 should be enough for even a high update frequency
 
 // SyncStorage is a Storage implementation taking in multiple Storages and
 // keeping them in sync. Any write operation executed on the SyncStorage
@@ -141,7 +141,8 @@ func (ss *SyncStorage) monitorFunc() {
 			case update.EventModify, update.EventCreate:
 				// First load the Object using the Storage given in the update,
 				// then set it using the client constructed above
-				if obj, err := client.NewClient(upd.Storage).Dynamic(upd.APIType.GetKind()).Get(upd.APIType.GetUID()); err != nil {
+				updClient := client.NewClient(upd.Storage).Dynamic(upd.APIType.GetKind())
+				if obj, err := updClient.Get(upd.APIType.GetUID()); err != nil {
 					log.Errorf("Failed to get Object with UID %q: %v", upd.APIType.GetUID(), err)
 					continue
 				} else if err = c.Dynamic(upd.APIType.GetKind()).Set(obj); err != nil {
