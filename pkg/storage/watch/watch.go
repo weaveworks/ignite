@@ -1,7 +1,6 @@
 package watch
 
 import (
-	"github.com/weaveworks/ignite/pkg/util"
 	"os"
 	"path/filepath"
 
@@ -9,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 const eventBuffer = 4096 // How many events and updates we can buffer before watching is interrupted

@@ -2,7 +2,6 @@ package sync
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/util"
 
 	log "github.com/sirupsen/logrus"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
@@ -10,6 +9,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/watch"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
+	"github.com/weaveworks/ignite/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 

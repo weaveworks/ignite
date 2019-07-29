@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/errutils"
 	"io"
 	"os"
 	"os/signal"
 	"sync"
 
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/ignite/pkg/errutils"
 	"github.com/weaveworks/ignite/pkg/providers"
 )
 

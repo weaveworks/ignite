@@ -2,7 +2,6 @@ package watch
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/util"
 	"io/ioutil"
 
 	log "github.com/sirupsen/logrus"
@@ -12,6 +11,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/manifest/raw"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
+	"github.com/weaveworks/ignite/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
