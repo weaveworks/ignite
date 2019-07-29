@@ -2,6 +2,7 @@ package sync
 
 import (
 	"fmt"
+
 	log "github.com/sirupsen/logrus"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"

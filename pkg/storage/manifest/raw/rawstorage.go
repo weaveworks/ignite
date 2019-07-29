@@ -2,13 +2,14 @@ package raw
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/ignite/pkg/storage"
-	"github.com/weaveworks/ignite/pkg/util"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/ignite/pkg/storage"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type MappedRawStorage interface {

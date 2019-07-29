@@ -2,8 +2,9 @@ package storage
 
 import (
 	"fmt"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"path"
+
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
 // This can be used to match either of the keys

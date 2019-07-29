@@ -2,12 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/weaveworks/ignite/pkg/providers"
 	"io"
 	"os"
 	"os/signal"
 	"sync"
+
+	"github.com/spf13/cobra"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 func NewCmdHang(out io.Writer) *cobra.Command {
