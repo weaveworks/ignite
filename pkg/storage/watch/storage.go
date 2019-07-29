@@ -2,6 +2,7 @@ package watch
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/util"
 	"io/ioutil"
 
 	log "github.com/sirupsen/logrus"
@@ -42,7 +43,7 @@ func NewGenericWatchStorage(storage storage.Storage) (WatchStorage, error) {
 	}
 
 	if mapped, ok := s.RawStorage().(raw.MappedRawStorage); ok {
-		s.monitor = RunMonitor(func() {
+		s.monitor = util.RunMonitor(func() {
 			s.monitorFunc(mapped, files) // Offload the file registration to the goroutine
 		})
 	}
@@ -55,7 +56,7 @@ type GenericWatchStorage struct {
 	storage.Storage
 	watcher *watcher
 	events  *AssociatedEventStream
-	monitor *Monitor
+	monitor *util.Monitor
 }
 
 var _ WatchStorage = &GenericWatchStorage{}

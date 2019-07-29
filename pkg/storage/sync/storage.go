@@ -2,6 +2,7 @@ package sync
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/util"
 
 	log "github.com/sirupsen/logrus"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
@@ -27,7 +28,7 @@ type SyncStorage struct {
 	storages     []storage.Storage
 	eventStream  watch.AssociatedEventStream
 	updateStream UpdateStream
-	monitor      *watch.Monitor
+	monitor      *util.Monitor
 }
 
 var _ storage.Storage = &SyncStorage{}
@@ -47,7 +48,7 @@ func NewSyncStorage(rwStorage storage.Storage, wStorages ...storage.Storage) sto
 	}
 
 	if ss.eventStream != nil {
-		ss.monitor = watch.RunMonitor(ss.monitorFunc)
+		ss.monitor = util.RunMonitor(ss.monitorFunc)
 	}
 
 	return ss

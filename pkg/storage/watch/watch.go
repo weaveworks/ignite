@@ -1,6 +1,7 @@
 package watch
 
 import (
+	"github.com/weaveworks/ignite/pkg/util"
 	"os"
 	"path/filepath"
 
@@ -30,7 +31,7 @@ type watcher struct {
 	updates      UpdateStream
 	watches      watches
 	suspendEvent update.Event
-	monitor      *Monitor
+	monitor      *util.Monitor
 }
 
 func (w *watcher) addWatch(path string) (err error) {
@@ -73,7 +74,7 @@ func newWatcher(dir string) (w *watcher, files []string, err error) {
 	if err = w.start(&files); err != nil {
 		notify.Stop(w.events)
 	} else {
-		w.monitor = RunMonitor(w.monitorFunc)
+		w.monitor = util.RunMonitor(w.monitorFunc)
 	}
 
 	return
