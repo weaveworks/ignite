@@ -54,13 +54,11 @@ func RunLoop(url, branch string, paths []string) error {
 			c = client.NewClient(cache.NewCache(s))
 		}
 
+		time.Sleep(5 * time.Second)
+
 		// When we know the underlying state has changed, reload the storage mappings, and get what's changed
 		diff := s.Sync()
 		log.Debugf("diff %v", diff)
-		/*if err != nil {
-			log.Warnf("Syncing the new directory state returned an error: %v. Retrying...", err)
-			continue
-		}*/
 
 		list, err := c.VMs().List()
 		if err != nil {

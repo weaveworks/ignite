@@ -119,6 +119,12 @@ func (w *watcher) monitorFunc() {
 	defer close(w.updates) // Close the update stream after the watcher has stopped
 
 	for {
+		// TODO: This watcher doesn't handle multiple operations on the same file well
+		// DELETE+CREATE+MODIFY => MODIFY
+		// CREATE+MODIFY => CREATE
+		// Fix this by caching the operations on the same file, and one second after all operations
+		// have been "written"; go through the changes and interpret the combinations of events properly
+		// This maybe will allow us to remove the "suspend" functionality? I don't know yet
 		event, ok := <-w.events
 		if !ok {
 			return

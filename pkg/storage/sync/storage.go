@@ -127,6 +127,7 @@ func (ss *SyncStorage) runAll(f func(storage.Storage) error) (err error) {
 }
 
 func (ss *SyncStorage) monitorFunc() {
+	log.Debug("SyncStorage: monitoring thread started")
 	defer log.Debug("SyncStorage: monitoring thread stopped")
 
 	// This is the internal client for propagating updates
@@ -137,16 +138,22 @@ func (ss *SyncStorage) monitorFunc() {
 	// For now, only update the state on write when Ignite is running
 	// TODO: Trigger a modify event for all existing files on startup?
 	for {
-		if upd, ok := <-ss.eventStream; ok {
+		upd, ok := <-ss.eventStream
+		log.Debugf("SyncStorage: received update %v %t", upd, ok)
+		if ok {
+			
 			switch upd.Event {
 			case update.EventModify, update.EventCreate:
 				// First load the Object using the Storage given in the update,
 				// then set it using the client constructed above
 				updClient := client.NewClient(upd.Storage).Dynamic(upd.APIType.GetKind())
-				if obj, err := updClient.Get(upd.APIType.GetUID()); err != nil {
+				obj, err := updClient.Get(upd.APIType.GetUID())
+				if err != nil {
 					log.Errorf("Failed to get Object with UID %q: %v", upd.APIType.GetUID(), err)
 					continue
-				} else if err = c.Dynamic(upd.APIType.GetKind()).Set(obj); err != nil {
+				}
+				
+				if err = c.Dynamic(upd.APIType.GetKind()).Set(obj); err != nil {
 					log.Errorf("Failed to set Object with UID %q: %v", upd.APIType.GetUID(), err)
 					continue
 				}

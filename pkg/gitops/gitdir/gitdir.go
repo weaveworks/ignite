@@ -85,7 +85,7 @@ func (d *GitDirectory) checkoutLoop() error {
 
 		// check status in order to wait until the repo is ready
 		status, err := d.repo.Status()
-		if err != nil && err != git.ErrClonedOnly {
+		if err != nil && err != git.ErrClonedOnly && err != git.ErrNotCloned {
 			return err
 		}
 		

@@ -8,12 +8,13 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage/sync"
 	"github.com/weaveworks/ignite/pkg/storage/watch"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
+	log "github.com/sirupsen/logrus"
 )
 
 // TODO: Re-implement this with SyncStorage and an update aggregator
 func NewManifestStorage(dataDir string) (*ManifestStorage, error) {
 
-	ws, err := watch.NewGenericWatchStorage(storage.NewGenericStorage(raw.NewManifestRawStorage(dataDir), scheme.Serializer))
+	ws, err := watch.NewGenericWatchStorage(storage.NewGenericStorage(raw.NewGenericMappedRawStorage(dataDir), scheme.Serializer))
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +51,9 @@ func (s *ManifestStorage) aggregate() {
 	updateStream := s.Storage.(*sync.SyncStorage).GetUpdateStream()
 
 	for {
-		if upd, ok := <-updateStream; ok {
+		upd, ok := <-updateStream
+		log.Debugf("Received update: %v %t", upd, ok)
+		if ok {
 			s.cache = append(s.cache, upd)
 		} else {
 			return
