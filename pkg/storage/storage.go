@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"path"
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage/serializer"
@@ -43,6 +42,8 @@ type Storage interface {
 	// Object on disk, it can be e.g. the Object's modification timestamp or
 	// calculated checksum
 	Checksum(gvk schema.GroupVersionKind, uid meta.UID) (string, error)
+	// RawStorage returns the RawStorage instance backing this Storage
+	RawStorage() RawStorage
 }
 
 // NewGenericStorage constructs a new Storage
@@ -114,12 +115,19 @@ func (s *GenericStorage) GetMeta(gvk schema.GroupVersionKind, uid meta.UID) (met
 
 // Set saves the Object to disk
 func (s *GenericStorage) Set(gvk schema.GroupVersionKind, obj meta.Object) error {
-	b, err := s.serializer.EncodeJSON(obj)
+	storageKey := KeyForUID(gvk, obj.GetUID())
+
+	// Set the serializer based on the format given by the RawStorage
+	serializeFunc := s.serializer.EncodeJSON
+	if s.raw.Format(storageKey) != FormatJSON {
+		serializeFunc = s.serializer.EncodeYAML
+	}
+
+	b, err := serializeFunc(obj)
 	if err != nil {
 		return err
 	}
 
-	storageKey := KeyForUID(gvk, obj.GetUID())
 	return s.raw.Write(storageKey, b)
 }
 
@@ -193,6 +201,11 @@ func (s *GenericStorage) Checksum(gvk schema.GroupVersionKind, uid meta.UID) (st
 	return s.raw.Checksum(KeyForUID(gvk, uid))
 }
 
+// RawStorage returns the RawStorage instance backing this Storage
+func (s *GenericStorage) RawStorage() RawStorage {
+	return s.raw
+}
+
 func (s *GenericStorage) decode(content []byte, gvk schema.GroupVersionKind) (meta.Object, error) {
 	// Decode the bytes to the internal version of the Object, if desired
 	isInternal := gvk.Version == runtime.APIVersionInternal
@@ -254,10 +267,10 @@ func (s *GenericStorage) walkKind(gvk schema.GroupVersionKind, fn func(content [
 	return nil
 }
 
-func KeyForUID(gvk schema.GroupVersionKind, uid meta.UID) string {
-	return "/" + path.Join(meta.Kind(gvk.Kind).Lower(), uid.String())
+func KeyForUID(gvk schema.GroupVersionKind, uid meta.UID) Key {
+	return NewKey(meta.Kind(gvk.Kind), uid)
 }
 
-func KeyForKind(gvk schema.GroupVersionKind) string {
-	return "/" + meta.Kind(gvk.Kind).Lower()
+func KeyForKind(gvk schema.GroupVersionKind) KindKey {
+	return NewKindKey(meta.Kind(gvk.Kind))
 }

@@ -1,21 +1,12 @@
 package gitops
 
 import (
-	"fmt"
-	"sync"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
-	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/gitops/gitdir"
-	"github.com/weaveworks/ignite/pkg/operations"
-	"github.com/weaveworks/ignite/pkg/storage/cache"
-	"github.com/weaveworks/ignite/pkg/storage/manifest"
-	"github.com/weaveworks/ignite/pkg/util"
 )
 
 var (
@@ -27,6 +18,12 @@ var (
 
 const dataDir = "/tmp/ignite-gitops"
 
+func RunLoop(url, branch string) error {
+	// TODO: STUB
+	return nil
+}
+
+/*
 func RunLoop(url, branch string) error {
 	log.Printf("Starting GitOps loop for repo at %q\n", url)
 	log.Printf("Whenever changes are pushed to the %s branch, Ignite will apply the desired state locally\n", branch)
@@ -241,3 +238,4 @@ func remove(vm *api.VM) error {
 	log.Printf("Removing VM %q with name %q...", vm.GetUID(), vm.GetName())
 	return operations.RemoveVM(c, vm)
 }
+*/

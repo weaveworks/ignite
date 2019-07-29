@@ -1,11 +1,6 @@
 package manifest
 
-import (
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/storage"
-)
-
+/*
 func NewManifestStorage(dataDir string) *ManifestStorage {
 	gitRaw := NewManifestRawStorage(dataDir, constants.DATA_DIR)
 	return &ManifestStorage{
@@ -23,3 +18,4 @@ type ManifestStorage struct {
 func (s *ManifestStorage) Sync() (UpdatedFiles, error) {
 	return s.gitRaw.Sync()
 }
+*/

@@ -146,6 +146,10 @@ func (c *cache) Checksum(gvk schema.GroupVersionKind, uid meta.UID) (string, err
 	return c.storage.Checksum(gvk, uid)
 }
 
+func (c *cache) RawStorage() storage.RawStorage {
+	return c.storage.RawStorage()
+}
+
 func (c *cache) Flush() error {
 	// Load the entire cache
 	allObjects, err := c.index.loadAll()
