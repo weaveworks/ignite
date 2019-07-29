@@ -2,6 +2,9 @@ package gitops
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
@@ -10,9 +13,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage/manifest"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
 	"github.com/weaveworks/ignite/pkg/util"
-	"sync"
-	"time"
-
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
@@ -21,47 +21,46 @@ import (
 
 var (
 	vmMap           map[meta.UID]*api.VM
+	s *manifest.ManifestStorage
 	c               *client.Client
 	gitDir          *gitdir.GitDirectory
 	syncInterval, _ = time.ParseDuration("10s")
 )
 
-const dataDir = "/tmp/ignite-gitops"
-
-func RunLoop(url, branch string) error {
+func RunLoop(url, branch string, paths []string) error {
 	log.Printf("Starting GitOps loop for repo at %q\n", url)
 	log.Printf("Whenever changes are pushed to the %s branch, Ignite will apply the desired state locally\n", branch)
 	log.Println("Initializing the Git repo...")
 
 	// Construct the GitDirectory implementation which backs the storage
-	gitDir = gitdir.NewGitDirectory(url, dataDir, branch, syncInterval)
-	// Construct a manifest storage for the path backed by git
-	s, err := manifest.NewManifestStorage(dataDir)
-	if err != nil {
-		return err
-	}
-	// Wrap the Manifest Storage with a cache for better performance, and create a client
-	c = client.NewClient(cache.NewCache(s))
+	gitDir = gitdir.NewGitDirectory(url, branch, paths, syncInterval)
 	// Start the GitDirectory sync loop
 	gitDir.StartLoop()
-
+	
 	for {
-		if !gitDir.Ready() {
-			// poll until the git repo is initialized
-			time.Sleep(5 * time.Second)
-			continue
-		}
-
 		// Wait for changes to happen in the Git repo
 		log.Println("Waiting for updates in the Git repo...")
 		_ = gitDir.WaitForUpdate()
 
+		// The first time this is run, when the initial clone is done, we'll populate the storage and the client
+		var err error
+		if s == nil {
+			// Construct a manifest storage for the path backed by git
+			s, err = manifest.NewManifestStorage(gitDir.Dir())
+			if err != nil {
+				return err
+			}
+			// Wrap the Manifest Storage with a cache for better performance, and create a client
+			c = client.NewClient(cache.NewCache(s))
+		}
+
 		// When we know the underlying state has changed, reload the storage mappings, and get what's changed
 		diff := s.Sync()
-		if err != nil {
+		log.Debugf("diff %v", diff)
+		/*if err != nil {
 			log.Warnf("Syncing the new directory state returned an error: %v. Retrying...", err)
 			continue
-		}
+		}*/
 
 		list, err := c.VMs().List()
 		if err != nil {

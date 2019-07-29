@@ -8,15 +8,10 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage/sync"
 	"github.com/weaveworks/ignite/pkg/storage/watch"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
-	"os"
 )
 
 // TODO: Re-implement this with SyncStorage and an update aggregator
 func NewManifestStorage(dataDir string) (*ManifestStorage, error) {
-	dataDir, err := resolveLink(dataDir)
-	if err != nil {
-		return nil, err
-	}
 
 	ws, err := watch.NewGenericWatchStorage(storage.NewGenericStorage(raw.NewManifestRawStorage(dataDir), scheme.Serializer))
 	if err != nil {
@@ -45,6 +40,7 @@ type ManifestStorage struct {
 	cache UpdateCache
 }
 
+// Sync returns the updated files
 func (s *ManifestStorage) Sync() (c UpdateCache) {
 	c, s.cache = s.cache, nil
 	return
@@ -60,19 +56,4 @@ func (s *ManifestStorage) aggregate() {
 			return
 		}
 	}
-}
-
-func resolveLink(path string) (string, error) {
-	fi, err := os.Lstat(path)
-	if err != nil {
-		return "", err
-	}
-
-	if fi.Mode()&os.ModeSymlink == 0 {
-		// The path is not a symlink, return it as is
-		return path, nil
-	}
-
-	// The target is a symlink
-	return os.Readlink(path)
 }
