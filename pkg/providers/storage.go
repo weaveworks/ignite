@@ -5,7 +5,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/cache"
-	"github.com/weaveworks/ignite/pkg/storage/manifest"
+	"github.com/weaveworks/ignite/pkg/storage/manifest/raw"
 	"github.com/weaveworks/ignite/pkg/storage/sync"
 	"github.com/weaveworks/ignite/pkg/storage/watch"
 )
@@ -23,7 +23,7 @@ func SetCachedStorage() error {
 
 // TODO: Special constructor for this setup
 func SetTestManifestStorage() error {
-	ws, err := watch.NewGenericWatchStorage(storage.NewGenericStorage(manifest.NewManifestRawStorage("/etc/firecracker/manifests"), scheme.Serializer))
+	ws, err := watch.NewGenericWatchStorage(storage.NewGenericStorage(raw.NewManifestRawStorage("/etc/firecracker/manifests"), scheme.Serializer))
 	if err != nil {
 		return err
 	}

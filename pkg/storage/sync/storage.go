@@ -11,6 +11,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
+type UpdateStream chan update.Update
+
+const updateBuffer = 4096 // How many updates to buffer
+
 // SyncStorage is a Storage implementation taking in multiple Storages and
 // keeping them in sync. Any write operation executed on the SyncStorage
 // is propagated to all of the Storages it manages (including the embedded
@@ -19,9 +23,10 @@ import (
 // receive write operations, they can be thought of as write-only.
 type SyncStorage struct {
 	storage.Storage
-	storages    []storage.Storage
-	eventStream watch.AssociatedEventStream
-	monitor     *watch.Monitor
+	storages     []storage.Storage
+	eventStream  watch.AssociatedEventStream
+	updateStream UpdateStream
+	monitor      *watch.Monitor
 }
 
 var _ storage.Storage = &SyncStorage{}
@@ -29,8 +34,9 @@ var _ storage.Storage = &SyncStorage{}
 // NewSyncStorage constructs a new SyncStorage
 func NewSyncStorage(rwStorage storage.Storage, wStorages ...storage.Storage) storage.Storage {
 	ss := &SyncStorage{
-		Storage:  rwStorage,
-		storages: append(wStorages, rwStorage),
+		Storage:      rwStorage,
+		storages:     append(wStorages, rwStorage),
+		updateStream: make(UpdateStream, updateBuffer),
 	}
 
 	for _, s := range ss.storages {
@@ -87,6 +93,10 @@ func (ss *SyncStorage) Close() {
 	ss.monitor.Wait()     // Wait for the monitor goroutine
 }
 
+func (ss *SyncStorage) GetUpdateStream() UpdateStream {
+	return ss.updateStream
+}
+
 // runAll runs the given function for all Storages in parallel and aggregates all errors
 func (ss *SyncStorage) runAll(f func(storage.Storage) error) (err error) {
 	type result struct {
@@ -125,22 +135,28 @@ func (ss *SyncStorage) monitorFunc() {
 	// For now, only update the state on write when Ignite is running
 	// TODO: Trigger a modify event for all existing files on startup?
 	for {
-		if event, ok := <-ss.eventStream; ok {
-			switch event.Event {
+		if upd, ok := <-ss.eventStream; ok {
+			switch upd.Event {
 			case update.EventModify, update.EventCreate:
-				// First load the Object using the Storage given in the event,
+				// First load the Object using the Storage given in the update,
 				// then set it using the client constructed above
-				if obj, err := client.NewClient(event.Storage).Dynamic(event.APIType.GetKind()).Get(event.APIType.GetUID()); err != nil {
-					log.Errorf("Failed to get Object with UID %q: %v", event.APIType.GetUID(), err)
-				} else if err = c.Dynamic(event.APIType.GetKind()).Set(obj); err != nil {
-					log.Errorf("Failed to set Object with UID %q: %v", event.APIType.GetUID(), err)
+				if obj, err := client.NewClient(upd.Storage).Dynamic(upd.APIType.GetKind()).Get(upd.APIType.GetUID()); err != nil {
+					log.Errorf("Failed to get Object with UID %q: %v", upd.APIType.GetUID(), err)
+					continue
+				} else if err = c.Dynamic(upd.APIType.GetKind()).Set(obj); err != nil {
+					log.Errorf("Failed to set Object with UID %q: %v", upd.APIType.GetUID(), err)
+					continue
 				}
 			case update.EventDelete:
 				// For deletion we use the generated "fake" APIType object
-				if err := c.Dynamic(event.APIType.GetKind()).Delete(event.APIType.GetUID()); err != nil {
-					log.Errorf("Failed to delete Object with UID %q: %v", event.APIType.GetUID(), err)
+				if err := c.Dynamic(upd.APIType.GetKind()).Delete(upd.APIType.GetUID()); err != nil {
+					log.Errorf("Failed to delete Object with UID %q: %v", upd.APIType.GetUID(), err)
+					continue
 				}
 			}
+
+			// Send the update to the listeners
+			ss.updateStream <- upd.Update
 		} else {
 			return
 		}

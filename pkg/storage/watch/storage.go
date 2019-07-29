@@ -7,7 +7,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
-	"github.com/weaveworks/ignite/pkg/storage/manifest"
+	"github.com/weaveworks/ignite/pkg/storage/manifest/raw"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -40,7 +40,7 @@ func NewGenericWatchStorage(storage storage.Storage) (WatchStorage, error) {
 		return nil, err
 	}
 
-	if mapped, ok := s.RawStorage().(manifest.MappedRawStorage); ok {
+	if mapped, ok := s.RawStorage().(raw.MappedRawStorage); ok {
 		s.monitor = RunMonitor(func() {
 			s.monitorFunc(mapped, files) // Offload the file registration to the goroutine
 		})
@@ -86,7 +86,7 @@ func (s *GenericWatchStorage) Close() {
 	s.monitor.Wait()
 }
 
-func (s *GenericWatchStorage) monitorFunc(mapped manifest.MappedRawStorage, files []string) {
+func (s *GenericWatchStorage) monitorFunc(mapped raw.MappedRawStorage, files []string) {
 	defer log.Debug("GenericWatchStorage: monitoring thread stopped")
 
 	// Fill the mappings of the MappedRawStorage before starting to monitor changes
@@ -134,8 +134,10 @@ func (s *GenericWatchStorage) monitorFunc(mapped manifest.MappedRawStorage, file
 
 			if s.events != nil {
 				*s.events <- update.AssociatedUpdate{
-					Event:   event.Event,
-					APIType: obj,
+					Update: update.Update{
+						Event:   event.Event,
+						APIType: obj,
+					},
 					Storage: s,
 				}
 			}

@@ -1,4 +1,4 @@
-package manifest
+package raw
 
 import (
 	"fmt"
