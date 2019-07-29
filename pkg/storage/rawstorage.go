@@ -67,7 +67,7 @@ func (r *DefaultRawStorage) Write(key Key, content []byte) error {
 		}
 	}
 
-	return util.AtomicWrite(file, content, 0644)
+	return ioutil.WriteFile(file, content, 0644)
 }
 
 func (r *DefaultRawStorage) Delete(key Key) error {

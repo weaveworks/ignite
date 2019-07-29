@@ -14,7 +14,6 @@ require (
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
 	github.com/firecracker-microvm/firecracker-go-sdk v0.15.2-0.20190627223500-b2e8284e890c
 	github.com/freddierice/go-losetup v0.0.0-20170407175016-fc9adea44124
-	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-openapi/spec v0.17.0
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/gorilla/mux v1.7.2 // indirect

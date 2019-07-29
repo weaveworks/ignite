@@ -62,22 +62,18 @@ var _ WatchStorage = &GenericWatchStorage{}
 // Suspend modify events during Set
 func (s *GenericWatchStorage) Set(gvk schema.GroupVersionKind, obj meta.Object) error {
 	s.watcher.suspend(update.EventModify)
-	defer s.watcher.resume()
-	// TODO: This completes before the Object is written to disk, resulting in an inotify event flood
 	return s.Storage.Set(gvk, obj)
 }
 
 // Suspend modify events during Patch
 func (s *GenericWatchStorage) Patch(gvk schema.GroupVersionKind, uid meta.UID, patch []byte) error {
 	s.watcher.suspend(update.EventModify)
-	defer s.watcher.resume()
 	return s.Storage.Patch(gvk, uid, patch)
 }
 
 // Suspend delete events during Delete
 func (s *GenericWatchStorage) Delete(gvk schema.GroupVersionKind, uid meta.UID) error {
 	s.watcher.suspend(update.EventDelete)
-	defer s.watcher.resume()
 	return s.Storage.Delete(gvk, uid)
 }
 
@@ -123,15 +119,15 @@ func (s *GenericWatchStorage) monitorFunc(mapped manifest.MappedRawStorage, file
 					Version: runtime.APIVersionInternal,
 					Kind:    key.Kind.Title(),
 				})
-
-				mapped.RemoveMapping(key)
 			} else {
 				if obj, err = resolveAPIType(event.Path); err != nil {
 					log.Warnf("Ignoring %q: %v", event.Path, err)
 					continue
 				}
 
-				if event.Event == update.EventCreate {
+				// This is based on the key's existence instead of update.EventCreate,
+				// as Objects can get updated (via update.EventModify) to be conformant
+				if _, err = mapped.GetMapping(event.Path); err != nil {
 					mapped.AddMapping(storage.NewKey(obj.GetKind(), obj.GetUID()), event.Path)
 				}
 			}

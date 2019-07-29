@@ -22,13 +22,42 @@ var eventMap = map[notify.Event]update.Event{
 
 type eventStream chan notify.EventInfo
 type UpdateStream chan *update.FileUpdate
+type watches []string
 
 type watcher struct {
 	dir          string
 	events       eventStream
 	updates      UpdateStream
+	watches      watches
 	suspendEvent update.Event
 	monitor      *Monitor
+}
+
+func (w *watcher) addWatch(path string) (err error) {
+	log.Tracef("Watcher: adding watch for %q", path)
+	if err = notify.Watch(path, w.events, listenEvents...); err == nil {
+		w.watches = append(w.watches, path)
+	}
+
+	return
+}
+
+func (w *watcher) hasWatch(path string) bool {
+	for _, watch := range w.watches {
+		if watch == path {
+			log.Tracef("Watcher: watch found for %q", path)
+			return true
+		}
+	}
+
+	log.Tracef("Watcher: no watch found for %q", path)
+	return false
+}
+
+func (w *watcher) clear() {
+	log.Tracef("Watcher: clearing all watches")
+	notify.Stop(w.events)
+	w.watches = w.watches[:0]
 }
 
 // newWatcher returns a list of files in the watched directory in
@@ -66,7 +95,7 @@ func (w *watcher) start(files *[]string) error {
 					}
 				}
 
-				return notify.Watch(path, w.events, listenEvents...)
+				return w.addWatch(path)
 			}
 
 			if files != nil {
@@ -92,26 +121,21 @@ func (w *watcher) monitorFunc() {
 
 		updateEvent := convertEvent(event.Event())
 		if updateEvent == w.suspendEvent {
-			log.Debugf("Watcher: skipping suspended path: %s", event)
-			continue // Skip suspended paths
+			w.suspendEvent = 0
+			log.Debugf("Watcher: skipping suspended event %s for path: %s", updateEvent, event.Path())
+			continue // Skip the suspended event
 		}
 
 		log.Debugf("Watcher: event: %s", event)
 
 		switch event.Event() {
-		case notify.InDeleteSelf:
-			// TODO: Document this
-			notify.Stop(w.events)
-			if err := w.start(nil); err != nil {
-				log.Errorf("Watcher: Failed to re-initialize watches for %q", w.dir)
-			}
 		case notify.InCreate:
 			if fi, err := os.Stat(event.Path()); err != nil {
 				log.Errorf("Watcher: failed to stat %q: %v", event.Path(), err)
 				continue
 			} else {
 				if fi.IsDir() {
-					if err := notify.Watch(event.Path(), w.events, listenEvents...); err != nil {
+					if err := w.addWatch(event.Path()); err != nil {
 						log.Errorf("Watcher: failed to add %q: %v", event.Path(), err)
 					}
 
@@ -121,6 +145,15 @@ func (w *watcher) monitorFunc() {
 
 			fallthrough
 		case notify.InDelete, notify.InCloseWrite:
+			if event.Event() == notify.InDelete && w.hasWatch(event.Path()) {
+				w.clear()
+				if err := w.start(nil); err != nil {
+					log.Errorf("Watcher: Failed to re-initialize watches for %q", w.dir)
+				}
+
+				continue
+			}
+
 			if validSuffix(event.Path()) {
 				if updateEvent > 0 {
 					log.Debugf("Watcher: sending update: %s -> %q", updateEvent, event.Path())
@@ -142,10 +175,6 @@ func (w *watcher) close() {
 
 func (w *watcher) suspend(updateEvent update.Event) {
 	w.suspendEvent = updateEvent
-}
-
-func (w *watcher) resume() {
-	w.suspendEvent = 0
 }
 
 func convertEvent(event notify.Event) update.Event {

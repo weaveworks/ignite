@@ -66,7 +66,7 @@ func (r *ManifestRawStorage) Write(key storage.Key, content []byte) error {
 		return nil
 	}
 
-	return util.AtomicWrite(file, content, 0644)
+	return ioutil.WriteFile(file, content, 0644)
 }
 
 func (r *ManifestRawStorage) Delete(key storage.Key) (err error) {
@@ -75,7 +75,12 @@ func (r *ManifestRawStorage) Delete(key storage.Key) (err error) {
 		return
 	}
 
-	err = os.Remove(file)
+	// ManifestRawStorage files can be deleted
+	// externally, check that the file exists first
+	if util.FileExists(file) {
+		err = os.Remove(file)
+	}
+
 	if err == nil {
 		r.RemoveMapping(key)
 	}
