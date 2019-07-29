@@ -17,8 +17,10 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-// Storage is an interface for persisting and retrieving API objects to/from a backend
-// One Storage instance handles all different Kinds of Objects
+// WatchStorage is an extended Storage implementation, which provides a watcher
+// for watching changes in the directory managed by the embedded Storage's RawStorage.
+// If the RawStorage is a MappedRawStorage instance, it's mappings will automatically
+// be updated by the WatchStorage. Update events are sent to the given event stream.
 type WatchStorage interface {
 	// WatchStorage extends the Storage interface
 	storage.Storage
