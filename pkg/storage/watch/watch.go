@@ -25,6 +25,10 @@ type eventStream chan notify.EventInfo
 type UpdateStream chan *update.FileUpdate
 type watches []string
 
+// watcher recursively monitors changes in files in the given directory
+// and sends out events based on their state changes. Only files conforming
+// to validSuffix are monitored. The watcher can be suspended for a single
+// event at a time to eliminate updates by WatchStorage causing a loop.
 type watcher struct {
 	dir          string
 	events       eventStream
@@ -174,6 +178,8 @@ func (w *watcher) close() {
 	w.monitor.Wait()
 }
 
+// This enables a one-time suspend of the given event,
+// the watcher will skip the given event once
 func (w *watcher) suspend(updateEvent update.Event) {
 	w.suspendEvent = updateEvent
 }
@@ -186,6 +192,8 @@ func convertEvent(event notify.Event) update.Event {
 	return 0
 }
 
+// validSuffix is used to filter out all unsupported
+// files based on the extensions in storage.Formats
 func validSuffix(path string) bool {
 	for suffix := range storage.Formats {
 		if filepath.Ext(path) == suffix {
