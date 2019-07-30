@@ -23,6 +23,7 @@ ignite gitops <repo-url> [flags]
 ```
   -b, --branch string   What branch to sync (default "master")
   -h, --help            help for gitops
+  -p, --paths strings   What subdirectories to care about. Default the whole repository
 ```
 
 ### Options inherited from parent commands

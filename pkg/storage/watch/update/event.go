@@ -1,13 +1,19 @@
 package update
 
+import (
+	"fmt"
+	"strings"
+)
+
 // Event is an enum describing a change in a file's/Object's state.
 // Unknown state changes can be signaled with a zero value.
-type Event uint8
+type Event byte
 
 const (
-	EventCreate Event = iota + 1 // 1
-	EventDelete                  // 2
-	EventModify                  // 3
+	EventNone   Event = iota // 0
+	EventCreate              // 1
+	EventDelete              // 2
+	EventModify              // 3
 )
 
 func (e Event) String() string {
@@ -21,4 +27,27 @@ func (e Event) String() string {
 	}
 
 	return "NONE"
+}
+
+// Events is a slice of Events
+type Events []Event
+
+var _ fmt.Stringer = Events{}
+
+func (e Events) String() string {
+	strs := make([]string, 0, len(e))
+	for _, ev := range e {
+		strs = append(strs, ev.String())
+	}
+
+	return strings.Join(strs, ",")
+}
+
+func (e Events) Bytes() []byte {
+	b := make([]byte, 0, len(e))
+	for _, event := range e {
+		b = append(b, byte(event))
+	}
+
+	return b
 }

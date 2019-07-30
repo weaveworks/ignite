@@ -12,11 +12,15 @@ import (
 
 type gitOpsFlags struct {
 	branch string
+	paths  []string
 }
 
 // NewCmdGitOps runs the GitOps functionality of Ignite
 func NewCmdGitOps(out io.Writer) *cobra.Command {
-	f := &gitOpsFlags{}
+	f := &gitOpsFlags{
+		branch: "master",
+		paths:  []string{},
+	}
 	cmd := &cobra.Command{
 		Use:   "gitops <repo-url>",
 		Short: "Run the GitOps feature of Ignite",
@@ -31,7 +35,7 @@ func NewCmdGitOps(out io.Writer) *cobra.Command {
 		`),
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			errutils.Check(gitops.RunLoop(args[0], f.branch))
+			errutils.Check(gitops.RunLoop(args[0], f.branch, f.paths))
 		},
 	}
 
@@ -40,6 +44,7 @@ func NewCmdGitOps(out io.Writer) *cobra.Command {
 }
 
 func addGitOpsFlags(fs *pflag.FlagSet, f *gitOpsFlags) {
-	fs.StringVarP(&f.branch, "branch", "b", "master", "What branch to sync")
-	// TODO: Add repo subdirectories, ssh key opts etc.
+	fs.StringVarP(&f.branch, "branch", "b", f.branch, "What branch to sync")
+	fs.StringSliceVarP(&f.paths, "paths", "p", f.paths, "What subdirectories to care about. Default the whole repository")
+	// TODO: Add ssh key opts etc.
 }

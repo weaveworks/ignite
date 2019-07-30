@@ -1,147 +1,117 @@
 package gitops
 
 import (
+	"fmt"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/gitops/gitdir"
+	"github.com/weaveworks/ignite/pkg/operations"
+	"github.com/weaveworks/ignite/pkg/storage/cache"
+	"github.com/weaveworks/ignite/pkg/storage/manifest"
+	"github.com/weaveworks/ignite/pkg/storage/watch/update"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 var (
-	vmMap           map[meta.UID]*api.VM
-	c               *client.Client
-	gitDir          *gitdir.GitDirectory
-	syncInterval, _ = time.ParseDuration("10s")
+	c            *client.Client
+	gitDir       *gitdir.GitDirectory
+	syncInterval = 10 * time.Second
 )
 
-const dataDir = "/tmp/ignite-gitops"
-
-func RunLoop(url, branch string) error {
-	// TODO: STUB
-	return nil
-}
-
-/*
-func RunLoop(url, branch string) error {
+func RunLoop(url, branch string, paths []string) error {
 	log.Printf("Starting GitOps loop for repo at %q\n", url)
 	log.Printf("Whenever changes are pushed to the %s branch, Ignite will apply the desired state locally\n", branch)
-	log.Println("Initializing the Git repo...")
+
+	// Construct the GitDirectory implementation which backs the storage
+	gitDir = gitdir.NewGitDirectory(url, branch, paths, syncInterval)
+
+	// Wait for the repo to be cloned
+	for {
+		// Check if the Git repo is ready and cloned, otherwise wait
+		if gitDir.Ready() {
+			break
+		}
+
+		time.Sleep(syncInterval / 2)
+	}
 
 	// Construct a manifest storage for the path backed by git
-	s := manifest.NewManifestStorage(dataDir)
+	s, err := manifest.NewManifestStorage(gitDir.Dir())
+	if err != nil {
+		return err
+	}
 	// Wrap the Manifest Storage with a cache for better performance, and create a client
 	c = client.NewClient(cache.NewCache(s))
-	// Construct the GitDirectory implementation which backs the storage
-	gitDir = gitdir.NewGitDirectory(url, dataDir, branch, syncInterval)
-	// Start the GitDirectory sync loop
-	gitDir.StartLoop()
 
-	for {
-		if !gitDir.Ready() {
-			// poll until the git repo is initialized
-			time.Sleep(5 * time.Second)
+	// These updates are coming from the SyncStorage
+	for upd := range s.GetUpdateStream() {
+
+		// Only care about VMs
+		if upd.APIType.GetKind() != api.KindVM {
+			log.Tracef("GitOps: Ignoring kind %s", upd.APIType.GetKind())
 			continue
 		}
 
-		// Wait for changes to happen in the Git repo
-		log.Println("Waiting for updates in the Git repo...")
-		_ = gitDir.WaitForUpdate()
-
-		// When we know the underlying state has changed, reload the storage mappings, and get what's changed
-		diff, err := s.Sync()
-		if err != nil {
-			log.Warnf("Syncing the new directory state returned an error: %v. Retrying...", err)
-			continue
-		}
-
-		list, err := c.VMs().List()
-		if err != nil {
-			log.Warnf("Listing VMs returned an error: %v. Retrying...", err)
-			continue
-		}
-
-		vmMap = mapVMs(list)
-
-		wg := &sync.WaitGroup{}
-		for _, file := range diff {
-			vm := vmMap[file.APIType.UID]
-			if vm == nil {
-				if file.Type != manifest.UpdateTypeDeleted {
-					// This is unexpected
-					log.Warn("Skipping %s of %s with UID %s, no such object found through the client.", file.Type, file.APIType.GetKind(), file.APIType.GetUID())
-					continue
-				}
-
-				// As we know this VM was deleted, it's logical that it wasn't found in the VMs().List() call above
-				// Construct a temporary VM object for passing to the delete function
-				vm = &api.VM{
-					TypeMeta:   *file.APIType.TypeMeta,
-					ObjectMeta: *file.APIType.ObjectMeta,
-					Status: api.VMStatus{
-						State: api.VMStateStopped,
-					},
-				}
-			} else {
-				// If the object was existent in the storage; validate it
-				// Validate the VM object
-				if err := validation.ValidateVM(vm).ToAggregate(); err != nil {
-					log.Warn("Skipping %s of %s with UID %s, VM not valid %v.", file.Type, file.APIType.GetKind(), file.APIType.GetUID(), err)
-					continue
-				}
+		var vm *api.VM
+		if upd.Event == update.EventDelete {
+			// As we know this VM was deleted, it wouldn't show up in a Get() call
+			// Construct a temporary VM object for passing to the delete function
+			vm = &api.VM{
+				TypeMeta:   *upd.APIType.GetTypeMeta(),
+				ObjectMeta: *upd.APIType.GetObjectMeta(),
+				Status: api.VMStatus{
+					State: api.VMStateStopped,
+				},
+			}
+		} else {
+			// Get the real API object
+			vm, err = c.VMs().Get(upd.APIType.GetUID())
+			if err != nil {
+				log.Errorf("Getting VM %q returned an error: %v", upd.APIType.GetUID(), err)
+				continue
 			}
 
-			// Construct the runtime object for this VM. This will also do defaulting
-			// TODO: Consider cleanup like this?
-			//defer metadata.Cleanup(vm, false) // TODO: Handle silent
-			//return metadata.Success(vm)
-
-			// TODO: At the moment there aren't running in parallel, shall they?
-			switch file.Type {
-			case manifest.UpdateTypeCreated:
-				// TODO: Run this as a goroutine
-				runHandle(wg, func() error {
-					return handleCreate(vm)
-				})
-			case manifest.UpdateTypeChanged:
-				// TODO: Run this as a goroutine
-				runHandle(wg, func() error {
-					return handleChange(vm)
-				})
-			case manifest.UpdateTypeDeleted:
-				// TODO: Run this as a goroutine
-				runHandle(wg, func() error {
-					// TODO: Temporary VM Object for removal
-					return handleDelete(vm)
-				})
-			default:
-				log.Printf("Unrecognized Git update type %s\n", file.Type)
+			// If the object was existent in the storage; validate it
+			// Validate the VM object
+			if err := validation.ValidateVM(vm).ToAggregate(); err != nil {
+				log.Warn("Skipping %s of %s with UID %s, VM not valid %v.", upd.Event, upd.APIType.GetKind(), upd.APIType.GetUID(), err)
 				continue
 			}
 		}
 
-		// wait for all goroutines to finish before the next sync round
-		wg.Wait()
+		// TODO: Paralellization
+		switch upd.Event {
+		case update.EventCreate:
+			runHandle(func() error {
+				return handleCreate(vm)
+			})
+		case update.EventModify:
+			runHandle(func() error {
+				return handleChange(vm)
+			})
+		case update.EventDelete:
+			runHandle(func() error {
+				// TODO: Temporary VM Object for removal
+				return handleDelete(vm)
+			})
+		default:
+			log.Printf("Unrecognized Git update type %s\n", upd.Event)
+			continue
+		}
 	}
+	return nil
 }
 
-func runHandle(wg *sync.WaitGroup, fn func() error) {
-	wg.Add(1)
-	defer wg.Done()
-
+// TODO: Maybe paralellize these commands?
+func runHandle(fn func() error) {
 	if err := fn(); err != nil {
 		log.Errorf("An error occurred when processing a VM update: %v\n", err)
 	}
-}
-
-func mapVMs(vmlist []*api.VM) map[meta.UID]*api.VM {
-	result := map[meta.UID]*api.VM{}
-	for _, vm := range vmlist {
-		result[vm.UID] = vm
-	}
-
-	return result
 }
 
 func handleCreate(vm *api.VM) error {
@@ -238,4 +208,3 @@ func remove(vm *api.VM) error {
 	log.Printf("Removing VM %q with name %q...", vm.GetUID(), vm.GetName())
 	return operations.RemoveVM(c, vm)
 }
-*/
