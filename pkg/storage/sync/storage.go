@@ -136,7 +136,6 @@ func (ss *SyncStorage) monitorFunc() {
 	// TODO: Support detecting changes done when Ignite isn't running
 	// This is difficult to do though, as we have don't know which state is the latest
 	// For now, only update the state on write when Ignite is running
-	// TODO: Trigger a modify event for all existing files on startup?
 	for {
 		upd, ok := <-ss.eventStream
 		log.Debugf("SyncStorage: received update %v %t", upd, ok)
