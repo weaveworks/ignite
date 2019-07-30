@@ -1,4 +1,4 @@
-package watch
+package sync
 
 import (
 	"fmt"
@@ -14,9 +14,9 @@ type job struct {
 	event string
 }
 
-func TestBatcher(t *testing.T) {
+func TestWriteBatcher(t *testing.T) {
 	ch := make(chan job)
-	b := NewBatcher(1 * time.Second)
+	b := NewWriteBatcher(1 * time.Second)
 	go func() {
 		for i := 0; i < 10; i++ {
 			fmt.Println(i)

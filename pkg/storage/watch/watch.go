@@ -67,7 +67,7 @@ type watcher struct {
 	// the batcher is used for properly sending many concurrent inotify events
 	// as a group, after a specified timeout. This fixes the issue of one single
 	// file operation being registered as many different inotify events
-	batcher *Batcher
+	batcher *sync.WriteBatcher
 }
 
 func (w *watcher) addWatch(path string) (err error) {
@@ -105,7 +105,7 @@ func newWatcher(dir string) (w *watcher, files []string, err error) {
 		dir:     dir,
 		events:  make(eventStream, eventBuffer),
 		updates: make(UpdateStream, eventBuffer),
-		batcher: NewBatcher(dispatchDuration),
+		batcher: sync.NewWriteBatcher(dispatchDuration),
 	}
 
 	if err = w.start(&files); err != nil {
