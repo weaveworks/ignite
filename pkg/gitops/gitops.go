@@ -13,7 +13,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/storage/cache"
 	"github.com/weaveworks/ignite/pkg/storage/manifest"
-	"github.com/weaveworks/ignite/pkg/storage/watch/update"
+	"github.com/weaveworks/ignite/pkg/util/watcher"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -58,7 +58,7 @@ func RunLoop(url, branch string, paths []string) error {
 		}
 
 		var vm *api.VM
-		if upd.Event == update.EventDelete {
+		if upd.Event == watcher.EventDelete {
 			// As we know this VM was deleted, it wouldn't show up in a Get() call
 			// Construct a temporary VM object for passing to the delete function
 			vm = &api.VM{
@@ -86,15 +86,15 @@ func RunLoop(url, branch string, paths []string) error {
 
 		// TODO: Paralellization
 		switch upd.Event {
-		case update.EventCreate:
+		case watcher.EventCreate:
 			runHandle(func() error {
 				return handleCreate(vm)
 			})
-		case update.EventModify:
+		case watcher.EventModify:
 			runHandle(func() error {
 				return handleChange(vm)
 			})
-		case update.EventDelete:
+		case watcher.EventDelete:
 			runHandle(func() error {
 				// TODO: Temporary VM Object for removal
 				return handleDelete(vm)

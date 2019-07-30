@@ -1,4 +1,4 @@
-package update
+package watcher
 
 import (
 	"fmt"
@@ -50,4 +50,11 @@ func (e Events) Bytes() []byte {
 	}
 
 	return b
+}
+
+// FileUpdate is used by watchers to
+// signal the state change of a file.
+type FileUpdate struct {
+	Event Event
+	Path  string
 }

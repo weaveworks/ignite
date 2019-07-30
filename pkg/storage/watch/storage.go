@@ -12,6 +12,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage/manifest/raw"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
 	"github.com/weaveworks/ignite/pkg/util/sync"
+	"github.com/weaveworks/ignite/pkg/util/watcher"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
@@ -40,7 +41,7 @@ func NewGenericWatchStorage(storage storage.Storage) (WatchStorage, error) {
 
 	var err error
 	var files []string
-	if s.watcher, files, err = newWatcher(storage.RawStorage().Dir()); err != nil {
+	if s.watcher, files, err = watcher.NewFileWatcher(storage.RawStorage().Dir()); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +57,7 @@ func NewGenericWatchStorage(storage storage.Storage) (WatchStorage, error) {
 // GenericWatchStorage implements the WatchStorage interface
 type GenericWatchStorage struct {
 	storage.Storage
-	watcher *watcher
+	watcher *watcher.FileWatcher
 	events  *AssociatedEventStream
 	monitor *sync.Monitor
 }
@@ -65,19 +66,19 @@ var _ WatchStorage = &GenericWatchStorage{}
 
 // Suspend modify events during Set
 func (s *GenericWatchStorage) Set(gvk schema.GroupVersionKind, obj meta.Object) error {
-	s.watcher.suspend(update.EventModify)
+	s.watcher.Suspend(watcher.EventModify)
 	return s.Storage.Set(gvk, obj)
 }
 
 // Suspend modify events during Patch
 func (s *GenericWatchStorage) Patch(gvk schema.GroupVersionKind, uid meta.UID, patch []byte) error {
-	s.watcher.suspend(update.EventModify)
+	s.watcher.Suspend(watcher.EventModify)
 	return s.Storage.Patch(gvk, uid, patch)
 }
 
 // Suspend delete events during Delete
 func (s *GenericWatchStorage) Delete(gvk schema.GroupVersionKind, uid meta.UID) error {
-	s.watcher.suspend(update.EventDelete)
+	s.watcher.Suspend(watcher.EventDelete)
 	return s.Storage.Delete(gvk, uid)
 }
 
@@ -86,7 +87,7 @@ func (s *GenericWatchStorage) SetEventStream(eventStream AssociatedEventStream) 
 }
 
 func (s *GenericWatchStorage) Close() {
-	s.watcher.close()
+	s.watcher.Close()
 	s.monitor.Wait()
 }
 
@@ -100,16 +101,16 @@ func (s *GenericWatchStorage) monitorFunc(mapped raw.MappedRawStorage, files []s
 		} else {
 			mapped.AddMapping(storage.NewKey(obj.GetKind(), obj.GetUID()), file)
 			// Send the event to the events channel
-			s.sendEvent(update.EventModify, obj)
+			s.sendEvent(watcher.EventModify, obj)
 		}
 	}
 
 	for {
-		if event, ok := <-s.watcher.updates; ok {
+		if event, ok := <-s.watcher.GetFileUpdateStream(); ok {
 			var obj meta.Object
 			var err error
 
-			if event.Event == update.EventDelete {
+			if event.Event == watcher.EventDelete {
 				var key storage.Key
 				if key, err = mapped.GetMapping(event.Path); err != nil {
 					log.Warnf("Failed to retrieve data for %q: %v", event.Path, err)
@@ -131,8 +132,8 @@ func (s *GenericWatchStorage) monitorFunc(mapped raw.MappedRawStorage, files []s
 					continue
 				}
 
-				// This is based on the key's existence instead of update.EventCreate,
-				// as Objects can get updated (via update.EventModify) to be conformant
+				// This is based on the key's existence instead of watcher.EventCreate,
+				// as Objects can get updated (via watcher.EventModify) to be conformant
 				if _, err = mapped.GetMapping(event.Path); err != nil {
 					mapped.AddMapping(storage.NewKey(obj.GetKind(), obj.GetUID()), event.Path)
 				}
@@ -146,7 +147,7 @@ func (s *GenericWatchStorage) monitorFunc(mapped raw.MappedRawStorage, files []s
 	}
 }
 
-func (s *GenericWatchStorage) sendEvent(event update.Event, obj meta.Object) {
+func (s *GenericWatchStorage) sendEvent(event watcher.Event, obj meta.Object) {
 	if s.events != nil {
 		*s.events <- update.AssociatedUpdate{
 			Update: update.Update{
