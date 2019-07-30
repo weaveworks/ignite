@@ -4,7 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"sync"
 	"time"
 
 	"github.com/rjeczalik/notify"
@@ -53,10 +52,6 @@ type watcher struct {
 	// as a group, after a specified timeout. This fixes the issue of one single
 	// file operation being registered as many different inotify events
 	batcher *Batcher
-	// eventCache is used together with the batcher. It's a sync.Map for supporting
-	// concurrent operations. In reality, the map is of type map[string]update.Events,
-	// holding information around all the events that have been registered for the same file
-	eventCache *sync.Map
 }
 
 func (w *watcher) addWatch(path string) (err error) {
@@ -90,14 +85,11 @@ func (w *watcher) clear() {
 // addition to the generated watcher, it can be used to populate
 // MappedRawStorage fileMappings
 func newWatcher(dir string) (w *watcher, files []string, err error) {
-	eventCache := &sync.Map{}
-
 	w = &watcher{
-		dir:        dir,
-		events:     make(eventStream, eventBuffer),
-		updates:    make(UpdateStream, eventBuffer),
-		eventCache: eventCache,
-		batcher:    NewBatcher(eventCache, dispatchDuration),
+		dir:     dir,
+		events:  make(eventStream, eventBuffer),
+		updates: make(UpdateStream, eventBuffer),
+		batcher: NewBatcher(dispatchDuration),
 	}
 
 	if err = w.start(&files); err != nil {
@@ -151,9 +143,6 @@ func (w *watcher) monitorFunc() {
 			return
 		}
 
-		// If there's a pending timer that's unfired, cancel it as we got this new event within the timeout duration
-		w.batcher.CancelUnfiredTimer()
-
 		updateEvent := convertEvent(event.Event())
 		if updateEvent == w.suspendEvent {
 			w.suspendEvent = 0
@@ -163,18 +152,15 @@ func (w *watcher) monitorFunc() {
 
 		// Get any events registered for the specific file, and append the specified event
 		var eventList update.Events
-		val, ok := w.eventCache.Load(event.Path())
+		val, ok := w.batcher.Load(event.Path())
 		if ok {
 			eventList = val.(update.Events)
 		}
 		eventList = append(eventList, updateEvent)
 
-		// Register the event in the map
-		w.eventCache.Store(event.Path(), eventList)
+		// Register the event in the map, and dispatch all the events at once after the timeout
+		w.batcher.Store(event.Path(), eventList)
 		log.Debugf("Watcher: Registered inotify events %v for path %s", eventList, event.Path())
-
-		// Dispatch all the currently registered events after the configured timeout
-		w.batcher.DispatchAfterTimeout()
 	}
 }
 

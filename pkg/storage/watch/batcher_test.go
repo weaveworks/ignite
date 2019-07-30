@@ -1,50 +1,42 @@
 package watch
 
 import (
-	"testing"
-	"sync"
 	"fmt"
-	"time"
 	"strings"
+	"testing"
+	"time"
 )
 
 var events = []string{"CREATE", "MODIFY", "DELETE"}
 
 type job struct {
-	file string
+	file  string
 	event string
 }
 
 func TestBatcher(t *testing.T) {
 	ch := make(chan job)
-	syncMap := &sync.Map{} // the map is map[string][]string
-	b := NewBatcher(syncMap, 1 * time.Second)
+	b := NewBatcher(1 * time.Second)
 	go func() {
-		var eventList []string
 		for i := 0; i < 10; i++ {
 			fmt.Println(i)
 			if i == 4 {
 				fmt.Println("sleep")
 				time.Sleep(2 * time.Second)
 			}
-			// Notify the Batcher we got a new job
-			b.CancelUnfiredTimer()
 
-			file := fmt.Sprintf("foo%d", i % 5)
-			event := events[i % 3]
+			file := fmt.Sprintf("foo%d", i%5)
+			event := events[i%3]
 
-			val, ok := syncMap.Load(file)
-			if !ok {
-				eventList = []string{event}
-			} else {
+			eventList := []string{}
+			val, ok := b.Load(file)
+			if ok {
 				eventList = val.([]string)
-				eventList = append(eventList, event)
 			}
+			eventList = append(eventList, event)
 
-			syncMap.Store(file, eventList)
-
-			// Batch all existing changes after the timeout duration
-			b.DispatchAfterTimeout()
+			// Store and batch all existing changes after the timeout duration
+			b.Store(file, eventList)
 		}
 		time.Sleep(2 * time.Second)
 		fmt.Println("stopping")
@@ -58,7 +50,7 @@ func TestBatcher(t *testing.T) {
 				file := key.(string)
 				events := val.([]string)
 				ch <- job{
-					file: file,
+					file:  file,
 					event: strings.Join(events, ","),
 				}
 				return true
@@ -71,10 +63,10 @@ func TestBatcher(t *testing.T) {
 			fmt.Println("")
 		}
 	}()
-	
+
 	for j := range ch {
 		fmt.Println(j.file, j.event)
 	}
-	
+
 	//t.Error("err")
 }
