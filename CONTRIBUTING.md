@@ -6,6 +6,10 @@ Ignite is [Apache 2.0 licensed](LICENSE) and accepts contributions via GitHub Pu
 
 We gratefully welcome improvements to documentation as well as to code.
 
+## Community and Access
+
+Join [weaveworks-ignite@googlegroups.com](https://groups.google.com/forum/#!forum/weaveworks-ignite) for calendar invites to calls and edit access to community documents.
+
 ## Guidelines
 
 TODO: Add contributing guidelines here after we formalize them.
