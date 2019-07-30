@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/ignite/pkg/errutils"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/pkg/providers"
 )
 
@@ -19,7 +19,7 @@ func NewCmdDaemon(out io.Writer) *cobra.Command {
 		Hidden: true,
 		Run: func(cmd *cobra.Command, args []string) {
 			// Initialize the daemon providers (e.g. ManifestStorage)
-			errutils.Check(providers.Populate(providers.DaemonProviders))
+			cmdutil.CheckErr(providers.Populate(providers.DaemonProviders))
 
 			// Wait for Ctrl + C
 			var endWaiter sync.WaitGroup

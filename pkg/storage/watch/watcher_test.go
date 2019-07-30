@@ -1,9 +1,10 @@
 package watch
 
 import (
-	"github.com/weaveworks/ignite/pkg/storage/watch/update"
 	"reflect"
 	"testing"
+
+	"github.com/weaveworks/ignite/pkg/storage/watch/update"
 )
 
 var testEvents = []update.Events{

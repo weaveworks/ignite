@@ -6,8 +6,8 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdInspect inspects an Ignite Object
@@ -25,7 +25,7 @@ func NewCmdInspect(out io.Writer) *cobra.Command {
 		`),
 		Args: cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			errutils.Check(func() error {
+			cmdutil.CheckErr(func() error {
 				io, err := i.NewInspectOptions(args[0], args[1])
 				if err != nil {
 					return err

@@ -11,10 +11,33 @@ import (
 // Quiet specifies whether to only print machine-readable IDs
 var Quiet bool
 
+// Wrap the logrus logger together with the exit code
+// so we can control what log.Fatal returns
+type logger struct {
+	*log.Logger
+	ExitCode int
+}
+
+func newLogger() *logger {
+	l := &logger{
+		Logger:   log.StandardLogger(), // Use the standard logrus logger
+		ExitCode: 1,
+	}
+
+	l.ExitFunc = func(_ int) {
+		os.Exit(l.ExitCode)
+	}
+
+	return l
+}
+
+// Expose the logger
+var Logger *logger
+
 // InitLogs initializes the logging system for ignite
 func InitLogs(lvl log.Level) {
-	// Use the standard logrus logger
-	var Logger = log.StandardLogger()
+	// Initialize the logger
+	Logger = newLogger()
 
 	// Set the output to be stdout in the normal case, but discard all log output in quiet mode
 	Logger.SetOutput(os.Stdout)
