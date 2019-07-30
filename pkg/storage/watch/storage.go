@@ -99,6 +99,8 @@ func (s *GenericWatchStorage) monitorFunc(mapped raw.MappedRawStorage, files []s
 			log.Warnf("Ignoring %q: %v", file, err)
 		} else {
 			mapped.AddMapping(storage.NewKey(obj.GetKind(), obj.GetUID()), file)
+			// Send the event to the events channel
+			s.sendEvent(update.EventModify, obj)
 		}
 	}
 
@@ -136,17 +138,22 @@ func (s *GenericWatchStorage) monitorFunc(mapped raw.MappedRawStorage, files []s
 				}
 			}
 
-			if s.events != nil {
-				*s.events <- update.AssociatedUpdate{
-					Update: update.Update{
-						Event:   event.Event,
-						APIType: obj,
-					},
-					Storage: s,
-				}
-			}
+			// Send the event to the events channel
+			s.sendEvent(event.Event, obj)
 		} else {
 			return
+		}
+	}
+}
+
+func (s *GenericWatchStorage) sendEvent(event update.Event, obj meta.Object) {
+	if s.events != nil {
+		*s.events <- update.AssociatedUpdate{
+			Update: update.Update{
+				Event:   event,
+				APIType: obj,
+			},
+			Storage: s,
 		}
 	}
 }
