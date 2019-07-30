@@ -12,14 +12,14 @@ import (
 
 type gitOpsFlags struct {
 	branch string
-	paths []string
+	paths  []string
 }
 
 // NewCmdGitOps runs the GitOps functionality of Ignite
 func NewCmdGitOps(out io.Writer) *cobra.Command {
 	f := &gitOpsFlags{
 		branch: "master",
-		paths: []string{},
+		paths:  []string{},
 	}
 	cmd := &cobra.Command{
 		Use:   "gitops <repo-url>",

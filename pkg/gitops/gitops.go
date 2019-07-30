@@ -6,22 +6,22 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
+	"github.com/weaveworks/ignite/pkg/gitops/gitdir"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/storage/cache"
 	"github.com/weaveworks/ignite/pkg/storage/manifest"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
 	"github.com/weaveworks/ignite/pkg/util"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/client"
-	"github.com/weaveworks/ignite/pkg/gitops/gitdir"
 )
 
 var (
 	vmMap           map[meta.UID]*api.VM
-	s *manifest.ManifestStorage
+	s               *manifest.ManifestStorage
 	c               *client.Client
 	gitDir          *gitdir.GitDirectory
 	syncInterval, _ = time.ParseDuration("10s")
@@ -36,7 +36,7 @@ func RunLoop(url, branch string, paths []string) error {
 	gitDir = gitdir.NewGitDirectory(url, branch, paths, syncInterval)
 	// Start the GitDirectory sync loop
 	gitDir.StartLoop()
-	
+
 	for {
 		// Wait for changes to happen in the Git repo
 		log.Println("Waiting for updates in the Git repo...")

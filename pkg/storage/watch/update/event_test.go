@@ -1,9 +1,9 @@
 package update
 
 import (
-	"testing"
-	"sort"
 	"reflect"
+	"sort"
+	"testing"
 )
 
 func TestEventSort(t *testing.T) {

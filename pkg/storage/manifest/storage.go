@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/storage"
@@ -8,7 +9,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage/sync"
 	"github.com/weaveworks/ignite/pkg/storage/watch"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
-	log "github.com/sirupsen/logrus"
 )
 
 // TODO: Re-implement this with SyncStorage and an update aggregator

@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/weaveworks/flux/git"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/flux/git"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -18,9 +18,9 @@ func NewGitDirectory(url, branch string, paths []string, interval time.Duration)
 			URL: url,
 		}, git.PollInterval(interval), git.Branch(branch)), // git.ReadOnly
 		gitConfig: git.Config{
-			Branch: branch,
-			Paths: paths,
-			UserName: "Weave Ignite",
+			Branch:    branch,
+			Paths:     paths,
+			UserName:  "Weave Ignite",
 			UserEmail: "support@weave.works",
 			SyncTag:   "ignite-gitops",
 			NotesRef:  "ignite-gitops",
@@ -45,14 +45,14 @@ type GitDirectory struct {
 	updates      chan GitUpdate
 
 	branch     string
-	paths []string
-	gitConfig git.Config
-	checkout *git.Checkout
+	paths      []string
+	gitConfig  git.Config
+	checkout   *git.Checkout
 	lastCommit string
 }
 
 type GitUpdate struct {
-	Commit        string
+	Commit string
 }
 
 func (d *GitDirectory) Dir() string {
@@ -88,7 +88,7 @@ func (d *GitDirectory) checkoutLoop() error {
 		if err != nil && err != git.ErrClonedOnly && err != git.ErrNotCloned {
 			return err
 		}
-		
+
 		if status != git.RepoReady {
 			continue
 		}
@@ -113,7 +113,7 @@ func (d *GitDirectory) checkoutLoop() error {
 			if err != nil {
 				return fmt.Errorf("checkout clone error %v", err)
 			}
-			
+
 		} else {
 			// If the clone already exists, git fetch the latest contents and checkout the new commit
 			if _, err := util.ExecuteCommand("git", "-C", d.Dir(), "fetch"); err != nil {
@@ -126,7 +126,7 @@ func (d *GitDirectory) checkoutLoop() error {
 
 		d.lastCommit = commit
 		d.updates <- GitUpdate{
-			Commit:        commit,
+			Commit: commit,
 		}
 
 		log.Printf("New commit observed on branch %q: %s", d.branch, commit)

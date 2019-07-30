@@ -141,7 +141,7 @@ func (ss *SyncStorage) monitorFunc() {
 		upd, ok := <-ss.eventStream
 		log.Debugf("SyncStorage: received update %v %t", upd, ok)
 		if ok {
-			
+
 			switch upd.Event {
 			case update.EventModify, update.EventCreate:
 				// First load the Object using the Storage given in the update,
@@ -152,7 +152,7 @@ func (ss *SyncStorage) monitorFunc() {
 					log.Errorf("Failed to get Object with UID %q: %v", upd.APIType.GetUID(), err)
 					continue
 				}
-				
+
 				if err = c.Dynamic(upd.APIType.GetKind()).Set(obj); err != nil {
 					log.Errorf("Failed to set Object with UID %q: %v", upd.APIType.GetUID(), err)
 					continue
