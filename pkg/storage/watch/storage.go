@@ -11,7 +11,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/manifest/raw"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
-	"github.com/weaveworks/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/util/sync"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/yaml"
@@ -45,7 +45,7 @@ func NewGenericWatchStorage(storage storage.Storage) (WatchStorage, error) {
 	}
 
 	if mapped, ok := s.RawStorage().(raw.MappedRawStorage); ok {
-		s.monitor = util.RunMonitor(func() {
+		s.monitor = sync.RunMonitor(func() {
 			s.monitorFunc(mapped, files) // Offload the file registration to the goroutine
 		})
 	}
@@ -58,7 +58,7 @@ type GenericWatchStorage struct {
 	storage.Storage
 	watcher *watcher
 	events  *AssociatedEventStream
-	monitor *util.Monitor
+	monitor *sync.Monitor
 }
 
 var _ WatchStorage = &GenericWatchStorage{}

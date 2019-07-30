@@ -10,7 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
-	"github.com/weaveworks/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/util/sync"
 )
 
 const eventBuffer = 4096                 // How many events and updates we can buffer before watching is interrupted
@@ -62,8 +62,8 @@ type watcher struct {
 	updates      UpdateStream
 	watches      watches
 	suspendEvent update.Event
-	monitor      *util.Monitor
-	dispatcher   *util.Monitor
+	monitor      *sync.Monitor
+	dispatcher   *sync.Monitor
 	// the batcher is used for properly sending many concurrent inotify events
 	// as a group, after a specified timeout. This fixes the issue of one single
 	// file operation being registered as many different inotify events
@@ -111,8 +111,8 @@ func newWatcher(dir string) (w *watcher, files []string, err error) {
 	if err = w.start(&files); err != nil {
 		notify.Stop(w.events)
 	} else {
-		w.monitor = util.RunMonitor(w.monitorFunc)
-		w.dispatcher = util.RunMonitor(w.dispatchFunc)
+		w.monitor = sync.RunMonitor(w.monitorFunc)
+		w.dispatcher = sync.RunMonitor(w.dispatchFunc)
 	}
 
 	return

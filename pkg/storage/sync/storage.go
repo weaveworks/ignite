@@ -9,7 +9,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/watch"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
-	"github.com/weaveworks/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/util/sync"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -28,7 +28,7 @@ type SyncStorage struct {
 	storages     []storage.Storage
 	eventStream  watch.AssociatedEventStream
 	updateStream UpdateStream
-	monitor      *util.Monitor
+	monitor      *sync.Monitor
 }
 
 var _ storage.Storage = &SyncStorage{}
@@ -48,7 +48,7 @@ func NewSyncStorage(rwStorage storage.Storage, wStorages ...storage.Storage) sto
 	}
 
 	if ss.eventStream != nil {
-		ss.monitor = util.RunMonitor(ss.monitorFunc)
+		ss.monitor = sync.RunMonitor(ss.monitorFunc)
 	}
 
 	return ss
