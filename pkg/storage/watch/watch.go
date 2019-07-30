@@ -1,9 +1,9 @@
 package watch
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
-	"sort"
 	"time"
 
 	"github.com/rjeczalik/notify"
@@ -24,12 +24,21 @@ var eventMap = map[notify.Event]update.Event{
 	notify.InCloseWrite: update.EventModify,
 }
 
-// combinedEventsMap maps multiple, sorted events into one single event that should be dispatched
-var combinedEventsMap = map[string]update.Event{
-	// DELETE+CREATE+MODIFY => MODIFY
-	update.Events{update.EventCreate, update.EventDelete, update.EventModify}.String(): update.EventModify,
-	// CREATE+MODIFY => CREATE
-	update.Events{update.EventCreate, update.EventModify}.String(): update.EventCreate,
+// combinedEvent describes multiple events that should be concatenated into a single event
+type combinedEvent struct {
+	input  []byte       // input is a slice of events to match (in bytes, it speeds up the comparison)
+	output update.Event // output is the resulting event that should be returned
+}
+
+// combinedEvents describes the event combinations to concatenate,
+// this is iterated in order, so the longest matches should be first
+var combinedEvents = []combinedEvent{
+	// DELETE + CREATE + MODIFY => MODIFY
+	{update.Events{update.EventDelete, update.EventCreate, update.EventModify}.Bytes(), update.EventModify},
+	// CREATE + MODIFY => CREATE
+	{update.Events{update.EventCreate, update.EventModify}.Bytes(), update.EventCreate},
+	// CREATE + DELETE => NONE
+	{update.Events{update.EventCreate, update.EventDelete}.Bytes(), update.EventNone},
 }
 
 type eventStream chan notify.EventInfo
@@ -172,21 +181,12 @@ func (w *watcher) dispatchFunc() {
 		// wait until we have a batch dispatched to us
 		w.batcher.ProcessBatch(func(key, val interface{}) bool {
 			filePath := key.(string)
-			events := val.(update.Events)
-			event := events[0]
-			// If there are multiple events, choose the correct one based on the combination
-			if len(events) > 1 {
-				sort.Sort(events)
-				eventsStr := events.String()
-				var ok bool
-				event, ok = combinedEventsMap[eventsStr]
-				if !ok {
-					log.Errorf("Watcher: no known event combination for %v", events)
-					return true
-				}
+
+			// Concatenate all known events, and dispatch them to be handled one by one
+			for _, event := range concatenateEvents(val.(update.Events)) {
+				w.handleEvent(filePath, event)
 			}
-			// dispatch this event to w.updates
-			w.handleEvent(filePath, event)
+
 			// continue traversing the map
 			return true
 		})
@@ -261,7 +261,7 @@ func convertEvent(event notify.Event) update.Event {
 		return updateEvent
 	}
 
-	return 0
+	return update.EventNone
 }
 
 // validSuffix is used to filter out all unsupported
@@ -274,4 +274,28 @@ func validSuffix(path string) bool {
 	}
 
 	return false
+}
+
+// concatenateEvents takes in a slice of events and concatenates
+// all events possible based on combinedEvents
+func concatenateEvents(events update.Events) update.Events {
+	if len(events) < 2 {
+		return events // Quick return for 0 or 1 event
+	}
+
+	for _, combinedEvent := range combinedEvents {
+		if len(combinedEvent.input) > len(events) {
+			continue // The combined event's match is too long
+		}
+
+		// Test if the prefix of the given events matches combinedEvent.input
+		if bytes.Equal(events.Bytes()[:len(combinedEvent.input)], combinedEvent.input) {
+			// If so, replace combinedEvent.input prefix in events with combinedEvent.output and recurse
+			concatenated := append(update.Events{combinedEvent.output}, events[len(combinedEvent.input):]...)
+			log.Tracef("Watcher: concatenated events: %v -> %v", events, concatenated)
+			return concatenateEvents(concatenated)
+		}
+	}
+
+	return events
 }

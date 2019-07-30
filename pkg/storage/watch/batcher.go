@@ -42,8 +42,7 @@ func (b *Batcher) Close() {
 }
 
 func (b *Batcher) ProcessBatch(fn func(key, val interface{}) bool) bool {
-	_, ok := <-b.flushCh
-	if !ok {
+	if _, ok := <-b.flushCh; !ok {
 		// channel is closed
 		return false
 	}
