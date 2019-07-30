@@ -3,23 +3,23 @@ package watch
 import (
 	"sync"
 	"time"
-	
+
 	log "github.com/sirupsen/logrus"
 )
 
 func NewBatcher(syncMap *sync.Map, duration time.Duration) *Batcher {
 	return &Batcher{
 		duration: duration,
-		flushCh: make(chan struct{}),
-		syncMap: syncMap,
+		flushCh:  make(chan struct{}),
+		syncMap:  syncMap,
 	}
 }
 
 type Batcher struct {
 	duration time.Duration
-	timer *time.Timer
-	flushCh chan struct{}
-	syncMap *sync.Map
+	timer    *time.Timer
+	flushCh  chan struct{}
+	syncMap  *sync.Map
 }
 
 func (b *Batcher) CancelUnfiredTimer() {
@@ -31,7 +31,7 @@ func (b *Batcher) CancelUnfiredTimer() {
 }
 
 func (b *Batcher) DispatchAfterTimeout() {
-	b.timer = time.AfterFunc(b.duration, func(){
+	b.timer = time.AfterFunc(b.duration, func() {
 		log.Tracef("Batcher: Dispatching a batch job")
 		b.flushCh <- struct{}{}
 	})
@@ -43,7 +43,7 @@ func (b *Batcher) Close() {
 }
 
 func (b *Batcher) ProcessBatch(fn func(key, val interface{}) bool) bool {
-	_, ok := <- b.flushCh
+	_, ok := <-b.flushCh
 	if !ok {
 		// channel is closed
 		return false

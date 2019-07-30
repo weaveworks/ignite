@@ -2,9 +2,9 @@ package watch
 
 import (
 	"os"
-	"sync"
-	"sort"
 	"path/filepath"
+	"sort"
+	"sync"
 	"time"
 
 	"github.com/rjeczalik/notify"
@@ -14,7 +14,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-const eventBuffer = 4096 // How many events and updates we can buffer before watching is interrupted
+const eventBuffer = 4096                 // How many events and updates we can buffer before watching is interrupted
+const dispatchDuration = 1 * time.Second // Duration to wait after last event before dispatching grouped inotify events
 var excludeDirs = []string{".git"}
 var listenEvents = []notify.Event{notify.InCreate, notify.InDelete, notify.InDeleteSelf, notify.InCloseWrite}
 
@@ -47,7 +48,7 @@ type watcher struct {
 	watches      watches
 	suspendEvent update.Event
 	monitor      *util.Monitor
-	dispatcher      *util.Monitor
+	dispatcher   *util.Monitor
 	// the batcher is used for properly sending many concurrent inotify events
 	// as a group, after a specified timeout. This fixes the issue of one single
 	// file operation being registered as many different inotify events
@@ -90,24 +91,21 @@ func (w *watcher) clear() {
 // MappedRawStorage fileMappings
 func newWatcher(dir string) (w *watcher, files []string, err error) {
 	eventCache := &sync.Map{}
-	// the batcher waits one second after the last event before dispatching
-	// the inotify events grouped
-	dispatchDuration := 1 * time.Second
+
 	w = &watcher{
-		dir:     dir,
-		events:  make(eventStream, eventBuffer),
-		updates: make(UpdateStream, eventBuffer),
+		dir:        dir,
+		events:     make(eventStream, eventBuffer),
+		updates:    make(UpdateStream, eventBuffer),
 		eventCache: eventCache,
-		batcher: NewBatcher(eventCache, dispatchDuration),
+		batcher:    NewBatcher(eventCache, dispatchDuration),
 	}
 
 	if err = w.start(&files); err != nil {
 		notify.Stop(w.events)
 	} else {
 		w.monitor = util.RunMonitor(w.monitorFunc)
+		w.dispatcher = util.RunMonitor(w.dispatchFunc)
 	}
-
-	w.dispatcher = util.RunMonitor(w.dispatchFunc)
 
 	return
 }
@@ -209,7 +207,6 @@ func (w *watcher) dispatchFunc() {
 		log.Debug("Watcher: dispatched events batch and reset the events cache")
 	}
 }
-
 
 func (w *watcher) handleEvent(filePath string, event update.Event) {
 	switch event {
