@@ -2,10 +2,10 @@ package dm
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
 	"path"
 
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -119,18 +119,18 @@ func (d *Device) activate() error {
 		id,
 	)
 
-	log.Printf("Activate device: %s\n", id)
+	log.Infof("Activate device: %s\n", id)
 	if err := dmsetup("create", d.name(id), "--table", dmTable); err != nil {
 		return err
 	}
 
 	if d.mkfs {
-		log.Printf("Creating new filesystem on device: %s\n", id)
+		log.Infof("Creating new filesystem on device: %s\n", id)
 		if err := mkfs(d); err != nil {
 			return err
 		}
 	} else if d.resize { // If the resize flag has been set, resize the filesystem to fill the device
-		log.Printf("Resizing filesystem on device: %s\n", id)
+		log.Infof("Resizing filesystem on device: %s\n", id)
 		if err := resize2fs(d); err != nil {
 			return err
 		}
