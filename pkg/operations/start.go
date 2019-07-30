@@ -2,6 +2,7 @@ package operations
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/logs"
 	"io"
 	"io/ioutil"
 	"path"
@@ -48,7 +49,7 @@ func StartVM(vm *api.VM, debug bool) error {
 	}
 
 	config := &runtime.ContainerConfig{
-		Cmd:    []string{vm.GetUID().String()},
+		Cmd:    []string{vm.GetUID().String(), "--log-level", logs.Logger.Level.String()},
 		Labels: map[string]string{"ignite.name": vm.GetName()},
 		Binds: []*runtime.Bind{
 			{
