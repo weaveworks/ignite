@@ -2,7 +2,10 @@ package watch
 
 import (
 	"os"
+	"sync"
+	"sort"
 	"path/filepath"
+	"time"
 
 	"github.com/rjeczalik/notify"
 	log "github.com/sirupsen/logrus"
@@ -21,6 +24,14 @@ var eventMap = map[notify.Event]update.Event{
 	notify.InCloseWrite: update.EventModify,
 }
 
+// combinedEventsMap maps multiple, sorted events into one single event that should be dispatched
+var combinedEventsMap = map[string]update.Event{
+	// DELETE+CREATE+MODIFY => MODIFY
+	update.Events{update.EventCreate, update.EventDelete, update.EventModify}.String(): update.EventModify,
+	// CREATE+MODIFY => CREATE
+	update.Events{update.EventCreate, update.EventModify}.String(): update.EventCreate,
+}
+
 type eventStream chan notify.EventInfo
 type UpdateStream chan *update.FileUpdate
 type watches []string
@@ -36,6 +47,15 @@ type watcher struct {
 	watches      watches
 	suspendEvent update.Event
 	monitor      *util.Monitor
+	dispatcher      *util.Monitor
+	// the batcher is used for properly sending many concurrent inotify events
+	// as a group, after a specified timeout. This fixes the issue of one single
+	// file operation being registered as many different inotify events
+	batcher *Batcher
+	// eventCache is used together with the batcher. It's a sync.Map for supporting
+	// concurrent operations. In reality, the map is of type map[string]update.Events,
+	// holding information around all the events that have been registered for the same file
+	eventCache *sync.Map
 }
 
 func (w *watcher) addWatch(path string) (err error) {
@@ -69,10 +89,16 @@ func (w *watcher) clear() {
 // addition to the generated watcher, it can be used to populate
 // MappedRawStorage fileMappings
 func newWatcher(dir string) (w *watcher, files []string, err error) {
+	eventCache := &sync.Map{}
+	// the batcher waits one second after the last event before dispatching
+	// the inotify events grouped
+	dispatchDuration := 1 * time.Second
 	w = &watcher{
 		dir:     dir,
 		events:  make(eventStream, eventBuffer),
 		updates: make(UpdateStream, eventBuffer),
+		eventCache: eventCache,
+		batcher: NewBatcher(eventCache, dispatchDuration),
 	}
 
 	if err = w.start(&files); err != nil {
@@ -80,6 +106,8 @@ func newWatcher(dir string) (w *watcher, files []string, err error) {
 	} else {
 		w.monitor = util.RunMonitor(w.monitorFunc)
 	}
+
+	w.dispatcher = util.RunMonitor(w.dispatchFunc)
 
 	return
 }
@@ -115,20 +143,18 @@ func (w *watcher) start(files *[]string) error {
 }
 
 func (w *watcher) monitorFunc() {
+	log.Debug("Watcher: monitoring thread started")
 	defer log.Debug("Watcher: monitoring thread stopped")
 	defer close(w.updates) // Close the update stream after the watcher has stopped
 
 	for {
-		// TODO: This watcher doesn't handle multiple operations on the same file well
-		// DELETE+CREATE+MODIFY => MODIFY
-		// CREATE+MODIFY => CREATE
-		// Fix this by caching the operations on the same file, and one second after all operations
-		// have been "written"; go through the changes and interpret the combinations of events properly
-		// This maybe will allow us to remove the "suspend" functionality? I don't know yet
 		event, ok := <-w.events
 		if !ok {
 			return
 		}
+
+		// If there's a pending timer that's unfired, cancel it as we got this new event within the timeout duration
+		w.batcher.CancelUnfiredTimer()
 
 		updateEvent := convertEvent(event.Event())
 		if updateEvent == w.suspendEvent {
@@ -137,51 +163,108 @@ func (w *watcher) monitorFunc() {
 			continue // Skip the suspended event
 		}
 
-		log.Debugf("Watcher: event: %s", event)
+		// Get any events registered for the specific file, and append the specified event
+		var eventList update.Events
+		val, ok := w.eventCache.Load(event.Path())
+		if ok {
+			eventList = val.(update.Events)
+		}
+		eventList = append(eventList, updateEvent)
 
-		switch event.Event() {
-		case notify.InCreate:
-			if fi, err := os.Stat(event.Path()); err != nil {
-				log.Errorf("Watcher: failed to stat %q: %v", event.Path(), err)
-				continue
-			} else {
-				if fi.IsDir() {
-					if err := w.addWatch(event.Path()); err != nil {
-						log.Errorf("Watcher: failed to add %q: %v", event.Path(), err)
-					}
+		// Register the event in the map
+		w.eventCache.Store(event.Path(), eventList)
+		log.Debugf("Watcher: Registered inotify events %v for path %s", eventList, event.Path())
 
-					continue
+		// Dispatch all the currently registered events after the configured timeout
+		w.batcher.DispatchAfterTimeout()
+	}
+}
+
+func (w *watcher) dispatchFunc() {
+	log.Debug("Watcher: dispatch thread started")
+	defer log.Debug("Watcher: dispatch thread stopped")
+
+	for {
+		// wait until we have a batch dispatched to us
+		w.batcher.ProcessBatch(func(key, val interface{}) bool {
+			filePath := key.(string)
+			events := val.(update.Events)
+			event := events[0]
+			// If there are multiple events, choose the correct one based on the combination
+			if len(events) > 1 {
+				sort.Sort(events)
+				eventsStr := events.String()
+				var ok bool
+				event, ok = combinedEventsMap[eventsStr]
+				if !ok {
+					log.Errorf("Watcher: no known event combination for %v", events)
+					return true
 				}
 			}
+			// dispatch this event to w.updates
+			w.handleEvent(filePath, event)
+			// continue traversing the map
+			return true
+		})
+		log.Debug("Watcher: dispatched events batch and reset the events cache")
+	}
+}
 
-			fallthrough
-		case notify.InDelete, notify.InCloseWrite:
-			if event.Event() == notify.InDelete && w.hasWatch(event.Path()) {
-				w.clear()
-				if err := w.start(nil); err != nil {
-					log.Errorf("Watcher: Failed to re-initialize watches for %q", w.dir)
-				}
 
-				continue
+func (w *watcher) handleEvent(filePath string, event update.Event) {
+	switch event {
+	case update.EventCreate:
+		fi, err := os.Stat(filePath)
+		if err != nil {
+			log.Errorf("Watcher: failed to stat %q: %v", filePath, err)
+			return
+		}
+
+		if fi.IsDir() {
+			if err := w.addWatch(filePath); err != nil {
+				log.Errorf("Watcher: failed to add %q: %v", filePath, err)
 			}
 
-			if validSuffix(event.Path()) {
-				if updateEvent > 0 {
-					log.Debugf("Watcher: sending update: %s -> %q", updateEvent, event.Path())
-					w.updates <- &update.FileUpdate{
-						Event: updateEvent,
-						Path:  event.Path(),
-					}
-				}
+			return
+		}
+
+		fallthrough
+	case update.EventDelete, update.EventModify:
+		if event == update.EventDelete && w.hasWatch(filePath) {
+			w.clear()
+			if err := w.start(nil); err != nil {
+				log.Errorf("Watcher: Failed to re-initialize watches for %q", w.dir)
 			}
+
+			return
+		}
+
+		// only care about valid files
+		if !validSuffix(filePath) {
+			return
+		}
+
+		log.Debugf("Watcher: Sending update: %s -> %q", event, filePath)
+		w.updates <- &update.FileUpdate{
+			Event: event,
+			Path:  filePath,
 		}
 	}
 }
 
+// TODO: This watcher doesn't handle multiple operations on the same file well
+// DELETE+CREATE+MODIFY => MODIFY
+// CREATE+MODIFY => CREATE
+// Fix this by caching the operations on the same file, and one second after all operations
+// have been "written"; go through the changes and interpret the combinations of events properly
+// This maybe will allow us to remove the "suspend" functionality? I don't know yet
+
 func (w *watcher) close() {
 	notify.Stop(w.events)
+	w.batcher.Close()
 	close(w.events) // Close the event stream
 	w.monitor.Wait()
+	w.dispatcher.Wait()
 }
 
 // This enables a one-time suspend of the given event,
