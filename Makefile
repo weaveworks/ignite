@@ -14,6 +14,8 @@ API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/ignite/v1a
 CACHE_DIR = $(shell pwd)/bin/cache
 API_DOCS = api/ignite.md api/meta.md
 
+DOCS_PORT = 8000
+
 all: binary
 binary:
 	$(MAKE) shell COMMAND="make bin/${WHAT}"
@@ -111,3 +113,14 @@ dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversio
 
 /go/bin/openapi-gen:
 	go install k8s.io/kube-openapi/cmd/openapi-gen
+
+
+build-docs:
+	@cd docs && docker build -t ignite-docs .
+
+test-docs: build-docs
+	@docker run -it ignite-docs /usr/bin/linkchecker _build/html/index.html
+
+serve-docs: build-docs
+	@echo Stating docs website on http://localhost:${DOCS_PORT}/_build/html/index.html
+	@docker run -i -p ${DOCS_PORT}:8000 -e USER_ID=$$UID ignite-docs
