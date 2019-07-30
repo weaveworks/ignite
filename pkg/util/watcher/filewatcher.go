@@ -11,7 +11,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/util/sync"
 )
 
-const eventBuffer = 4096                 // How many events and updates we can buffer before watching is interrupted
+const eventBuffer = 4096 // How many events and updates we can buffer before watching is interrupted
 var listenEvents = []notify.Event{notify.InCreate, notify.InDelete, notify.InDeleteSelf, notify.InCloseWrite}
 
 var eventMap = map[notify.Event]Event{
@@ -22,8 +22,8 @@ var eventMap = map[notify.Event]Event{
 
 // combinedEvent describes multiple events that should be concatenated into a single event
 type combinedEvent struct {
-	input  []byte       // input is a slice of events to match (in bytes, it speeds up the comparison)
-	output Event // output is the resulting event that should be returned
+	input  []byte // input is a slice of events to match (in bytes, it speeds up the comparison)
+	output Event  // output is the resulting event that should be returned
 }
 
 // combinedEvents describes the event combinations to concatenate,
@@ -61,8 +61,8 @@ type Options struct {
 // DefaultOptions returns the default options
 func DefaultOptions() Options {
 	return Options{
-		ExcludeDirs: []string{".git"},
-		BatchTimeout: 1 * time.Second,
+		ExcludeDirs:     []string{".git"},
+		BatchTimeout:    1 * time.Second,
 		ValidExtensions: []string{".yaml", ".yml", ".json"},
 	}
 }
@@ -83,7 +83,7 @@ func NewFileWatcherWithOptions(dir string, opts Options) (w *FileWatcher, files 
 		events:  make(eventStream, eventBuffer),
 		updates: make(FileUpdateStream, eventBuffer),
 		batcher: sync.NewWriteBatcher(opts.BatchTimeout),
-		opts: opts,
+		opts:    opts,
 	}
 
 	if err = w.start(&files); err != nil {
@@ -108,7 +108,7 @@ type FileWatcher struct {
 	suspendEvent Event
 	monitor      *sync.Monitor
 	dispatcher   *sync.Monitor
-	opts Options
+	opts         Options
 	// the batcher is used for properly sending many concurrent inotify events
 	// as a group, after a specified timeout. This fixes the issue of one single
 	// file operation being registered as many different inotify events
@@ -324,7 +324,6 @@ func convertEvent(event notify.Event) Event {
 
 	return EventNone
 }
-
 
 // concatenateEvents takes in a slice of events and concatenates
 // all events possible based on combinedEvents

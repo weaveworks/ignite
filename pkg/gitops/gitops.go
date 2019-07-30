@@ -13,8 +13,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/storage/cache"
 	"github.com/weaveworks/ignite/pkg/storage/manifest"
-	"github.com/weaveworks/ignite/pkg/util/watcher"
 	"github.com/weaveworks/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/util/watcher"
 )
 
 var (
