@@ -1,17 +1,14 @@
 package manifest
 
 import (
-	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/manifest/raw"
 	"github.com/weaveworks/ignite/pkg/storage/sync"
 	"github.com/weaveworks/ignite/pkg/storage/watch"
-	"github.com/weaveworks/ignite/pkg/storage/watch/update"
 )
 
-// TODO: Re-implement this with SyncStorage and an update aggregator
 func NewManifestStorage(dataDir string) (*ManifestStorage, error) {
 
 	ws, err := watch.NewGenericWatchStorage(storage.NewGenericStorage(raw.NewGenericMappedRawStorage(dataDir), scheme.Serializer))
@@ -24,39 +21,17 @@ func NewManifestStorage(dataDir string) (*ManifestStorage, error) {
 			storage.NewDefaultRawStorage(constants.DATA_DIR), scheme.Serializer),
 		ws)
 
-	s := &ManifestStorage{
+	return &ManifestStorage{
 		Storage: ss,
-	}
-
-	go s.aggregate()
-
-	return s, nil
+	}, nil
 }
-
-type UpdateCache []update.Update
 
 // ManifestStorage implements the storage interface for GitOps purposes
 type ManifestStorage struct {
 	storage.Storage
-	cache UpdateCache
 }
 
-// Sync returns the updated files
-func (s *ManifestStorage) Sync() (c UpdateCache) {
-	c, s.cache = s.cache, nil
-	return
-}
-
-func (s *ManifestStorage) aggregate() {
-	updateStream := s.Storage.(*sync.SyncStorage).GetUpdateStream()
-
-	for {
-		upd, ok := <-updateStream
-		log.Debugf("Received update: %v %t", upd, ok)
-		if ok {
-			s.cache = append(s.cache, upd)
-		} else {
-			return
-		}
-	}
+// GetUpdateStream gets the channel with updates
+func (s *ManifestStorage) GetUpdateStream() sync.UpdateStream {
+	return s.Storage.(*sync.SyncStorage).GetUpdateStream()
 }
