@@ -41,6 +41,13 @@ var combinedEvents = []combinedEvent{
 	{update.Events{update.EventCreate, update.EventDelete}.Bytes(), update.EventNone},
 }
 
+// Suppress duplicate events registered in this map. E.g. directory deletion
+// fires two DELETE events, one for the parent and one for the deleted directory itself
+var suppressDuplicates = map[update.Event]bool{
+	update.EventCreate: true,
+	update.EventDelete: true,
+}
+
 type eventStream chan notify.EventInfo
 type UpdateStream chan *update.FileUpdate
 type watches []string
@@ -64,7 +71,7 @@ type watcher struct {
 }
 
 func (w *watcher) addWatch(path string) (err error) {
-	log.Tracef("Watcher: adding watch for %q", path)
+	log.Tracef("Watcher: Adding watch for %q", path)
 	if err = notify.Watch(path, w.events, listenEvents...); err == nil {
 		w.watches = append(w.watches, path)
 	}
@@ -75,17 +82,17 @@ func (w *watcher) addWatch(path string) (err error) {
 func (w *watcher) hasWatch(path string) bool {
 	for _, watch := range w.watches {
 		if watch == path {
-			log.Tracef("Watcher: watch found for %q", path)
+			log.Tracef("Watcher: Watch found for %q", path)
 			return true
 		}
 	}
 
-	log.Tracef("Watcher: no watch found for %q", path)
+	log.Tracef("Watcher: No watch found for %q", path)
 	return false
 }
 
 func (w *watcher) clear() {
-	log.Tracef("Watcher: clearing all watches")
+	log.Tracef("Watcher: Clearing all watches")
 	notify.Stop(w.events)
 	w.watches = w.watches[:0]
 }
@@ -142,8 +149,8 @@ func (w *watcher) start(files *[]string) error {
 }
 
 func (w *watcher) monitorFunc() {
-	log.Debug("Watcher: monitoring thread started")
-	defer log.Debug("Watcher: monitoring thread stopped")
+	log.Debug("Watcher: Monitoring thread started")
+	defer log.Debug("Watcher: Monitoring thread stopped")
 	defer close(w.updates) // Close the update stream after the watcher has stopped
 
 	for {
@@ -155,30 +162,43 @@ func (w *watcher) monitorFunc() {
 		updateEvent := convertEvent(event.Event())
 		if updateEvent == w.suspendEvent {
 			w.suspendEvent = 0
-			log.Debugf("Watcher: skipping suspended event %s for path: %s", updateEvent, event.Path())
+			log.Debugf("Watcher: Skipping suspended event %s for path: %q", updateEvent, event.Path())
 			continue // Skip the suspended event
+		}
+
+		// Suppress successive duplicate events registered in suppressDuplicates
+		if suppressEvent(event.Path(), updateEvent) {
+			log.Debugf("Watcher: Skipping suppressed event %s for path: %q", updateEvent, event.Path())
+			continue // Skip the suppressed event
+		}
+
+		// Directory bypass for watcher registration
+		// The watcher registration/deletion needs to be as fast as
+		// possible, bypass the batcher when dealing with directories
+		if w.handleDirEvent(event.Path(), updateEvent) {
+			continue // The event path matched a directory, skip file processing for the event
 		}
 
 		// Get any events registered for the specific file, and append the specified event
 		var eventList update.Events
-		val, ok := w.batcher.Load(event.Path())
-		if ok {
+		if val, ok := w.batcher.Load(event.Path()); ok {
 			eventList = val.(update.Events)
 		}
+
 		eventList = append(eventList, updateEvent)
 
 		// Register the event in the map, and dispatch all the events at once after the timeout
 		w.batcher.Store(event.Path(), eventList)
-		log.Debugf("Watcher: Registered inotify events %v for path %s", eventList, event.Path())
+		log.Debugf("Watcher: Registered inotify events %v for path %q", eventList, event.Path())
 	}
 }
 
 func (w *watcher) dispatchFunc() {
-	log.Debug("Watcher: dispatch thread started")
-	defer log.Debug("Watcher: dispatch thread stopped")
+	log.Debug("Watcher: Dispatch thread started")
+	defer log.Debug("Watcher: Dispatch thread stopped")
 
 	for {
-		// wait until we have a batch dispatched to us
+		// Wait until we have a batch dispatched to us
 		w.batcher.ProcessBatch(func(key, val interface{}) bool {
 			filePath := key.(string)
 
@@ -187,41 +207,17 @@ func (w *watcher) dispatchFunc() {
 				w.handleEvent(filePath, event)
 			}
 
-			// continue traversing the map
+			// Continue traversing the map
 			return true
 		})
-		log.Debug("Watcher: dispatched events batch and reset the events cache")
+
+		log.Debug("Watcher: Dispatched events batch and reset the events cache")
 	}
 }
 
 func (w *watcher) handleEvent(filePath string, event update.Event) {
 	switch event {
-	case update.EventCreate:
-		fi, err := os.Stat(filePath)
-		if err != nil {
-			log.Errorf("Watcher: failed to stat %q: %v", filePath, err)
-			return
-		}
-
-		if fi.IsDir() {
-			if err := w.addWatch(filePath); err != nil {
-				log.Errorf("Watcher: failed to add %q: %v", filePath, err)
-			}
-
-			return
-		}
-
-		fallthrough
-	case update.EventDelete, update.EventModify:
-		if event == update.EventDelete && w.hasWatch(filePath) {
-			w.clear()
-			if err := w.start(nil); err != nil {
-				log.Errorf("Watcher: Failed to re-initialize watches for %q", w.dir)
-			}
-
-			return
-		}
-
+	case update.EventCreate, update.EventDelete, update.EventModify: // Ignore EventNone
 		// only care about valid files
 		if !validSuffix(filePath) {
 			return
@@ -233,6 +229,36 @@ func (w *watcher) handleEvent(filePath string, event update.Event) {
 			Path:  filePath,
 		}
 	}
+}
+
+func (w *watcher) handleDirEvent(filePath string, event update.Event) (dir bool) {
+	switch event {
+	case update.EventCreate:
+		fi, err := os.Stat(filePath)
+		if err != nil {
+			log.Errorf("Watcher: Failed to stat %q: %v", filePath, err)
+			return
+		}
+
+		if fi.IsDir() {
+			if err := w.addWatch(filePath); err != nil {
+				log.Errorf("Watcher: Failed to add %q: %v", filePath, err)
+			}
+
+			dir = true
+		}
+	case update.EventDelete:
+		if w.hasWatch(filePath) {
+			w.clear()
+			if err := w.start(nil); err != nil {
+				log.Errorf("Watcher: Failed to re-initialize watches for %q", w.dir)
+			}
+
+			dir = true
+		}
+	}
+
+	return
 }
 
 // TODO: This watcher doesn't handle multiple operations on the same file well
@@ -292,10 +318,29 @@ func concatenateEvents(events update.Events) update.Events {
 		if bytes.Equal(events.Bytes()[:len(combinedEvent.input)], combinedEvent.input) {
 			// If so, replace combinedEvent.input prefix in events with combinedEvent.output and recurse
 			concatenated := append(update.Events{combinedEvent.output}, events[len(combinedEvent.input):]...)
-			log.Tracef("Watcher: concatenated events: %v -> %v", events, concatenated)
+			log.Tracef("Watcher: Concatenated events: %v -> %v", events, concatenated)
 			return concatenateEvents(concatenated)
 		}
 	}
 
 	return events
+}
+
+var suppressCache struct {
+	event update.Event
+	path  string
+}
+
+// suppressEvent returns true it it's called twice
+// in a row with the same known event and path
+func suppressEvent(path string, event update.Event) (s bool) {
+	if _, ok := suppressDuplicates[event]; ok {
+		if suppressCache.event == event && suppressCache.path == path {
+			s = true
+		}
+	}
+
+	suppressCache.event = event
+	suppressCache.path = path
+	return
 }
