@@ -9,7 +9,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/watch"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
-	"github.com/weaveworks/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/util/sync"
+	"github.com/weaveworks/ignite/pkg/util/watcher"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -28,7 +29,7 @@ type SyncStorage struct {
 	storages     []storage.Storage
 	eventStream  watch.AssociatedEventStream
 	updateStream UpdateStream
-	monitor      *util.Monitor
+	monitor      *sync.Monitor
 }
 
 var _ storage.Storage = &SyncStorage{}
@@ -48,7 +49,7 @@ func NewSyncStorage(rwStorage storage.Storage, wStorages ...storage.Storage) sto
 	}
 
 	if ss.eventStream != nil {
-		ss.monitor = util.RunMonitor(ss.monitorFunc)
+		ss.monitor = sync.RunMonitor(ss.monitorFunc)
 	}
 
 	return ss
@@ -116,7 +117,7 @@ func (ss *SyncStorage) runAll(f func(storage.Storage) error) (err error) {
 	for i := 0; i < len(ss.storages); i++ {
 		if result := <-errC; result.error != nil {
 			if err == nil {
-				err = fmt.Errorf("SyncStorage: error in Storage %d: %v", result.int, result.error)
+				err = fmt.Errorf("SyncStorage: Error in Storage %d: %v", result.int, result.error)
 			} else {
 				err = fmt.Errorf("%v\n%29s %d: %v", err, "and error in Storage", result.int, result.error)
 			}
@@ -127,8 +128,8 @@ func (ss *SyncStorage) runAll(f func(storage.Storage) error) (err error) {
 }
 
 func (ss *SyncStorage) monitorFunc() {
-	log.Debug("SyncStorage: monitoring thread started")
-	defer log.Debug("SyncStorage: monitoring thread stopped")
+	log.Debug("SyncStorage: Monitoring thread started")
+	defer log.Debug("SyncStorage: Monitoring thread stopped")
 
 	// This is the internal client for propagating updates
 	c := client.NewClient(ss)
@@ -138,11 +139,10 @@ func (ss *SyncStorage) monitorFunc() {
 	// For now, only update the state on write when Ignite is running
 	for {
 		upd, ok := <-ss.eventStream
-		log.Debugf("SyncStorage: received update %v %t", upd, ok)
+		log.Debugf("SyncStorage: Received update %v %t", upd, ok)
 		if ok {
-
 			switch upd.Event {
-			case update.EventModify, update.EventCreate:
+			case watcher.EventModify, watcher.EventCreate:
 				// First load the Object using the Storage given in the update,
 				// then set it using the client constructed above
 				updClient := client.NewClient(upd.Storage).Dynamic(upd.APIType.GetKind())
@@ -156,7 +156,7 @@ func (ss *SyncStorage) monitorFunc() {
 					log.Errorf("Failed to set Object with UID %q: %v", upd.APIType.GetUID(), err)
 					continue
 				}
-			case update.EventDelete:
+			case watcher.EventDelete:
 				// For deletion we use the generated "fake" APIType object
 				if err := c.Dynamic(upd.APIType.GetKind()).Delete(upd.APIType.GetUID()); err != nil {
 					log.Errorf("Failed to delete Object with UID %q: %v", upd.APIType.GetUID(), err)
@@ -169,9 +169,9 @@ func (ss *SyncStorage) monitorFunc() {
 			// updates as updateBuffer specifies.
 			select {
 			case ss.updateStream <- upd.Update:
-				log.Debugf("SyncStorage: sent update: %v", upd.Update)
+				log.Debugf("SyncStorage: Sent update: %v", upd.Update)
 			default:
-				log.Warn("SyncStorage: failed to send update, channel full")
+				log.Warn("SyncStorage: Failed to send update, channel full")
 			}
 		} else {
 			return
