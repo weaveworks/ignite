@@ -1,4 +1,4 @@
-## ignite start
+## `ignite start` - Start a VM
 
 Start a VM
 

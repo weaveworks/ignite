@@ -1,4 +1,4 @@
-## ignite create
+## `ignite create` - Create a new VM without starting it
 
 Create a new VM without starting it
 

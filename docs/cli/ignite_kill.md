@@ -1,4 +1,4 @@
-## ignite kill
+## `ignite kill` - Kill running VMs
 
 Kill running VMs
 

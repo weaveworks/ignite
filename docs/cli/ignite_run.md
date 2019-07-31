@@ -1,4 +1,4 @@
-## ignite run
+## `ignite run` - Create a new VM and start it
 
 Create a new VM and start it
 

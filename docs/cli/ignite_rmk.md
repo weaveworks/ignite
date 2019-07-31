@@ -1,4 +1,4 @@
-## ignite rmk
+## `ignite rmk` - Remove kernels
 
 Remove kernels
 

@@ -1,4 +1,4 @@
-## ignite version
+## `ignite version` - Print the version of ignite
 
 Print the version of ignite
 

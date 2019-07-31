@@ -1,4 +1,4 @@
-## ignite rmi
+## `ignite rmi` - Remove VM base images
 
 Remove VM base images
 

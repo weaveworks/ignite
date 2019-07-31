@@ -1,4 +1,4 @@
-## ignite rm
+## `ignite rm` - Remove VMs
 
 Remove VMs
 

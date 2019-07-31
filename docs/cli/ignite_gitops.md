@@ -1,4 +1,4 @@
-## ignite gitops
+## `ignite gitops` - Run the GitOps feature of Ignite
 
 Run the GitOps feature of Ignite
 

@@ -1,4 +1,4 @@
-## ignite ssh
+## `ignite ssh` - SSH into a running vm
 
 SSH into a running vm
 

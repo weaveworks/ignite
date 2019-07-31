@@ -1,4 +1,4 @@
-## ignite completion
+## `ignite completion` - Output bash completion for ignite to stdout
 
 Output bash completion for ignite to stdout
 

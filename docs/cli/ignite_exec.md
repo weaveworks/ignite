@@ -1,4 +1,4 @@
-## ignite exec
+## `ignite exec` - Create a new VM without starting it
 
 execute a command in a running VM
 

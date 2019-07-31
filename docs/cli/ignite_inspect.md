@@ -1,4 +1,4 @@
-## ignite inspect
+## `ignite inspect` - Inspect an Ignite Object
 
 Inspect an Ignite Object
 

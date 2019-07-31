@@ -1,4 +1,4 @@
-## ignite vm
+## `ignite vm` - Print the version of ignite
 
 Manage VMs
 

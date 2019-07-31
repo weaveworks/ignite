@@ -1,4 +1,4 @@
-## ignite logs
+## `ignite logs` - Get the logs for a running VM
 
 Get the logs for a running VM
 

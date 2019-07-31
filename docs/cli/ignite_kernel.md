@@ -1,4 +1,4 @@
-## ignite kernel
+## `ignite kernel` - Run the GitOps feature of Ignite
 
 Manage VM kernels
 

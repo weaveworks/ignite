@@ -1,4 +1,4 @@
-## ignite ps
+## `ignite ps` - Inspect an Ignite Object
 
 List running VMs
 

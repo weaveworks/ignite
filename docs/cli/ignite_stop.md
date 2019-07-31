@@ -1,4 +1,4 @@
-## ignite stop
+## `ignite stop` - Stop running VMs
 
 Stop running VMs
 

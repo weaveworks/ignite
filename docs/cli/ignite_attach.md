@@ -1,4 +1,4 @@
-## ignite attach
+## `ignite attach` - Attach to a running VM
 
 Attach to a running VM
 

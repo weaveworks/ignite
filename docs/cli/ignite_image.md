@@ -1,4 +1,4 @@
-## ignite image
+## `ignite image` - Run the GitOps feature of Ignite
 
 Manage base images for VMs
 
