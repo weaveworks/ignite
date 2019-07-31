@@ -10,7 +10,7 @@ IS_DIRTY:=$(shell echo ${GIT_VERSION} | grep -o dirty | wc -l)
 WHAT?=ignite
 PROJECT = github.com/weaveworks/ignite
 APIS_DIR = ${PROJECT}/pkg/apis
-API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/meta/v1alpha1
+API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/ignite/v1alpha2,${APIS_DIR}/meta/v1alpha1
 CACHE_DIR = $(shell pwd)/bin/cache
 API_DOCS = api/ignite.md api/meta.md
 
