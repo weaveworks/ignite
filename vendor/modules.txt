@@ -248,7 +248,7 @@ k8s.io/apimachinery/pkg/util/mergepatch
 k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/pkg/util/validation
 k8s.io/apimachinery/pkg/util/net
-# k8s.io/klog v0.3.1
+# k8s.io/klog v0.3.1 => ./third_party/k8s.io/klog
 k8s.io/klog
 # k8s.io/kube-openapi v0.0.0-20190401085232-94e1e7b7574c
 k8s.io/kube-openapi/pkg/common
