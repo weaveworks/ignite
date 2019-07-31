@@ -6,8 +6,8 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdPs lists running VMs
@@ -29,7 +29,7 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 				pf.All = true
 			}
 
-			errutils.Check(func() error {
+			cmdutil.CheckErr(func() error {
 				po, err := pf.NewPsOptions()
 				if err != nil {
 					return err

@@ -24,8 +24,8 @@ var (
 )
 
 func RunLoop(url, branch string, paths []string) error {
-	log.Printf("Starting GitOps loop for repo at %q\n", url)
-	log.Printf("Whenever changes are pushed to the %s branch, Ignite will apply the desired state locally\n", branch)
+	log.Infof("Starting GitOps loop for repo at %q\n", url)
+	log.Infof("Whenever changes are pushed to the %s branch, Ignite will apply the desired state locally\n", branch)
 
 	// Construct the GitDirectory implementation which backs the storage
 	gitDir = gitdir.NewGitDirectory(url, branch, paths, syncInterval)
@@ -100,7 +100,7 @@ func RunLoop(url, branch string, paths []string) error {
 				return handleDelete(vm)
 			})
 		default:
-			log.Printf("Unrecognized Git update type %s\n", upd.Event)
+			log.Infof("Unrecognized Git update type %s\n", upd.Event)
 			continue
 		}
 	}
@@ -123,9 +123,9 @@ func handleCreate(vm *api.VM) error {
 	case api.VMStateRunning:
 		err = start(vm)
 	case api.VMStateStopped:
-		log.Printf("VM %q was added to git with status Stopped, nothing to do\n", vm.GetUID())
+		log.Infof("VM %q was added to git with status Stopped, nothing to do\n", vm.GetUID())
 	default:
-		log.Printf("Unknown state of VM %q: %s", vm.GetUID().String(), vm.Status.State)
+		log.Infof("Unknown state of VM %q: %s", vm.GetUID().String(), vm.Status.State)
 	}
 
 	return err
@@ -142,7 +142,7 @@ func handleChange(vm *api.VM) error {
 	case api.VMStateStopped:
 		err = stop(vm)
 	default:
-		log.Printf("Unknown state of VM %q: %s", vm.GetUID().String(), vm.Status.State)
+		log.Infof("Unknown state of VM %q: %s", vm.GetUID().String(), vm.Status.State)
 	}
 
 	return err
@@ -154,7 +154,7 @@ func handleDelete(vm *api.VM) error {
 
 // TODO: Unify this with the "real" Create() method currently in cmd/
 func create(vm *api.VM) error {
-	log.Printf("Creating VM %q with name %q...", vm.GetUID(), vm.GetName())
+	log.Infof("Creating VM %q with name %q...", vm.GetUID(), vm.GetName())
 	if err := ensureOCIImages(vm); err != nil {
 		return err
 	}
@@ -195,16 +195,16 @@ func start(vm *api.VM) error {
 		}
 	}
 
-	log.Printf("Starting VM %q with name %q...", vm.GetUID(), vm.GetName())
+	log.Infof("Starting VM %q with name %q...", vm.GetUID(), vm.GetName())
 	return operations.StartVM(vm, true)
 }
 
 func stop(vm *api.VM) error {
-	log.Printf("Stopping VM %q with name %q...", vm.GetUID(), vm.GetName())
+	log.Infof("Stopping VM %q with name %q...", vm.GetUID(), vm.GetName())
 	return operations.StopVM(vm, true, false)
 }
 
 func remove(vm *api.VM) error {
-	log.Printf("Removing VM %q with name %q...", vm.GetUID(), vm.GetName())
+	log.Infof("Removing VM %q with name %q...", vm.GetUID(), vm.GetName())
 	return operations.RemoveVM(c, vm)
 }

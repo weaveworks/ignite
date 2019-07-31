@@ -6,46 +6,21 @@ import (
 	"os"
 	"path"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/container"
 	"github.com/weaveworks/ignite/pkg/container/prometheus"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
-	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/providers"
 	patchutil "github.com/weaveworks/ignite/pkg/util/patch"
 )
 
 func main() {
-	if err := Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
-	}
-}
-
-// Run runs the main cobra command of this application
-func Run() error {
 	// Populate the providers
-	if err := providers.Populate(providers.Providers); err != nil {
-		return err
-	}
-
-	if len(os.Args) != 2 {
-		fmt.Printf("Usage: ignite-spawn [VM ID]")
-		os.Exit(0)
-	}
-
-	vmID := os.Args[1]
-	opts, err := NewOptions(vmID)
-	if err != nil {
-		return err
-	}
-
-	logs.InitLogs(log.InfoLevel)
-
-	return StartVM(opts)
+	cmdutil.CheckErr(providers.Populate(providers.Providers))
+	RunIgniteSpawn()
 }
 
 func StartVM(co *options) error {

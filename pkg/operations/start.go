@@ -2,13 +2,14 @@ package operations
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/logs"
 	"io"
 	"io/ioutil"
-	"log"
 	"path"
 	"path/filepath"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -48,7 +49,7 @@ func StartVM(vm *api.VM, debug bool) error {
 	}
 
 	config := &runtime.ContainerConfig{
-		Cmd:    []string{vm.GetUID().String()},
+		Cmd:    []string{vm.GetUID().String(), "--log-level", logs.Logger.Level.String()},
 		Labels: map[string]string{"ignite.name": vm.GetName()},
 		Binds: []*runtime.Bind{
 			{
@@ -97,10 +98,10 @@ func StartVM(vm *api.VM, debug bool) error {
 			return err
 		}
 
-		log.Printf("Networking is now handled by CNI")
+		log.Infof("Networking is now handled by CNI")
 	}
 
-	log.Printf("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
+	log.Infof("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
 
 	// Set an annotation on the VM object with the containerID for now
 	patch, err := patchutil.Create(vm, func(obj meta.Object) error {
@@ -124,7 +125,7 @@ func StartVM(vm *api.VM, debug bool) error {
 
 func verifyPulled(image string) error {
 	if _, err := providers.Runtime.InspectImage(image); err != nil {
-		log.Printf("Pulling image %q...", image)
+		log.Infof("Pulling image %q...", image)
 		rc, err := providers.Runtime.PullImage(image)
 		if err != nil {
 			return err

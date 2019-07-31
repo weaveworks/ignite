@@ -11,8 +11,10 @@ import (
 
 	"github.com/firecracker-microvm/firecracker-go-sdk"
 	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/providers"
 )
@@ -43,6 +45,18 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 		return err
 	}
 
+	// Convert the logrus error level to a Firecracker compatible error level.
+	// Firecracker accepts "Error", "Warning", "Info", and "Debug", case-sensitive.
+	fcLogLevel := "Debug"
+	switch logs.Logger.Level {
+	case log.InfoLevel:
+		fcLogLevel = "Info"
+	case log.WarnLevel:
+		fcLogLevel = "Warning"
+	case log.ErrorLevel, log.FatalLevel, log.PanicLevel:
+		fcLogLevel = "Error"
+	}
+
 	firecrackerSocketPath := path.Join(vm.ObjectPath(), constants.FIRECRACKER_API_SOCKET)
 	logSocketPath := path.Join(vm.ObjectPath(), constants.LOG_FIFO)
 	metricsSocketPath := path.Join(vm.ObjectPath(), constants.METRICS_FIFO)
@@ -70,8 +84,8 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 		//	ExecFile: "firecracker",
 		//},
 
+		LogLevel: fcLogLevel,
 		// TODO: We could use /dev/null, but firecracker-go-sdk issues Mkfifo which collides with the existing device
-		LogLevel:    constants.VM_LOG_LEVEL,
 		LogFifo:     logSocketPath,
 		MetricsFifo: metricsSocketPath,
 	}

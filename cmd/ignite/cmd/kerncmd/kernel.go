@@ -5,8 +5,8 @@ import (
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdKernel handles kernel-related functionality via its subcommands
@@ -21,7 +21,7 @@ func NewCmdKernel(out io.Writer) *cobra.Command {
 		`),
 		Aliases: []string{"kernels"},
 		Run: func(cmd *cobra.Command, args []string) {
-			errutils.Check(func() error {
+			cmdutil.CheckErr(func() error {
 				ko, err := run.NewKernelsOptions()
 				if err != nil {
 					return err

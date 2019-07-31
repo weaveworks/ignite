@@ -6,8 +6,8 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdExec exec's into a running VM
@@ -25,7 +25,7 @@ func NewCmdExec(out io.Writer, err io.Writer, in io.Reader) *cobra.Command {
 		`),
 		Args: cobra.MinimumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
-			errutils.Check(func() error {
+			cmdutil.CheckErr(func() error {
 				eo, err := ef.NewExecOptions(args[0], args[1:]...)
 				if err != nil {
 					return err

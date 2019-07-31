@@ -6,7 +6,7 @@ import (
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/ignite/pkg/errutils"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 )
 
 func NewCmdCompletion(out io.Writer, rootCmd *cobra.Command) *cobra.Command {
@@ -23,8 +23,7 @@ func NewCmdCompletion(out io.Writer, rootCmd *cobra.Command) *cobra.Command {
 			echo '. <(ignite completion)' >> ~/.bashrc
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
-			err := rootCmd.GenBashCompletion(os.Stdout)
-			errutils.Check(err)
+			cmdutil.CheckErr(rootCmd.GenBashCompletion(os.Stdout))
 		},
 	}
 	return cmd

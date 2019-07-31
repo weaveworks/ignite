@@ -2,8 +2,8 @@ package metadata
 
 import (
 	"fmt"
-	"log"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/providers"
 )
@@ -17,7 +17,7 @@ func Cleanup(md Metadata, silent bool) error {
 	// If success has not been confirmed, remove the generated directory
 	if !success[md] {
 		if !logs.Quiet {
-			log.Printf("Removed %s with name %q and ID %q", md.GetKind(), md.GetName(), md.GetUID())
+			log.Infof("Removed %s with name %q and ID %q", md.GetKind(), md.GetName(), md.GetUID())
 		} else if !silent {
 			fmt.Println(md.GetUID())
 		}
@@ -26,7 +26,7 @@ func Cleanup(md Metadata, silent bool) error {
 	}
 
 	if !logs.Quiet {
-		log.Printf("Created %s with ID %q and name %q", md.GetKind(), md.GetUID(), md.GetName())
+		log.Infof("Created %s with ID %q and name %q", md.GetKind(), md.GetUID(), md.GetName())
 	} else if !silent {
 		fmt.Println(md.GetUID())
 	}
