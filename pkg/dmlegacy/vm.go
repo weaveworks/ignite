@@ -141,6 +141,11 @@ func copyToOverlay(vm *api.VM) error {
 		return err
 	}
 
+	// Set overlay root permissions
+	if err := os.Chmod(mp.Path, constants.DATA_DIR_PERM); err != nil {
+		return err
+	}
+
 	// TODO: This code seems to be flaky and not always copy over the files?
 	time.Sleep(500 * time.Millisecond)
 	return nil
