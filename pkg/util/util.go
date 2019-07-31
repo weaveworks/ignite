@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	//"os/user"
+	"syscall"
 	"strings"
 	"time"
 
@@ -117,13 +117,7 @@ func MatchPrefix(prefix string, fields ...string) ([]string, bool) {
 }
 
 func TestRoot() (bool, error) {
-	return true, nil
-	/*u, err := user.Current()
-	if err != nil {
-		return false, err
-	}
-
-	return u.Uid == "0", nil*/
+	return syscall.Getuid() == 0, nil
 }
 
 type Prefixer struct {
