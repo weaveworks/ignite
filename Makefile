@@ -27,7 +27,7 @@ ignite: bin/ignite
 # Always update the image when ignite-spawn is updated
 ignite-spawn: bin/ignite-spawn image
 bin/ignite bin/ignite-spawn: bin/%:
-	CGO_ENABLED=0 go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/$* ./cmd/$*
+	CGO_ENABLED=1 go build -mod=vendor -a -tags netgo -ldflags "$(shell ./hack/ldflags.sh) -w -extldflags '-static'" -o bin/$* ./cmd/$*
 
 image:
 	docker build -t ${DOCKER_USER}/ignite:${IMAGE_DEV_TAG} \

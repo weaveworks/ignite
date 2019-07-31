@@ -22,7 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/user"
+	//"os/user"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -55,10 +55,10 @@ func init() {
 		host = shortHostname(h)
 	}
 
-	current, err := user.Current()
+	/*current, err := user.Current()
 	if err == nil {
 		userName = current.Username
-	}
+	}*/
 
 	// Sanitize userName since it may contain filepath separators on Windows.
 	userName = strings.Replace(userName, `\`, "_", -1)
