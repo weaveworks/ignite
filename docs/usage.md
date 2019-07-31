@@ -22,13 +22,17 @@ The guide will cover the following topics in order:
 Keep in mind that all Ignite commands require `root` for now.
 This will change later.
 
-Here's a [demo](https://www.youtube.com/watch?v=s_O75zt-oBg) that shows the topics above in action with ignite running on [Amazon EC2 i3.metal instance](https://aws.amazon.com/ec2/instance-types/i3/) which satisfies the /dev/kvm dependency.
+Here's a [demo][video1] that shows the topics above in action with ignite running on [Amazon EC2 i3.metal instance](https://aws.amazon.com/ec2/instance-types/i3/) which satisfies the /dev/kvm dependency.
 
-[![ignite running on Amazon EC2 i3.metal instance](http://img.youtube.com/vi/s_O75zt-oBg/0.jpg)](http://www.youtube.com/watch?v=s_O75zt-oBg "ignite running on Amazon EC2 i3.metal instance")
+[![](http://img.youtube.com/vi/s_O75zt-oBg/0.jpg "ignite running on Amazon EC2 i3.metal instance")][video1]
+
+[video1]: http://www.youtube.com/watch?v=s_O75zt-oBg
 
 Alternatively, you might want to check out the [TGIK](https://github.com/heptio/tgik) deep-dive session from [Joe Beda](https://twitter.com/jbeda) on what Ignite is and how it works:
 
-[![TGIK 082](https://img.youtube.com/vi/aq-wlslJ5MQ/0.jpg)](https://youtu.be/aq-wlslJ5MQ)
+[![](https://img.youtube.com/vi/aq-wlslJ5MQ/0.jpg "TGIK 082")][video2]
+
+[video2]: https://youtu.be/aq-wlslJ5MQ
 
 ## Importing a VM base image
 
