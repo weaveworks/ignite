@@ -10,7 +10,6 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdCreate creates a new VM given an image and a kernel
@@ -43,7 +42,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 		`, constants.DEFAULT_KERNEL_IMAGE)),
 		Args: cobra.RangeArgs(0, 1),
 		Run: func(cmd *cobra.Command, args []string) {
-			errutils.Check(func() error {
+			cmdutil.CheckErr(func() error {
 				co, err := cf.NewCreateOptions(args)
 				if err != nil {
 					return err

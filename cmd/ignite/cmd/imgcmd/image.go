@@ -5,8 +5,8 @@ import (
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdImage handles image-related functionality via its subcommands
@@ -21,7 +21,7 @@ func NewCmdImage(out io.Writer) *cobra.Command {
 		`),
 		Aliases: []string{"images"},
 		Run: func(cmd *cobra.Command, args []string) {
-			errutils.Check(func() error {
+			cmdutil.CheckErr(func() error {
 				i, err := run.NewImagesOptions()
 				if err != nil {
 					return err

@@ -100,7 +100,7 @@ func (d *GitDirectory) checkoutLoop() error {
 			continue
 		}
 
-		log.Printf("Git initialized: A bare clone of repo %q has been made\n", d.url)
+		log.Infof("Git initialized: A bare clone of repo %q has been made\n", d.url)
 
 		// Clone the checkout for the first time, otherwise just forward the branch
 		d.checkout, err = d.repo.Clone(context.Background(), d.gitConfig)
@@ -162,7 +162,7 @@ func (d *GitDirectory) doCheckout(commit string) error {
 // observeCommit sets the lastCommit variable so that we know the latest state
 func (d *GitDirectory) observeCommit(commit string, userInitiated bool) {
 	d.lastCommit = commit
-	log.Printf("New commit observed on branch %q: %s. User initiated: %t", d.branch, commit, userInitiated)
+	log.Infof("New commit observed on branch %q: %s. User initiated: %t", d.branch, commit, userInitiated)
 }
 
 func (d *GitDirectory) commitLoop() error {

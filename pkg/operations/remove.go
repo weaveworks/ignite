@@ -37,7 +37,7 @@ func RemoveVM(c *client.Client, vm *api.VM) error {
 	if logs.Quiet {
 		fmt.Println(vm.GetUID())
 	} else {
-		log.Printf("Removed %s with name %q and ID %q", vm.GetKind(), vm.GetName(), vm.GetUID())
+		log.Infof("Removed %s with name %q and ID %q", vm.GetKind(), vm.GetName(), vm.GetUID())
 	}
 
 	return nil
@@ -84,7 +84,7 @@ func StopVM(vm *api.VM, kill, silent bool) error {
 	if logs.Quiet {
 		fmt.Println(vm.GetUID())
 	} else {
-		log.Printf("Stopped %s with name %q and ID %q", vm.GetKind(), vm.GetName(), vm.GetUID())
+		log.Infof("Stopped %s with name %q and ID %q", vm.GetKind(), vm.GetName(), vm.GetUID())
 	}
 
 	return nil
@@ -97,6 +97,6 @@ func removeCNINetworking(vm *api.VM, containerID string) error {
 	}
 
 	// Perform the removal
-	log.Printf("Trying to remove the container with ID %q from the CNI network", containerID)
+	log.Infof("Trying to remove the container with ID %q from the CNI network", containerID)
 	return providers.NetworkPlugin.RemoveContainerNetwork(containerID)
 }

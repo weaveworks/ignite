@@ -45,7 +45,7 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 				panic(err)
 			}
 
-			logs.InitLogs(logLevel)
+			logs.Logger.SetLevel(logLevel)
 		},
 		Long: dedent.Dedent(fmt.Sprintf(`
 			Ignite is a containerized Firecracker microVM administration tool.
