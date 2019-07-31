@@ -9,7 +9,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/watch"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
-	"github.com/weaveworks/ignite/pkg/util"
+	"github.com/weaveworks/ignite/pkg/util/sync"
+	"github.com/weaveworks/ignite/pkg/util/watcher"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -28,7 +29,7 @@ type SyncStorage struct {
 	storages     []storage.Storage
 	eventStream  watch.AssociatedEventStream
 	updateStream UpdateStream
-	monitor      *util.Monitor
+	monitor      *sync.Monitor
 }
 
 var _ storage.Storage = &SyncStorage{}
@@ -48,7 +49,7 @@ func NewSyncStorage(rwStorage storage.Storage, wStorages ...storage.Storage) sto
 	}
 
 	if ss.eventStream != nil {
-		ss.monitor = util.RunMonitor(ss.monitorFunc)
+		ss.monitor = sync.RunMonitor(ss.monitorFunc)
 	}
 
 	return ss
@@ -141,7 +142,7 @@ func (ss *SyncStorage) monitorFunc() {
 		log.Debugf("SyncStorage: Received update %v %t", upd, ok)
 		if ok {
 			switch upd.Event {
-			case update.EventModify, update.EventCreate:
+			case watcher.EventModify, watcher.EventCreate:
 				// First load the Object using the Storage given in the update,
 				// then set it using the client constructed above
 				updClient := client.NewClient(upd.Storage).Dynamic(upd.APIType.GetKind())
@@ -155,7 +156,7 @@ func (ss *SyncStorage) monitorFunc() {
 					log.Errorf("Failed to set Object with UID %q: %v", upd.APIType.GetUID(), err)
 					continue
 				}
-			case update.EventDelete:
+			case watcher.EventDelete:
 				// For deletion we use the generated "fake" APIType object
 				if err := c.Dynamic(upd.APIType.GetKind()).Delete(upd.APIType.GetUID()); err != nil {
 					log.Errorf("Failed to delete Object with UID %q: %v", upd.APIType.GetUID(), err)
