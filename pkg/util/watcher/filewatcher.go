@@ -223,7 +223,7 @@ func (w *FileWatcher) dispatchFunc() {
 
 	for {
 		// Wait until we have a batch dispatched to us
-		w.batcher.ProcessBatch(func(key, val interface{}) bool {
+		ok := w.batcher.ProcessBatch(func(key, val interface{}) bool {
 			filePath := key.(string)
 
 			// Concatenate all known events, and dispatch them to be handled one by one
@@ -234,6 +234,9 @@ func (w *FileWatcher) dispatchFunc() {
 			// Continue traversing the map
 			return true
 		})
+		if !ok {
+			return // The BatchWriter channel is closed, stop processing
+		}
 
 		log.Debug("FileWatcher: Dispatched events batch and reset the events cache")
 	}
