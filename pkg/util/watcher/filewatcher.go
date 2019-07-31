@@ -106,7 +106,7 @@ func NewFileWatcherWithOptions(dir string, opts Options) (w *FileWatcher, files 
 		return
 	}
 
-	if err = w.start(&files); err != nil {
+	if err = w.start(w.dir, &files); err != nil {
 		if err2 := w.watcher.StopAll(); err2 != nil {
 			err = fmt.Errorf("%v, error stopping descriptors: %v", err, err2)
 		}
@@ -146,11 +146,16 @@ func (w *FileWatcher) removeWatch(path string) error {
 
 // start discovers all subdirectories and adds paths to
 // notify before starting the monitoring goroutine
-func (w *FileWatcher) start(files *[]string) error {
-	return filepath.Walk(w.dir,
+func (w *FileWatcher) start(dir string, files *[]string) error {
+	return filepath.Walk(dir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
+			}
+
+			// Skip the root directory
+			if path == w.dir {
+				return nil
 			}
 
 			if info.IsDir() {
@@ -174,6 +179,18 @@ func (w *FileWatcher) start(files *[]string) error {
 		})
 }
 
+func (w *FileWatcher) stop(dir string) error {
+	for _, path := range w.watcher.ListDescriptors() {
+		if _, err := filepath.Rel(dir, path); err == nil {
+			if err = w.removeWatch(path); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func (w *FileWatcher) monitorFunc() {
 	log.Debug("FileWatcher: Monitoring thread started")
 	defer log.Debug("FileWatcher: Monitoring thread stopped")
@@ -184,6 +201,10 @@ func (w *FileWatcher) monitorFunc() {
 		case event, ok := <-w.watcher.Events:
 			if !ok {
 				return
+			}
+
+			if fsevents.CheckMask(fsevents.RootDelete, event.RawEvent.Mask) {
+				fmt.Println("ROOT delete:", event.Path)
 			}
 
 			// If the event targets a directory, handle the watchers for it
@@ -216,7 +237,11 @@ func (w *FileWatcher) monitorFunc() {
 			// Register the event in the map, and dispatch all the events at once after the timeout
 			w.batcher.Store(event.Path, eventList)
 			log.Debugf("FileWatcher: Registered inotify events %v for path %q", eventList, event.Path)
-		case err := <-w.watcher.Errors:
+		case err, ok := <-w.watcher.Errors:
+			if !ok {
+				return
+			}
+
 			log.Errorf("FileWatcher: Error watching: %v", err)
 		}
 	}
@@ -265,11 +290,11 @@ func (w *FileWatcher) handleEvent(filePath string, event Event) {
 
 func (w *FileWatcher) handleDirEvent(event *fsevents.FsEvent) {
 	if event.IsDirCreated() {
-		if err := w.addWatch(event.Path); err != nil {
+		if err := w.start(event.Path, nil); err != nil {
 			log.Errorf("FileWatcher: Failed to add watch %q: %v", event.Path, err)
 		}
 	} else if event.IsDirRemoved() {
-		if err := w.removeWatch(event.Path); err != nil {
+		if err := w.stop(event.Path); err != nil {
 			log.Errorf("FileWatcher: Failed remove watch %q: %v", event.Path, err)
 		}
 	}
@@ -284,6 +309,8 @@ func (w *FileWatcher) GetFileUpdateStream() FileUpdateStream {
 func (w *FileWatcher) Close() {
 	//w.watcher.StopAll()
 	w.batcher.Close()
+	close(w.watcher.Events)
+	close(w.watcher.Errors)
 	//close(w.events) // Close the event stream
 	w.monitor.Wait()
 	w.dispatcher.Wait()
