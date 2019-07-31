@@ -84,7 +84,7 @@ func (ss *SyncStorage) Delete(gvk schema.GroupVersionKind, uid meta.UID) error {
 	})
 }
 
-func (ss *SyncStorage) Close() {
+func (ss *SyncStorage) Close() error {
 	// Close all WatchStorages
 	for _, s := range ss.storages {
 		if watchStorage, ok := s.(watch.WatchStorage); ok {
@@ -94,6 +94,7 @@ func (ss *SyncStorage) Close() {
 
 	close(ss.eventStream) // Close the event stream
 	ss.monitor.Wait()     // Wait for the monitor goroutine
+	return nil
 }
 
 func (ss *SyncStorage) GetUpdateStream() UpdateStream {

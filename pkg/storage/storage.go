@@ -44,6 +44,8 @@ type Storage interface {
 	Checksum(gvk schema.GroupVersionKind, uid meta.UID) (string, error)
 	// RawStorage returns the RawStorage instance backing this Storage
 	RawStorage() RawStorage
+	// Close closes all underlying resources (e.g. goroutines) used; before the application exits
+	Close() error
 }
 
 // NewGenericStorage constructs a new Storage
@@ -204,6 +206,11 @@ func (s *GenericStorage) Checksum(gvk schema.GroupVersionKind, uid meta.UID) (st
 // RawStorage returns the RawStorage instance backing this Storage
 func (s *GenericStorage) RawStorage() RawStorage {
 	return s.raw
+}
+
+// Close closes all underlying resources (e.g. goroutines) used; before the application exits
+func (s *GenericStorage) Close() error {
+	return nil // nothing to do here for GenericStorage
 }
 
 func (s *GenericStorage) decode(content []byte, gvk schema.GroupVersionKind) (meta.Object, error) {
