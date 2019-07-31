@@ -6,6 +6,7 @@ import (
 
 	"github.com/weaveworks/ignite/cmd/ignite/cmd"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/providers/ignite"
 )
 
 func main() {
@@ -19,7 +20,7 @@ func main() {
 // Run runs the main cobra command of this application
 func Run() error {
 	// Populate the providers
-	if err := providers.Populate(providers.Providers); err != nil {
+	if err := providers.Populate(ignite.Providers); err != nil {
 		return err
 	}
 

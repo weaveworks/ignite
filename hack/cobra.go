@@ -8,10 +8,11 @@ import (
 	"github.com/spf13/cobra/doc"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/providers/ignite"
 )
 
 func main() {
-	if err := providers.Populate(providers.Providers); err != nil {
+	if err := providers.Populate(ignite.Providers); err != nil {
 		log.Fatal(err)
 	}
 	ignite := cmd.NewIgniteCommand(os.Stdin, os.Stdout, os.Stderr)

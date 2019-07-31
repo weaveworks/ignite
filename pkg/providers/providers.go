@@ -24,7 +24,7 @@ type ProviderInitFunc func() error
 
 // Populate initializes all providers
 func Populate(providers []ProviderInitFunc) error {
-	log.Infof("Populating providers...")
+	log.Trace("Populating providers...")
 	for i, init := range providers {
 		log.Tracef("Provider %d...", i)
 		if err := init(); err != nil {

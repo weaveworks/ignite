@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/providers/spawn"
 	patchutil "github.com/weaveworks/ignite/pkg/util/patch"
 )
 
@@ -28,7 +29,7 @@ func main() {
 // Run runs the main cobra command of this application
 func Run() error {
 	// Populate the providers
-	if err := providers.Populate(providers.Providers); err != nil {
+	if err := providers.Populate(spawn.Providers); err != nil {
 		return err
 	}
 
