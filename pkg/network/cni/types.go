@@ -19,18 +19,3 @@ const (
 	}]
 }`
 )
-
-// NetworkPlugin describes a network plugin for docker
-type NetworkPlugin interface {
-	// Name returns the network plugin's name.
-	Name() string
-
-	// SetupContainerNetwork sets up the networking for a Docker container using CNI
-	SetupContainerNetwork(containerID string) error
-
-	// RemoveContainerNetwork is the method called before a container using the CNI network can be deleted
-	RemoveContainerNetwork(containerID string) error
-
-	// Status returns error if the network plugin is in error state
-	Status() error
-}

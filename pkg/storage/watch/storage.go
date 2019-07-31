@@ -27,8 +27,6 @@ type WatchStorage interface {
 	storage.Storage
 	// GetTrigger returns a hook that can be used to detect a watch event
 	SetEventStream(AssociatedEventStream)
-	// Close is used to stop monitoring goroutines
-	Close()
 }
 
 type AssociatedEventStream chan update.AssociatedUpdate
@@ -86,9 +84,10 @@ func (s *GenericWatchStorage) SetEventStream(eventStream AssociatedEventStream) 
 	s.events = &eventStream
 }
 
-func (s *GenericWatchStorage) Close() {
+func (s *GenericWatchStorage) Close() error {
 	s.watcher.Close()
 	s.monitor.Wait()
+	return nil
 }
 
 func (s *GenericWatchStorage) monitorFunc(mapped raw.MappedRawStorage, files []string) {

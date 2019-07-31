@@ -150,6 +150,10 @@ func (c *cache) RawStorage() storage.RawStorage {
 	return c.storage.RawStorage()
 }
 
+func (c *cache) Close() error {
+	return c.storage.Close()
+}
+
 func (c *cache) Flush() error {
 	// Load the entire cache
 	allObjects, err := c.index.loadAll()

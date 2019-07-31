@@ -14,12 +14,13 @@ import (
 	"github.com/weaveworks/ignite/pkg/container/prometheus"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/providers/spawn"
 	patchutil "github.com/weaveworks/ignite/pkg/util/patch"
 )
 
 func main() {
 	// Populate the providers
-	cmdutil.CheckErr(providers.Populate(providers.Providers))
+	cmdutil.CheckErr(providers.Populate(spawn.Providers))
 	RunIgniteSpawn()
 }
 

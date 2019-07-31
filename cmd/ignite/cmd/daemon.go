@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/providers/ignite"
 )
 
 func NewCmdDaemon(out io.Writer) *cobra.Command {
@@ -19,7 +20,7 @@ func NewCmdDaemon(out io.Writer) *cobra.Command {
 		Hidden: true,
 		Run: func(cmd *cobra.Command, args []string) {
 			// Initialize the daemon providers (e.g. ManifestStorage)
-			cmdutil.CheckErr(providers.Populate(providers.DaemonProviders))
+			cmdutil.CheckErr(providers.Populate(ignite.DaemonProviders))
 
 			// Wait for Ctrl + C
 			var endWaiter sync.WaitGroup
@@ -35,11 +36,9 @@ func NewCmdDaemon(out io.Writer) *cobra.Command {
 
 			endWaiter.Wait()
 
-			// Close the SyncStorage's watcher threads
-			if providers.SyncStorage != nil {
-				fmt.Println("Closing...")
-				providers.SyncStorage.Close()
-			}
+			// Close the Storage's watcher threads
+			fmt.Println("Closing...")
+			providers.Storage.Close()
 		},
 	}
 
