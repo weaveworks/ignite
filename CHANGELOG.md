@@ -33,7 +33,7 @@ We hope to see this trend continue, all help is very welcome to this community-d
  - Fix link to `CentOS` image in `README.md` ([#161](https://github.com/weaveworks/ignite/pull/161), [@akshaychhajed](https://github.com/akshaychhajed))
  - Added `loop` kernel module dependency to `docs/dependencies.md` ([#155](https://github.com/weaveworks/ignite/pull/155), [@curx](https://github.com/curx))
  - Clarify usage on `Ubuntu` and `CentOS`, embed links to [Joe Beda](https://twitter.com/jbeda)'s TGIK recording ([#175](https://github.com/weaveworks/ignite/pull/175), [@luxas](https://github.com/luxas))
- - Added a brand new `FAQ`! Check it out at [FAQ.md](FAQ.md)! ([#197](https://github.com/weaveworks/ignite/pull/197), [@luxas](https://github.com/luxas))
+ - Added a brand new `FAQ`! Check it out at [FAQ.md](docs/FAQ.md)! ([#197](https://github.com/weaveworks/ignite/pull/197), [@luxas](https://github.com/luxas))
 
 
 ## Trying it out / Next Steps!

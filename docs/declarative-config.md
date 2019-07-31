@@ -100,4 +100,5 @@ spec:
   ssh: [true, or public key path]
 ```
 
-You can find the full API reference in the [api/](../api) subfolder of the project.
+You can find the full API reference in the
+[api/](https://github.com/weaveworks/ignite/tree/master/api) subfolder of the project.

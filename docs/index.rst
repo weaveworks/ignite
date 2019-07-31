@@ -18,6 +18,7 @@ In this folder you can read more about how to use Ignite, and how it works:
    dependencies
    prometheus
    devel
+   FAQ
 
 .. toctree::
    :caption: Reference
