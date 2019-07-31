@@ -47,8 +47,9 @@ Options
 In this folder you can read more about how to use Ignite, and how it works:
 
 .. toctree::
-  :titlesonly:
   :glob:
+  :titlesonly:
+  :maxdepth: 0
 
   ignite_attach
   ignite_completion

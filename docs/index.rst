@@ -9,11 +9,32 @@ Ignite Documentation
 In this folder you can read more about how to use Ignite, and how it works:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Table of contents:
 
+   installation
    usage
    declarative-config
-   cli/index
    dependencies
    prometheus
+   devel
+
+.. toctree::
+   :caption: Reference
+   :titlesonly:
+   :maxdepth: 0
+
+   cli/index
+
+.. toctree::
+   :caption: Releases
+   :titlesonly:
+   :maxdepth: 0
+
+   releases/v0.4.2
+   releases/v0.4.1
+   releases/v0.4.0
+   releases/v0.4.0-rc.1
+   releases/v0.3.0
+   releases/v0.2.0
+   releases/v0.1.0
