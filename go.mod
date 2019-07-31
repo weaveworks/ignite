@@ -39,4 +39,7 @@ require (
 	sigs.k8s.io/yaml v1.1.0
 )
 
-replace github.com/docker/distribution => github.com/docker/distribution v2.7.1+incompatible
+replace (
+	github.com/docker/distribution => github.com/docker/distribution v2.7.1+incompatible
+	k8s.io/klog => ./third_party/k8s.io/klog
+)
