@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -17,20 +18,9 @@ import (
 )
 
 func main() {
-	if err := Run(); err != nil {
-		os.Exit(1)
-	}
-}
-
-// Run runs the main cobra command of this application
-func Run() error {
 	// Populate the providers
-	if err := providers.Populate(providers.Providers); err != nil {
-		return err
-	}
-
-	c := NewIgniteSpawnCommand(os.Stdin, os.Stdout, os.Stderr)
-	return c.Execute()
+	cmdutil.CheckErr(providers.Populate(providers.Providers))
+	RunIgniteSpawn()
 }
 
 func StartVM(co *options) error {

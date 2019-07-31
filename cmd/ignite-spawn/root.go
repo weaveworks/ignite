@@ -1,11 +1,10 @@
 package main
 
 import (
-	"io"
+	"fmt"
+	"os"
 
-	"github.com/lithammer/dedent"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/pkg/logs"
@@ -13,34 +12,32 @@ import (
 
 var logLevel = logrus.InfoLevel
 
-// NewIgniteSpawnCommand returns the root command for ignite-spawn
-func NewIgniteSpawnCommand(in io.Reader, out, err io.Writer) *cobra.Command {
-	root := &cobra.Command{
-		Use: "ignite-spawn <vm>",
-		Short: dedent.Dedent(`
-			Start the given VM in Firecracker and manage it.
-			Used internally by Ignite, don't call ignite-spawn
-			by hand. Refer to Ignite for CLI usage.
-		`),
-		Args: cobra.ExactArgs(1),
-		PersistentPreRun: func(_ *cobra.Command, _ []string) {
-			logs.InitLogs(logLevel)
-		},
-		Run: func(cmd *cobra.Command, args []string) {
-			cmdutil.CheckErr(func() error {
-				opts, err := NewOptions(args[0])
-				if err != nil {
-					return err
-				}
-
-				return StartVM(opts)
-			}())
-		},
+// RunIgniteSpawn runs the root command for ignite-spawn
+func RunIgniteSpawn() {
+	fs := &pflag.FlagSet{
+		Usage: usage,
 	}
 
-	addGlobalFlags(root.PersistentFlags())
+	addGlobalFlags(fs)
+	cmdutil.CheckErr(fs.Parse(os.Args[1:]))
+	logs.Logger.SetLevel(logLevel)
 
-	return root
+	if len(fs.Args()) != 1 {
+		usage()
+	}
+
+	cmdutil.CheckErr(func() error {
+		opts, err := NewOptions(fs.Args()[0])
+		if err != nil {
+			return err
+		}
+
+		return StartVM(opts)
+	}())
+}
+
+func usage() {
+	cmdutil.CheckErr(fmt.Errorf("usage: ignite-spawn [--log-level <level>] <vm>"))
 }
 
 func addGlobalFlags(fs *pflag.FlagSet) {
