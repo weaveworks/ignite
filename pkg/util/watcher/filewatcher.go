@@ -82,7 +82,7 @@ func NewFileWatcherWithOptions(dir string, opts Options) (w *FileWatcher, files 
 		dir:     dir,
 		events:  make(eventStream, eventBuffer),
 		updates: make(FileUpdateStream, eventBuffer),
-		batcher: sync.NewWriteBatcher(opts.BatchTimeout),
+		batcher: sync.NewBatchWriter(opts.BatchTimeout),
 		opts:    opts,
 	}
 
@@ -112,7 +112,7 @@ type FileWatcher struct {
 	// the batcher is used for properly sending many concurrent inotify events
 	// as a group, after a specified timeout. This fixes the issue of one single
 	// file operation being registered as many different inotify events
-	batcher *sync.WriteBatcher
+	batcher *sync.BatchWriter
 }
 
 func (w *FileWatcher) addWatch(path string) (err error) {

@@ -14,9 +14,9 @@ type job struct {
 	event string
 }
 
-func TestWriteBatcher(t *testing.T) {
+func TestBatchWriter(t *testing.T) {
 	ch := make(chan job)
-	b := NewWriteBatcher(1 * time.Second)
+	b := NewBatchWriter(1 * time.Second)
 	go func() {
 		for i := 0; i < 10; i++ {
 			fmt.Println(i)
