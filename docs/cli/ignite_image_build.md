@@ -42,5 +42,4 @@ ignite image build <source> [flags]
 
 ### SEE ALSO
 
-* [ignite image](ignite_image.md)	 - Manage VM base images
-
+* [ignite image](ignite_image.md) - Manage VM base images

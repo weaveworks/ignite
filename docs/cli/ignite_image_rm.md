@@ -30,5 +30,4 @@ ignite image rm <image>... [flags]
 
 ### SEE ALSO
 
-* [ignite image](ignite_image.md)	 - Manage base images for VMs
-
+* [ignite image](ignite_image.md) - Manage base images for VMs

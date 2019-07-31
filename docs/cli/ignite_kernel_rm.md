@@ -30,5 +30,4 @@ ignite kernel rm <kernel>... [flags]
 
 ### SEE ALSO
 
-* [ignite kernel](ignite_kernel.md)	 - Manage VM kernels
-
+* [ignite kernel](ignite_kernel.md) - Manage VM kernels

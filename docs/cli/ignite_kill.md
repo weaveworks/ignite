@@ -29,5 +29,4 @@ ignite kill <vm>... [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs
