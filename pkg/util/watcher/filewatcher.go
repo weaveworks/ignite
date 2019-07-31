@@ -3,6 +3,7 @@ package watcher
 import (
 	"bytes"
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/util"
 	"os"
 	"path/filepath"
 	"time"
@@ -13,7 +14,7 @@ import (
 )
 
 const updateBuffer = 4096 // How many updates we can buffer before watching is interrupted
-var watchMask = fsevents.DirCreatedEvent | fsevents.DirRemovedEvent | fsevents.CloseWrite
+var watchMask = fsevents.DirCreatedEvent | fsevents.DirRemovedEvent | fsevents.CloseWrite | fsevents.RootDelete
 
 var eventMap = map[uint32]Event{
 	fsevents.FileCreatedEvent: EventCreate,
@@ -147,7 +148,13 @@ func (w *FileWatcher) removeWatch(path string) error {
 // start discovers all subdirectories and adds paths to
 // notify before starting the monitoring goroutine
 func (w *FileWatcher) start(dir string, files *[]string) error {
-	return filepath.Walk(dir,
+	//descriptors := w.watcher.ListDescriptors()
+	//validDescriptors := make(map[string]bool, len(descriptors))
+	//for _, path := range descriptors {
+	//	validDescriptors[path] = false
+	//}
+
+	if err := filepath.Walk(dir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -165,7 +172,12 @@ func (w *FileWatcher) start(dir string, files *[]string) error {
 					}
 				}
 
-				return w.addWatch(path)
+				if !w.watcher.DescriptorExists(path) {
+					return w.addWatch(path)
+				}
+
+				//validDescriptors[path] = true
+				//return nil
 			}
 
 			if files != nil {
@@ -176,19 +188,51 @@ func (w *FileWatcher) start(dir string, files *[]string) error {
 			}
 
 			return nil
-		})
+		}); err != nil {
+		return err
+	}
+
+	//for path, valid := range validDescriptors {
+	//	if !valid {
+	//		if err := w.removeWatch(path); err != nil {
+	//			return err
+	//		}
+	//	}
+	//}
+
+	return nil
 }
 
-func (w *FileWatcher) stop(dir string) error {
+func (w *FileWatcher) stop(dir string) (err error) {
+	// TODO: On removal this might throw fsevents.ErrDescForEventNotFound, fix it
+
+	if !w.watcher.DescriptorExists(dir) {
+		return // Bail if this directory's descriptor is already gone
+	}
+
+	if !util.Subpath(w.dir, dir) {
+		return fmt.Errorf("tried to remove watch from %q", w.dir)
+	}
+
+	parentDir := filepath.Dir(dir)
+	if !util.DirExists(parentDir) {
+		// If the parent directory has already been deleted, call this method
+		// recursively until hitting the lowest directory that was deleted
+		// and perform the descriptor lookup and removal from there
+		return w.stop(parentDir)
+	}
+
 	for _, path := range w.watcher.ListDescriptors() {
-		if _, err := filepath.Rel(dir, path); err == nil {
+		if util.Subpath(dir, path) {
 			if err = w.removeWatch(path); err != nil {
-				return err
+				return
 			}
 		}
 	}
 
-	return nil
+	fmt.Println("Number of watches:", len(w.watcher.ListDescriptors()))
+
+	return
 }
 
 func (w *FileWatcher) monitorFunc() {
@@ -203,28 +247,30 @@ func (w *FileWatcher) monitorFunc() {
 				return
 			}
 
-			if fsevents.CheckMask(fsevents.RootDelete, event.RawEvent.Mask) {
-				fmt.Println("ROOT delete:", event.Path)
-			}
+			//fmt.Println("Watches before:", len(w.watcher.ListDescriptors()))
+
+			//if fsevents.CheckMask(fsevents.IsDir | fsevents.RootDelete, event.RawEvent.Mask) {
+			//	fmt.Println("ROOT DIR delete:", event.Path)
+			//}
 
 			// If the event targets a directory, handle the watchers for it
-			if event.IsDirEvent() {
-				w.handleDirEvent(event)
+			if w.handleDirEvent(event) {
+				//fmt.Println("Watches after:", len(w.watcher.ListDescriptors()))
 				continue // Skip file processing for the event
 			}
 
 			updateEvent := convertEvent(event)
-			if updateEvent == w.suspendEvent {
+			if w.suspendEvent > 0 && updateEvent == w.suspendEvent {
 				w.suspendEvent = 0
 				log.Debugf("FileWatcher: Skipping suspended event %s for path: %q", updateEvent, event.Path)
 				continue // Skip the suspended event
 			}
 
 			// Suppress successive duplicate events registered in suppressDuplicates
-			if suppressEvent(event.Path, updateEvent) {
-				log.Debugf("FileWatcher: Skipping suppressed event %s for path: %q", updateEvent, event.Path)
-				continue // Skip the suppressed event
-			}
+			//if suppressEvent(event.Path, updateEvent) {
+			//	log.Debugf("FileWatcher: Skipping suppressed event %s for path: %q", updateEvent, event.Path)
+			//	continue // Skip the suppressed event
+			//}
 
 			// Get any events registered for the specific file, and append the specified event
 			var eventList Events
@@ -242,7 +288,8 @@ func (w *FileWatcher) monitorFunc() {
 				return
 			}
 
-			log.Errorf("FileWatcher: Error watching: %v", err)
+			panic(err)
+			//log.Errorf("FileWatcher: Error watching: %v", err)
 		}
 	}
 }
@@ -288,16 +335,24 @@ func (w *FileWatcher) handleEvent(filePath string, event Event) {
 	}
 }
 
-func (w *FileWatcher) handleDirEvent(event *fsevents.FsEvent) {
+func (w *FileWatcher) handleDirEvent(event *fsevents.FsEvent) bool {
+	//if err := w.start(nil); err != nil {
+	//	log.Errorf("FileWatcher: Watch directory updating failed: %v", err)
+	//}
+
 	if event.IsDirCreated() {
 		if err := w.start(event.Path, nil); err != nil {
 			log.Errorf("FileWatcher: Failed to add watch %q: %v", event.Path, err)
 		}
-	} else if event.IsDirRemoved() {
+	} else if event.IsDirRemoved() || fsevents.CheckMask(fsevents.IsDir|fsevents.RootDelete, event.RawEvent.Mask) {
 		if err := w.stop(event.Path); err != nil {
 			log.Errorf("FileWatcher: Failed remove watch %q: %v", event.Path, err)
 		}
+	} else {
+		return false
 	}
+
+	return true
 }
 
 // GetFileUpdateStream gets the channel with FileUpdates

@@ -5,6 +5,8 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/weaveworks/ignite/pkg/constants"
 )
@@ -71,6 +73,24 @@ func CopyFile(src string, dst string) error {
 
 	_, err = io.Copy(destination, source)
 	return err
+}
+
+// Tests if subpath is a child of basedir, if subpath == basedir, returns true
+func Subpath(basedir, subpath string) bool {
+	base := strings.Split(filepath.Clean(basedir), string(os.PathSeparator))
+	sub := strings.Split(filepath.Clean(subpath), string(os.PathSeparator))
+
+	if len(sub) < len(base) {
+		return false
+	}
+
+	for i, part := range base {
+		if part != sub[i] {
+			return false
+		}
+	}
+
+	return true
 }
 
 type MountPoint struct {
