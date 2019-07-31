@@ -30,13 +30,13 @@ Alternatively, you might want to check out the [TGIK](https://github.com/heptio/
 
 [![TGIK 082](https://img.youtube.com/vi/aq-wlslJ5MQ/0.jpg)](https://youtu.be/aq-wlslJ5MQ)
 
-### Importing a VM base image
+## Importing a VM base image
 
 A VM base image (or just `image`) is an OCI container, which contains a filesystem
 and has an init system installed. Ignite currently supports importing `images` from
 Docker images, for which it has the following command:
 
-```
+```console
 # ignite image import <identifier>
 ```
 
@@ -48,7 +48,7 @@ enter just the three first letters of a name if they are unique to a single reso
 Go ahead and import the `weaveworks/ignite-ubuntu` Docker image. If it isn't present locally,
 Ignite will pull it for you:
 
-```
+```console
 # ignite image import weaveworks/ignite-ubuntu
 ...
 INFO[0002] Created image with ID "cae0ac317cca74ba" and name "weaveworks/ignite-ubuntu:latest" 
@@ -56,7 +56,7 @@ INFO[0002] Created image with ID "cae0ac317cca74ba" and name "weaveworks/ignite-
 
 Now the `weaveworks/ignite-ubuntu` image is imported and ready for VM use.
 
-### Creating a new VM based on the imported image
+## Creating a new VM based on the imported image
 
 The `images` are read-only references of what every VM based on them should contain.
 To create a functional `VM`, Ignite uses `device mapper` to overlay a writable snapshot
@@ -75,7 +75,7 @@ Let's create a new VM with some options:
 INFO[0001] Created VM with ID "3c5fa9a18682741f" and name "my-vm" 
 ```
 
-#### Options for VM generation
+### Options for VM generation
 
 The previous example tells Ignite to create a `VM` with the name `my-vm` and that it should have
 2 CPU cores, 1 GB of RAM, a writable snapshot size of 6 GB and have SSH access enabled.
@@ -154,7 +154,7 @@ root@3c5fa9a18682741f:~# <^P^Q> read escape sequence
 $
 ```
 
-### SSH into the VM
+## SSH into the VM
 
 **NOTE:** SSH works only if the `--ssh` flag is specified during `create`. Otherwise there are
 no public keys imported into the `VM` and most `images` have password-based root logins

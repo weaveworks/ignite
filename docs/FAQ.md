@@ -2,7 +2,6 @@
 
 A collection of Frequently Asked Questions about Ignite:
 
-
 ## Q: Can I use Ignite as CRI runtime for kubelet?
 
 No, you can't. Ignite isn't designed for running containers, hence it cannot work as a CRI runtime.

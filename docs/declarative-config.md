@@ -1,4 +1,4 @@
-## Run Ignite VMs declaratively
+# Run Ignite VMs declaratively
 
 Flags can be convenient for simple use cases, but have many limitations.
 In more advanced use-cases, and to eventually allow GitOps flows, there is
