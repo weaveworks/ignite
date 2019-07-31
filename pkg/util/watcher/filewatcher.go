@@ -2,22 +2,23 @@ package watcher
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
 
-	"github.com/rjeczalik/notify"
 	log "github.com/sirupsen/logrus"
+	"github.com/tywkeene/go-fsevents"
 	"github.com/weaveworks/ignite/pkg/util/sync"
 )
 
-const eventBuffer = 4096 // How many events and updates we can buffer before watching is interrupted
-var listenEvents = []notify.Event{notify.InCreate, notify.InDelete, notify.InDeleteSelf, notify.InCloseWrite}
+const updateBuffer = 4096 // How many updates we can buffer before watching is interrupted
+var watchMask = fsevents.DirCreatedEvent | fsevents.DirRemovedEvent | fsevents.CloseWrite
 
-var eventMap = map[notify.Event]Event{
-	notify.InCreate:     EventCreate,
-	notify.InDelete:     EventDelete,
-	notify.InCloseWrite: EventModify,
+var eventMap = map[uint32]Event{
+	fsevents.FileCreatedEvent: EventCreate,
+	fsevents.FileRemovedEvent: EventDelete,
+	fsevents.CloseWrite:       EventModify,
 }
 
 // combinedEvent describes multiple events that should be concatenated into a single event
@@ -44,9 +45,7 @@ var suppressDuplicates = map[Event]bool{
 	EventDelete: true,
 }
 
-type eventStream chan notify.EventInfo
 type FileUpdateStream chan *FileUpdate
-type watches []string
 
 // Options specifies options for the FileWatcher
 type Options struct {
@@ -67,6 +66,24 @@ func DefaultOptions() Options {
 	}
 }
 
+// FileWatcher recursively monitors changes in files in the given directory
+// and sends out events based on their state changes. Only files conforming
+// to validSuffix are monitored. The FileWatcher can be suspended for a single
+// event at a time to eliminate updates by WatchStorage causing a loop.
+type FileWatcher struct {
+	dir          string
+	updates      FileUpdateStream
+	suspendEvent Event
+	watcher      *fsevents.Watcher
+	monitor      *sync.Monitor
+	dispatcher   *sync.Monitor
+	opts         Options
+	// the batcher is used for properly sending many concurrent inotify events
+	// as a group, after a specified timeout. This fixes the issue of one single
+	// file operation being registered as many different inotify events
+	batcher *sync.BatchWriter
+}
+
 // NewFileWatcher returns a list of files in the watched directory in
 // addition to the generated FileWatcher, it can be used to populate
 // MappedRawStorage fileMappings
@@ -80,15 +97,21 @@ func NewFileWatcher(dir string) (w *FileWatcher, files []string, err error) {
 func NewFileWatcherWithOptions(dir string, opts Options) (w *FileWatcher, files []string, err error) {
 	w = &FileWatcher{
 		dir:     dir,
-		events:  make(eventStream, eventBuffer),
-		updates: make(FileUpdateStream, eventBuffer),
+		updates: make(FileUpdateStream, updateBuffer),
 		batcher: sync.NewBatchWriter(opts.BatchTimeout),
 		opts:    opts,
 	}
 
+	if w.watcher, err = fsevents.NewWatcher(dir, watchMask); err != nil {
+		return
+	}
+
 	if err = w.start(&files); err != nil {
-		notify.Stop(w.events)
+		if err2 := w.watcher.StopAll(); err2 != nil {
+			err = fmt.Errorf("%v, error stopping descriptors: %v", err, err2)
+		}
 	} else {
+		go w.watcher.Watch()
 		w.monitor = sync.RunMonitor(w.monitorFunc)
 		w.dispatcher = sync.RunMonitor(w.dispatchFunc)
 	}
@@ -96,50 +119,29 @@ func NewFileWatcherWithOptions(dir string, opts Options) (w *FileWatcher, files 
 	return
 }
 
-// FileWatcher recursively monitors changes in files in the given directory
-// and sends out events based on their state changes. Only files conforming
-// to validSuffix are monitored. The FileWatcher can be suspended for a single
-// event at a time to eliminate updates by WatchStorage causing a loop.
-type FileWatcher struct {
-	dir          string
-	events       eventStream
-	updates      FileUpdateStream
-	watches      watches
-	suspendEvent Event
-	monitor      *sync.Monitor
-	dispatcher   *sync.Monitor
-	opts         Options
-	// the batcher is used for properly sending many concurrent inotify events
-	// as a group, after a specified timeout. This fixes the issue of one single
-	// file operation being registered as many different inotify events
-	batcher *sync.BatchWriter
-}
-
 func (w *FileWatcher) addWatch(path string) (err error) {
 	log.Tracef("FileWatcher: Adding watch for %q", path)
-	if err = notify.Watch(path, w.events, listenEvents...); err == nil {
-		w.watches = append(w.watches, path)
+	wd, err := w.watcher.AddDescriptor(path, watchMask)
+	if err == nil {
+		err = wd.Start()
 	}
 
 	return
 }
 
-func (w *FileWatcher) hasWatch(path string) bool {
-	for _, watch := range w.watches {
-		if watch == path {
-			log.Tracef("FileWatcher: Watch found for %q", path)
-			return true
-		}
+func (w *FileWatcher) hasWatch(path string) (b bool) {
+	if b = w.watcher.DescriptorExists(path); b {
+		log.Tracef("FileWatcher: Watch found for %q", path)
+	} else {
+		log.Tracef("FileWatcher: No watch found for %q", path)
 	}
 
-	log.Tracef("FileWatcher: No watch found for %q", path)
-	return false
+	return
 }
 
-func (w *FileWatcher) clear() {
-	log.Tracef("FileWatcher: Clearing all watches")
-	notify.Stop(w.events)
-	w.watches = w.watches[:0]
+func (w *FileWatcher) removeWatch(path string) error {
+	log.Tracef("FileWatcher: Removing watch for %q", path)
+	return w.watcher.RemoveDescriptor(path)
 }
 
 // start discovers all subdirectories and adds paths to
@@ -178,42 +180,45 @@ func (w *FileWatcher) monitorFunc() {
 	defer close(w.updates) // Close the update stream after the FileWatcher has stopped
 
 	for {
-		event, ok := <-w.events
-		if !ok {
-			return
+		select {
+		case event, ok := <-w.watcher.Events:
+			if !ok {
+				return
+			}
+
+			// If the event targets a directory, handle the watchers for it
+			if event.IsDirEvent() {
+				w.handleDirEvent(event)
+				continue // Skip file processing for the event
+			}
+
+			updateEvent := convertEvent(event)
+			if updateEvent == w.suspendEvent {
+				w.suspendEvent = 0
+				log.Debugf("FileWatcher: Skipping suspended event %s for path: %q", updateEvent, event.Path)
+				continue // Skip the suspended event
+			}
+
+			// Suppress successive duplicate events registered in suppressDuplicates
+			if suppressEvent(event.Path, updateEvent) {
+				log.Debugf("FileWatcher: Skipping suppressed event %s for path: %q", updateEvent, event.Path)
+				continue // Skip the suppressed event
+			}
+
+			// Get any events registered for the specific file, and append the specified event
+			var eventList Events
+			if val, ok := w.batcher.Load(event.Path); ok {
+				eventList = val.(Events)
+			}
+
+			eventList = append(eventList, updateEvent)
+
+			// Register the event in the map, and dispatch all the events at once after the timeout
+			w.batcher.Store(event.Path, eventList)
+			log.Debugf("FileWatcher: Registered inotify events %v for path %q", eventList, event.Path)
+		case err := <-w.watcher.Errors:
+			log.Errorf("FileWatcher: Error watching: %v", err)
 		}
-
-		updateEvent := convertEvent(event.Event())
-		if updateEvent == w.suspendEvent {
-			w.suspendEvent = 0
-			log.Debugf("FileWatcher: Skipping suspended event %s for path: %q", updateEvent, event.Path())
-			continue // Skip the suspended event
-		}
-
-		// Suppress successive duplicate events registered in suppressDuplicates
-		if suppressEvent(event.Path(), updateEvent) {
-			log.Debugf("FileWatcher: Skipping suppressed event %s for path: %q", updateEvent, event.Path())
-			continue // Skip the suppressed event
-		}
-
-		// Directory bypass for FileWatcher registration
-		// The FileWatcher registration/deletion needs to be as fast as
-		// possible, bypass the batcher when dealing with directories
-		if w.handleDirEvent(event.Path(), updateEvent) {
-			continue // The event path matched a directory, skip file processing for the event
-		}
-
-		// Get any events registered for the specific file, and append the specified event
-		var eventList Events
-		if val, ok := w.batcher.Load(event.Path()); ok {
-			eventList = val.(Events)
-		}
-
-		eventList = append(eventList, updateEvent)
-
-		// Register the event in the map, and dispatch all the events at once after the timeout
-		w.batcher.Store(event.Path(), eventList)
-		log.Debugf("FileWatcher: Registered inotify events %v for path %q", eventList, event.Path())
 	}
 }
 
@@ -258,34 +263,16 @@ func (w *FileWatcher) handleEvent(filePath string, event Event) {
 	}
 }
 
-func (w *FileWatcher) handleDirEvent(filePath string, event Event) (dir bool) {
-	switch event {
-	case EventCreate:
-		fi, err := os.Stat(filePath)
-		if err != nil {
-			log.Errorf("FileWatcher: Failed to stat %q: %v", filePath, err)
-			return
+func (w *FileWatcher) handleDirEvent(event *fsevents.FsEvent) {
+	if event.IsDirCreated() {
+		if err := w.addWatch(event.Path); err != nil {
+			log.Errorf("FileWatcher: Failed to add watch %q: %v", event.Path, err)
 		}
-
-		if fi.IsDir() {
-			if err := w.addWatch(filePath); err != nil {
-				log.Errorf("FileWatcher: Failed to add %q: %v", filePath, err)
-			}
-
-			dir = true
-		}
-	case EventDelete:
-		if w.hasWatch(filePath) {
-			w.clear()
-			if err := w.start(nil); err != nil {
-				log.Errorf("FileWatcher: Failed to re-initialize watches for %q", w.dir)
-			}
-
-			dir = true
+	} else if event.IsDirRemoved() {
+		if err := w.removeWatch(event.Path); err != nil {
+			log.Errorf("FileWatcher: Failed remove watch %q: %v", event.Path, err)
 		}
 	}
-
-	return
 }
 
 // GetFileUpdateStream gets the channel with FileUpdates
@@ -295,9 +282,9 @@ func (w *FileWatcher) GetFileUpdateStream() FileUpdateStream {
 
 // Close closes active underlying resources
 func (w *FileWatcher) Close() {
-	notify.Stop(w.events)
+	//w.watcher.StopAll()
 	w.batcher.Close()
-	close(w.events) // Close the event stream
+	//close(w.events) // Close the event stream
 	w.monitor.Wait()
 	w.dispatcher.Wait()
 }
@@ -320,9 +307,11 @@ func (w *FileWatcher) validSuffix(path string) bool {
 	return false
 }
 
-func convertEvent(event notify.Event) Event {
-	if updateEvent, ok := eventMap[event]; ok {
-		return updateEvent
+func convertEvent(event *fsevents.FsEvent) Event {
+	for mask, e := range eventMap {
+		if fsevents.CheckMask(mask, event.RawEvent.Mask) {
+			return e
+		}
 	}
 
 	return EventNone

@@ -2,7 +2,6 @@ package operations
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/logs"
 	"io"
 	"io/ioutil"
 	"path"
@@ -14,6 +13,7 @@ import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
+	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/runtime"

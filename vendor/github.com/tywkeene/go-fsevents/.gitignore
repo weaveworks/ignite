@@ -1,0 +1,6 @@
+*.swp
+*.swo
+.vim-bookmarks
+example/example
+cover.html
+cover.out
