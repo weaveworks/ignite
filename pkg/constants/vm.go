@@ -18,4 +18,7 @@ const (
 
 	// Prometheus socket filename
 	PROMETHEUS_SOCKET = "prometheus.sock"
+
+	// Where the VM specification is located inside of the container
+	IGNITE_SPAWN_VM_FILE_PATH = "/vm.json"
 )

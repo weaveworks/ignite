@@ -27,12 +27,12 @@ func RunIgniteSpawn() {
 	}
 
 	cmdutil.CheckErr(func() error {
-		opts, err := NewOptions(fs.Args()[0])
+		vm, err := decodeVM(fs.Args()[0])
 		if err != nil {
 			return err
 		}
 
-		return StartVM(opts)
+		return StartVM(vm)
 	}())
 }
 
