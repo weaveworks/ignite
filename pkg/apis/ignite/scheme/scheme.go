@@ -7,6 +7,7 @@ import (
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2"
 	"github.com/weaveworks/ignite/pkg/storage/serializer"
 )
 
@@ -30,5 +31,6 @@ func init() {
 func AddToScheme(scheme *runtime.Scheme) {
 	utilruntime.Must(ignite.AddToScheme(Scheme))
 	utilruntime.Must(v1alpha1.AddToScheme(Scheme))
-	utilruntime.Must(scheme.SetVersionPriority(v1alpha1.SchemeGroupVersion))
+	utilruntime.Must(v1alpha2.AddToScheme(Scheme))
+	utilruntime.Must(scheme.SetVersionPriority(v1alpha2.SchemeGroupVersion))
 }
