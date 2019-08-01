@@ -50,6 +50,9 @@ func (e FileEvents) Bytes() []byte {
 	return b
 }
 
+// FileUpdates is a slice of FileUpdate pointers
+type FileUpdates []*FileUpdate
+
 // FileUpdate is used by watchers to
 // signal the state change of a file.
 type FileUpdate struct {

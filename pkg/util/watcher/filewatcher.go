@@ -1,7 +1,8 @@
 package watcher
 
 import (
-	"bytes"
+	"fmt"
+	"golang.org/x/sys/unix"
 	"os"
 	"path"
 	"path/filepath"
@@ -14,7 +15,7 @@ import (
 )
 
 const eventBuffer = 4096 // How many events and updates we can buffer before watching is interrupted
-var listenEvents = []notify.Event{notify.InDelete, notify.InCloseWrite}
+var listenEvents = []notify.Event{notify.InDelete, notify.InCloseWrite, notify.InMovedFrom, notify.InMovedTo}
 
 var eventMap = map[notify.Event]FileEvent{
 	notify.InDelete:     FileEventDelete,
@@ -23,33 +24,38 @@ var eventMap = map[notify.Event]FileEvent{
 
 // combinedEvent describes multiple events that should be concatenated into a single event
 type combinedEvent struct {
-	input  []byte    // input is a slice of events to match (in bytes, it speeds up the comparison)
-	output FileEvent // output is the resulting event that should be returned
+	input  []notify.Event // input is a slice of events to match (in bytes, it speeds up the comparison)
+	output int            // output is the event's index that should be returned, negative values equal nil
+}
+
+func (c *combinedEvent) match(events notifyEvents) (notify.EventInfo, bool) {
+	if len(c.input) > len(events) {
+		return nil, false // Not enough events, cannot match
+	}
+
+	for i := 0; i < len(c.input); i++ {
+		if events[i].Event() != c.input[i] {
+			return nil, false
+		}
+	}
+
+	if c.output > 0 {
+		return events[c.output], true
+	}
+
+	return nil, true
 }
 
 // combinedEvents describes the event combinations to concatenate,
 // this is iterated in order, so the longest matches should be first
 var combinedEvents = []combinedEvent{
-	//// DELETE + CREATE + MODIFY => MODIFY
-	//{FileEvents{FileEventDelete, EventCreate, FileEventModify}.Bytes(), FileEventModify},
-	//// CREATE + MODIFY => CREATE
-	//{FileEvents{EventCreate, FileEventModify}.Bytes(), EventCreate},
-	//// CREATE + DELETE => NONE
-	//{FileEvents{EventCreate, FileEventDelete}.Bytes(), FileEventNone},
-
 	// DELETE + MODIFY => MODIFY
-	{FileEvents{FileEventDelete, FileEventModify}.Bytes(), FileEventModify},
+	{[]notify.Event{notify.InDelete, notify.InCloseWrite}, 1},
 	// MODIFY + DELETE => NONE
-	{FileEvents{FileEventModify, FileEventDelete}.Bytes(), FileEventNone},
+	{[]notify.Event{notify.InCloseWrite, notify.InDelete}, -1},
 }
 
-// Suppress duplicate events registered in this map. E.g. directory deletion
-// fires two DELETE events, one for the parent and one for the deleted directory itself
-//var suppressDuplicates = map[FileEvent]bool{
-//	EventCreate: true,
-//	FileEventDelete: true,
-//}
-
+type notifyEvents []notify.EventInfo
 type eventStream chan notify.EventInfo
 type FileUpdateStream chan *FileUpdate
 type watches []string
@@ -155,6 +161,10 @@ func (w *FileWatcher) monitorFunc() {
 			return
 		}
 
+		if ievent(event).Mask&unix.IN_ISDIR != 0 {
+			continue // Skip directories
+		}
+
 		if !w.validFile(event.Path()) {
 			continue // Skip invalid files
 		}
@@ -166,19 +176,13 @@ func (w *FileWatcher) monitorFunc() {
 			continue // Skip the suspended event
 		}
 
-		// Suppress successive duplicate events registered in suppressDuplicates
-		//if suppressEvent(event.Path(), updateEvent) {
-		//	log.Debugf("FileWatcher: Skipping suppressed event %s for path: %q", updateEvent, event.Path())
-		//	continue // Skip the suppressed event
-		//}
-
 		// Get any events registered for the specific file, and append the specified event
-		var eventList FileEvents
+		var eventList notifyEvents
 		if val, ok := w.batcher.Load(event.Path()); ok {
-			eventList = val.(FileEvents)
+			eventList = val.(notifyEvents)
 		}
 
-		eventList = append(eventList, updateEvent)
+		eventList = append(eventList, event)
 
 		// Register the event in the map, and dispatch all the events at once after the timeout
 		w.batcher.Store(event.Path(), eventList)
@@ -193,11 +197,9 @@ func (w *FileWatcher) dispatchFunc() {
 	for {
 		// Wait until we have a batch dispatched to us
 		ok := w.batcher.ProcessBatch(func(key, val interface{}) bool {
-			filePath := key.(string)
-
 			// Concatenate all known events, and dispatch them to be handled one by one
-			for _, event := range concatenateEvents(val.(FileEvents)) {
-				w.handleEvent(filePath, event)
+			for _, event := range concatenateEvents(val.(notifyEvents)) {
+				w.sendUpdate(event)
 			}
 
 			// Continue traversing the map
@@ -211,15 +213,9 @@ func (w *FileWatcher) dispatchFunc() {
 	}
 }
 
-func (w *FileWatcher) handleEvent(filePath string, event FileEvent) {
-	switch event {
-	case FileEventDelete, FileEventModify: // Ignore FileEventNone
-		log.Debugf("FileWatcher: Sending update: %s -> %q", event, filePath)
-		w.updates <- &FileUpdate{
-			Event: event,
-			Path:  filePath,
-		}
-	}
+func (w *FileWatcher) sendUpdate(update *FileUpdate) {
+	log.Debugf("FileWatcher: Sending update: %s -> %q", update.Event, update.Path)
+	w.updates <- update
 }
 
 // GetFileUpdateStream gets the channel with FileUpdates
@@ -273,45 +269,61 @@ func convertEvent(event notify.Event) FileEvent {
 	return FileEventNone
 }
 
-// concatenateEvents takes in a slice of events and concatenates
-// all events possible based on combinedEvents
-func concatenateEvents(events FileEvents) FileEvents {
-	if len(events) < 2 {
-		return events // Quick return for 0 or 1 event
+func convertUpdate(event notify.EventInfo) *FileUpdate {
+	fileEvent := convertEvent(event.Event())
+	if fileEvent == FileEventNone {
+		// This should never happen
+		panic(fmt.Sprintf("invalid event for update conversion: %q", event.Event().String()))
 	}
 
-	for _, combinedEvent := range combinedEvents {
-		if len(combinedEvent.input) > len(events) {
-			continue // The combined event's match is too long
-		}
+	return &FileUpdate{
+		Event: fileEvent,
+		Path:  event.Path(),
+	}
+}
 
+// moveCache caches an event during a move operation
+var moveCache notify.EventInfo
+
+// concatenateEvents takes in a slice of events and concatenates
+// all events possible based on combinedEvents. It also manages
+// the move cache and conversion from notifyEvents to FileUpdates
+func concatenateEvents(events notifyEvents) FileUpdates {
+	for _, combinedEvent := range combinedEvents {
 		// Test if the prefix of the given events matches combinedEvent.input
-		if bytes.Equal(events.Bytes()[:len(combinedEvent.input)], combinedEvent.input) {
+		if event, ok := combinedEvent.match(events); ok {
 			// If so, replace combinedEvent.input prefix in events with combinedEvent.output and recurse
-			concatenated := append(FileEvents{combinedEvent.output}, events[len(combinedEvent.input):]...)
+			concatenated := events[len(combinedEvent.input):]
+			if event != nil { // Prepend the concatenation result event if any
+				concatenated = append(notifyEvents{event}, concatenated...)
+			}
+
 			log.Tracef("FileWatcher: Concatenated events: %v -> %v", events, concatenated)
 			return concatenateEvents(concatenated)
 		}
 	}
 
-	return events
+	// TODO: Support InMovedFrom and InMovedTo both ways
+	// as notify seems to send them in a random order
+	updates := make(FileUpdates, 0, len(events))
+	for _, event := range events {
+		switch event.Event() {
+		case notify.InMovedFrom:
+			moveCache = event
+			updates = append(updates, &FileUpdate{FileEventDelete, event.Path()})
+		case notify.InMovedTo:
+			if moveCache != nil && ievent(moveCache).Cookie == ievent(event).Cookie {
+				moveCache = nil
+				updates = append(updates, &FileUpdate{FileEventModify, event.Path()})
+			}
+		default:
+			updates = append(updates, convertUpdate(event))
+		}
+	}
+
+	return updates
 }
 
-//var suppressCache struct {
-//	event FileEvent
-//	path  string
-//}
-
-// suppressEvent returns true it it's called twice
-// in a row with the same known event and path
-//func suppressEvent(path string, event FileEvent) (s bool) {
-//	if _, ok := suppressDuplicates[event]; ok {
-//		if suppressCache.event == event && suppressCache.path == path {
-//			s = true
-//		}
-//	}
-//
-//	suppressCache.event = event
-//	suppressCache.path = path
-//	return
-//}
+func ievent(event notify.EventInfo) *unix.InotifyEvent {
+	return event.Sys().(*unix.InotifyEvent)
+}
