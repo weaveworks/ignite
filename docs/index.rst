@@ -21,6 +21,14 @@ In this folder you can read more about how to use Ignite, and how it works:
    FAQ
 
 .. toctree::
+   :caption: API Reference
+   :titlesonly:
+   :glob:
+   :maxdepth: 0
+
+   api/index
+
+.. toctree::
    :caption: CLI Reference
    :titlesonly:
    :maxdepth: 0
