@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/goombaio/namegenerator"
@@ -129,13 +129,11 @@ func MatchPrefix(prefix string, fields ...string) ([]string, bool) {
 	return prefixMatches, false
 }
 
-func TestRoot() (bool, error) {
-	u, err := user.Current()
-	if err != nil {
-		return false, err
+func TestRoot() error {
+	if syscall.Getuid() == 0 {
+		return nil
 	}
-
-	return u.Uid == "0", nil
+	return fmt.Errorf("This program needs to run as root.")
 }
 
 type Prefixer struct {

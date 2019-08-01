@@ -4,6 +4,9 @@ const (
 	// Path to directory containing a subdirectory for each VM
 	VM_DIR = DATA_DIR + "/vm"
 
+	// Path where ignited stores its manifests
+	MANIFEST_DIR = "/etc/firecracker/manifests"
+
 	// Default values for VM options
 	VM_DEFAULT_CPUS        = 1
 	VM_DEFAULT_MEMORY      = 512 * MB
