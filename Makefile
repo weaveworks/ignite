@@ -12,7 +12,9 @@ PROJECT = github.com/weaveworks/ignite
 APIS_DIR = ${PROJECT}/pkg/apis
 API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/ignite/v1alpha2,${APIS_DIR}/meta/v1alpha1
 CACHE_DIR = $(shell pwd)/bin/cache
-API_DOCS = api/ignite.md api/meta.md
+API_DOCS = docs/api/ignite.md docs/api/meta.md
+
+DOCS_PORT = 8000
 
 all: binary
 binary:
@@ -54,11 +56,12 @@ graph:
 	hack/graph.sh
 
 .PHONY: $(API_DOCS)
-$(API_DOCS): api/%.md: $(CACHE_DIR)/go/bin/godoc2md
+$(API_DOCS): docs/api/%.md: $(CACHE_DIR)/go/bin/godoc2md
 	mkdir -p $$(dirname $@) bin/tmp/$*
 	mv $(shell pwd)/pkg/apis/$*/v1alpha1/zz_generated* bin/tmp/$*
 	$(MAKE) shell COMMAND="/go/bin/godoc2md /go/src/${PROJECT}/pkg/apis/$*/v1alpha1 > $@"
 	sed -e "s|src/target|pkg/apis/$*/v1alpha1|g" -i $@
+	sed -e "s|(/pkg/apis|(https://github.com/weaveworks/ignite/tree/master/pkg/apis|g" -i $@
 	mv bin/tmp/$*/*.go $(shell pwd)/pkg/apis/$*/v1alpha1/
 	rm -r bin/tmp/$*
 
@@ -112,3 +115,14 @@ dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversio
 
 /go/bin/openapi-gen:
 	go install k8s.io/kube-openapi/cmd/openapi-gen
+
+
+build-docs:
+	@cd docs && docker build -t ignite-docs .
+
+test-docs: build-docs
+	@docker run -it ignite-docs /usr/bin/linkchecker _build/html/index.html
+
+serve-docs: build-docs
+	@echo Stating docs website on http://localhost:${DOCS_PORT}/_build/html/index.html
+	@docker run -i -p ${DOCS_PORT}:8000 -e USER_ID=$$UID ignite-docs

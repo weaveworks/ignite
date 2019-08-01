@@ -2,8 +2,8 @@ package manifeststorage
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/storage/cache"
 	"github.com/weaveworks/ignite/pkg/storage/manifest"
 )
