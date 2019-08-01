@@ -128,7 +128,7 @@ var (
 	IsDir      uint32 = unix.IN_ISDIR
 
 	AllEvents = Accessed | Modified | AttrChange | CloseWrite | CloseRead | Open | MovedFrom |
-			MovedTo | Move | Create | Delete | RootDelete | RootMove | IsDir
+		MovedTo | Move | Create | Delete | RootDelete | RootMove | IsDir
 
 	// Custom event flags
 
@@ -507,12 +507,7 @@ func (w *Watcher) Watch() {
 			continue
 		}
 		if event != nil {
-			select {
-			case w.Events <- event:
-			default:
-				panic("Event buffer full!")
-			}
-
+			w.Events <- event
 		}
 	}
 }

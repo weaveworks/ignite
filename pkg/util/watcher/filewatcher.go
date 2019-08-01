@@ -3,7 +3,6 @@ package watcher
 import (
 	"bytes"
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/util"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,12 +10,12 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tywkeene/go-fsevents"
+	"github.com/weaveworks/ignite/pkg/util"
 	"github.com/weaveworks/ignite/pkg/util/sync"
 )
 
 const updateBuffer = 4096 // How many updates we can buffer before watching is interrupted
-//var watchMask = fsevents.DirCreatedEvent | fsevents.DirRemovedEvent | fsevents.CloseWrite | fsevents.MovedTo
-var watchMask = fsevents.MovedFrom | fsevents.MovedTo
+var watchMask = fsevents.DirCreatedEvent | fsevents.DirRemovedEvent | fsevents.CloseWrite
 
 var eventMap = map[uint32]Event{
 	fsevents.FileCreatedEvent: EventCreate,
@@ -39,13 +38,6 @@ var combinedEvents = []combinedEvent{
 	{Events{EventCreate, EventModify}.Bytes(), EventCreate},
 	// CREATE + DELETE => NONE
 	{Events{EventCreate, EventDelete}.Bytes(), EventNone},
-}
-
-// Suppress duplicate events registered in this map. E.g. directory deletion
-// fires two DELETE events, one for the parent and one for the deleted directory itself
-var suppressDuplicates = map[Event]bool{
-	EventCreate: true,
-	EventDelete: true,
 }
 
 type FileUpdateStream chan *FileUpdate
@@ -150,21 +142,10 @@ func (w *FileWatcher) removeWatch(path string) error {
 // start discovers all subdirectories and adds paths to
 // notify before starting the monitoring goroutine
 func (w *FileWatcher) start(dir string, files *[]string) error {
-	//descriptors := w.watcher.ListDescriptors()
-	//validDescriptors := make(map[string]bool, len(descriptors))
-	//for _, path := range descriptors {
-	//	validDescriptors[path] = false
-	//}
-
-	if err := filepath.Walk(dir,
+	return filepath.Walk(dir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
-			}
-
-			// Skip the root directory
-			if path == w.dir {
-				return nil
 			}
 
 			if info.IsDir() {
@@ -176,10 +157,10 @@ func (w *FileWatcher) start(dir string, files *[]string) error {
 
 				if !w.watcher.DescriptorExists(path) {
 					return w.addWatch(path)
+				} else if path == w.dir {
+					// Start the root directory watcher
+					return w.watcher.GetDescriptorByPath(path).Start()
 				}
-
-				//validDescriptors[path] = true
-				//return nil
 			}
 
 			if files != nil {
@@ -190,24 +171,10 @@ func (w *FileWatcher) start(dir string, files *[]string) error {
 			}
 
 			return nil
-		}); err != nil {
-		return err
-	}
-
-	//for path, valid := range validDescriptors {
-	//	if !valid {
-	//		if err := w.removeWatch(path); err != nil {
-	//			return err
-	//		}
-	//	}
-	//}
-
-	return nil
+		})
 }
 
 func (w *FileWatcher) stop(dir string) (err error) {
-	// TODO: On removal this might throw fsevents.ErrDescForEventNotFound, fix it
-
 	if !w.watcher.DescriptorExists(dir) {
 		return // Bail if this directory's descriptor is already gone
 	}
@@ -232,7 +199,7 @@ func (w *FileWatcher) stop(dir string) (err error) {
 		}
 	}
 
-	fmt.Println("Number of watches:", len(w.watcher.ListDescriptors()))
+	log.Debugf("Number of watches: %d", len(w.watcher.ListDescriptors()))
 
 	return
 }
@@ -249,17 +216,16 @@ func (w *FileWatcher) monitorFunc() {
 				return
 			}
 
-			log.Infoln("Event:", visualize(event))
+			log.Debug("Event:", visualize(event))
 
-			//fmt.Println("Watches before:", len(w.watcher.ListDescriptors()))
-
-			//if fsevents.CheckMask(fsevents.IsDir | fsevents.RootDelete, event.RawEvent.Mask) {
-			//	fmt.Println("ROOT DIR delete:", event.Path)
-			//}
+			// Skip unsupported events
+			if fsevents.CheckMask(fsevents.Move, event.RawEvent.Mask) {
+				log.Errorf("FileWatcher: Moving/renaming is unsupported: %q", event.Path)
+				continue
+			}
 
 			// If the event targets a directory, handle the watchers for it
 			if w.handleDirEvent(event) {
-				//fmt.Println("Watches after:", len(w.watcher.ListDescriptors()))
 				continue // Skip file processing for the event
 			}
 
@@ -269,12 +235,6 @@ func (w *FileWatcher) monitorFunc() {
 				log.Debugf("FileWatcher: Skipping suspended event %s for path: %q", updateEvent, event.Path)
 				continue // Skip the suspended event
 			}
-
-			// Suppress successive duplicate events registered in suppressDuplicates
-			//if suppressEvent(event.Path, updateEvent) {
-			//	log.Debugf("FileWatcher: Skipping suppressed event %s for path: %q", updateEvent, event.Path)
-			//	continue // Skip the suppressed event
-			//}
 
 			// Get any events registered for the specific file, and append the specified event
 			var eventList Events
@@ -350,26 +310,20 @@ func (w *FileWatcher) handleEvent(filePath string, event Event) {
 	}
 }
 
-func (w *FileWatcher) handleDirEvent(event *fsevents.FsEvent) (dir bool) {
-	//if err := w.start(nil); err != nil {
-	//	log.Errorf("FileWatcher: Watch directory updating failed: %v", err)
-	//}
+func (w *FileWatcher) handleDirEvent(event *fsevents.FsEvent) bool {
 	if event.IsDirRemoved() {
 		if err := w.stop(event.Path); err != nil {
 			log.Errorf("FileWatcher: Failed remove watch %q: %v", event.Path, err)
 		}
-
-		dir = true
-	}
-	if event.IsDirCreated() {
+	} else if event.IsDirCreated() {
 		if err := w.start(event.Path, nil); err != nil {
 			log.Errorf("FileWatcher: Failed to add watch %q: %v", event.Path, err)
 		}
-
-		dir = true
+	} else {
+		return false
 	}
 
-	return
+	return true
 }
 
 // GetFileUpdateStream gets the channel with FileUpdates
@@ -379,11 +333,9 @@ func (w *FileWatcher) GetFileUpdateStream() FileUpdateStream {
 
 // Close closes active underlying resources
 func (w *FileWatcher) Close() {
-	//w.watcher.StopAll()
 	w.batcher.Close()
-	close(w.watcher.Events)
-	close(w.watcher.Errors)
-	//close(w.events) // Close the event stream
+	close(w.watcher.Events) // Close the event stream
+	close(w.watcher.Errors) // Close the error stream
 	w.monitor.Wait()
 	w.dispatcher.Wait()
 }
@@ -438,25 +390,6 @@ func concatenateEvents(events Events) Events {
 	}
 
 	return events
-}
-
-var suppressCache struct {
-	event Event
-	path  string
-}
-
-// suppressEvent returns true it it's called twice
-// in a row with the same known event and path
-func suppressEvent(path string, event Event) (s bool) {
-	if _, ok := suppressDuplicates[event]; ok {
-		if suppressCache.event == event && suppressCache.path == path {
-			s = true
-		}
-	}
-
-	suppressCache.event = event
-	suppressCache.path = path
-	return
 }
 
 var visualMap = map[uint32]string{

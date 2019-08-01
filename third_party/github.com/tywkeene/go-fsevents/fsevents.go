@@ -500,8 +500,6 @@ func (w *Watcher) ReadSingleEvent() (*FsEvent, error) {
 // Watch calls ReadSingleEvent (which read-blocks) in a loop while there are running WatchDescriptors in Watcher w
 // Writes events and errors to the channels w.Errors and w.Events
 func (w *Watcher) Watch() {
-	panic("Test")
-
 	for w.GetRunningDescriptors() > 0 {
 		event, err := w.ReadSingleEvent()
 		if err != nil {
@@ -509,12 +507,7 @@ func (w *Watcher) Watch() {
 			continue
 		}
 		if event != nil {
-			select {
-			case w.Events <- event:
-			default:
-				panic("Event buffer full!") // TODO: Remove this
-			}
-
+			w.Events <- event
 		}
 	}
 }
