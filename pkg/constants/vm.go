@@ -21,4 +21,7 @@ const (
 
 	// Where the VM specification is located inside of the container
 	IGNITE_SPAWN_VM_FILE_PATH = "/vm.json"
+
+	// Where the vmlinux kernel is located inside of the container
+	IGNITE_SPAWN_VMLINUX_FILE_PATH = "/vmlinux"
 )

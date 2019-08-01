@@ -15,8 +15,6 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/logs"
-	"github.com/weaveworks/ignite/pkg/operations/lookup"
-	"github.com/weaveworks/ignite/pkg/providers"
 )
 
 // ExecuteFirecracker executes the firecracker process using the Go SDK
@@ -40,11 +38,6 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 		cmdLine = constants.VM_DEFAULT_KERNEL_ARGS
 	}
 
-	kernelUID, err := lookup.KernelUIDForVM(vm, providers.Client)
-	if err != nil {
-		return err
-	}
-
 	// Convert the logrus error level to a Firecracker compatible error level.
 	// Firecracker accepts "Error", "Warning", "Info", and "Debug", case-sensitive.
 	fcLogLevel := "Debug"
@@ -62,7 +55,7 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	metricsSocketPath := path.Join(vm.ObjectPath(), constants.METRICS_FIFO)
 	cfg := firecracker.Config{
 		SocketPath:      firecrackerSocketPath,
-		KernelImagePath: path.Join(constants.KERNEL_DIR, kernelUID.String(), constants.KERNEL_FILE),
+		KernelImagePath: constants.IGNITE_SPAWN_VMLINUX_FILE_PATH,
 		KernelArgs:      cmdLine,
 		Drives: []models.Drive{{
 			DriveID:      firecracker.String("1"),
