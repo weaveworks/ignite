@@ -41,5 +41,6 @@ require (
 
 replace (
 	github.com/docker/distribution => github.com/docker/distribution v2.7.1+incompatible
+	github.com/tywkeene/go-fsevents => ./third_party/github.com/tywkeene/go-fsevents
 	k8s.io/klog => ./third_party/k8s.io/klog
 )
