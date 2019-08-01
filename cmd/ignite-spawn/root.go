@@ -7,6 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/pkg/logs"
+	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
 )
 
 var logLevel = logrus.InfoLevel
@@ -40,7 +41,7 @@ func usage() {
 }
 
 func addGlobalFlags(fs *pflag.FlagSet) {
-	cmdutil.LogLevelFlagVar(fs, &logLevel)
+	logflag.LogLevelFlagVar(fs, &logLevel)
 }
 
 // checkErr is used by the ignite-spawn command to check if the action failed

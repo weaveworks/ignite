@@ -9,11 +9,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/imgcmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/kerncmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
 	"github.com/weaveworks/ignite/pkg/logs"
+	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -103,7 +103,7 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 
 func addGlobalFlags(fs *pflag.FlagSet) {
 	AddQuietFlag(fs)
-	cmdutil.LogLevelFlagVar(fs, &logLevel)
+	logflag.LogLevelFlagVar(fs, &logLevel)
 }
 
 // AddQuietFlag adds the quiet flag to a flagset
