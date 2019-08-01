@@ -164,7 +164,7 @@ github.com/spf13/cobra
 github.com/spf13/cobra/doc
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
-# github.com/tywkeene/go-fsevents v0.0.0-20190326153206-dbea1ece5b95
+# github.com/tywkeene/go-fsevents v0.0.0-20190326153206-dbea1ece5b95 => ./third_party/github.com/tywkeene/go-fsevents
 github.com/tywkeene/go-fsevents
 # github.com/weaveworks/flux v0.0.0-20190704153721-8292179855e1
 github.com/weaveworks/flux/git
@@ -192,7 +192,7 @@ golang.org/x/net/http2
 golang.org/x/net/internal/socks
 golang.org/x/net/http/httpguts
 golang.org/x/net/http2/hpack
-# golang.org/x/sys v0.0.0-20190422165155-953cdadca894
+# golang.org/x/sys v0.0.0-20190801041406-cbf593c0f2f3
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/cpu

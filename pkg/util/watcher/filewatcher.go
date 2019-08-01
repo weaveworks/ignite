@@ -15,7 +15,8 @@ import (
 )
 
 const updateBuffer = 4096 // How many updates we can buffer before watching is interrupted
-var watchMask = fsevents.DirCreatedEvent | fsevents.DirRemovedEvent | fsevents.CloseWrite
+//var watchMask = fsevents.DirCreatedEvent | fsevents.DirRemovedEvent | fsevents.CloseWrite | fsevents.MovedTo
+var watchMask = fsevents.MovedFrom | fsevents.MovedTo
 
 var eventMap = map[uint32]Event{
 	fsevents.FileCreatedEvent: EventCreate,
@@ -349,25 +350,26 @@ func (w *FileWatcher) handleEvent(filePath string, event Event) {
 	}
 }
 
-func (w *FileWatcher) handleDirEvent(event *fsevents.FsEvent) bool {
+func (w *FileWatcher) handleDirEvent(event *fsevents.FsEvent) (dir bool) {
 	//if err := w.start(nil); err != nil {
 	//	log.Errorf("FileWatcher: Watch directory updating failed: %v", err)
 	//}
+	if event.IsDirRemoved() {
+		if err := w.stop(event.Path); err != nil {
+			log.Errorf("FileWatcher: Failed remove watch %q: %v", event.Path, err)
+		}
 
+		dir = true
+	}
 	if event.IsDirCreated() {
 		if err := w.start(event.Path, nil); err != nil {
 			log.Errorf("FileWatcher: Failed to add watch %q: %v", event.Path, err)
 		}
-		//} else if fsevents.CheckMask(fsevents.RootDelete, event.RawEvent.Mask) {
-	} else if event.IsDirRemoved() {
-		if err := w.stop(event.Path); err != nil {
-			log.Errorf("FileWatcher: Failed remove watch %q: %v", event.Path, err)
-		}
-	} else {
-		return false
+
+		dir = true
 	}
 
-	return true
+	return
 }
 
 // GetFileUpdateStream gets the channel with FileUpdates
@@ -504,6 +506,8 @@ func visualize(event *fsevents.FsEvent) string {
 			sb.WriteString(visualMap[bit])
 		}
 	}
+
+	sb.WriteString(fmt.Sprintf(" -> %s", event.Path))
 
 	return sb.String()
 }

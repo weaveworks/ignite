@@ -127,8 +127,8 @@ var (
 	RootMove   uint32 = unix.IN_MOVE_SELF
 	IsDir      uint32 = unix.IN_ISDIR
 
-	AllEvents = (Accessed | Modified | AttrChange | CloseWrite | CloseRead | Open | MovedFrom |
-		MovedTo | MovedTo | Create | Delete | RootDelete | RootMove | IsDir)
+	AllEvents = Accessed | Modified | AttrChange | CloseWrite | CloseRead | Open | MovedFrom |
+		MovedTo | Move | Create | Delete | RootDelete | RootMove | IsDir
 
 	// Custom event flags
 
@@ -500,6 +500,8 @@ func (w *Watcher) ReadSingleEvent() (*FsEvent, error) {
 // Watch calls ReadSingleEvent (which read-blocks) in a loop while there are running WatchDescriptors in Watcher w
 // Writes events and errors to the channels w.Errors and w.Events
 func (w *Watcher) Watch() {
+	panic("Test")
+
 	for w.GetRunningDescriptors() > 0 {
 		event, err := w.ReadSingleEvent()
 		if err != nil {
@@ -510,7 +512,7 @@ func (w *Watcher) Watch() {
 			select {
 			case w.Events <- event:
 			default:
-				panic("Event buffer full!")
+				panic("Event buffer full!") // TODO: Remove this
 			}
 
 		}

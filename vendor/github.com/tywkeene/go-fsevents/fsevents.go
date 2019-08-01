@@ -127,8 +127,8 @@ var (
 	RootMove   uint32 = unix.IN_MOVE_SELF
 	IsDir      uint32 = unix.IN_ISDIR
 
-	AllEvents = (Accessed | Modified | AttrChange | CloseWrite | CloseRead | Open | MovedFrom |
-		MovedTo | MovedTo | Create | Delete | RootDelete | RootMove | IsDir)
+	AllEvents = Accessed | Modified | AttrChange | CloseWrite | CloseRead | Open | MovedFrom |
+			MovedTo | Move | Create | Delete | RootDelete | RootMove | IsDir
 
 	// Custom event flags
 
@@ -378,8 +378,8 @@ func NewWatcher(rootPath string, mask uint32) (*Watcher, error) {
 		RootPath:          path.Clean(rootPath),
 		InotifyDescriptor: fd,
 		Descriptors:       make(map[string]*WatchDescriptor),
-		Events:            make(chan *FsEvent),
-		Errors:            make(chan error),
+		Events:            make(chan *FsEvent, 4096),
+		Errors:            make(chan error, 4096),
 	}
 
 	_, err = w.AddDescriptor(w.RootPath, mask)
@@ -507,7 +507,12 @@ func (w *Watcher) Watch() {
 			continue
 		}
 		if event != nil {
-			w.Events <- event
+			select {
+			case w.Events <- event:
+			default:
+				panic("Event buffer full!")
+			}
+
 		}
 	}
 }
