@@ -6,13 +6,14 @@ import (
 	"os"
 	"path"
 
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/container"
-	"github.com/weaveworks/ignite/pkg/container/prometheus"
 	dmcleanup "github.com/weaveworks/ignite/pkg/dmlegacy/cleanup"
+	"github.com/weaveworks/ignite/pkg/prometheus"
 	patchutil "github.com/weaveworks/ignite/pkg/util/patch"
 )
 
@@ -53,7 +54,7 @@ func StartVM(vm *api.VM) error {
 
 	// Serve metrics over an unix socket in the VM's own directory
 	metricsSocket := path.Join(vm.ObjectPath(), constants.PROMETHEUS_SOCKET)
-	go prometheus.ServeMetrics(metricsSocket)
+	serveMetrics(metricsSocket)
 
 	// Update the VM status and IP address information
 	if err := patchRunning(vm, ipAddrs); err != nil {
@@ -75,6 +76,16 @@ func StartVM(vm *api.VM) error {
 	}
 
 	return nil
+}
+
+func serveMetrics(metricsSocket string) {
+	go func() {
+		// create a new registry and http.Server. don't register custom metrics to the registry quite yet
+		_, server := prometheus.New()
+		if err := prometheus.ServeOnSocket(server, metricsSocket); err != nil {
+			log.Errorf("prometheus server was stopped with error: %v", err)
+		}
+	}()
 }
 
 func patchRunning(vm *api.VM, ipAddrs []net.IP) error {

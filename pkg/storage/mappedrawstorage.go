@@ -1,4 +1,4 @@
-package raw
+package storage
 
 import (
 	"fmt"
@@ -8,29 +8,28 @@ import (
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 // MappedRawStorage is an interface for RawStorages which store their
 // data in a flat/unordered directory format like manifest directories.
 type MappedRawStorage interface {
-	storage.RawStorage
+	RawStorage
 
 	// AddMapping binds a Key's virtual path to a physical file path
-	AddMapping(key storage.Key, path string)
+	AddMapping(key Key, path string)
 	// GetMapping retrieves the Key containing the virtual
 	// path based on the given physical file path
-	GetMapping(path string) (storage.Key, error)
+	GetMapping(path string) (Key, error)
 	// RemoveMapping removes the physical file
 	// path mapping matching the given Key
-	RemoveMapping(key storage.Key)
+	RemoveMapping(key Key)
 }
 
 func NewGenericMappedRawStorage(dir string) MappedRawStorage {
 	return &GenericMappedRawStorage{
 		dir:          dir,
-		fileMappings: make(map[storage.Key]string),
+		fileMappings: make(map[Key]string),
 	}
 }
 
@@ -38,10 +37,10 @@ func NewGenericMappedRawStorage(dir string) MappedRawStorage {
 // it stores files in the given directory via a path translation map.
 type GenericMappedRawStorage struct {
 	dir          string
-	fileMappings map[storage.Key]string
+	fileMappings map[Key]string
 }
 
-func (r *GenericMappedRawStorage) realPath(key storage.Key) (path string, err error) {
+func (r *GenericMappedRawStorage) realPath(key Key) (path string, err error) {
 	path, ok := r.fileMappings[key]
 	if !ok {
 		err = fmt.Errorf("GenericMappedRawStorage: %q not tracked", key)
@@ -50,7 +49,7 @@ func (r *GenericMappedRawStorage) realPath(key storage.Key) (path string, err er
 	return
 }
 
-func (r *GenericMappedRawStorage) Read(key storage.Key) ([]byte, error) {
+func (r *GenericMappedRawStorage) Read(key Key) ([]byte, error) {
 	file, err := r.realPath(key)
 	if err != nil {
 		return nil, err
@@ -59,7 +58,7 @@ func (r *GenericMappedRawStorage) Read(key storage.Key) ([]byte, error) {
 	return ioutil.ReadFile(file)
 }
 
-func (r *GenericMappedRawStorage) Exists(key storage.Key) bool {
+func (r *GenericMappedRawStorage) Exists(key Key) bool {
 	file, err := r.realPath(key)
 	if err != nil {
 		return false
@@ -68,7 +67,7 @@ func (r *GenericMappedRawStorage) Exists(key storage.Key) bool {
 	return util.FileExists(file)
 }
 
-func (r *GenericMappedRawStorage) Write(key storage.Key, content []byte) error {
+func (r *GenericMappedRawStorage) Write(key Key, content []byte) error {
 	// GenericMappedRawStorage isn't going to generate files itself,
 	// only write if the file is already known
 	file, err := r.realPath(key)
@@ -79,7 +78,7 @@ func (r *GenericMappedRawStorage) Write(key storage.Key, content []byte) error {
 	return ioutil.WriteFile(file, content, 0644)
 }
 
-func (r *GenericMappedRawStorage) Delete(key storage.Key) (err error) {
+func (r *GenericMappedRawStorage) Delete(key Key) (err error) {
 	file, err := r.realPath(key)
 	if err != nil {
 		return
@@ -98,8 +97,8 @@ func (r *GenericMappedRawStorage) Delete(key storage.Key) (err error) {
 	return
 }
 
-func (r *GenericMappedRawStorage) List(kind storage.KindKey) ([]storage.Key, error) {
-	result := make([]storage.Key, 0)
+func (r *GenericMappedRawStorage) List(kind KindKey) ([]Key, error) {
+	result := make([]Key, 0)
 
 	for key := range r.fileMappings {
 		if key.KindKey == kind {
@@ -112,7 +111,7 @@ func (r *GenericMappedRawStorage) List(kind storage.KindKey) ([]storage.Key, err
 
 // This returns the modification time as a UnixNano string
 // If the file doesn't exist, return blank
-func (r *GenericMappedRawStorage) Checksum(key storage.Key) (s string, err error) {
+func (r *GenericMappedRawStorage) Checksum(key Key) (s string, err error) {
 	file, err := r.realPath(key)
 	if err != nil {
 		return
@@ -128,9 +127,9 @@ func (r *GenericMappedRawStorage) Checksum(key storage.Key) (s string, err error
 	return
 }
 
-func (r *GenericMappedRawStorage) Format(key storage.Key) (f storage.Format) {
+func (r *GenericMappedRawStorage) Format(key Key) (f Format) {
 	if file, err := r.realPath(key); err == nil {
-		f = storage.Formats[filepath.Ext(file)] // Retrieve the correct format based on the extension
+		f = Formats[filepath.Ext(file)] // Retrieve the correct format based on the extension
 	}
 
 	return
@@ -140,22 +139,22 @@ func (r *GenericMappedRawStorage) Dir() string {
 	return r.dir
 }
 
-func (r *GenericMappedRawStorage) AddMapping(key storage.Key, path string) {
+func (r *GenericMappedRawStorage) AddMapping(key Key, path string) {
 	log.Debugf("GenericMappedRawStorage: AddMapping: %q -> %q", key, path)
 	r.fileMappings[key] = path
 }
 
-func (r *GenericMappedRawStorage) GetMapping(path string) (storage.Key, error) {
+func (r *GenericMappedRawStorage) GetMapping(path string) (Key, error) {
 	for key, p := range r.fileMappings {
 		if p == path {
 			return key, nil
 		}
 	}
 
-	return storage.Key{}, fmt.Errorf("no mapping found for path %q", path)
+	return Key{}, fmt.Errorf("no mapping found for path %q", path)
 }
 
-func (r *GenericMappedRawStorage) RemoveMapping(key storage.Key) {
+func (r *GenericMappedRawStorage) RemoveMapping(key Key) {
 	log.Debugf("GenericMappedRawStorage: RemoveMapping: %q", key)
 	delete(r.fileMappings, key)
 }
