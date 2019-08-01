@@ -3,7 +3,9 @@ package watcher
 import (
 	"bytes"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/rjeczalik/notify"
@@ -12,7 +14,7 @@ import (
 )
 
 const eventBuffer = 4096 // How many events and updates we can buffer before watching is interrupted
-var listenEvents = []notify.Event{notify.InCreate, notify.InDelete, notify.InDeleteSelf, notify.InCloseWrite}
+var listenEvents = []notify.Event{notify.InCreate, notify.InDelete, notify.InCloseWrite}
 
 var eventMap = map[notify.Event]Event{
 	notify.InCreate:     EventCreate,
@@ -86,9 +88,10 @@ func NewFileWatcherWithOptions(dir string, opts Options) (w *FileWatcher, files 
 		opts:    opts,
 	}
 
-	if err = w.start(&files); err != nil {
+	log.Tracef("FileWatcher: Starting recursive watch for %q", dir)
+	if err = notify.Watch(path.Join(dir, "..."), w.events, listenEvents...); err != nil {
 		notify.Stop(w.events)
-	} else {
+	} else if files, err = w.getFiles(); err == nil {
 		w.monitor = sync.RunMonitor(w.monitorFunc)
 		w.dispatcher = sync.RunMonitor(w.dispatchFunc)
 	}
@@ -115,62 +118,26 @@ type FileWatcher struct {
 	batcher *sync.BatchWriter
 }
 
-// TODO: Add a recursive watch to root instead of one for every path
-func (w *FileWatcher) addWatch(path string) (err error) {
-	log.Tracef("FileWatcher: Adding watch for %q", path)
-	if err = notify.Watch(path, w.events, listenEvents...); err == nil {
-		w.watches = append(w.watches, path)
-	}
-
-	return
-}
-
-func (w *FileWatcher) hasWatch(path string) bool {
-	for _, watch := range w.watches {
-		if watch == path {
-			log.Tracef("FileWatcher: Watch found for %q", path)
-			return true
-		}
-	}
-
-	log.Tracef("FileWatcher: No watch found for %q", path)
-	return false
-}
-
-func (w *FileWatcher) clear() {
-	log.Tracef("FileWatcher: Clearing all watches")
-	notify.Stop(w.events)
-	w.watches = w.watches[:0]
-}
-
-// start discovers all subdirectories and adds paths to
-// notify before starting the monitoring goroutine
-func (w *FileWatcher) start(files *[]string) error {
-	return filepath.Walk(w.dir,
+// getFiles discovers all subdirectories and
+// returns a list of valid files in them
+func (w *FileWatcher) getFiles() (files []string, err error) {
+	err = filepath.Walk(w.dir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 
-			if info.IsDir() {
-				for _, dir := range w.opts.ExcludeDirs {
-					if info.Name() == dir {
-						return filepath.SkipDir // Skip excluded directories
-					}
-				}
-
-				return w.addWatch(path)
-			}
-
-			if files != nil {
-				// Only include files with a valid suffix
-				if w.validSuffix(info.Name()) {
-					*files = append(*files, path)
+			if !info.IsDir() {
+				// Only include valid files
+				if w.validFile(path) {
+					files = append(files, path)
 				}
 			}
 
 			return nil
 		})
+
+	return
 }
 
 func (w *FileWatcher) monitorFunc() {
@@ -184,25 +151,22 @@ func (w *FileWatcher) monitorFunc() {
 			return
 		}
 
+		if !w.validFile(event.Path()) {
+			continue // Skip invalid files
+		}
+
 		updateEvent := convertEvent(event.Event())
-		if updateEvent == w.suspendEvent {
+		if w.suspendEvent > 0 && updateEvent == w.suspendEvent {
 			w.suspendEvent = 0
 			log.Debugf("FileWatcher: Skipping suspended event %s for path: %q", updateEvent, event.Path())
 			continue // Skip the suspended event
 		}
 
 		// Suppress successive duplicate events registered in suppressDuplicates
-		if suppressEvent(event.Path(), updateEvent) {
-			log.Debugf("FileWatcher: Skipping suppressed event %s for path: %q", updateEvent, event.Path())
-			continue // Skip the suppressed event
-		}
-
-		// Directory bypass for FileWatcher registration
-		// The FileWatcher registration/deletion needs to be as fast as
-		// possible, bypass the batcher when dealing with directories
-		if w.handleDirEvent(event.Path(), updateEvent) {
-			continue // The event path matched a directory, skip file processing for the event
-		}
+		//if suppressEvent(event.Path(), updateEvent) {
+		//	log.Debugf("FileWatcher: Skipping suppressed event %s for path: %q", updateEvent, event.Path())
+		//	continue // Skip the suppressed event
+		//}
 
 		// Get any events registered for the specific file, and append the specified event
 		var eventList Events
@@ -246,47 +210,12 @@ func (w *FileWatcher) dispatchFunc() {
 func (w *FileWatcher) handleEvent(filePath string, event Event) {
 	switch event {
 	case EventCreate, EventDelete, EventModify: // Ignore EventNone
-		// only care about valid files
-		if !w.validSuffix(filePath) {
-			return
-		}
-
 		log.Debugf("FileWatcher: Sending update: %s -> %q", event, filePath)
 		w.updates <- &FileUpdate{
 			Event: event,
 			Path:  filePath,
 		}
 	}
-}
-
-func (w *FileWatcher) handleDirEvent(filePath string, event Event) (dir bool) {
-	switch event {
-	case EventCreate:
-		fi, err := os.Stat(filePath)
-		if err != nil {
-			log.Errorf("FileWatcher: Failed to stat %q: %v", filePath, err)
-			return
-		}
-
-		if fi.IsDir() {
-			if err := w.addWatch(filePath); err != nil {
-				log.Errorf("FileWatcher: Failed to add %q: %v", filePath, err)
-			}
-
-			dir = true
-		}
-	case EventDelete:
-		if w.hasWatch(filePath) {
-			w.clear()
-			if err := w.start(nil); err != nil {
-				log.Errorf("FileWatcher: Failed to re-initialize watches for %q", w.dir)
-			}
-
-			dir = true
-		}
-	}
-
-	return
 }
 
 // GetFileUpdateStream gets the channel with FileUpdates
@@ -310,11 +239,22 @@ func (w *FileWatcher) Suspend(updateEvent Event) {
 }
 
 // validSuffix is used to filter out all unsupported
-// files based on the extensions given
-func (w *FileWatcher) validSuffix(path string) bool {
+// files based on if their extension is unknown or
+// if their path contains an excluded directory
+func (w *FileWatcher) validFile(path string) bool {
+	parts := strings.Split(filepath.Clean(path), string(os.PathSeparator))
+	ext := filepath.Ext(parts[len(parts)-1])
 	for _, suffix := range w.opts.ValidExtensions {
-		if filepath.Ext(path) == suffix {
+		if ext == suffix {
 			return true
+		}
+	}
+
+	for i := 0; i < len(parts)-1; i++ {
+		for _, exclude := range w.opts.ExcludeDirs {
+			if parts[i] == exclude {
+				return false
+			}
 		}
 	}
 
