@@ -6,6 +6,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -14,7 +15,7 @@ import (
 )
 
 const updateBuffer = 4096 // How many updates we can buffer before watching is interrupted
-var watchMask = fsevents.DirCreatedEvent | fsevents.DirRemovedEvent | fsevents.CloseWrite | fsevents.RootDelete
+var watchMask = fsevents.DirCreatedEvent | fsevents.DirRemovedEvent | fsevents.CloseWrite
 
 var eventMap = map[uint32]Event{
 	fsevents.FileCreatedEvent: EventCreate,
@@ -247,6 +248,8 @@ func (w *FileWatcher) monitorFunc() {
 				return
 			}
 
+			log.Infoln("Event:", visualize(event))
+
 			//fmt.Println("Watches before:", len(w.watcher.ListDescriptors()))
 
 			//if fsevents.CheckMask(fsevents.IsDir | fsevents.RootDelete, event.RawEvent.Mask) {
@@ -288,8 +291,19 @@ func (w *FileWatcher) monitorFunc() {
 				return
 			}
 
-			panic(err)
-			//log.Errorf("FileWatcher: Error watching: %v", err)
+			/*
+				When fsevents reads a single event using C.read, it's source watch
+				is parsed to a descriptor using w.GetDescriptorByWatch after the read
+				has completed. If the descriptor gets deleted by w.stop during this time
+				(based on the directory getting deleted), w.GetDescriptorByWatch fails,
+				fsevents.ErrDescForEventNotFound is returned and no event is fired.
+				This error is safe to ignore, as we don't want any events referencing
+				deleted directories and it doesn't cause any event misses as the watch
+				has already been deleted by other means.
+			*/
+			if err != fsevents.ErrDescForEventNotFound {
+				log.Errorf("FileWatcher: Error watching: %v", err)
+			}
 		}
 	}
 }
@@ -344,7 +358,8 @@ func (w *FileWatcher) handleDirEvent(event *fsevents.FsEvent) bool {
 		if err := w.start(event.Path, nil); err != nil {
 			log.Errorf("FileWatcher: Failed to add watch %q: %v", event.Path, err)
 		}
-	} else if event.IsDirRemoved() || fsevents.CheckMask(fsevents.IsDir|fsevents.RootDelete, event.RawEvent.Mask) {
+		//} else if fsevents.CheckMask(fsevents.RootDelete, event.RawEvent.Mask) {
+	} else if event.IsDirRemoved() {
 		if err := w.stop(event.Path); err != nil {
 			log.Errorf("FileWatcher: Failed remove watch %q: %v", event.Path, err)
 		}
@@ -440,4 +455,55 @@ func suppressEvent(path string, event Event) (s bool) {
 	suppressCache.event = event
 	suppressCache.path = path
 	return
+}
+
+var visualMap = map[uint32]string{
+	fsevents.Accessed:   "IN_ACCESS",
+	fsevents.Modified:   "IN_MODIFY",
+	fsevents.AttrChange: "IN_ATTRIB",
+	fsevents.CloseWrite: "IN_CLOSE_WRITE",
+	fsevents.CloseRead:  "IN_CLOSE_NOWRITE",
+	fsevents.Open:       "IN_OPEN",
+	fsevents.MovedFrom:  "IN_MOVED_FROM",
+	fsevents.MovedTo:    "IN_MOVED_TO",
+	fsevents.Move:       "IN_MOVE",
+	fsevents.Create:     "IN_CREATE",
+	fsevents.Delete:     "IN_DELETE",
+	fsevents.RootDelete: "IN_DELETE_SELF",
+	fsevents.RootMove:   "IN_MOVE_SELF",
+	fsevents.IsDir:      "IN_ISDIR",
+}
+
+var visualOrder = []uint32{
+	fsevents.Accessed,
+	fsevents.Modified,
+	fsevents.AttrChange,
+	fsevents.CloseWrite,
+	fsevents.CloseRead,
+	fsevents.Open,
+	fsevents.MovedFrom,
+	fsevents.MovedTo,
+	fsevents.Move,
+	fsevents.Create,
+	fsevents.Delete,
+	fsevents.RootDelete,
+	fsevents.RootMove,
+	fsevents.IsDir,
+}
+
+// TODO: This is a helper for visualizing go-fsevents events
+func visualize(event *fsevents.FsEvent) string {
+	var sb strings.Builder
+
+	for _, bit := range visualOrder {
+		if fsevents.CheckMask(bit, event.RawEvent.Mask) {
+			if sb.Len() > 0 {
+				sb.WriteString(" | ")
+			}
+
+			sb.WriteString(visualMap[bit])
+		}
+	}
+
+	return sb.String()
 }
