@@ -27,7 +27,7 @@ ignite exec <vm> <command...> [flags]
 
 ```
       --log-level loglevel   Specify the loglevel for the program (default info)
-  -q, --quiet                The quiet mode allows for machine-parsable output, by printing only IDs
+  -q, --quiet                The quiet mode allows for machine-parsable output by printing only IDs
 ```
 
 ### SEE ALSO
