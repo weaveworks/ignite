@@ -60,6 +60,7 @@ $(API_DOCS): docs/api/%.md: $(CACHE_DIR)/go/bin/godoc2md
 	mv $(shell pwd)/pkg/apis/$*/v1alpha1/zz_generated* bin/tmp/$*
 	$(MAKE) shell COMMAND="/go/bin/godoc2md /go/src/${PROJECT}/pkg/apis/$*/v1alpha1 > $@"
 	sed -e "s|src/target|pkg/apis/$*/v1alpha1|g" -i $@
+	sed -e "s|(/pkg/apis|(https://github.com/weaveworks/ignite/tree/master/pkg/apis|g" -i $@
 	mv bin/tmp/$*/*.go $(shell pwd)/pkg/apis/$*/v1alpha1/
 	rm -r bin/tmp/$*
 
