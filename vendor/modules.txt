@@ -93,7 +93,7 @@ github.com/go-openapi/strfmt
 github.com/go-openapi/swag
 # github.com/go-openapi/validate v0.17.1
 github.com/go-openapi/validate
-# github.com/gogo/protobuf v1.2.1
+# github.com/gogo/protobuf v1.1.1
 github.com/gogo/protobuf/proto
 github.com/gogo/protobuf/sortkeys
 # github.com/golang/protobuf v1.3.1
@@ -102,9 +102,9 @@ github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
-# github.com/google/gofuzz v1.0.0
+# github.com/google/gofuzz v0.0.0-20170612174753-24818f796faf
 github.com/google/gofuzz
-# github.com/googleapis/gnostic v0.2.0
+# github.com/googleapis/gnostic v0.0.0-20170729233727-0c5108395e2d
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
@@ -114,7 +114,7 @@ github.com/goombaio/namegenerator
 github.com/inconshreveable/mousetrap
 # github.com/json-iterator/go v1.1.6
 github.com/json-iterator/go
-# github.com/konsorten/go-windows-terminal-sequences v1.0.2
+# github.com/konsorten/go-windows-terminal-sequences v1.0.1
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/krolaw/dhcp4 v0.0.0-20190531080455-7b64900047ae
 github.com/krolaw/dhcp4
@@ -166,7 +166,7 @@ github.com/spf13/cobra
 github.com/spf13/cobra/doc
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
-# github.com/weaveworks/flux v0.0.0-20190704153721-8292179855e1
+# github.com/weaveworks/flux v0.0.0-20190704153721-8292179855e1 => ./third_party/forked/github.com/weaveworks/flux
 github.com/weaveworks/flux/git
 github.com/weaveworks/flux/errors
 # github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
@@ -202,14 +202,14 @@ golang.org/x/text/width
 golang.org/x/text/secure/bidirule
 golang.org/x/text/unicode/bidi
 golang.org/x/text/transform
-# google.golang.org/genproto v0.0.0-20190404172233-64821d5d2107
+# google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.21.1
 google.golang.org/grpc/codes
 google.golang.org/grpc/status
 # gopkg.in/alessio/shellescape.v1 v1.0.0-20170105083845-52074bc9df61
 gopkg.in/alessio/shellescape.v1
-# gopkg.in/inf.v0 v0.9.1
+# gopkg.in/inf.v0 v0.9.0
 gopkg.in/inf.v0
 # gopkg.in/yaml.v2 v2.2.2
 gopkg.in/yaml.v2
