@@ -1,4 +1,4 @@
-## ignite gitops
+## ignited gitops
 
 Run the GitOps feature of Ignite
 
@@ -15,7 +15,7 @@ To quit GitOps mode, use (Ctrl + C).
 
 
 ```
-ignite gitops <repo-url> [flags]
+ignited gitops <repo-url> [flags]
 ```
 
 ### Options
@@ -35,5 +35,5 @@ ignite gitops <repo-url> [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
+* [ignited](ignited.md)	 - ignited: run Firecracker VMs declaratively through a manifest directory or Git
 
