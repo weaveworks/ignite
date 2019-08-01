@@ -35,7 +35,7 @@ func NewCmdGitOps(out io.Writer) *cobra.Command {
 		`),
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			util.GenericCheckErr(gitops.RunLoop(args[0], f.branch, f.paths))
+			util.GenericCheckErr(gitops.RunGitOps(args[0], f.branch, f.paths))
 		},
 	}
 
