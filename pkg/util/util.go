@@ -11,7 +11,20 @@ import (
 	"time"
 
 	"github.com/goombaio/namegenerator"
+	log "github.com/sirupsen/logrus"
 )
+
+// GenericCheckErr is used by the commands to check if the action failed
+// and respond with a fatal error provided by the logger (calls os.Exit)
+// Ignite has it's own, more detailed implementation of this in cmdutil
+func GenericCheckErr(err error) {
+	switch err.(type) {
+	case nil:
+		return // Don't fail if there's no error
+	}
+
+	log.Fatal(err)
+}
 
 func ExecuteCommand(command string, args ...string) (string, error) {
 	cmd := exec.Command(command, args...)
