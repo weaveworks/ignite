@@ -115,6 +115,7 @@ type FileWatcher struct {
 	batcher *sync.BatchWriter
 }
 
+// TODO: Add a recursive watch to root instead of one for every path
 func (w *FileWatcher) addWatch(path string) (err error) {
 	log.Tracef("FileWatcher: Adding watch for %q", path)
 	if err = notify.Watch(path, w.events, listenEvents...); err == nil {
