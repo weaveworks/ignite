@@ -134,6 +134,9 @@ func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files
 				// as Objects can get updated (via watcher.EventModify) to be conformant
 				if _, err = mapped.GetMapping(event.Path); err != nil {
 					mapped.AddMapping(storage.NewKey(obj.GetKind(), obj.GetUID()), event.Path)
+					// This is what actually determines if an Object is created,
+					// so update the event to watcher.EventCreated here
+					event.Event = watcher.EventCreate
 				}
 			}
 

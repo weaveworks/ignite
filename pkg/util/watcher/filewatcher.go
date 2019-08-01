@@ -14,7 +14,7 @@ import (
 )
 
 const eventBuffer = 4096 // How many events and updates we can buffer before watching is interrupted
-var listenEvents = []notify.Event{notify.InCreate, notify.InDelete, notify.InCloseWrite}
+var listenEvents = []notify.Event{notify.InDelete, notify.InCloseWrite}
 
 var eventMap = map[notify.Event]Event{
 	notify.InCreate:     EventCreate,
@@ -31,11 +31,16 @@ type combinedEvent struct {
 // combinedEvents describes the event combinations to concatenate,
 // this is iterated in order, so the longest matches should be first
 var combinedEvents = []combinedEvent{
-	// DELETE + CREATE + MODIFY => MODIFY
-	{Events{EventDelete, EventCreate, EventModify}.Bytes(), EventModify},
-	// CREATE + MODIFY => CREATE
-	{Events{EventCreate, EventModify}.Bytes(), EventCreate},
-	// CREATE + DELETE => NONE
+	//// DELETE + CREATE + MODIFY => MODIFY
+	//{Events{EventDelete, EventCreate, EventModify}.Bytes(), EventModify},
+	//// CREATE + MODIFY => CREATE
+	//{Events{EventCreate, EventModify}.Bytes(), EventCreate},
+	//// CREATE + DELETE => NONE
+	//{Events{EventCreate, EventDelete}.Bytes(), EventNone},
+
+	// DELETE + MODIFY => MODIFY
+	{Events{EventDelete, EventModify}.Bytes(), EventModify},
+	// MODIFY + DELETE => NONE
 	{Events{EventCreate, EventDelete}.Bytes(), EventNone},
 }
 
