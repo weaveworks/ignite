@@ -8,7 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func ServeMetrics(socketPath string) error {
+func New() (*prometheus.Registry, *http.Server) {
 	// Create a registry to register metrics into
 	registry := prometheus.NewRegistry()
 	// Register the default collectors with this registry
@@ -17,14 +17,16 @@ func ServeMetrics(socketPath string) error {
 	registry.MustRegister(prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}))
 
 	// Create a HTTP server to handle metrics requests
-	server := http.Server{
+	return registry, &http.Server{
 		Handler: promhttp.HandlerFor(registry, promhttp.HandlerOpts{}),
 	}
+}
 
+func ServeOnSocket(server *http.Server, socketPath string) error {
 	// Listen on the unix socket and serve the web server
 	unixListener, err := net.Listen("unix", socketPath)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	return server.Serve(unixListener)
