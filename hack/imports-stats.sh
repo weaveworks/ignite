@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BINARIES=${@:-"ignite ignite-spawn"}
+BINARIES=${@:-"ignite ignited ignite-spawn"}
 PRINT=${PRINT:-"false"}
 
 for binary in ${BINARIES}; do

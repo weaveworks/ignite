@@ -22,11 +22,12 @@ install: binary
 	sudo cp bin/ignite /usr/local/bin
 
 # Make make execute this target although the file already exists.
-.PHONY: bin/ignite bin/ignite-spawn
+.PHONY: bin/ignite bin/ignite-spawn bin/ignited
 ignite: bin/ignite
+ignited: bin/ignited
 # Always update the image when ignite-spawn is updated
 ignite-spawn: bin/ignite-spawn image
-bin/ignite bin/ignite-spawn: bin/%:
+bin/ignite bin/ignited bin/ignite-spawn: bin/%:
 	CGO_ENABLED=0 go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/$* ./cmd/$*
 
 image:
