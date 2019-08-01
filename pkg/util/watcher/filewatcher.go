@@ -16,40 +16,39 @@ import (
 const eventBuffer = 4096 // How many events and updates we can buffer before watching is interrupted
 var listenEvents = []notify.Event{notify.InDelete, notify.InCloseWrite}
 
-var eventMap = map[notify.Event]Event{
-	notify.InCreate:     EventCreate,
-	notify.InDelete:     EventDelete,
-	notify.InCloseWrite: EventModify,
+var eventMap = map[notify.Event]FileEvent{
+	notify.InDelete:     FileEventDelete,
+	notify.InCloseWrite: FileEventModify,
 }
 
 // combinedEvent describes multiple events that should be concatenated into a single event
 type combinedEvent struct {
-	input  []byte // input is a slice of events to match (in bytes, it speeds up the comparison)
-	output Event  // output is the resulting event that should be returned
+	input  []byte    // input is a slice of events to match (in bytes, it speeds up the comparison)
+	output FileEvent // output is the resulting event that should be returned
 }
 
 // combinedEvents describes the event combinations to concatenate,
 // this is iterated in order, so the longest matches should be first
 var combinedEvents = []combinedEvent{
 	//// DELETE + CREATE + MODIFY => MODIFY
-	//{Events{EventDelete, EventCreate, EventModify}.Bytes(), EventModify},
+	//{FileEvents{FileEventDelete, EventCreate, FileEventModify}.Bytes(), FileEventModify},
 	//// CREATE + MODIFY => CREATE
-	//{Events{EventCreate, EventModify}.Bytes(), EventCreate},
+	//{FileEvents{EventCreate, FileEventModify}.Bytes(), EventCreate},
 	//// CREATE + DELETE => NONE
-	//{Events{EventCreate, EventDelete}.Bytes(), EventNone},
+	//{FileEvents{EventCreate, FileEventDelete}.Bytes(), FileEventNone},
 
 	// DELETE + MODIFY => MODIFY
-	{Events{EventDelete, EventModify}.Bytes(), EventModify},
+	{FileEvents{FileEventDelete, FileEventModify}.Bytes(), FileEventModify},
 	// MODIFY + DELETE => NONE
-	{Events{EventCreate, EventDelete}.Bytes(), EventNone},
+	{FileEvents{FileEventModify, FileEventDelete}.Bytes(), FileEventNone},
 }
 
 // Suppress duplicate events registered in this map. E.g. directory deletion
 // fires two DELETE events, one for the parent and one for the deleted directory itself
-var suppressDuplicates = map[Event]bool{
-	EventCreate: true,
-	EventDelete: true,
-}
+//var suppressDuplicates = map[FileEvent]bool{
+//	EventCreate: true,
+//	FileEventDelete: true,
+//}
 
 type eventStream chan notify.EventInfo
 type FileUpdateStream chan *FileUpdate
@@ -113,7 +112,7 @@ type FileWatcher struct {
 	events       eventStream
 	updates      FileUpdateStream
 	watches      watches
-	suspendEvent Event
+	suspendEvent FileEvent
 	monitor      *sync.Monitor
 	dispatcher   *sync.Monitor
 	opts         Options
@@ -174,9 +173,9 @@ func (w *FileWatcher) monitorFunc() {
 		//}
 
 		// Get any events registered for the specific file, and append the specified event
-		var eventList Events
+		var eventList FileEvents
 		if val, ok := w.batcher.Load(event.Path()); ok {
-			eventList = val.(Events)
+			eventList = val.(FileEvents)
 		}
 
 		eventList = append(eventList, updateEvent)
@@ -197,7 +196,7 @@ func (w *FileWatcher) dispatchFunc() {
 			filePath := key.(string)
 
 			// Concatenate all known events, and dispatch them to be handled one by one
-			for _, event := range concatenateEvents(val.(Events)) {
+			for _, event := range concatenateEvents(val.(FileEvents)) {
 				w.handleEvent(filePath, event)
 			}
 
@@ -212,9 +211,9 @@ func (w *FileWatcher) dispatchFunc() {
 	}
 }
 
-func (w *FileWatcher) handleEvent(filePath string, event Event) {
+func (w *FileWatcher) handleEvent(filePath string, event FileEvent) {
 	switch event {
-	case EventCreate, EventDelete, EventModify: // Ignore EventNone
+	case FileEventDelete, FileEventModify: // Ignore FileEventNone
 		log.Debugf("FileWatcher: Sending update: %s -> %q", event, filePath)
 		w.updates <- &FileUpdate{
 			Event: event,
@@ -239,7 +238,7 @@ func (w *FileWatcher) Close() {
 
 // Suspend enables a one-time suspend of the given event,
 // the FileWatcher will skip the given event once
-func (w *FileWatcher) Suspend(updateEvent Event) {
+func (w *FileWatcher) Suspend(updateEvent FileEvent) {
 	w.suspendEvent = updateEvent
 }
 
@@ -266,17 +265,17 @@ func (w *FileWatcher) validFile(path string) bool {
 	return false
 }
 
-func convertEvent(event notify.Event) Event {
+func convertEvent(event notify.Event) FileEvent {
 	if updateEvent, ok := eventMap[event]; ok {
 		return updateEvent
 	}
 
-	return EventNone
+	return FileEventNone
 }
 
 // concatenateEvents takes in a slice of events and concatenates
 // all events possible based on combinedEvents
-func concatenateEvents(events Events) Events {
+func concatenateEvents(events FileEvents) FileEvents {
 	if len(events) < 2 {
 		return events // Quick return for 0 or 1 event
 	}
@@ -289,7 +288,7 @@ func concatenateEvents(events Events) Events {
 		// Test if the prefix of the given events matches combinedEvent.input
 		if bytes.Equal(events.Bytes()[:len(combinedEvent.input)], combinedEvent.input) {
 			// If so, replace combinedEvent.input prefix in events with combinedEvent.output and recurse
-			concatenated := append(Events{combinedEvent.output}, events[len(combinedEvent.input):]...)
+			concatenated := append(FileEvents{combinedEvent.output}, events[len(combinedEvent.input):]...)
 			log.Tracef("FileWatcher: Concatenated events: %v -> %v", events, concatenated)
 			return concatenateEvents(concatenated)
 		}
@@ -298,21 +297,21 @@ func concatenateEvents(events Events) Events {
 	return events
 }
 
-var suppressCache struct {
-	event Event
-	path  string
-}
+//var suppressCache struct {
+//	event FileEvent
+//	path  string
+//}
 
 // suppressEvent returns true it it's called twice
 // in a row with the same known event and path
-func suppressEvent(path string, event Event) (s bool) {
-	if _, ok := suppressDuplicates[event]; ok {
-		if suppressCache.event == event && suppressCache.path == path {
-			s = true
-		}
-	}
-
-	suppressCache.event = event
-	suppressCache.path = path
-	return
-}
+//func suppressEvent(path string, event FileEvent) (s bool) {
+//	if _, ok := suppressDuplicates[event]; ok {
+//		if suppressCache.event == event && suppressCache.path == path {
+//			s = true
+//		}
+//	}
+//
+//	suppressCache.event = event
+//	suppressCache.path = path
+//	return
+//}

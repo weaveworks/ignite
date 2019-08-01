@@ -5,34 +5,34 @@ import (
 	"testing"
 )
 
-var testEvents = []Events{
+var testEvents = []FileEvents{
 	{
-		EventDelete,
+		FileEventDelete,
 		EventCreate,
-		EventModify,
+		FileEventModify,
 	},
 	{
 		EventCreate,
-		EventModify,
-		EventDelete,
+		FileEventModify,
+		FileEventDelete,
 	},
 	{
 		EventCreate,
-		EventModify,
-		EventDelete,
+		FileEventModify,
+		FileEventDelete,
 		EventCreate,
 	},
 }
 
-var targets = []Events{
+var targets = []FileEvents{
 	{
-		EventModify,
+		FileEventModify,
 	},
 	{
-		EventNone,
+		FileEventNone,
 	},
 	{
-		EventNone,
+		FileEventNone,
 		EventCreate,
 	},
 }

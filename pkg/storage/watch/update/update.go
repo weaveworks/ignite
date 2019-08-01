@@ -3,13 +3,12 @@ package update
 import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
-	"github.com/weaveworks/ignite/pkg/util/watcher"
 )
 
-// Update bundles an Event with an
+// Update bundles an FileEvent with an
 // APIType for Storage retrieval.
 type Update struct {
-	Event   watcher.Event
+	Event   ObjectEvent
 	APIType meta.Object
 }
 

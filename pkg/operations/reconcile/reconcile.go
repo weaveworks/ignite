@@ -11,8 +11,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/storage/cache"
 	"github.com/weaveworks/ignite/pkg/storage/manifest"
+	"github.com/weaveworks/ignite/pkg/storage/watch/update"
 	"github.com/weaveworks/ignite/pkg/util"
-	"github.com/weaveworks/ignite/pkg/util/watcher"
 )
 
 var c *client.Client
@@ -34,7 +34,7 @@ func ReconcileManifests(s *manifest.ManifestStorage) {
 
 		var vm *api.VM
 		var err error
-		if upd.Event == watcher.EventDelete {
+		if upd.Event == update.ObjectEventDelete {
 			// As we know this VM was deleted, it wouldn't show up in a Get() call
 			// Construct a temporary VM object for passing to the delete function
 			vm = &api.VM{
@@ -62,15 +62,15 @@ func ReconcileManifests(s *manifest.ManifestStorage) {
 
 		// TODO: Paralellization
 		switch upd.Event {
-		case watcher.EventCreate:
+		case update.ObjectEventCreate:
 			runHandle(func() error {
 				return handleCreate(vm)
 			})
-		case watcher.EventModify:
+		case update.ObjectEventModify:
 			runHandle(func() error {
 				return handleChange(vm)
 			})
-		case watcher.EventDelete:
+		case update.ObjectEventDelete:
 			runHandle(func() error {
 				// TODO: Temporary VM Object for removal
 				return handleDelete(vm)
