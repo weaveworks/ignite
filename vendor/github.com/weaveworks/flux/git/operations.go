@@ -113,7 +113,9 @@ func commit(ctx context.Context, workingDir string, commitAction CommitAction) e
 	if commitAction.Author != "" {
 		args = append(args, "--author", commitAction.Author)
 	}
-	if commitAction.SigningKey != "" {
+	if commitAction.SigningKey == "" {
+		args = append(args, "--no-gpg-sign")
+	} else {
 		args = append(args, fmt.Sprintf("--gpg-sign=%s", commitAction.SigningKey))
 	}
 	args = append(args, "--")
