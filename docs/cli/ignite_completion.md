@@ -1,4 +1,4 @@
-## ignite completion
+## `ignite completion` - Output bash completion for ignite to stdout
 
 Output bash completion for ignite to stdout
 
@@ -33,5 +33,4 @@ ignite completion [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs

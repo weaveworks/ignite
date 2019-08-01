@@ -1,4 +1,4 @@
-## ignite attach
+## `ignite attach` - Attach to a running VM
 
 Attach to a running VM
 
@@ -29,5 +29,4 @@ ignite attach <vm> [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs

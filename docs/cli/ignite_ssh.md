@@ -1,4 +1,4 @@
-## ignite ssh
+## `ignite ssh` - SSH into a running vm
 
 SSH into a running vm
 
@@ -32,5 +32,4 @@ ignite ssh <vm> [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs

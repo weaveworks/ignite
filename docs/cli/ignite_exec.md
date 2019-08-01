@@ -1,4 +1,4 @@
-## ignite exec
+## `ignite exec` - Create a new VM without starting it
 
 execute a command in a running VM
 
@@ -32,5 +32,4 @@ ignite exec <vm> <command...> [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs

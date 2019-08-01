@@ -27,5 +27,4 @@ ignite image ls [flags]
 
 ### SEE ALSO
 
-* [ignite image](ignite_image.md)	 - Manage base images for VMs
-
+* [ignite image](ignite_image.md) - Manage base images for VMs

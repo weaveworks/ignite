@@ -1,4 +1,4 @@
-## ignite logs
+## `ignite logs` - Get the logs for a running VM
 
 Get the logs for a running VM
 
@@ -28,5 +28,4 @@ ignite logs <vm> [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs

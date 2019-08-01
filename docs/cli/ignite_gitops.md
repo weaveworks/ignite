@@ -1,4 +1,4 @@
-## ignite gitops
+## `ignite gitops` - Run the GitOps feature of Ignite
 
 Run the GitOps feature of Ignite
 
@@ -35,5 +35,4 @@ ignite gitops <repo-url> [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs

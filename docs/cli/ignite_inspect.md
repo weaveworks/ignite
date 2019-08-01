@@ -1,4 +1,4 @@
-## ignite inspect
+## `ignite inspect` - Inspect an Ignite Object
 
 Inspect an Ignite Object
 
@@ -31,5 +31,4 @@ ignite inspect <kind> <object> [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs

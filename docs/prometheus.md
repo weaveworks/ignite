@@ -1,4 +1,4 @@
-## Monitor Ignite with Prometheus
+# Monitor Ignite with Prometheus
 
 Every Ignite VM container exposes [Prometheus](https://prometheus.io) metrics about itself.
 

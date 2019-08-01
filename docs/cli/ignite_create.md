@@ -1,4 +1,4 @@
-## ignite create
+## `ignite create` - Create a new VM without starting it
 
 Create a new VM without starting it
 
@@ -56,5 +56,4 @@ ignite create <OCI image> [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs

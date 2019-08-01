@@ -56,5 +56,4 @@ ignite vm create <OCI image> [flags]
 
 ### SEE ALSO
 
-* [ignite vm](ignite_vm.md)	 - Manage VMs
-
+* [ignite vm](ignite_vm.md) - Manage VMs

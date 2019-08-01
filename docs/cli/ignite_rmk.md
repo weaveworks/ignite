@@ -1,4 +1,4 @@
-## ignite rmk
+## `ignite rmk` - Remove kernels
 
 Remove kernels
 
@@ -30,5 +30,4 @@ ignite rmk <kernel> [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs

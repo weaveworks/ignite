@@ -1,4 +1,4 @@
-## ignite ps
+## `ignite ps` - Inspect an Ignite Object
 
 List running VMs
 
@@ -29,5 +29,4 @@ ignite ps [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs

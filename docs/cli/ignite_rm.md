@@ -1,4 +1,4 @@
-## ignite rm
+## `ignite rm` - Remove VMs
 
 Remove VMs
 
@@ -31,5 +31,4 @@ ignite rm <vm>... [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs

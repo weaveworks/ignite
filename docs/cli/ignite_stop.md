@@ -1,4 +1,4 @@
-## ignite stop
+## `ignite stop` - Stop running VMs
 
 Stop running VMs
 
@@ -34,5 +34,4 @@ ignite stop <vm>... [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs

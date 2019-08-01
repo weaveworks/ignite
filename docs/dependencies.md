@@ -1,6 +1,6 @@
-## Requirements and dependencies
+# Requirements and dependencies
 
-### Virtualization features
+## Virtualization features
 
 Firecracker by design only supports emulating 4 devices:
  - `virtio-block`
@@ -10,7 +10,7 @@ Firecracker by design only supports emulating 4 devices:
 
 Everything apart from above, is not supported, and out of scope.
 
-### Host Requirements
+## Host Requirements
 
  - A host running Linux 4.14 or newer
  - An Intel or AMD (alpha) CPU
@@ -18,7 +18,7 @@ Everything apart from above, is not supported, and out of scope.
  - loaded kernel loop module: `modprobe -v loop`
  - Optional: `sysctl net.bridge.bridge-nf-call-iptables=0`
 
-### Guest Requirements
+## Guest Requirements
 
  - A Linux kernel 4.14 or newer
  - Kernel config:
@@ -27,7 +27,7 @@ Everything apart from above, is not supported, and out of scope.
    - `CONFIG_KEYBOARD_ATKBD=y` (optional but recommended)
    - `CONFIG_SERIO_I8042=y` (optional but recommended)
 
-### Ignite on-host dependencies
+## Ignite on-host dependencies
 
 Ignite shells out to a few dependencies on the host.
 With time, we aim to eliminate as many of these as possible.

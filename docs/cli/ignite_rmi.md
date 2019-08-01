@@ -1,4 +1,4 @@
-## ignite rmi
+## `ignite rmi` - Remove VM base images
 
 Remove VM base images
 
@@ -30,5 +30,4 @@ ignite rmi <image> [flags]
 
 ### SEE ALSO
 
-* [ignite](ignite.md)	 - ignite: easily run Firecracker VMs
-
+* [ignite](index) - ignite: easily run Firecracker VMs

@@ -52,5 +52,4 @@ ignite vm run <OCI image> [flags]
 
 ### SEE ALSO
 
-* [ignite vm](ignite_vm.md)	 - Manage VMs
-
+* [ignite vm](ignite_vm.md) - Manage VMs
