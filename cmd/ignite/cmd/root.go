@@ -14,13 +14,16 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
-	"github.com/weaveworks/ignite/pkg/util"
+	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
 )
 
 var logLevel = logrus.InfoLevel
 
 // NewIgniteCommand returns the root command for ignite
 func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
+	// Set the default logging level
+	logs.Logger.SetLevel(logLevel)
+
 	imageCmd := imgcmd.NewCmdImage(os.Stdout)
 	kernelCmd := kerncmd.NewCmdKernel(os.Stdout)
 	vmCmd := vmcmd.NewCmdVM(os.Stdout)
@@ -28,25 +31,6 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	root := &cobra.Command{
 		Use:   "ignite",
 		Short: "ignite: easily run Firecracker VMs",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			// Ignite needs to run as root for now, see
-			// https://github.com/weaveworks/ignite/issues/46
-			// TODO: Remove this when ready
-			ok, err := util.TestRoot()
-			if err != nil {
-				panic(err)
-			} else if !ok {
-				fmt.Println("This program needs to run as root.")
-				os.Exit(1)
-			}
-
-			// TODO: Handle this error more softly?
-			if err := util.CreateDirectories(); err != nil {
-				panic(err)
-			}
-
-			logs.Logger.SetLevel(logLevel)
-		},
 		Long: dedent.Dedent(fmt.Sprintf(`
 			Ignite is a containerized Firecracker microVM administration tool.
 			It can build VM images, spin VMs up/down and manage multiple VMs efficiently.
@@ -85,8 +69,6 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	root.AddCommand(NewCmdCreate(os.Stdout))
 	root.AddCommand(NewCmdKill(os.Stdout))
 	root.AddCommand(NewCmdLogs(os.Stdout))
-	root.AddCommand(NewCmdGitOps(os.Stdout))
-	root.AddCommand(NewCmdDaemon(os.Stdout))
 	root.AddCommand(NewCmdInspect(os.Stdout))
 	root.AddCommand(NewCmdPs(os.Stdout))
 	root.AddCommand(NewCmdRm(os.Stdout))
@@ -97,7 +79,7 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	root.AddCommand(NewCmdExec(os.Stdout, os.Stderr, os.Stdin))
 	root.AddCommand(NewCmdStart(os.Stdout))
 	root.AddCommand(NewCmdStop(os.Stdout))
-	root.AddCommand(NewCmdVersion(os.Stdout))
+	root.AddCommand(versioncmd.NewCmdVersion(os.Stdout))
 	return root
 }
 

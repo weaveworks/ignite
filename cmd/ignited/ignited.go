@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/weaveworks/ignite/cmd/ignite/cmd"
+	"github.com/weaveworks/ignite/cmd/ignited/cmd"
 	"github.com/weaveworks/ignite/pkg/providers"
-	"github.com/weaveworks/ignite/pkg/providers/ignite"
+	"github.com/weaveworks/ignite/pkg/providers/ignited"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -26,8 +26,8 @@ func Run() error {
 	util.GenericCheckErr(util.CreateDirectories())
 
 	// Populate the providers
-	util.GenericCheckErr(providers.Populate(ignite.Providers))
+	util.GenericCheckErr(providers.Populate(ignited.Providers))
 
-	c := cmd.NewIgniteCommand(os.Stdin, os.Stdout, os.Stderr)
+	c := cmd.NewIgnitedCommand(os.Stdin, os.Stdout, os.Stderr)
 	return c.Execute()
 }
