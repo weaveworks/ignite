@@ -18,7 +18,6 @@ import (
 var c *client.Client
 
 func ReconcileManifests(s *manifest.ManifestStorage) {
-
 	startMetricsThread()
 
 	// Wrap the Manifest Storage with a cache for better performance, and create a client

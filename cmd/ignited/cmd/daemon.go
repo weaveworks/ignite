@@ -28,7 +28,7 @@ func NewCmdDaemon(out io.Writer) *cobra.Command {
 			ms := manifeststorage.ManifestStorage
 
 			go func() {
-				log.Infof("starting reconciliation loop")
+				log.Infof("Starting reconciliation loop...")
 				reconcile.ReconcileManifests(ms)
 			}()
 
