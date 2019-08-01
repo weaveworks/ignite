@@ -7,8 +7,10 @@ import (
 	"os/signal"
 	"sync"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/providers/manifeststorage"
+	"github.com/weaveworks/ignite/pkg/operations/reconcile"
 )
 
 func NewCmdDaemon(out io.Writer) *cobra.Command {
@@ -23,6 +25,13 @@ func NewCmdDaemon(out io.Writer) *cobra.Command {
 			signalChannel := make(chan os.Signal, 1)
 			signal.Notify(signalChannel, os.Interrupt)
 
+			ms := manifeststorage.ManifestStorage
+
+			go func() {
+				log.Infof("starting reconciliation loop")
+				reconcile.ReconcileManifests(ms)
+			}()
+
 			go func() {
 				<-signalChannel
 				endWaiter.Done()
@@ -32,7 +41,7 @@ func NewCmdDaemon(out io.Writer) *cobra.Command {
 
 			// Close the Storage's watcher threads
 			fmt.Println("Closing...")
-			providers.Storage.Close()
+			ms.Close()
 		},
 	}
 
