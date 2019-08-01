@@ -55,13 +55,14 @@ func StartVM(vm *api.VM, debug bool) error {
 				ContainerPath: vmDir,
 			},
 			{
-				HostPath:      kernelDir,
-				ContainerPath: kernelDir,
-			},
-			{
 				// Mount the metadata.json file specifically into the container, to a well-known place for ignite-spawn to access
 				HostPath:      path.Join(vmDir, constants.METADATA),
 				ContainerPath: constants.IGNITE_SPAWN_VM_FILE_PATH,
+			},
+			{
+				// Mount the vmlinux file specifically into the container, to a well-known place for ignite-spawn to access
+				HostPath:      path.Join(kernelDir, constants.KERNEL_FILE),
+				ContainerPath: constants.IGNITE_SPAWN_VMLINUX_FILE_PATH,
 			},
 		},
 		CapAdds: []string{

@@ -6,8 +6,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/pkg/logs"
+	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
 )
 
 var logLevel = logrus.InfoLevel
@@ -19,14 +19,14 @@ func RunIgniteSpawn() {
 	}
 
 	addGlobalFlags(fs)
-	cmdutil.CheckErr(fs.Parse(os.Args[1:]))
+	checkErr(fs.Parse(os.Args[1:]))
 	logs.Logger.SetLevel(logLevel)
 
 	if len(fs.Args()) != 1 {
 		usage()
 	}
 
-	cmdutil.CheckErr(func() error {
+	checkErr(func() error {
 		vm, err := decodeVM(fs.Args()[0])
 		if err != nil {
 			return err
@@ -37,9 +37,21 @@ func RunIgniteSpawn() {
 }
 
 func usage() {
-	cmdutil.CheckErr(fmt.Errorf("usage: ignite-spawn [--log-level <level>] <vm>"))
+	checkErr(fmt.Errorf("usage: ignite-spawn [--log-level <level>] <vm>"))
 }
 
 func addGlobalFlags(fs *pflag.FlagSet) {
-	cmdutil.LogLevelFlagVar(fs, &logLevel)
+	logflag.LogLevelFlagVar(fs, &logLevel)
+}
+
+// checkErr is used by the ignite-spawn command to check if the action failed
+// and respond with a fatal error provided by the logger (calls os.Exit)
+
+func checkErr(err error) {
+	switch err.(type) {
+	case nil:
+		return // Don't fail if there's no error
+	}
+
+	logrus.Fatal(err)
 }
