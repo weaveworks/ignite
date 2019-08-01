@@ -21,11 +21,12 @@ In this folder you can read more about how to use Ignite, and how it works:
    FAQ
 
 .. toctree::
-   :caption: Reference
+   :caption: CLI Reference
    :titlesonly:
    :maxdepth: 0
 
-   cli/index
+   cli/ignite/index
+   cli/ignited/index
 
 .. toctree::
    :caption: Releases
