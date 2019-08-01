@@ -221,3 +221,14 @@ func (d *GitDirectory) Ready() bool {
 	log.Tracef("git directory ready: %t", r)
 	return r
 }
+
+func (d *GitDirectory) WaitForClone() {
+	for {
+		// Check if the Git repo is ready and cloned, otherwise wait
+		if d.Ready() {
+			break
+		}
+
+		time.Sleep(d.syncInterval / 2)
+	}
+}

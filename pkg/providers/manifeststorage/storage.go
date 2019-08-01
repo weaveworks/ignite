@@ -8,12 +8,14 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage/manifest"
 )
 
-func SetManifestStorage() error {
+var ManifestStorage *manifest.ManifestStorage
+
+func SetManifestStorage() (err error) {
 	log.Trace("Initializing the ManifestStorage provider...")
-	ms, err := manifest.NewManifestStorage(constants.MANIFEST_DIR)
+	ManifestStorage, err = manifest.NewManifestStorage(constants.MANIFEST_DIR)
 	if err != nil {
-		return err
+		return
 	}
-	providers.Storage = cache.NewCache(ms)
-	return nil
+	providers.Storage = cache.NewCache(ManifestStorage)
+	return
 }
