@@ -21,8 +21,6 @@ var logLevel = logrus.InfoLevel
 
 // NewIgniteCommand returns the root command for ignite
 func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
-	// Set the default logging level
-	logs.Logger.SetLevel(logLevel)
 
 	imageCmd := imgcmd.NewCmdImage(os.Stdout)
 	kernelCmd := kerncmd.NewCmdKernel(os.Stdout)
@@ -31,6 +29,10 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	root := &cobra.Command{
 		Use:   "ignite",
 		Short: "ignite: easily run Firecracker VMs",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			// Set the desired logging level, now that the flags are parsed
+			logs.Logger.SetLevel(logLevel)
+		},
 		Long: dedent.Dedent(fmt.Sprintf(`
 			Ignite is a containerized Firecracker microVM administration tool.
 			It can build VM images, spin VMs up/down and manage multiple VMs efficiently.
@@ -90,5 +92,5 @@ func addGlobalFlags(fs *pflag.FlagSet) {
 
 // AddQuietFlag adds the quiet flag to a flagset
 func AddQuietFlag(fs *pflag.FlagSet) {
-	fs.BoolVarP(&logs.Quiet, "quiet", "q", logs.Quiet, "The quiet mode allows for machine-parsable output, by printing only IDs")
+	fs.BoolVarP(&logs.Quiet, "quiet", "q", logs.Quiet, "The quiet mode allows for machine-parsable output by printing only IDs")
 }
