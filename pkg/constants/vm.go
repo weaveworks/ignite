@@ -4,6 +4,9 @@ const (
 	// Path to directory containing a subdirectory for each VM
 	VM_DIR = DATA_DIR + "/vm"
 
+	// Path where ignited stores its manifests
+	MANIFEST_DIR = "/etc/firecracker/manifests"
+
 	// Default values for VM options
 	VM_DEFAULT_CPUS        = 1
 	VM_DEFAULT_MEMORY      = 512 * MB
@@ -18,4 +21,10 @@ const (
 
 	// Prometheus socket filename
 	PROMETHEUS_SOCKET = "prometheus.sock"
+
+	// Where the VM specification is located inside of the container
+	IGNITE_SPAWN_VM_FILE_PATH = "/vm.json"
+
+	// Where the vmlinux kernel is located inside of the container
+	IGNITE_SPAWN_VMLINUX_FILE_PATH = "/vmlinux"
 )

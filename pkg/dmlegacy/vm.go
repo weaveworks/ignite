@@ -14,6 +14,7 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/dmlegacy/cleanup"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -86,7 +87,7 @@ func copyToOverlay(vm *api.VM) error {
 	if err := ActivateSnapshot(vm); err != nil {
 		return err
 	}
-	defer DeactivateSnapshot(vm)
+	defer cleanup.DeactivateSnapshot(vm)
 
 	mp, err := util.Mount(vm.SnapshotDev())
 	if err != nil {

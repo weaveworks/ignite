@@ -13,7 +13,7 @@ import (
 
 // Creates the /var/lib/firecracker/{vm,image,kernel} directories
 func CreateDirectories() error {
-	for _, dir := range []string{constants.VM_DIR, constants.IMAGE_DIR, constants.KERNEL_DIR} {
+	for _, dir := range []string{constants.VM_DIR, constants.IMAGE_DIR, constants.KERNEL_DIR, constants.MANIFEST_DIR} {
 		if err := os.MkdirAll(dir, constants.DATA_DIR_PERM); err != nil {
 			return fmt.Errorf("failed to create directory %q: %v", dir, err)
 		}

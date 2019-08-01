@@ -6,12 +6,25 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"syscall"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/goombaio/namegenerator"
+	log "github.com/sirupsen/logrus"
 )
+
+// GenericCheckErr is used by the commands to check if the action failed
+// and respond with a fatal error provided by the logger (calls os.Exit)
+// Ignite has it's own, more detailed implementation of this in cmdutil
+func GenericCheckErr(err error) {
+	switch err.(type) {
+	case nil:
+		return // Don't fail if there's no error
+	}
+
+	log.Fatal(err)
+}
 
 func ExecuteCommand(command string, args ...string) (string, error) {
 	cmd := exec.Command(command, args...)
@@ -116,8 +129,11 @@ func MatchPrefix(prefix string, fields ...string) ([]string, bool) {
 	return prefixMatches, false
 }
 
-func TestRoot() (bool, error) {
-	return syscall.Getuid() == 0, nil
+func TestRoot() error {
+	if syscall.Getuid() == 0 {
+		return nil
+	}
+	return fmt.Errorf("This program needs to run as root.")
 }
 
 type Prefixer struct {

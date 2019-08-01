@@ -16,10 +16,3 @@ var Providers = []providers.ProviderInitFunc{
 	storageprovider.SetGenericStorage, // Use a generic storage implementation backed by a cache
 	clientprovider.SetClient,          // Set the globally available client
 }
-
-// `ignite daemon` overwrites/re-initializes the Storage and Client providers
-// TODO: Break this into its own binary
-var DaemonProviders = []providers.ProviderInitFunc{
-	storageprovider.SetManifestStorage, // Use the ManifestStorage implementation
-	clientprovider.SetClient,           // Set the globally available client
-}

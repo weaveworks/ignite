@@ -6,8 +6,9 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/pkg/logs"
+	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 var logLevel = logrus.InfoLevel
@@ -19,27 +20,28 @@ func RunIgniteSpawn() {
 	}
 
 	addGlobalFlags(fs)
-	cmdutil.CheckErr(fs.Parse(os.Args[1:]))
+	util.GenericCheckErr(fs.Parse(os.Args[1:]))
 	logs.Logger.SetLevel(logLevel)
 
 	if len(fs.Args()) != 1 {
 		usage()
 	}
 
-	cmdutil.CheckErr(func() error {
-		opts, err := NewOptions(fs.Args()[0])
+	util.GenericCheckErr(func() error {
+		vm, err := decodeVM(fs.Args()[0])
 		if err != nil {
 			return err
 		}
 
-		return StartVM(opts)
+		return StartVM(vm)
 	}())
 }
 
 func usage() {
-	cmdutil.CheckErr(fmt.Errorf("usage: ignite-spawn [--log-level <level>] <vm>"))
+	util.GenericCheckErr(fmt.Errorf("usage: ignite-spawn [--log-level <level>] <vm>"))
 }
 
 func addGlobalFlags(fs *pflag.FlagSet) {
-	cmdutil.LogLevelFlagVar(fs, &logLevel)
+	// TODO: Add a version flag
+	logflag.LogLevelFlagVar(fs, &logLevel)
 }

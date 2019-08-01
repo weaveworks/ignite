@@ -9,7 +9,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
-	"github.com/weaveworks/ignite/pkg/storage/manifest/raw"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
 	"github.com/weaveworks/ignite/pkg/util/sync"
 	"github.com/weaveworks/ignite/pkg/util/watcher"
@@ -32,24 +31,24 @@ type WatchStorage interface {
 type AssociatedEventStream chan update.AssociatedUpdate
 
 // NewGenericWatchStorage constructs a new WatchStorage
-func NewGenericWatchStorage(storage storage.Storage) (WatchStorage, error) {
-	s := &GenericWatchStorage{
-		Storage: storage,
+func NewGenericWatchStorage(s storage.Storage) (WatchStorage, error) {
+	ws := &GenericWatchStorage{
+		Storage: s,
 	}
 
 	var err error
 	var files []string
-	if s.watcher, files, err = watcher.NewFileWatcher(storage.RawStorage().Dir()); err != nil {
+	if ws.watcher, files, err = watcher.NewFileWatcher(s.RawStorage().Dir()); err != nil {
 		return nil, err
 	}
 
-	if mapped, ok := s.RawStorage().(raw.MappedRawStorage); ok {
-		s.monitor = sync.RunMonitor(func() {
-			s.monitorFunc(mapped, files) // Offload the file registration to the goroutine
+	if mapped, ok := ws.RawStorage().(storage.MappedRawStorage); ok {
+		ws.monitor = sync.RunMonitor(func() {
+			ws.monitorFunc(mapped, files) // Offload the file registration to the goroutine
 		})
 	}
 
-	return s, nil
+	return ws, nil
 }
 
 // GenericWatchStorage implements the WatchStorage interface
@@ -90,7 +89,7 @@ func (s *GenericWatchStorage) Close() error {
 	return nil
 }
 
-func (s *GenericWatchStorage) monitorFunc(mapped raw.MappedRawStorage, files []string) {
+func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files []string) {
 	defer log.Debug("GenericWatchStorage: monitoring thread stopped")
 
 	// Fill the mappings of the MappedRawStorage before starting to monitor changes
