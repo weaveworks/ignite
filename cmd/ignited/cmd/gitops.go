@@ -6,8 +6,8 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/pkg/gitops"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type gitOpsFlags struct {
@@ -35,7 +35,7 @@ func NewCmdGitOps(out io.Writer) *cobra.Command {
 		`),
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			cmdutil.CheckErr(gitops.RunLoop(args[0], f.branch, f.paths))
+			util.GenericCheckErr(gitops.RunLoop(args[0], f.branch, f.paths))
 		},
 	}
 

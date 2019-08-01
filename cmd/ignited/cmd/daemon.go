@@ -8,20 +8,14 @@ import (
 	"sync"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/pkg/providers"
-	"github.com/weaveworks/ignite/pkg/providers/ignite"
 )
 
 func NewCmdDaemon(out io.Writer) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:    "daemon",
-		Short:  "For now causes Ignite to hang indefinitely. Used for testing purposes.",
-		Hidden: true,
+		Use:   "daemon",
+		Short: "Operates in daemon mode and watches /etc/firecracker/manifests for VM specifications to run.", // TODO: Parameterize
 		Run: func(cmd *cobra.Command, args []string) {
-			// Initialize the daemon providers (e.g. ManifestStorage)
-			cmdutil.CheckErr(providers.Populate(ignite.DaemonProviders))
-
 			// Wait for Ctrl + C
 			var endWaiter sync.WaitGroup
 			endWaiter.Add(1)

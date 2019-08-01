@@ -1,19 +1,20 @@
-## ignited daemon
+## ignited version
 
-Operates in daemon mode and watches /etc/firecracker/manifests for VM specifications to run.
+Print the version of ignite
 
 ### Synopsis
 
-Operates in daemon mode and watches /etc/firecracker/manifests for VM specifications to run.
+Print the version of ignite
 
 ```
-ignited daemon [flags]
+ignited version [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help   help for daemon
+  -h, --help            help for version
+  -o, --output string   Output format; available options are 'yaml', 'json' and 'short'
 ```
 
 ### Options inherited from parent commands
