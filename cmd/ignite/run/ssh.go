@@ -5,9 +5,8 @@ import (
 	"path"
 
 	log "github.com/sirupsen/logrus"
-
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/metadata/vmmd"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -18,7 +17,7 @@ type SSHFlags struct {
 
 type sshOptions struct {
 	*SSHFlags
-	vm *vmmd.VM
+	vm *api.VM
 }
 
 func (sf *SSHFlags) NewSSHOptions(vmMatch string) (so *sshOptions, err error) {

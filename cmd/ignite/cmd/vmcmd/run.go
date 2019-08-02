@@ -6,8 +6,8 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdRun creates, starts (and attaches to) a VM
@@ -37,7 +37,7 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 		`),
 		Args: cobra.RangeArgs(0, 1),
 		Run: func(cmd *cobra.Command, args []string) {
-			errutils.Check(func() error {
+			cmdutil.CheckErr(func() error {
 				ro, err := rf.NewRunOptions(args)
 				if err != nil {
 					return err

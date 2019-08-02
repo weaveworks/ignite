@@ -10,9 +10,6 @@ RUN apk add --no-cache \
     iproute2 \
     device-mapper
 
-# Remove unused files
-RUN rm -r /lib/apk /etc/apk
-
 # Download the Firecracker binary from Github
 ARG FIRECRACKER_VERSION
 # If amd64 is set, this is "". If arm64, this should be "-aarch64".

@@ -1,4 +1,4 @@
-## Run Ignite VMs declaratively
+# Run Ignite VMs declaratively
 
 Flags can be convenient for simple use cases, but have many limitations.
 In more advanced use-cases, and to eventually allow GitOps flows, there is
@@ -100,4 +100,5 @@ spec:
   ssh: [true, or public key path]
 ```
 
-You can find the full API reference in the [api/](../api) subfolder of the project.
+You can find the full API reference in the
+[api/](https://github.com/weaveworks/ignite/tree/master/api) subfolder of the project.

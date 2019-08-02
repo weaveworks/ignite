@@ -32,7 +32,7 @@ echo "Releasing version ${FULL_VERSION}"
 
 tag_release() {
     read -p "Are you sure you want to tag the release ${FULL_VERSION}? [y/N] " confirm
-    if [[ ${confirm} != "Y" ]]; then
+    if [[ ! ${confirm} =~ ^[Yy]$ ]]; then
         exit 1
     fi
 
@@ -42,16 +42,16 @@ tag_release() {
 
 push_artifacts() {
     read -p "Are you sure you want to push the release ${FULL_VERSION} artifacts? [y/N] " confirm
-    if [[ ${confirm} != "Y" ]]; then
-        cat <<EOF
-Done! Next, do this:
+    if [[ ! ${confirm} =~ ^[Yy]$ ]]; then
+        cat <<- EOF
+		Done! Next, do this:
 
-make -C images push-all
-make image-push
-git push --tags
-git push origin ${RELEASE_BRANCH}
-git push origin master
-EOF
+		make -C images push-all
+		make image-push
+		git push --tags
+		git push origin ${RELEASE_BRANCH}
+		git push origin master
+		EOF
         exit 1
     fi
     make -C images push-all

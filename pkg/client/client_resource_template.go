@@ -9,19 +9,27 @@
 package client
 
 import (
+	"fmt"
+
 	log "github.com/sirupsen/logrus"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/filterer"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // ResourceClient is an interface for accessing Resource-specific API objects
 type ResourceClient interface {
+	// New returns a new Resource
+	New() *api.Resource
 	// Get returns the Resource matching given UID from the storage
 	Get(meta.UID) (*api.Resource, error)
 	// Set saves the given Resource into persistent storage
 	Set(*api.Resource) error
+	// Patch performs a strategic merge patch on the object with
+	// the given UID, using the byte-encoded patch given
+	Patch(meta.UID, []byte) error
 	// Find returns the Resource matching the given filter, filters can
 	// match e.g. the Object's Name, UID or a specific property
 	Find(filter filterer.BaseFilter) (*api.Resource, error)
@@ -34,18 +42,13 @@ type ResourceClient interface {
 	List() ([]*api.Resource, error)
 }
 
-// Resources returns the ResourceClient for the Client instance
-func (c *Client) Resources() ResourceClient {
+// Resources returns the ResourceClient for the IgniteInternalClient instance
+func (c *IgniteInternalClient) Resources() ResourceClient {
 	if c.resourceClient == nil {
-		c.resourceClient = newResourceClient(c.storage)
+		c.resourceClient = newResourceClient(c.storage, c.gv)
 	}
 
 	return c.resourceClient
-}
-
-// Resources is a shorthand for accessing Resources using the default client
-func Resources() ResourceClient {
-	return DefaultClient.Resources()
 }
 
 // resourceClient is a struct implementing the ResourceClient interface
@@ -53,19 +56,32 @@ func Resources() ResourceClient {
 type resourceClient struct {
 	storage  storage.Storage
 	filterer *filterer.Filterer
+	gvk      schema.GroupVersionKind
 }
 
 // newResourceClient builds the resourceClient struct using the storage implementation and a new Filterer
-func newResourceClient(s storage.Storage) ResourceClient {
+func newResourceClient(s storage.Storage, gv schema.GroupVersion) ResourceClient {
 	return &resourceClient{
 		storage:  s,
 		filterer: filterer.NewFilterer(s),
+		gvk:      gv.WithKind(api.KindResource.Title()),
 	}
+}
+
+// New returns a new Object of its kind
+func (c *resourceClient) New() *api.Resource {
+	log.Tracef("Client.New; GVK: %v", c.gvk)
+	obj, err := c.storage.New(c.gvk)
+	if err != nil {
+		panic(fmt.Sprintf("Client.New must not return an error: %v", err))
+	}
+	return obj.(*api.Resource)
 }
 
 // Find returns a single Resource based on the given Filter
 func (c *resourceClient) Find(filter filterer.BaseFilter) (*api.Resource, error) {
-	object, err := c.filterer.Find(api.ResourceKind, filter)
+	log.Tracef("Client.Find; GVK: %v", c.gvk)
+	object, err := c.filterer.Find(c.gvk, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +91,8 @@ func (c *resourceClient) Find(filter filterer.BaseFilter) (*api.Resource, error)
 
 // FindAll returns multiple Resources based on the given Filter
 func (c *resourceClient) FindAll(filter filterer.BaseFilter) ([]*api.Resource, error) {
-	matches, err := c.filterer.FindAll(api.ResourceKind, filter)
+	log.Tracef("Client.FindAll; GVK: %v", c.gvk)
+	matches, err := c.filterer.FindAll(c.gvk, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -90,8 +107,8 @@ func (c *resourceClient) FindAll(filter filterer.BaseFilter) ([]*api.Resource, e
 
 // Get returns the Resource matching given UID from the storage
 func (c *resourceClient) Get(uid meta.UID) (*api.Resource, error) {
-	log.Debugf("Client.Get; UID: %q, Kind: %s", uid, api.KindResource)
-	object, err := c.storage.GetByID(api.KindResource, uid)
+	log.Tracef("Client.Get; UID: %q, GVK: %v", uid, c.gvk)
+	object, err := c.storage.Get(c.gvk, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -101,19 +118,26 @@ func (c *resourceClient) Get(uid meta.UID) (*api.Resource, error) {
 
 // Set saves the given Resource into the persistent storage
 func (c *resourceClient) Set(resource *api.Resource) error {
-	log.Debugf("Client.Set; UID: %q, Kind: %s", resource.GetUID(), resource.GetKind())
-	return c.storage.Set(resource)
+	log.Tracef("Client.Set; UID: %q, GVK: %v", resource.GetUID(), c.gvk)
+	return c.storage.Set(c.gvk, resource)
+}
+
+// Patch performs a strategic merge patch on the object with
+// the given UID, using the byte-encoded patch given
+func (c *resourceClient) Patch(uid meta.UID, patch []byte) error {
+	return c.storage.Patch(c.gvk, uid, patch)
 }
 
 // Delete deletes the Resource from the storage
 func (c *resourceClient) Delete(uid meta.UID) error {
-	log.Debugf("Client.Delete; UID: %q, Kind: %s", uid, api.KindResource)
-	return c.storage.Delete(api.KindResource, uid)
+	log.Tracef("Client.Delete; UID: %q, GVK: %v", uid, c.gvk)
+	return c.storage.Delete(c.gvk, uid)
 }
 
 // List returns a list of all Resources available
 func (c *resourceClient) List() ([]*api.Resource, error) {
-	list, err := c.storage.List(api.KindResource)
+	log.Tracef("Client.List; GVK: %v", c.gvk)
+	list, err := c.storage.List(c.gvk)
 	if err != nil {
 		return nil, err
 	}

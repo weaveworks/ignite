@@ -2,12 +2,11 @@ package dm
 
 import (
 	"fmt"
-	"log"
 	"os"
 
-	"github.com/weaveworks/ignite/pkg/util"
-
+	log "github.com/sirupsen/logrus"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type blockDevice interface {
@@ -17,7 +16,7 @@ type blockDevice interface {
 }
 
 func dmsetup(args ...string) error {
-	log.Printf("Running dmsetup: %q\n", args)
+	log.Infof("Running dmsetup: %q\n", args)
 	_, err := util.ExecuteCommand("dmsetup", args...)
 	return err
 }

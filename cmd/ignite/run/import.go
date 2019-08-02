@@ -1,40 +1,39 @@
 package run
 
 import (
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/metadata"
-	"github.com/weaveworks/ignite/pkg/metadata/imgmd"
-	"github.com/weaveworks/ignite/pkg/metadata/kernmd"
 	"github.com/weaveworks/ignite/pkg/operations"
+	"github.com/weaveworks/ignite/pkg/providers"
 )
 
-func ImportImage(source string) (*imgmd.Image, error) {
+func ImportImage(source string) (*api.Image, error) {
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {
 		return nil, err
 	}
 
-	runImage, err := operations.FindOrImportImage(client.DefaultClient, ociRef)
+	image, err := operations.FindOrImportImage(providers.Client, ociRef)
 	if err != nil {
 		return nil, err
 	}
-	defer metadata.Cleanup(runImage, false) // TODO: Handle silent
+	defer metadata.Cleanup(image, false) // TODO: Handle silent
 
-	return runImage, metadata.Success(runImage)
+	return image, metadata.Success(image)
 }
 
-func ImportKernel(source string) (*kernmd.Kernel, error) {
+func ImportKernel(source string) (*api.Kernel, error) {
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {
 		return nil, err
 	}
 
-	runKernel, err := operations.FindOrImportKernel(client.DefaultClient, ociRef)
+	kernel, err := operations.FindOrImportKernel(providers.Client, ociRef)
 	if err != nil {
 		return nil, err
 	}
-	defer metadata.Cleanup(runKernel, false) // TODO: Handle silent
+	defer metadata.Cleanup(kernel, false) // TODO: Handle silent
 
-	return runKernel, metadata.Success(runKernel)
+	return kernel, metadata.Success(kernel)
 }

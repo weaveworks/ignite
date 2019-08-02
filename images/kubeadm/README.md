@@ -78,6 +78,18 @@ export KUBECONFIG=$(pwd)/run/admin.conf
 kubectl get nodes
 ```
 
+Right now it's expected that the nodes are in state `NotReady`, as CNI networking isn't set up.
+
+#### Install a CNI Network -- Weave Net
+
+We're gonna use [Weave Net](https://github.com/weaveworks/weave).
+
+```bash
+kubectl apply -f https://git.io/weave-kube-1.6
+```
+
+With this, the nodes should transition into the `Ready` state in a minute or so.
+
 ### Watch the cluster heal
 
 Kill the bootstrap master and see the cluster recover:

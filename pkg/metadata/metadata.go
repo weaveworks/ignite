@@ -7,12 +7,12 @@ import (
 	"path"
 	"regexp"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/filter"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/storage/filterer"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -24,23 +24,17 @@ var (
 
 type Metadata interface {
 	meta.Object
-	ObjectPath() string
-	Save() error
 }
 
-// InitObject shall be run in all New{Kind} methods. This method should be
-// private once possible (the runtime objects should move into this pkg)
-func InitObject(obj meta.Object, c *client.Client) error {
+// SetNameAndUID sets the name and UID for an object if that isn't set automatically
+func SetNameAndUID(obj meta.Object, c *client.Client) error {
 	if obj == nil {
 		return fmt.Errorf("object cannot be nil when initializing runtime data")
 	}
 
 	if c == nil {
-		c = client.DefaultClient
+		c = providers.Client
 	}
-
-	// Default the object
-	scheme.Scheme.Default(obj)
 
 	// Generate or validate the given UID, if any
 	if err := processUID(obj, c); err != nil {
@@ -48,11 +42,7 @@ func InitObject(obj meta.Object, c *client.Client) error {
 	}
 
 	// Generate or validate the given name, if any
-	if err := processName(obj, c); err != nil {
-		return err
-	}
-
-	return nil
+	return processName(obj, c)
 }
 
 // processUID a new 8-byte ID and handles directory creation/deletion
@@ -74,7 +64,7 @@ func processUID(obj meta.Object, c *client.Client) error {
 		// No UID set, generate one
 		var uidBytes []byte
 		for {
-			uidBytes = make([]byte, 8)
+			uidBytes = make([]byte, constants.IGNITE_UID_LENGTH/2)
 			if _, err := rand.Read(uidBytes); err != nil {
 				return fmt.Errorf("failed to generate ID: %v", err)
 			}

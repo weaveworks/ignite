@@ -1,4 +1,4 @@
-## Monitor Ignite with Prometheus
+# Monitor Ignite with Prometheus
 
 Every Ignite VM container exposes [Prometheus](https://prometheus.io) metrics about itself.
 
@@ -6,7 +6,7 @@ These metrics are available with the following command:
 
 ```bash
 VM_NAME="my-vm"
-VM_ID=$(ignite inspect vm ${VM_NAME} | jq -r .metadata.name)
+VM_ID=$(ignite inspect vm ${VM_NAME} | jq -r .metadata.uid)
 curl --unix-socket /var/lib/firecracker/vm/${VM_ID}/prometheus.sock http:/metrics
 ```
 
@@ -16,7 +16,7 @@ check it with `docker stats`:
 
 ```console
 $ VM_NAME="my-vm"
-$ VM_ID=$(ignite inspect vm ${VM_NAME} | jq -r .metadata.name)
+$ VM_ID=$(ignite inspect vm ${VM_NAME} | jq -r .metadata.uid)
 $ docker stats ignite-${VM_ID}
 CONTAINER ID        NAME                      CPU %               MEM USAGE / LIMIT     MEM %               NET I/O             BLOCK I/O           PIDS
 29259f616d9c        ignite-cc82b4424244b3e4   3.12%               9.145MiB / 15.52GiB   0.06%               5.35kB / 2.5kB      324MB / 4.1kB       15

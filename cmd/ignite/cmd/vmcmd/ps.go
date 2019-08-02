@@ -6,8 +6,8 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdPs lists running VMs
@@ -23,7 +23,13 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 			also list VMs that are not currently running.
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
-			errutils.Check(func() error {
+			// If `ps` is called via any of its aliases
+			// (`ls`, `list`), list all VMs
+			if cmd.CalledAs() != cmd.Name() {
+				pf.All = true
+			}
+
+			cmdutil.CheckErr(func() error {
 				po, err := pf.NewPsOptions()
 				if err != nil {
 					return err

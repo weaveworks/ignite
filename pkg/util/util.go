@@ -6,12 +6,25 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/goombaio/namegenerator"
+	log "github.com/sirupsen/logrus"
 )
+
+// GenericCheckErr is used by the commands to check if the action failed
+// and respond with a fatal error provided by the logger (calls os.Exit)
+// Ignite has it's own, more detailed implementation of this in cmdutil
+func GenericCheckErr(err error) {
+	switch err.(type) {
+	case nil:
+		return // Don't fail if there's no error
+	}
+
+	log.Fatal(err)
+}
 
 func ExecuteCommand(command string, args ...string) (string, error) {
 	cmd := exec.Command(command, args...)
@@ -116,13 +129,11 @@ func MatchPrefix(prefix string, fields ...string) ([]string, bool) {
 	return prefixMatches, false
 }
 
-func TestRoot() (bool, error) {
-	u, err := user.Current()
-	if err != nil {
-		return false, err
+func TestRoot() error {
+	if syscall.Getuid() == 0 {
+		return nil
 	}
-
-	return u.Uid == "0", nil
+	return fmt.Errorf("This program needs to run as root.")
 }
 
 type Prefixer struct {
@@ -137,9 +148,15 @@ func NewPrefixer() *Prefixer {
 	}
 }
 
-func (p *Prefixer) Prefix(input ...string) string {
+func (p *Prefixer) Prefix(input ...interface{}) string {
 	if len(input) > 0 {
-		p.prefix += p.separator + strings.Join(input, p.separator)
+		s := make([]string, 0, len(input))
+
+		for _, data := range input {
+			s = append(s, fmt.Sprintf("%v", data))
+		}
+
+		p.prefix += p.separator + strings.Join(s, p.separator)
 	}
 
 	return p.prefix

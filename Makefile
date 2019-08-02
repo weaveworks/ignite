@@ -10,9 +10,12 @@ IS_DIRTY:=$(shell echo ${GIT_VERSION} | grep -o dirty | wc -l)
 WHAT?=ignite
 PROJECT = github.com/weaveworks/ignite
 APIS_DIR = ${PROJECT}/pkg/apis
-API_DIRS = ${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/meta/v1alpha1
+API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/ignite/v1alpha2,${APIS_DIR}/meta/v1alpha1
 CACHE_DIR = $(shell pwd)/bin/cache
-API_DOCS = api/ignite.md api/meta.md
+API_DOCS = docs/api/ignite.md docs/api/meta.md
+DOCS_PORT = 8000
+
+## Multi-platform-related stuff
 GOARCH ?= amd64
 QEMUVERSION=v2.9.1
 
@@ -35,19 +38,19 @@ install: binary
 	sudo cp bin/ignite /usr/local/bin
 
 # Make make execute this target although the file already exists.
-.PHONY: bin/$(GOARCH)/ignite bin/$(GOARCH)/ignite-spawn
+.PHONY: bin/$(GOARCH)/ignite bin/$(GOARCH)/ignite-spawn bin/$(GOARCH)/ignited
 ignite: bin/$(GOARCH)/ignite
+ignited: bin/$(GOARCH)/ignited
 # Always update the image when ignite-spawn is updated
 ignite-spawn: bin/$(GOARCH)/ignite-spawn image
-bin/$(GOARCH)/ignite bin/$(GOARCH)/ignite-spawn: bin/$(GOARCH)/%:
-	CGO_ENABLED=0 GOARCH=$(GOARCH) go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/$(GOARCH)/$* ./cmd/$*
+bin/$(GOARCH)/ignite bin/$(GOARCH)/ignited bin/$(GOARCH)/ignite-spawn: bin/%:
+	CGO_ENABLED=0 GOARCH=$(GOARCH) go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/$* ./cmd/$*
 	ln -sf ./$(GOARCH)/$* bin/$*
 
 .PHONY: bin/$(GOARCH)/Dockerfile
 image: bin/$(GOARCH)/Dockerfile
 bin/$(GOARCH)/Dockerfile: qemu
 	sed -e "s|QEMUARCH|$(QEMUARCH)|g;s|BASEIMAGE|$(BASEIMAGE)|g;" Dockerfile > bin/$(GOARCH)/Dockerfile
-
 ifeq ($(GOARCH),amd64)
 	# When building for amd64, remove the qemu stuff, it has no part in the amd64 image
 	sed -i "/qemu/d" bin/$(GOARCH)/Dockerfile
@@ -70,22 +73,26 @@ endif
 tidy: $(API_DOCS)
 	go mod tidy
 	go mod vendor
+	hack/generate-client.sh
 	gofmt -s -w pkg cmd
 	goimports -w pkg cmd
-	hack/generate-client.sh
-	hack/graph.sh
 	go run hack/cobra.go
 
+graph:
+	hack/graph.sh
+
 .PHONY: $(API_DOCS)
-$(API_DOCS): api/%.md: $(CACHE_DIR)/go/bin/godoc2md
+$(API_DOCS): docs/api/%.md: $(CACHE_DIR)/go/bin/godoc2md
 	mkdir -p $$(dirname $@) bin/tmp/$*
 	mv $(shell pwd)/pkg/apis/$*/v1alpha1/zz_generated* bin/tmp/$*
 	$(MAKE) shell COMMAND="/go/bin/godoc2md /go/src/${PROJECT}/pkg/apis/$*/v1alpha1 > $@"
 	sed -e "s|src/target|pkg/apis/$*/v1alpha1|g" -i $@
+	sed -e "s|(/pkg/apis|(https://github.com/weaveworks/ignite/tree/master/pkg/apis|g" -i $@
 	mv bin/tmp/$*/*.go $(shell pwd)/pkg/apis/$*/v1alpha1/
 	rm -r bin/tmp/$*
 
 $(CACHE_DIR)/go/bin/godoc2md:
+	mkdir -p $(CACHE_DIR)/go/bin/
 	curl -sSL https://github.com/luxas/godoc2md/releases/download/v0.1.0/godoc2md > $@
 	chmod +x $@
 
@@ -135,7 +142,7 @@ dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversio
 /go/bin/openapi-gen:
 	go install k8s.io/kube-openapi/cmd/openapi-gen
 
-
+# QEMU stuff
 qemu: bin/$(GOARCH)/qemu-$(QEMUARCH)-static
 bin/$(GOARCH)/qemu-$(QEMUARCH)-static:
 	mkdir -p bin/$(GOARCH)
@@ -145,3 +152,14 @@ else
 	curl -sSL https://github.com/multiarch/qemu-user-static/releases/download/$(QEMUVERSION)/x86_64_qemu-$(QEMUARCH)-static.tar.gz | tar -xz -C bin/$(GOARCH)
 	chmod 0755 $@
 endif
+
+# Read the docs stuff
+build-docs:
+	@cd docs && docker build -t ignite-docs .
+
+test-docs: build-docs
+	@docker run -it ignite-docs /usr/bin/linkchecker _build/html/index.html
+
+serve-docs: build-docs
+	@echo Stating docs website on http://localhost:${DOCS_PORT}/_build/html/index.html
+	@docker run -i -p ${DOCS_PORT}:8000 -e USER_ID=$$UID ignite-docs

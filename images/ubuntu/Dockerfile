@@ -1,4 +1,6 @@
-FROM ubuntu:18.04
+ARG RELEASE
+
+FROM ubuntu:${RELEASE}
 
 # udev is needed for booting a "real" VM, setting up the ttyS0 console properly
 # kmod is needed for modprobing modules
