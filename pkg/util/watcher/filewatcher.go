@@ -2,7 +2,6 @@ package watcher
 
 import (
 	"fmt"
-	"golang.org/x/sys/unix"
 	"os"
 	"path"
 	"path/filepath"
@@ -12,6 +11,7 @@ import (
 	"github.com/rjeczalik/notify"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/util/sync"
+	"golang.org/x/sys/unix"
 )
 
 const eventBuffer = 4096 // How many events and updates we can buffer before watching is interrupted

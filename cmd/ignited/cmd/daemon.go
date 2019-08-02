@@ -9,8 +9,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/ignite/pkg/providers/manifeststorage"
 	"github.com/weaveworks/ignite/pkg/operations/reconcile"
+	"github.com/weaveworks/ignite/pkg/providers/manifeststorage"
 )
 
 func NewCmdDaemon(out io.Writer) *cobra.Command {
