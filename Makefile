@@ -1,48 +1,91 @@
+SHELL:=/bin/bash
 UID_GID?=$(shell id -u):$(shell id -g)
 FIRECRACKER_VERSION:=$(shell cat hack/FIRECRACKER_VERSION)
 GO_VERSION=1.12.6
-DOCKER_USER=weaveworks
+DOCKER_USER?=weaveworks
+IMAGE=$(DOCKER_USER)/ignite
 GIT_VERSION:=$(shell hack/ldflags.sh --version-only)
 IMAGE_DEV_TAG=dev
 IMAGE_TAG:=$(shell hack/ldflags.sh --image-tag-only)
 # IS_DIRTY is 1 if the tree state is dirty, otherwise 0
 IS_DIRTY:=$(shell echo ${GIT_VERSION} | grep -o dirty | wc -l)
-WHAT?=ignite
 PROJECT = github.com/weaveworks/ignite
 APIS_DIR = ${PROJECT}/pkg/apis
 API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/ignite/v1alpha2,${APIS_DIR}/meta/v1alpha1
 CACHE_DIR = $(shell pwd)/bin/cache
 API_DOCS = docs/api/ignite.md docs/api/meta.md
-
 DOCS_PORT = 8000
 
-all: binary
-binary:
-	$(MAKE) shell COMMAND="make bin/${WHAT}"
+## Multi-platform-related stuff
+GOARCH ?= amd64
+GOARCH_LIST = amd64 arm64
+QEMUVERSION=v2.9.1
+# This option is for running docker manifest command
+export DOCKER_CLI_EXPERIMENTAL := enabled
 
-install: binary
-	sudo cp bin/ignite /usr/local/bin
+ifeq ($(GOARCH),amd64)
+QEMUARCH=amd64
+BASEIMAGE=alpine:3.9
+ARCH_SUFFIX=
+endif
+ifeq ($(GOARCH),arm64)
+QEMUARCH=aarch64
+BASEIMAGE=arm64v8/alpine:3.9
+ARCH_SUFFIX=-aarch64
+endif
+
+all: ignite
+install: ignite
+	sudo cp bin/$(GOARCH)/ignite /usr/local/bin
+
+BINARIES = ignite ignited ignite-spawn
+$(BINARIES):
+	$(MAKE) shell COMMAND="make bin/$(GOARCH)/$@"
+	# Always update the image when ignite-spawn is updated
+	[[ $@ == "ignite-spawn" ]] && $(MAKE) image || exit 0
 
 # Make make execute this target although the file already exists.
-.PHONY: bin/ignite bin/ignite-spawn bin/ignited
-ignite: bin/ignite
-ignited: bin/ignited
-# Always update the image when ignite-spawn is updated
-ignite-spawn: bin/ignite-spawn image
-bin/ignite bin/ignited bin/ignite-spawn: bin/%:
-	CGO_ENABLED=0 go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/$* ./cmd/$*
-
-image:
-	docker build -t ${DOCKER_USER}/ignite:${IMAGE_DEV_TAG} \
-		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} .
-ifeq ($(IS_DIRTY),0)
-	docker tag ${DOCKER_USER}/ignite:${IMAGE_DEV_TAG} ${DOCKER_USER}/ignite:${IMAGE_TAG}
+.PHONY: bin/$(GOARCH)/ignite bin/$(GOARCH)/ignite-spawn bin/$(GOARCH)/ignited
+bin/$(GOARCH)/ignite bin/$(GOARCH)/ignited bin/$(GOARCH)/ignite-spawn: bin/$(GOARCH)/%:
+	CGO_ENABLED=0 GOARCH=$(GOARCH) go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/$(GOARCH)/$* ./cmd/$*
+ifeq ($(GOARCH),amd64)
+	ln -sf ./$(GOARCH)/$* bin/$*
 endif
 
-image-push: image
-ifeq ($(IS_DIRTY),0)
-	docker push ${DOCKER_USER}/ignite:${IMAGE_TAG}
+.PHONY: bin/$(GOARCH)/Dockerfile
+image: bin/$(GOARCH)/Dockerfile
+bin/$(GOARCH)/Dockerfile: qemu
+	sed -e "s|QEMUARCH|$(QEMUARCH)|g;s|BASEIMAGE|$(BASEIMAGE)|g;" Dockerfile > bin/$(GOARCH)/Dockerfile
+ifeq ($(GOARCH),amd64)
+	# When building for amd64, remove the qemu stuff, it has no part in the amd64 image
+	sed -i "/qemu/d" bin/$(GOARCH)/Dockerfile
+else
+	# Register /usr/bin/qemu-ARCH-static as the handler for non-x86 binaries in the kernel
+	docker run --rm --privileged multiarch/qemu-user-static:register --reset
 endif
+	docker build -t $(IMAGE):${IMAGE_DEV_TAG} \
+		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} \
+		--build-arg ARCH_SUFFIX=${ARCH_SUFFIX} bin/$(GOARCH)
+ifeq ($(IS_DIRTY),0)
+	docker tag $(IMAGE):${IMAGE_DEV_TAG} $(IMAGE):${IMAGE_TAG}-$(GOARCH)
+endif
+
+build-all: $(addprefix build-all-,$(GOARCH_LIST))
+build-all-%:
+	$(MAKE) GOARCH=$* $(BINARIES)
+
+push-all: $(addprefix push-all-,$(GOARCH_LIST))
+push-all-%:
+	$(MAKE) build-all-$*
+	docker push $(IMAGE):${IMAGE_TAG}-$*
+
+release: push-all
+ifneq ($(IS_DIRTY),0)
+$(error "cannot release dirty tree")
+endif
+	docker manifest create --amend $(IMAGE):$(IMAGE_TAG) $(shell echo $(GOARCH_LIST) | sed -e "s~[^ ]*~$(IMAGE):$(IMAGE_TAG)\-&~g")
+	@for arch in $(GOARCH_LIST); do docker manifest annotate --arch=$${arch} $(IMAGE):$(IMAGE_TAG) $(IMAGE):$(IMAGE_TAG)-$${arch}; done
+	docker manifest push --purge $(IMAGE):$(IMAGE_TAG)
 
 tidy: $(API_DOCS)
 	go mod tidy
@@ -79,6 +122,7 @@ shell:
 		-w /go/src/${PROJECT} \
 		-u $(shell id -u):$(shell id -g) \
 		-e GO111MODULE=on \
+		-e GOARCH=$(GOARCH) \
 		golang:$(GO_VERSION) \
 		$(COMMAND)
 
@@ -116,7 +160,16 @@ dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversio
 /go/bin/openapi-gen:
 	go install k8s.io/kube-openapi/cmd/openapi-gen
 
+# QEMU stuff
+qemu: bin/$(GOARCH)/qemu-$(QEMUARCH)-static
+bin/$(GOARCH)/qemu-$(QEMUARCH)-static:
+	mkdir -p bin/$(GOARCH)
+ifneq ($(GOARCH),amd64)
+	curl -sSL https://github.com/multiarch/qemu-user-static/releases/download/$(QEMUVERSION)/x86_64_qemu-$(QEMUARCH)-static.tar.gz | tar -xz -C bin/$(GOARCH)
+	chmod 0755 $@
+endif
 
+# Read the docs stuff
 build-docs:
 	@cd docs && docker build -t ignite-docs .
 
