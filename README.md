@@ -74,7 +74,7 @@ Ignite on the other hand lets you run a full-blown VM, easily and super-fast, bu
 
 Please check out the [Releases Page](https://github.com/weaveworks/ignite/releases).
 
-How to install Ignite is covered in [docs/installation.md](docs/installation.md).
+How to install Ignite is covered in [docs/installation.md](https://ignite.readthedocs.io/en/latest/installation.html).
 
 ## Getting Started
 
@@ -121,11 +121,11 @@ ignite ssh my-vm
 ignite rm my-vm
 ```
 
-For a walkthrough of how to use Ignite, go to [**docs/usage.md**](docs/usage.md).
+For a walkthrough of how to use Ignite, go to [**docs/usage.md**](https://ignite.readthedocs.io/en/latest/usage.html).
 
 ## Getting Started the GitOps way
 
-In Git you [declaratively store](docs/declarative-config.md) the desired state of a set of VMs you want to manage.
+In Git you [declaratively store](https://ignite.readthedocs.io/en/latest/declarative-config.html) the desired state of a set of VMs you want to manage.
 `ignite gitops` reconciles the state from Git, and applies the desired changes as state is updated in the repo.
 
 This can then be automated, tracked for correctness, and managed at scale - [just some of the benefits of GitOps](https://www.weave.works/technologies/gitops/).
@@ -144,17 +144,17 @@ See it in action!
 
 Please refer to the following documents:
 
-- [Documentation Page](docs/)
-- [Installing Ignite](docs/installation.md)
-- [Scope and Dependencies](docs/dependencies.md)
-- [Getting Started Walkthrough](docs/usage.md)
-- [Declaratively Controlling Ignite](docs/declarative-config.md)
-- [CLI Reference](docs/cli/ignite.md)
-- [API Reference](api)
+- **[Documentation Page](https://ignite.readthedocs.io/)**
+- [Installing Ignite](https://ignite.readthedocs.io/en/latest/installation.html)
+- [Scope and Dependencies](https://ignite.readthedocs.io/en/latest/dependencies.html)
+- [Getting Started Walkthrough](https://ignite.readthedocs.io/en/latest/usage.html)
+- [Declaratively Controlling Ignite](https://ignite.readthedocs.io/en/latest/declarative-config.html)
+- [CLI Reference](https://ignite.readthedocs.io/en/latest/cli/ignite/)
+- [API Reference](https://ignite.readthedocs.io/en/latest/api/)
 
 ### Frequently Asked Questions
 
-See the [FAQ.md](FAQ.md) document.
+See the [FAQ.md](https://ignite.readthedocs.io/en/latest/FAQ.html) document.
 
 ### Architecture
 
