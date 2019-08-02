@@ -90,7 +90,8 @@ func (s *GenericWatchStorage) Close() error {
 }
 
 func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files []string) {
-	defer log.Debug("GenericWatchStorage: monitoring thread stopped")
+	log.Debug("GenericWatchStorage: Monitoring thread started")
+	defer log.Debug("GenericWatchStorage: Monitoring thread stopped")
 
 	// Fill the mappings of the MappedRawStorage before starting to monitor changes
 	for _, file := range files {
@@ -116,6 +117,7 @@ func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files
 				objectEvent = update.ObjectEventDelete
 			}
 
+			log.Tracef("GenericWatchStorage: Processing event: %s", event.Event)
 			if event.Event == watcher.FileEventDelete {
 				var key storage.Key
 				if key, err = mapped.GetMapping(event.Path); err != nil {
@@ -126,6 +128,7 @@ func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files
 				// This creates a "fake" Object from the key to be used for
 				// deletion, as the original has already been removed from disk
 				obj = meta.NewAPIType()
+				obj.SetName("<deleted>")
 				obj.SetUID(key.UID)
 				obj.SetGroupVersionKind(schema.GroupVersionKind{
 					Group:   api.GroupName,
@@ -160,6 +163,7 @@ func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files
 
 func (s *GenericWatchStorage) sendEvent(event update.ObjectEvent, obj meta.Object) {
 	if s.events != nil {
+		log.Tracef("GenericWatchStorage: Sending event: %v", event)
 		*s.events <- update.AssociatedUpdate{
 			Update: update.Update{
 				Event:   event,

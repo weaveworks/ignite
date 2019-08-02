@@ -16,17 +16,22 @@ const (
 	signalSIGQUIT = "SIGQUIT"
 )
 
-// RemoveVM removes the specified VM
-func RemoveVM(c *client.Client, vm *api.VM) error {
+// DeleteVM removes the specified VM from the Client and performs a cleanup
+func DeleteVM(c *client.Client, vm *api.VM) error {
+	if err := c.VMs().Delete(vm.GetUID()); err != nil {
+		return err
+	}
+
+	return CleanupVM(vm)
+}
+
+// CleanupVM removes the resources of the given VM
+func CleanupVM(vm *api.VM) error {
 	// If the VM is running, try to kill it first so we don't leave dangling containers
 	if vm.Running() {
 		if err := StopVM(vm, true, true); err != nil {
 			return err
 		}
-	}
-
-	if err := c.VMs().Delete(vm.GetUID()); err != nil {
-		return err
 	}
 
 	// Remove the VM container if it exists

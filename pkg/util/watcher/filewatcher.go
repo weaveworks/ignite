@@ -285,9 +285,36 @@ func convertUpdate(event notify.EventInfo) *FileUpdate {
 // moveCache caches an event during a move operation
 var moveCache notify.EventInfo
 
+// move processes InMovedFrom and InMovedTo events in any order
+// and converts them to FileEvents when a move is detected
+func move(event notify.EventInfo) (updates FileUpdates) {
+	if moveCache == nil {
+		moveCache = event
+		return
+	}
+
+	deletePath, modifyPath := moveCache.Path(), event.Path()
+	switch event.Event() {
+	case notify.InMovedFrom:
+		deletePath, modifyPath = modifyPath, deletePath
+		fallthrough
+	case notify.InMovedTo:
+		if ievent(moveCache).Cookie == ievent(event).Cookie {
+			updates = append(updates, &FileUpdate{FileEventDelete, deletePath},
+				&FileUpdate{FileEventModify, modifyPath})
+			moveCache = nil
+		} else {
+			moveCache = event
+		}
+	}
+
+	log.Tracef("FileWatcher: Detected move: %q -> %q", deletePath, modifyPath)
+	return
+}
+
 // concatenateEvents takes in a slice of events and concatenates
 // all events possible based on combinedEvents. It also manages
-// the move cache and conversion from notifyEvents to FileUpdates
+// file moving and conversion from notifyEvents to FileUpdates
 func concatenateEvents(events notifyEvents) FileUpdates {
 	for _, combinedEvent := range combinedEvents {
 		// Test if the prefix of the given events matches combinedEvent.input
@@ -303,18 +330,13 @@ func concatenateEvents(events notifyEvents) FileUpdates {
 		}
 	}
 
-	// TODO: Support InMovedFrom and InMovedTo both ways
-	// as notify seems to send them in a random order
+	// Convert the events to updates
 	updates := make(FileUpdates, 0, len(events))
 	for _, event := range events {
 		switch event.Event() {
-		case notify.InMovedFrom:
-			moveCache = event
-			updates = append(updates, &FileUpdate{FileEventDelete, event.Path()})
-		case notify.InMovedTo:
-			if moveCache != nil && ievent(moveCache).Cookie == ievent(event).Cookie {
-				moveCache = nil
-				updates = append(updates, &FileUpdate{FileEventModify, event.Path()})
+		case notify.InMovedFrom, notify.InMovedTo:
+			if moveUpdates := move(event); len(moveUpdates) > 0 {
+				updates = append(updates, moveUpdates...)
 			}
 		default:
 			updates = append(updates, convertUpdate(event))

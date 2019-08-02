@@ -16,6 +16,7 @@ func SetManifestStorage() (err error) {
 	if err != nil {
 		return
 	}
+
 	providers.Storage = cache.NewCache(ManifestStorage)
 	return
 }

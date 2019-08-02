@@ -9,7 +9,6 @@ import (
 )
 
 func NewManifestStorage(dataDir string) (*ManifestStorage, error) {
-
 	ws, err := watch.NewGenericWatchStorage(storage.NewGenericStorage(storage.NewGenericMappedRawStorage(dataDir), scheme.Serializer))
 	if err != nil {
 		return nil, err
