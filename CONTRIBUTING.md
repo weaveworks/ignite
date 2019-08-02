@@ -10,6 +10,8 @@ We gratefully welcome improvements to documentation as well as to code.
 
 Join [weaveworks-ignite@googlegroups.com](https://groups.google.com/forum/#!forum/weaveworks-ignite) for calendar invites to calls and edit access to community documents.
 
+We also hope to see you at our [developer meetings](https://docs.google.com/document/d/1fv8_WD6qXfvlIq7Bb5raCGyBvc42dNF-l8uaoZzoUYI/edit).
+
 ## Guidelines
 
 TODO: Add contributing guidelines here after we formalize them.
