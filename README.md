@@ -223,6 +223,7 @@ If you have any questions about, feedback for or problems with `ignite`:
 - Ask a question on the [#ignite](https://weave-community.slack.com/messages/ignite/) slack channel.
 - [File an issue](https://github.com/weaveworks/ignite/issues/new).
 - Join [weaveworks-ignite@googlegroups.com](https://groups.google.com/forum/#!forum/weaveworks-ignite) for calendar invites to calls and edit access to community documents.
+- Join our [developer meetings](https://docs.google.com/document/d/1fv8_WD6qXfvlIq7Bb5raCGyBvc42dNF-l8uaoZzoUYI/edit).
 
 Your feedback is always welcome!
 
