@@ -29,8 +29,9 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 			
 			If the name flag (-n, --name) is not specified,
 			the VM is given a random name. Using the copy files
-			flag (-f, --copy-files), additional files can be added to
-			the VM during creation with the syntax /host/path:/vm/path.
+			flag (-f, --copy-files), additional files/directories
+			can be added to the VM during creation with the syntax
+			/host/path:/vm/path.
 
 			Example usage:
 				$ ignite create centos:7 \
@@ -64,7 +65,7 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 
 	// Register flags bound to temporary holder values
 	fs.StringSliceVarP(&cf.PortMappings, "ports", "p", cf.PortMappings, "Map host ports to VM ports")
-	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", cf.CopyFiles, "Copy files from the host to the created VM")
+	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", cf.CopyFiles, "Copy files/directories from the host to the created VM")
 
 	// Register flags for simple types (int, string, etc.)
 	fs.Uint64Var(&cf.VM.Spec.CPUs, "cpus", cf.VM.Spec.CPUs, "VM vCPU count, 1 or even numbers between 1 and 32")
