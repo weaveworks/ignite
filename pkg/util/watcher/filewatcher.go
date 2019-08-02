@@ -1,49 +1,61 @@
 package watcher
 
 import (
-	"bytes"
+	"fmt"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/rjeczalik/notify"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/util/sync"
+	"golang.org/x/sys/unix"
 )
 
 const eventBuffer = 4096 // How many events and updates we can buffer before watching is interrupted
-var listenEvents = []notify.Event{notify.InCreate, notify.InDelete, notify.InDeleteSelf, notify.InCloseWrite}
+var listenEvents = []notify.Event{notify.InDelete, notify.InCloseWrite, notify.InMovedFrom, notify.InMovedTo}
 
-var eventMap = map[notify.Event]Event{
-	notify.InCreate:     EventCreate,
-	notify.InDelete:     EventDelete,
-	notify.InCloseWrite: EventModify,
+var eventMap = map[notify.Event]FileEvent{
+	notify.InDelete:     FileEventDelete,
+	notify.InCloseWrite: FileEventModify,
 }
 
 // combinedEvent describes multiple events that should be concatenated into a single event
 type combinedEvent struct {
-	input  []byte // input is a slice of events to match (in bytes, it speeds up the comparison)
-	output Event  // output is the resulting event that should be returned
+	input  []notify.Event // input is a slice of events to match (in bytes, it speeds up the comparison)
+	output int            // output is the event's index that should be returned, negative values equal nil
+}
+
+func (c *combinedEvent) match(events notifyEvents) (notify.EventInfo, bool) {
+	if len(c.input) > len(events) {
+		return nil, false // Not enough events, cannot match
+	}
+
+	for i := 0; i < len(c.input); i++ {
+		if events[i].Event() != c.input[i] {
+			return nil, false
+		}
+	}
+
+	if c.output > 0 {
+		return events[c.output], true
+	}
+
+	return nil, true
 }
 
 // combinedEvents describes the event combinations to concatenate,
 // this is iterated in order, so the longest matches should be first
 var combinedEvents = []combinedEvent{
-	// DELETE + CREATE + MODIFY => MODIFY
-	{Events{EventDelete, EventCreate, EventModify}.Bytes(), EventModify},
-	// CREATE + MODIFY => CREATE
-	{Events{EventCreate, EventModify}.Bytes(), EventCreate},
-	// CREATE + DELETE => NONE
-	{Events{EventCreate, EventDelete}.Bytes(), EventNone},
+	// DELETE + MODIFY => MODIFY
+	{[]notify.Event{notify.InDelete, notify.InCloseWrite}, 1},
+	// MODIFY + DELETE => NONE
+	{[]notify.Event{notify.InCloseWrite, notify.InDelete}, -1},
 }
 
-// Suppress duplicate events registered in this map. E.g. directory deletion
-// fires two DELETE events, one for the parent and one for the deleted directory itself
-var suppressDuplicates = map[Event]bool{
-	EventCreate: true,
-	EventDelete: true,
-}
-
+type notifyEvents []notify.EventInfo
 type eventStream chan notify.EventInfo
 type FileUpdateStream chan *FileUpdate
 type watches []string
@@ -86,9 +98,10 @@ func NewFileWatcherWithOptions(dir string, opts Options) (w *FileWatcher, files 
 		opts:    opts,
 	}
 
-	if err = w.start(&files); err != nil {
+	log.Tracef("FileWatcher: Starting recursive watch for %q", dir)
+	if err = notify.Watch(path.Join(dir, "..."), w.events, listenEvents...); err != nil {
 		notify.Stop(w.events)
-	} else {
+	} else if files, err = w.getFiles(); err == nil {
 		w.monitor = sync.RunMonitor(w.monitorFunc)
 		w.dispatcher = sync.RunMonitor(w.dispatchFunc)
 	}
@@ -105,7 +118,7 @@ type FileWatcher struct {
 	events       eventStream
 	updates      FileUpdateStream
 	watches      watches
-	suspendEvent Event
+	suspendEvent FileEvent
 	monitor      *sync.Monitor
 	dispatcher   *sync.Monitor
 	opts         Options
@@ -115,61 +128,26 @@ type FileWatcher struct {
 	batcher *sync.BatchWriter
 }
 
-func (w *FileWatcher) addWatch(path string) (err error) {
-	log.Tracef("FileWatcher: Adding watch for %q", path)
-	if err = notify.Watch(path, w.events, listenEvents...); err == nil {
-		w.watches = append(w.watches, path)
-	}
-
-	return
-}
-
-func (w *FileWatcher) hasWatch(path string) bool {
-	for _, watch := range w.watches {
-		if watch == path {
-			log.Tracef("FileWatcher: Watch found for %q", path)
-			return true
-		}
-	}
-
-	log.Tracef("FileWatcher: No watch found for %q", path)
-	return false
-}
-
-func (w *FileWatcher) clear() {
-	log.Tracef("FileWatcher: Clearing all watches")
-	notify.Stop(w.events)
-	w.watches = w.watches[:0]
-}
-
-// start discovers all subdirectories and adds paths to
-// notify before starting the monitoring goroutine
-func (w *FileWatcher) start(files *[]string) error {
-	return filepath.Walk(w.dir,
+// getFiles discovers all subdirectories and
+// returns a list of valid files in them
+func (w *FileWatcher) getFiles() (files []string, err error) {
+	err = filepath.Walk(w.dir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 
-			if info.IsDir() {
-				for _, dir := range w.opts.ExcludeDirs {
-					if info.Name() == dir {
-						return filepath.SkipDir // Skip excluded directories
-					}
-				}
-
-				return w.addWatch(path)
-			}
-
-			if files != nil {
-				// Only include files with a valid suffix
-				if w.validSuffix(info.Name()) {
-					*files = append(*files, path)
+			if !info.IsDir() {
+				// Only include valid files
+				if w.validFile(path) {
+					files = append(files, path)
 				}
 			}
 
 			return nil
 		})
+
+	return
 }
 
 func (w *FileWatcher) monitorFunc() {
@@ -183,33 +161,28 @@ func (w *FileWatcher) monitorFunc() {
 			return
 		}
 
+		if ievent(event).Mask&unix.IN_ISDIR != 0 {
+			continue // Skip directories
+		}
+
+		if !w.validFile(event.Path()) {
+			continue // Skip invalid files
+		}
+
 		updateEvent := convertEvent(event.Event())
-		if updateEvent == w.suspendEvent {
+		if w.suspendEvent > 0 && updateEvent == w.suspendEvent {
 			w.suspendEvent = 0
 			log.Debugf("FileWatcher: Skipping suspended event %s for path: %q", updateEvent, event.Path())
 			continue // Skip the suspended event
 		}
 
-		// Suppress successive duplicate events registered in suppressDuplicates
-		if suppressEvent(event.Path(), updateEvent) {
-			log.Debugf("FileWatcher: Skipping suppressed event %s for path: %q", updateEvent, event.Path())
-			continue // Skip the suppressed event
-		}
-
-		// Directory bypass for FileWatcher registration
-		// The FileWatcher registration/deletion needs to be as fast as
-		// possible, bypass the batcher when dealing with directories
-		if w.handleDirEvent(event.Path(), updateEvent) {
-			continue // The event path matched a directory, skip file processing for the event
-		}
-
 		// Get any events registered for the specific file, and append the specified event
-		var eventList Events
+		var eventList notifyEvents
 		if val, ok := w.batcher.Load(event.Path()); ok {
-			eventList = val.(Events)
+			eventList = val.(notifyEvents)
 		}
 
-		eventList = append(eventList, updateEvent)
+		eventList = append(eventList, event)
 
 		// Register the event in the map, and dispatch all the events at once after the timeout
 		w.batcher.Store(event.Path(), eventList)
@@ -224,11 +197,9 @@ func (w *FileWatcher) dispatchFunc() {
 	for {
 		// Wait until we have a batch dispatched to us
 		ok := w.batcher.ProcessBatch(func(key, val interface{}) bool {
-			filePath := key.(string)
-
 			// Concatenate all known events, and dispatch them to be handled one by one
-			for _, event := range concatenateEvents(val.(Events)) {
-				w.handleEvent(filePath, event)
+			for _, event := range concatenateEvents(val.(notifyEvents)) {
+				w.sendUpdate(event)
 			}
 
 			// Continue traversing the map
@@ -242,50 +213,9 @@ func (w *FileWatcher) dispatchFunc() {
 	}
 }
 
-func (w *FileWatcher) handleEvent(filePath string, event Event) {
-	switch event {
-	case EventCreate, EventDelete, EventModify: // Ignore EventNone
-		// only care about valid files
-		if !w.validSuffix(filePath) {
-			return
-		}
-
-		log.Debugf("FileWatcher: Sending update: %s -> %q", event, filePath)
-		w.updates <- &FileUpdate{
-			Event: event,
-			Path:  filePath,
-		}
-	}
-}
-
-func (w *FileWatcher) handleDirEvent(filePath string, event Event) (dir bool) {
-	switch event {
-	case EventCreate:
-		fi, err := os.Stat(filePath)
-		if err != nil {
-			log.Errorf("FileWatcher: Failed to stat %q: %v", filePath, err)
-			return
-		}
-
-		if fi.IsDir() {
-			if err := w.addWatch(filePath); err != nil {
-				log.Errorf("FileWatcher: Failed to add %q: %v", filePath, err)
-			}
-
-			dir = true
-		}
-	case EventDelete:
-		if w.hasWatch(filePath) {
-			w.clear()
-			if err := w.start(nil); err != nil {
-				log.Errorf("FileWatcher: Failed to re-initialize watches for %q", w.dir)
-			}
-
-			dir = true
-		}
-	}
-
-	return
+func (w *FileWatcher) sendUpdate(update *FileUpdate) {
+	log.Debugf("FileWatcher: Sending update: %s -> %q", update.Event, update.Path)
+	w.updates <- update
 }
 
 // GetFileUpdateStream gets the channel with FileUpdates
@@ -304,69 +234,118 @@ func (w *FileWatcher) Close() {
 
 // Suspend enables a one-time suspend of the given event,
 // the FileWatcher will skip the given event once
-func (w *FileWatcher) Suspend(updateEvent Event) {
+func (w *FileWatcher) Suspend(updateEvent FileEvent) {
 	w.suspendEvent = updateEvent
 }
 
 // validSuffix is used to filter out all unsupported
-// files based on the extensions given
-func (w *FileWatcher) validSuffix(path string) bool {
+// files based on if their extension is unknown or
+// if their path contains an excluded directory
+func (w *FileWatcher) validFile(path string) bool {
+	parts := strings.Split(filepath.Clean(path), string(os.PathSeparator))
+	ext := filepath.Ext(parts[len(parts)-1])
 	for _, suffix := range w.opts.ValidExtensions {
-		if filepath.Ext(path) == suffix {
+		if ext == suffix {
 			return true
+		}
+	}
+
+	for i := 0; i < len(parts)-1; i++ {
+		for _, exclude := range w.opts.ExcludeDirs {
+			if parts[i] == exclude {
+				return false
+			}
 		}
 	}
 
 	return false
 }
 
-func convertEvent(event notify.Event) Event {
+func convertEvent(event notify.Event) FileEvent {
 	if updateEvent, ok := eventMap[event]; ok {
 		return updateEvent
 	}
 
-	return EventNone
+	return FileEventNone
+}
+
+func convertUpdate(event notify.EventInfo) *FileUpdate {
+	fileEvent := convertEvent(event.Event())
+	if fileEvent == FileEventNone {
+		// This should never happen
+		panic(fmt.Sprintf("invalid event for update conversion: %q", event.Event().String()))
+	}
+
+	return &FileUpdate{
+		Event: fileEvent,
+		Path:  event.Path(),
+	}
+}
+
+// moveCache caches an event during a move operation
+var moveCache notify.EventInfo
+
+// move processes InMovedFrom and InMovedTo events in any order
+// and converts them to FileEvents when a move is detected
+func move(event notify.EventInfo) (updates FileUpdates) {
+	if moveCache == nil {
+		moveCache = event
+		return
+	}
+
+	deletePath, modifyPath := moveCache.Path(), event.Path()
+	switch event.Event() {
+	case notify.InMovedFrom:
+		deletePath, modifyPath = modifyPath, deletePath
+		fallthrough
+	case notify.InMovedTo:
+		if ievent(moveCache).Cookie == ievent(event).Cookie {
+			updates = append(updates, &FileUpdate{FileEventDelete, deletePath},
+				&FileUpdate{FileEventModify, modifyPath})
+			moveCache = nil
+		} else {
+			moveCache = event
+		}
+	}
+
+	log.Tracef("FileWatcher: Detected move: %q -> %q", deletePath, modifyPath)
+	return
 }
 
 // concatenateEvents takes in a slice of events and concatenates
-// all events possible based on combinedEvents
-func concatenateEvents(events Events) Events {
-	if len(events) < 2 {
-		return events // Quick return for 0 or 1 event
-	}
-
+// all events possible based on combinedEvents. It also manages
+// file moving and conversion from notifyEvents to FileUpdates
+func concatenateEvents(events notifyEvents) FileUpdates {
 	for _, combinedEvent := range combinedEvents {
-		if len(combinedEvent.input) > len(events) {
-			continue // The combined event's match is too long
-		}
-
 		// Test if the prefix of the given events matches combinedEvent.input
-		if bytes.Equal(events.Bytes()[:len(combinedEvent.input)], combinedEvent.input) {
+		if event, ok := combinedEvent.match(events); ok {
 			// If so, replace combinedEvent.input prefix in events with combinedEvent.output and recurse
-			concatenated := append(Events{combinedEvent.output}, events[len(combinedEvent.input):]...)
+			concatenated := events[len(combinedEvent.input):]
+			if event != nil { // Prepend the concatenation result event if any
+				concatenated = append(notifyEvents{event}, concatenated...)
+			}
+
 			log.Tracef("FileWatcher: Concatenated events: %v -> %v", events, concatenated)
 			return concatenateEvents(concatenated)
 		}
 	}
 
-	return events
-}
-
-var suppressCache struct {
-	event Event
-	path  string
-}
-
-// suppressEvent returns true it it's called twice
-// in a row with the same known event and path
-func suppressEvent(path string, event Event) (s bool) {
-	if _, ok := suppressDuplicates[event]; ok {
-		if suppressCache.event == event && suppressCache.path == path {
-			s = true
+	// Convert the events to updates
+	updates := make(FileUpdates, 0, len(events))
+	for _, event := range events {
+		switch event.Event() {
+		case notify.InMovedFrom, notify.InMovedTo:
+			if moveUpdates := move(event); len(moveUpdates) > 0 {
+				updates = append(updates, moveUpdates...)
+			}
+		default:
+			updates = append(updates, convertUpdate(event))
 		}
 	}
 
-	suppressCache.event = event
-	suppressCache.path = path
-	return
+	return updates
+}
+
+func ievent(event notify.EventInfo) *unix.InotifyEvent {
+	return event.Sys().(*unix.InotifyEvent)
 }

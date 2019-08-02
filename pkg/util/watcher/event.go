@@ -5,36 +5,34 @@ import (
 	"strings"
 )
 
-// Event is an enum describing a change in a file's/Object's state.
-// Unknown state changes can be signaled with a zero value.
-type Event byte
+// FileEvent is an enum describing a change in a file's state.
+type FileEvent byte
 
 const (
-	EventNone   Event = iota // 0
-	EventCreate              // 1
-	EventDelete              // 2
-	EventModify              // 3
+	FileEventNone   FileEvent = iota // 0
+	FileEventModify                  // 1
+	FileEventDelete                  // 2
 )
 
-func (e Event) String() string {
+func (e FileEvent) String() string {
 	switch e {
+	case 0:
+		return "NONE"
 	case 1:
-		return "CREATE"
+		return "MODIFY"
 	case 2:
 		return "DELETE"
-	case 3:
-		return "MODIFY"
 	}
 
-	return "NONE"
+	return "UNKNOWN"
 }
 
-// Events is a slice of Events
-type Events []Event
+// FileEvents is a slice of FileEvents
+type FileEvents []FileEvent
 
-var _ fmt.Stringer = Events{}
+var _ fmt.Stringer = FileEvents{}
 
-func (e Events) String() string {
+func (e FileEvents) String() string {
 	strs := make([]string, 0, len(e))
 	for _, ev := range e {
 		strs = append(strs, ev.String())
@@ -43,7 +41,7 @@ func (e Events) String() string {
 	return strings.Join(strs, ",")
 }
 
-func (e Events) Bytes() []byte {
+func (e FileEvents) Bytes() []byte {
 	b := make([]byte, 0, len(e))
 	for _, event := range e {
 		b = append(b, byte(event))
@@ -52,9 +50,12 @@ func (e Events) Bytes() []byte {
 	return b
 }
 
+// FileUpdates is a slice of FileUpdate pointers
+type FileUpdates []*FileUpdate
+
 // FileUpdate is used by watchers to
 // signal the state change of a file.
 type FileUpdate struct {
-	Event Event
+	Event FileEvent
 	Path  string
 }

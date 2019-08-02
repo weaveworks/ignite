@@ -1,8 +1,6 @@
 package reconcile
 
 import (
-	"fmt"
-
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
@@ -11,8 +9,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/storage/cache"
 	"github.com/weaveworks/ignite/pkg/storage/manifest"
+	"github.com/weaveworks/ignite/pkg/storage/watch/update"
 	"github.com/weaveworks/ignite/pkg/util"
-	"github.com/weaveworks/ignite/pkg/util/watcher"
 )
 
 var c *client.Client
@@ -34,14 +32,14 @@ func ReconcileManifests(s *manifest.ManifestStorage) {
 
 		var vm *api.VM
 		var err error
-		if upd.Event == watcher.EventDelete {
+		if upd.Event == update.ObjectEventDelete {
 			// As we know this VM was deleted, it wouldn't show up in a Get() call
 			// Construct a temporary VM object for passing to the delete function
 			vm = &api.VM{
 				TypeMeta:   *upd.APIType.GetTypeMeta(),
 				ObjectMeta: *upd.APIType.GetObjectMeta(),
 				Status: api.VMStatus{
-					State: api.VMStateStopped,
+					State: api.VMStateRunning, // TODO: Fix this in StopVM
 				},
 			}
 		} else {
@@ -60,17 +58,17 @@ func ReconcileManifests(s *manifest.ManifestStorage) {
 			}
 		}
 
-		// TODO: Paralellization
+		// TODO: Parallelization
 		switch upd.Event {
-		case watcher.EventCreate:
+		case update.ObjectEventCreate:
 			runHandle(func() error {
 				return handleCreate(vm)
 			})
-		case watcher.EventModify:
+		case update.ObjectEventModify:
 			runHandle(func() error {
 				return handleChange(vm)
 			})
-		case watcher.EventDelete:
+		case update.ObjectEventDelete:
 			runHandle(func() error {
 				// TODO: Temporary VM Object for removal
 				return handleDelete(vm)
@@ -109,9 +107,12 @@ func handleCreate(vm *api.VM) error {
 func handleChange(vm *api.VM) error {
 	var err error
 
+	// Newly generated VMs that haven't been started yet are loaded via handleChange
+	// with VMStateCreated, so permit changing into the created state for now
+	// TODO: Fix this
 	switch vm.Status.State {
 	case api.VMStateCreated:
-		err = fmt.Errorf("VM %q cannot changed into the Created state", vm.GetUID())
+	//	err = fmt.Errorf("VM %q cannot change into the Created state", vm.GetUID())
 	case api.VMStateRunning:
 		err = start(vm)
 	case api.VMStateStopped:
@@ -181,5 +182,8 @@ func stop(vm *api.VM) error {
 
 func remove(vm *api.VM) error {
 	log.Infof("Removing VM %q with name %q...", vm.GetUID(), vm.GetName())
-	return operations.RemoveVM(c, vm)
+
+	// Object deletion is performed by the SyncStorage, so we just
+	// need to clean up any remaining resources of the VM here
+	return operations.CleanupVM(vm)
 }

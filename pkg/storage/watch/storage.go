@@ -63,19 +63,19 @@ var _ WatchStorage = &GenericWatchStorage{}
 
 // Suspend modify events during Set
 func (s *GenericWatchStorage) Set(gvk schema.GroupVersionKind, obj meta.Object) error {
-	s.watcher.Suspend(watcher.EventModify)
+	s.watcher.Suspend(watcher.FileEventModify)
 	return s.Storage.Set(gvk, obj)
 }
 
 // Suspend modify events during Patch
 func (s *GenericWatchStorage) Patch(gvk schema.GroupVersionKind, uid meta.UID, patch []byte) error {
-	s.watcher.Suspend(watcher.EventModify)
+	s.watcher.Suspend(watcher.FileEventModify)
 	return s.Storage.Patch(gvk, uid, patch)
 }
 
 // Suspend delete events during Delete
 func (s *GenericWatchStorage) Delete(gvk schema.GroupVersionKind, uid meta.UID) error {
-	s.watcher.Suspend(watcher.EventDelete)
+	s.watcher.Suspend(watcher.FileEventDelete)
 	return s.Storage.Delete(gvk, uid)
 }
 
@@ -90,7 +90,8 @@ func (s *GenericWatchStorage) Close() error {
 }
 
 func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files []string) {
-	defer log.Debug("GenericWatchStorage: monitoring thread stopped")
+	log.Debug("GenericWatchStorage: Monitoring thread started")
+	defer log.Debug("GenericWatchStorage: Monitoring thread stopped")
 
 	// Fill the mappings of the MappedRawStorage before starting to monitor changes
 	for _, file := range files {
@@ -99,7 +100,7 @@ func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files
 		} else {
 			mapped.AddMapping(storage.NewKey(obj.GetKind(), obj.GetUID()), file)
 			// Send the event to the events channel
-			s.sendEvent(watcher.EventModify, obj)
+			s.sendEvent(update.ObjectEventModify, obj)
 		}
 	}
 
@@ -108,7 +109,16 @@ func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files
 			var obj meta.Object
 			var err error
 
-			if event.Event == watcher.EventDelete {
+			var objectEvent update.ObjectEvent
+			switch event.Event {
+			case watcher.FileEventModify:
+				objectEvent = update.ObjectEventModify
+			case watcher.FileEventDelete:
+				objectEvent = update.ObjectEventDelete
+			}
+
+			log.Tracef("GenericWatchStorage: Processing event: %s", event.Event)
+			if event.Event == watcher.FileEventDelete {
 				var key storage.Key
 				if key, err = mapped.GetMapping(event.Path); err != nil {
 					log.Warnf("Failed to retrieve data for %q: %v", event.Path, err)
@@ -118,6 +128,7 @@ func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files
 				// This creates a "fake" Object from the key to be used for
 				// deletion, as the original has already been removed from disk
 				obj = meta.NewAPIType()
+				obj.SetName("<deleted>")
 				obj.SetUID(key.UID)
 				obj.SetGroupVersionKind(schema.GroupVersionKind{
 					Group:   api.GroupName,
@@ -131,22 +142,28 @@ func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files
 				}
 
 				// This is based on the key's existence instead of watcher.EventCreate,
-				// as Objects can get updated (via watcher.EventModify) to be conformant
+				// as Objects can get updated (via watcher.FileEventModify) to be conformant
 				if _, err = mapped.GetMapping(event.Path); err != nil {
 					mapped.AddMapping(storage.NewKey(obj.GetKind(), obj.GetUID()), event.Path)
+					// This is what actually determines if an Object is created,
+					// so update the event to update.ObjectEventCreate here
+					objectEvent = update.ObjectEventCreate
 				}
 			}
 
-			// Send the event to the events channel
-			s.sendEvent(event.Event, obj)
+			// Send the objectEvent to the events channel
+			if objectEvent != update.ObjectEventNone {
+				s.sendEvent(objectEvent, obj)
+			}
 		} else {
 			return
 		}
 	}
 }
 
-func (s *GenericWatchStorage) sendEvent(event watcher.Event, obj meta.Object) {
+func (s *GenericWatchStorage) sendEvent(event update.ObjectEvent, obj meta.Object) {
 	if s.events != nil {
+		log.Tracef("GenericWatchStorage: Sending event: %v", event)
 		*s.events <- update.AssociatedUpdate{
 			Update: update.Update{
 				Event:   event,
