@@ -67,6 +67,8 @@ type Option interface {
 	apply(*Repo)
 }
 
+// TODO: Add a Directory Option
+
 type optionFunc func(*Repo)
 
 func (f optionFunc) apply(r *Repo) {
@@ -92,6 +94,7 @@ func (b Branch) apply(r *Repo) {
 }
 
 var ReadOnly optionFunc = func(r *Repo) {
+	// TODO: Make it possible to automatically detect if the repo is writable or not
 	r.readonly = true
 }
 
@@ -271,6 +274,7 @@ func (r *Repo) step(bg context.Context) bool {
 		return false
 
 	case RepoNew:
+		// TODO: Make this directory configurable
 		rootdir, err := ioutil.TempDir(os.TempDir(), "flux-gitclone")
 		if err != nil {
 			panic(err)
@@ -316,6 +320,7 @@ func (r *Repo) step(bg context.Context) bool {
 			err := checkPush(ctx, dir, url, r.branch)
 			if err != nil {
 				r.setUnready(RepoCloned, err)
+				// TODO: Tolerate this error
 				return false
 			}
 		}
@@ -442,6 +447,7 @@ func (r *Repo) workingClone(ctx context.Context, ref string) (string, error) {
 	if err := r.errorIfNotReady(); err != nil {
 		return "", err
 	}
+	// TODO: Make this directory configurable
 	working, err := ioutil.TempDir(os.TempDir(), "flux-working")
 	if err != nil {
 		return "", err
