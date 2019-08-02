@@ -139,6 +139,12 @@ See it in action!
 
 [![asciicast](https://asciinema.org/a/255797.svg)](https://asciinema.org/a/255797)
 
+### Awesome Ignite
+
+Want to see how awesome Ignite is?
+
+Take a look at the [awesome-ignite](https://ignite.readthedocs.io/en/latest/awesome.html) page!
+
 ### Documentation
 
 Please refer to the following documents:
