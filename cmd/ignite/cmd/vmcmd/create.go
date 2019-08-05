@@ -66,7 +66,6 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	// Register flags bound to temporary holder values
 	fs.StringSliceVarP(&cf.PortMappings, "ports", "p", cf.PortMappings, "Map host ports to VM ports")
 	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", cf.CopyFiles, "Copy files/directories from the host to the created VM")
-	fs.StringSliceVarP(&cf.Volumes, "volumes", "v", cf.Volumes, "Expose block devices from the host inside the VM")
 
 	// Register flags for simple types (int, string, etc.)
 	fs.Uint64Var(&cf.VM.Spec.CPUs, "cpus", cf.VM.Spec.CPUs, "VM vCPU count, 1 or even numbers between 1 and 32")
@@ -78,4 +77,5 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	cmdutil.OCIImageRefVarP(fs, &cf.VM.Spec.Kernel.OCIClaim.Ref, "kernel-image", "k", "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
 	cmdutil.NetworkModeVar(fs, &cf.VM.Spec.Network.Mode)
 	cmdutil.SSHVar(fs, &cf.SSH)
+	cmdutil.VolumeVarP(fs, &cf.VM.Spec.Storage, "volumes", "v", "Expose block devices from the host inside the VM")
 }

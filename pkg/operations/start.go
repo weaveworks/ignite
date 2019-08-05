@@ -80,10 +80,14 @@ func StartVM(vm *api.VM, debug bool) error {
 	}
 
 	// Add the volumes to the container devices
-	for _, volume := range vm.Spec.Volumes {
+	for _, volume := range vm.Spec.Storage.Volumes {
+		if volume.BlockDevice == nil {
+			continue // Skip all non block device volumes for now
+		}
+
 		config.Devices = append(config.Devices, &runtime.Bind{
-			HostPath:      string(volume),
-			ContainerPath: path.Join(constants.IGNITE_SPAWN_VOLUME_DIR, string(volume)),
+			HostPath:      volume.BlockDevice.Path,
+			ContainerPath: path.Join(constants.IGNITE_SPAWN_VOLUME_DIR, volume.Name),
 		})
 	}
 

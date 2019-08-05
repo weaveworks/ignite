@@ -13,53 +13,57 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.FileMapping":    schema_pkg_apis_ignite_v1alpha1_FileMapping(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.Image":          schema_pkg_apis_ignite_v1alpha1_Image(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSpec":      schema_pkg_apis_ignite_v1alpha1_ImageSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageStatus":    schema_pkg_apis_ignite_v1alpha1_ImageStatus(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.Kernel":         schema_pkg_apis_ignite_v1alpha1_Kernel(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelSpec":     schema_pkg_apis_ignite_v1alpha1_KernelSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelStatus":   schema_pkg_apis_ignite_v1alpha1_KernelStatus(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageClaim":  schema_pkg_apis_ignite_v1alpha1_OCIImageClaim(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageSource": schema_pkg_apis_ignite_v1alpha1_OCIImageSource(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.Pool":           schema_pkg_apis_ignite_v1alpha1_Pool(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.PoolDevice":     schema_pkg_apis_ignite_v1alpha1_PoolDevice(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.PoolSpec":       schema_pkg_apis_ignite_v1alpha1_PoolSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.PoolStatus":     schema_pkg_apis_ignite_v1alpha1_PoolStatus(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.SSH":            schema_pkg_apis_ignite_v1alpha1_SSH(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VM":             schema_pkg_apis_ignite_v1alpha1_VM(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSpec":    schema_pkg_apis_ignite_v1alpha1_VMImageSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMKernelSpec":   schema_pkg_apis_ignite_v1alpha1_VMKernelSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMNetworkSpec":  schema_pkg_apis_ignite_v1alpha1_VMNetworkSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMSpec":         schema_pkg_apis_ignite_v1alpha1_VMSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMStatus":       schema_pkg_apis_ignite_v1alpha1_VMStatus(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.FileMapping":    schema_pkg_apis_ignite_v1alpha2_FileMapping(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Image":          schema_pkg_apis_ignite_v1alpha2_Image(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.ImageSpec":      schema_pkg_apis_ignite_v1alpha2_ImageSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.ImageStatus":    schema_pkg_apis_ignite_v1alpha2_ImageStatus(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Kernel":         schema_pkg_apis_ignite_v1alpha2_Kernel(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelSpec":     schema_pkg_apis_ignite_v1alpha2_KernelSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelStatus":   schema_pkg_apis_ignite_v1alpha2_KernelStatus(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageClaim":  schema_pkg_apis_ignite_v1alpha2_OCIImageClaim(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageSource": schema_pkg_apis_ignite_v1alpha2_OCIImageSource(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Pool":           schema_pkg_apis_ignite_v1alpha2_Pool(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.PoolDevice":     schema_pkg_apis_ignite_v1alpha2_PoolDevice(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.PoolSpec":       schema_pkg_apis_ignite_v1alpha2_PoolSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.PoolStatus":     schema_pkg_apis_ignite_v1alpha2_PoolStatus(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.SSH":            schema_pkg_apis_ignite_v1alpha2_SSH(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VM":             schema_pkg_apis_ignite_v1alpha2_VM(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMImageSpec":    schema_pkg_apis_ignite_v1alpha2_VMImageSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMKernelSpec":   schema_pkg_apis_ignite_v1alpha2_VMKernelSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMNetworkSpec":  schema_pkg_apis_ignite_v1alpha2_VMNetworkSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMSpec":         schema_pkg_apis_ignite_v1alpha2_VMSpec(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStatus":       schema_pkg_apis_ignite_v1alpha2_VMStatus(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.APIType":          schema_pkg_apis_meta_v1alpha1_APIType(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.DMID":             schema_pkg_apis_meta_v1alpha1_DMID(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta":       schema_pkg_apis_meta_v1alpha1_ObjectMeta(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.PortMapping":      schema_pkg_apis_meta_v1alpha1_PortMapping(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size":             schema_pkg_apis_meta_v1alpha1_Size(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Time":             schema_pkg_apis_meta_v1alpha1_Time(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.TypeMeta":         schema_pkg_apis_meta_v1alpha1_TypeMeta(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.FileMapping":       schema_pkg_apis_ignite_v1alpha1_FileMapping(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.Image":             schema_pkg_apis_ignite_v1alpha1_Image(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSpec":         schema_pkg_apis_ignite_v1alpha1_ImageSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageStatus":       schema_pkg_apis_ignite_v1alpha1_ImageStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.Kernel":            schema_pkg_apis_ignite_v1alpha1_Kernel(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelSpec":        schema_pkg_apis_ignite_v1alpha1_KernelSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelStatus":      schema_pkg_apis_ignite_v1alpha1_KernelStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageClaim":     schema_pkg_apis_ignite_v1alpha1_OCIImageClaim(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.OCIImageSource":    schema_pkg_apis_ignite_v1alpha1_OCIImageSource(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.Pool":              schema_pkg_apis_ignite_v1alpha1_Pool(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.PoolDevice":        schema_pkg_apis_ignite_v1alpha1_PoolDevice(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.PoolSpec":          schema_pkg_apis_ignite_v1alpha1_PoolSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.PoolStatus":        schema_pkg_apis_ignite_v1alpha1_PoolStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.SSH":               schema_pkg_apis_ignite_v1alpha1_SSH(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VM":                schema_pkg_apis_ignite_v1alpha1_VM(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMImageSpec":       schema_pkg_apis_ignite_v1alpha1_VMImageSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMKernelSpec":      schema_pkg_apis_ignite_v1alpha1_VMKernelSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMNetworkSpec":     schema_pkg_apis_ignite_v1alpha1_VMNetworkSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMSpec":            schema_pkg_apis_ignite_v1alpha1_VMSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMStatus":          schema_pkg_apis_ignite_v1alpha1_VMStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.BlockDeviceVolume": schema_pkg_apis_ignite_v1alpha2_BlockDeviceVolume(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.FileMapping":       schema_pkg_apis_ignite_v1alpha2_FileMapping(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Image":             schema_pkg_apis_ignite_v1alpha2_Image(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.ImageSpec":         schema_pkg_apis_ignite_v1alpha2_ImageSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.ImageStatus":       schema_pkg_apis_ignite_v1alpha2_ImageStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Kernel":            schema_pkg_apis_ignite_v1alpha2_Kernel(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelSpec":        schema_pkg_apis_ignite_v1alpha2_KernelSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelStatus":      schema_pkg_apis_ignite_v1alpha2_KernelStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageClaim":     schema_pkg_apis_ignite_v1alpha2_OCIImageClaim(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageSource":    schema_pkg_apis_ignite_v1alpha2_OCIImageSource(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Pool":              schema_pkg_apis_ignite_v1alpha2_Pool(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.PoolDevice":        schema_pkg_apis_ignite_v1alpha2_PoolDevice(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.PoolSpec":          schema_pkg_apis_ignite_v1alpha2_PoolSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.PoolStatus":        schema_pkg_apis_ignite_v1alpha2_PoolStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.SSH":               schema_pkg_apis_ignite_v1alpha2_SSH(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VM":                schema_pkg_apis_ignite_v1alpha2_VM(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMImageSpec":       schema_pkg_apis_ignite_v1alpha2_VMImageSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMKernelSpec":      schema_pkg_apis_ignite_v1alpha2_VMKernelSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMNetworkSpec":     schema_pkg_apis_ignite_v1alpha2_VMNetworkSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMSpec":            schema_pkg_apis_ignite_v1alpha2_VMSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStatus":          schema_pkg_apis_ignite_v1alpha2_VMStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStorageSpec":     schema_pkg_apis_ignite_v1alpha2_VMStorageSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Volume":            schema_pkg_apis_ignite_v1alpha2_Volume(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VolumeMount":       schema_pkg_apis_ignite_v1alpha2_VolumeMount(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.APIType":             schema_pkg_apis_meta_v1alpha1_APIType(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.DMID":                schema_pkg_apis_meta_v1alpha1_DMID(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta":          schema_pkg_apis_meta_v1alpha1_ObjectMeta(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.PortMapping":         schema_pkg_apis_meta_v1alpha1_PortMapping(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size":                schema_pkg_apis_meta_v1alpha1_Size(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Time":                schema_pkg_apis_meta_v1alpha1_Time(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.TypeMeta":            schema_pkg_apis_meta_v1alpha1_TypeMeta(ref),
 	}
 }
 
@@ -711,6 +715,26 @@ func schema_pkg_apis_ignite_v1alpha1_VMStatus(ref common.ReferenceCallback) comm
 	}
 }
 
+func schema_pkg_apis_ignite_v1alpha2_BlockDeviceVolume(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "BlockDeviceVolume defines a block device on the host",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"path": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"path"},
+			},
+		},
+	}
+}
+
 func schema_pkg_apis_ignite_v1alpha2_FileMapping(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -1286,18 +1310,9 @@ func schema_pkg_apis_ignite_v1alpha2_VMSpec(ref common.ReferenceCallback) common
 							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMNetworkSpec"),
 						},
 					},
-					"Volumes": {
+					"storage": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Volumes allow exposing external block devices from the host inside the VM as /dev/vd[a-z] disks",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStorageSpec"),
 						},
 					},
 					"copyFiles": {
@@ -1320,11 +1335,11 @@ func schema_pkg_apis_ignite_v1alpha2_VMSpec(ref common.ReferenceCallback) common
 						},
 					},
 				},
-				Required: []string{"image", "kernel", "cpus", "memory", "diskSize", "network", "Volumes"},
+				Required: []string{"image", "kernel", "cpus", "memory", "diskSize", "network"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.FileMapping", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.SSH", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMKernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMNetworkSpec", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.FileMapping", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.SSH", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMKernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMNetworkSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStorageSpec", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
 	}
 }
 
@@ -1370,6 +1385,98 @@ func schema_pkg_apis_ignite_v1alpha2_VMStatus(ref common.ReferenceCallback) comm
 		},
 		Dependencies: []string{
 			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageSource"},
+	}
+}
+
+func schema_pkg_apis_ignite_v1alpha2_VMStorageSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "VMStorageSpec defines the VM's Volumes and VolumeMounts",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"volumes": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Volume"),
+									},
+								},
+							},
+						},
+					},
+					"volumeMounts": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VolumeMount"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Volume", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VolumeMount"},
+	}
+}
+
+func schema_pkg_apis_ignite_v1alpha2_Volume(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "Volume defines named storage volume",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"blockDevice": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.BlockDeviceVolume"),
+						},
+					},
+				},
+				Required: []string{"name"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.BlockDeviceVolume"},
+	}
+}
+
+func schema_pkg_apis_ignite_v1alpha2_VolumeMount(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "VolumeMount defines the mount point for a named volume inside a VM",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"mountPath": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"name", "mountPath"},
+			},
+		},
 	}
 }
 

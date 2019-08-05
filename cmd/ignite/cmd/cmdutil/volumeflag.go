@@ -62,6 +62,7 @@ func (vf *VolumeFlag) Set(x string) error {
 			}
 
 			// Create the Volume
+			// TODO: Check for name collisions
 			storage.Volumes = append(storage.Volumes, api.Volume{
 				Name: volumeName,
 				BlockDevice: &api.BlockDeviceVolume{
@@ -70,6 +71,7 @@ func (vf *VolumeFlag) Set(x string) error {
 			})
 
 			// Create the VolumeMount
+			// TODO: Check for name collisions
 			storage.VolumeMounts = append(storage.VolumeMounts, api.VolumeMount{
 				Name:      volumeName,
 				MountPath: vmPath,

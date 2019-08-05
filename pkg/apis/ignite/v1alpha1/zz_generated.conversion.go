@@ -732,7 +732,7 @@ func autoConvert_ignite_VMSpec_To_v1alpha1_VMSpec(in *ignite.VMSpec, out *VMSpec
 	if err := Convert_ignite_VMNetworkSpec_To_v1alpha1_VMNetworkSpec(&in.Network, &out.Network, s); err != nil {
 		return err
 	}
-	// WARNING: in.Volumes requires manual conversion: does not exist in peer-type
+	// WARNING: in.Storage requires manual conversion: does not exist in peer-type
 	out.CopyFiles = *(*[]FileMapping)(unsafe.Pointer(&in.CopyFiles))
 	out.SSH = (*SSH)(unsafe.Pointer(in.SSH))
 	return nil

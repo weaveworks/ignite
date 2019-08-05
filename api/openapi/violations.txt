@@ -1,6 +1,5 @@
 API rule violation: names_match,github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1,VMSpec,CPUs
 API rule violation: names_match,github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2,VMSpec,CPUs
-API rule violation: names_match,github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2,VMSpec,Volumes
 API rule violation: names_match,github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1,DMID,index
 API rule violation: names_match,github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1,Size,ByteSize
 API rule violation: names_match,github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1,Time,Time

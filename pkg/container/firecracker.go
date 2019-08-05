@@ -16,6 +16,7 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/logs"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 // ExecuteFirecracker executes the firecracker process using the Go SDK
@@ -84,9 +85,13 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 		MetricsFifo: metricsSocketPath,
 	}
 
-	// Add the volume mappings to the VM
-	for i, volume := range vm.Spec.Volumes {
-		volumePath := path.Join(constants.IGNITE_SPAWN_VOLUME_DIR, string(volume))
+	// Add the volumeMount mappings to the VM
+	for i, volumeMount := range vm.Spec.Storage.VolumeMounts {
+		volumePath := path.Join(constants.IGNITE_SPAWN_VOLUME_DIR, volumeMount.Name)
+		if !util.FileExists(volumePath) {
+			log.Warnf("Skipping volume mount %q: nonexistent volume", volumeMount.Name)
+			continue // Skip all volume mounts with nonexistent paths
+		}
 
 		cfg.Drives = append(cfg.Drives, models.Drive{
 			DriveID:      firecracker.String(strconv.Itoa(i + 2)),
