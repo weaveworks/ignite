@@ -1,0 +1,28 @@
+version: 2
+jobs:
+  build:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+    # Needed for being able to execute "docker" commands
+    # - setup_remote_docker
+    # Checkout the repo
+    - checkout
+    # Build all binaries and docker images
+    - run: make build-all
+    # TODO: Push to a dev registry
+  test:
+    docker:
+    # specify the version
+    - image: circleci/golang:1.12
+    steps:
+    # Needed for being able to execute "docker" commands
+    - setup_remote_docker
+    # Checkout the repo
+    - checkout
+    # Run unit tests, TODO
+    #- run: go test ./...
+    # Test that the documentation is okay
+    - run: make test-docs
+    # Run autogeneration and see if there are differences
+    - run: make autogen && make tidy && [[ -z $(git status --short) ]]
