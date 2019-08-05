@@ -2,12 +2,12 @@ package cmdutil
 
 import (
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/util"
 	"path"
 	"strings"
 
 	"github.com/spf13/pflag"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 var (
