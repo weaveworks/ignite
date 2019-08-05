@@ -175,7 +175,9 @@ type VMSpec struct {
 	Memory   meta.Size     `json:"memory"`
 	DiskSize meta.Size     `json:"diskSize"`
 	Network  VMNetworkSpec `json:"network"`
-
+	// Volumes allow exposing external block devices from
+	// the host inside the VM as /dev/vd[a-z] disks
+	Volumes []Volume
 	// This will be done at either "ignite start" or "ignite create" time
 	// TODO: We might revisit this later
 	CopyFiles []FileMapping `json:"copyFiles,omitempty"`
@@ -201,6 +203,9 @@ type VMNetworkSpec struct {
 	Mode  NetworkMode       `json:"mode"`
 	Ports meta.PortMappings `json:"ports,omitempty"`
 }
+
+// Volume defines a path to a block device on the host
+type Volume string
 
 // FileMapping defines mappings between files on the host and VM
 type FileMapping struct {

@@ -2,6 +2,7 @@ package run
 
 import (
 	"fmt"
+	"github.com/weaveworks/ignite/pkg/util"
 	"path"
 	"strings"
 
@@ -24,6 +25,7 @@ func NewCreateFlags() *CreateFlags {
 type CreateFlags struct {
 	PortMappings []string
 	CopyFiles    []string
+	Volumes      []string
 	// This is a placeholder value here for now.
 	// If it was set using flags, it will be copied over to
 	// the API type. TODO: When we later have internal types
@@ -51,8 +53,12 @@ func (cf *CreateFlags) constructVMFromCLI(args []string) error {
 
 	// Parse the --copy-files flag
 	var err error
-	cf.VM.Spec.CopyFiles, err = parseFileMappings(cf.CopyFiles)
-	if err != nil {
+	if cf.VM.Spec.CopyFiles, err = parseFileMappings(cf.CopyFiles); err != nil {
+		return err
+	}
+
+	// Parse the --volumes flag
+	if cf.VM.Spec.Volumes, err = parseVolumes(cf.Volumes); err != nil {
 		return err
 	}
 
@@ -130,9 +136,9 @@ func Create(co *createOptions) error {
 	return metadata.Success(co.VM)
 }
 
-// TODO: Move this to meta, or an helper in api
+// TODO: Move this to meta, or a helper in API
 func parseFileMappings(fileMappings []string) ([]api.FileMapping, error) {
-	result := []api.FileMapping{}
+	result := make([]api.FileMapping, 0, len(fileMappings))
 
 	for _, fileMapping := range fileMappings {
 		files := strings.Split(fileMapping, ":")
@@ -149,6 +155,21 @@ func parseFileMappings(fileMappings []string) ([]api.FileMapping, error) {
 			HostPath: src,
 			VMPath:   dest,
 		})
+	}
+
+	return result, nil
+}
+
+// TODO: Move this to meta, or a helper in API
+func parseVolumes(volumes []string) ([]api.Volume, error) {
+	result := make([]api.Volume, 0, len(volumes))
+
+	for _, volume := range volumes {
+		if err := util.DeviceFile(volume); err != nil {
+			return nil, err
+		}
+
+		result = append(result, api.Volume(volume))
 	}
 
 	return result, nil
