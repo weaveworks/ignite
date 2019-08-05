@@ -24,6 +24,9 @@ RUN chmod +x /usr/local/bin/firecracker /usr/local/bin/ignite-spawn && \
     ln -s /usr/local/bin/firecracker  /firecracker  && \
     ln -s /usr/local/bin/ignite-spawn /ignite-spawn
 
+# Create a directory to host any volumes exposed from host
+RUN mkdir /volumes
+
 # Use a multi-stage build to allow the resulting image to only consist of one layer
 # This makes it more lightweight
 FROM scratch

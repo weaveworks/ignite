@@ -704,6 +704,7 @@ func autoConvert_v1alpha2_VMSpec_To_ignite_VMSpec(in *VMSpec, out *ignite.VMSpec
 	if err := Convert_v1alpha2_VMNetworkSpec_To_ignite_VMNetworkSpec(&in.Network, &out.Network, s); err != nil {
 		return err
 	}
+	out.Volumes = *(*[]ignite.Volume)(unsafe.Pointer(&in.Volumes))
 	out.CopyFiles = *(*[]ignite.FileMapping)(unsafe.Pointer(&in.CopyFiles))
 	out.SSH = (*ignite.SSH)(unsafe.Pointer(in.SSH))
 	return nil
@@ -727,6 +728,7 @@ func autoConvert_ignite_VMSpec_To_v1alpha2_VMSpec(in *ignite.VMSpec, out *VMSpec
 	if err := Convert_ignite_VMNetworkSpec_To_v1alpha2_VMNetworkSpec(&in.Network, &out.Network, s); err != nil {
 		return err
 	}
+	out.Volumes = *(*[]Volume)(unsafe.Pointer(&in.Volumes))
 	out.CopyFiles = *(*[]FileMapping)(unsafe.Pointer(&in.CopyFiles))
 	out.SSH = (*SSH)(unsafe.Pointer(in.SSH))
 	return nil

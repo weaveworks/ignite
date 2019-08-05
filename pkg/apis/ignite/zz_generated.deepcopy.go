@@ -387,6 +387,11 @@ func (in *VMSpec) DeepCopyInto(out *VMSpec) {
 	out.Memory = in.Memory
 	out.DiskSize = in.DiskSize
 	in.Network.DeepCopyInto(&out.Network)
+	if in.Volumes != nil {
+		in, out := &in.Volumes, &out.Volumes
+		*out = make([]Volume, len(*in))
+		copy(*out, *in)
+	}
 	if in.CopyFiles != nil {
 		in, out := &in.CopyFiles, &out.CopyFiles
 		*out = make([]FileMapping, len(*in))

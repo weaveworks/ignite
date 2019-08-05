@@ -24,13 +24,21 @@ type Bind struct {
 	ContainerPath string
 }
 
+// Convenience generator for Binds which have the same host and container path
+func BindBoth(path string) *Bind {
+	return &Bind{
+		HostPath:      path,
+		ContainerPath: path,
+	}
+}
+
 type ContainerConfig struct {
 	Cmd          []string
 	Hostname     string
 	Labels       map[string]string
 	Binds        []*Bind
 	CapAdds      []string
-	Devices      []string
+	Devices      []*Bind
 	StopTimeout  uint32
 	AutoRemove   bool
 	NetworkMode  string

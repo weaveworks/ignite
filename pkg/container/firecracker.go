@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -59,9 +60,9 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 		KernelArgs:      cmdLine,
 		Drives: []models.Drive{{
 			DriveID:      firecracker.String("1"),
-			PathOnHost:   &drivePath,
-			IsRootDevice: firecracker.Bool(true),
 			IsReadOnly:   firecracker.Bool(false),
+			IsRootDevice: firecracker.Bool(true),
+			PathOnHost:   &drivePath,
 		}},
 		NetworkInterfaces: networkInterfaces,
 		MachineCfg: models.MachineConfiguration{
@@ -81,6 +82,18 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 		// TODO: We could use /dev/null, but firecracker-go-sdk issues Mkfifo which collides with the existing device
 		LogFifo:     logSocketPath,
 		MetricsFifo: metricsSocketPath,
+	}
+
+	// Add the volume mappings to the VM
+	for i, volume := range vm.Spec.Volumes {
+		volumePath := path.Join(constants.IGNITE_SPAWN_VOLUME_DIR, string(volume))
+
+		cfg.Drives = append(cfg.Drives, models.Drive{
+			DriveID:      firecracker.String(strconv.Itoa(i + 2)),
+			IsReadOnly:   firecracker.Bool(false),
+			IsRootDevice: firecracker.Bool(false),
+			PathOnHost:   &volumePath,
+		})
 	}
 
 	// Remove these FIFOs for now
