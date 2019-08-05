@@ -8,7 +8,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
@@ -138,18 +137,18 @@ func copyToOverlay(vm *api.VM) error {
 		ip = vm.Status.IPAddresses[0]
 	}
 
+	// Write /etc/hosts for the VM
 	if err := writeEtcHosts(vm, mp.Path, vm.GetUID().String(), ip); err != nil {
 		return err
 	}
 
-	// Set overlay root permissions
-	if err := os.Chmod(mp.Path, constants.DATA_DIR_PERM); err != nil {
+	// Populate /etc/fstab with the VM's volume mounts
+	if err := populateFstab(vm, mp.Path); err != nil {
 		return err
 	}
 
-	// TODO: This code seems to be flaky and not always copy over the files?
-	time.Sleep(500 * time.Millisecond)
-	return nil
+	// Set overlay root permissions
+	return os.Chmod(mp.Path, constants.DATA_DIR_PERM)
 }
 
 func copyKernelToOverlay(vm *api.VM, mountPoint string) error {
