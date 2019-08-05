@@ -34,7 +34,8 @@ func (info Info) String() string {
 	return info.GitVersion
 }
 
-// ImageTag returns .GitVersion, but without "+" signs which are disallowed in docker image tags
+// ImageTag returns .GitVersion, but without "+" signs which are disallowed in docker image tags,
+// and with "-<arch>" appended to the end, where <arch> is the target architecture, such as "amd64"
 // Also, if the binary was built from a dirty commit, always use the :dev tag of the ignite-spawn image
 func (info Info) ImageTag() string {
 	// Use the :dev image tag for non-release builds
@@ -42,8 +43,8 @@ func (info Info) ImageTag() string {
 		return "dev"
 	}
 
-	// Replace plus signs
-	return strings.ReplaceAll(GetIgnite().GitVersion, "+", "-")
+	// Replace plus signs, append the target architecture
+	return fmt.Sprintf("%s-%s", strings.ReplaceAll(GetIgnite().GitVersion, "+", "-"), runtime.GOARCH)
 }
 
 // GetIgnite gets ignite's version
