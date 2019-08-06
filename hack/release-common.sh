@@ -1,13 +1,12 @@
 #!/bin/bash
 
-docker build -t ignite-relnotes hack/relnotes
-
 if [[ ! -f bin/gren_token ]]; then
     echo "File bin/gren_token is needed; should contain a Github token with repo access"
     exit 1
 fi
 
 run_gren() {
+    docker build -t ignite-relnotes hack/relnotes
     docker run -it \
         -v $(pwd):/data \
         -w /data \
