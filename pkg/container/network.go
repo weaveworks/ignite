@@ -7,8 +7,8 @@ import (
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/vishvananda/netlink"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/util"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -117,19 +117,31 @@ func bridge(iface *net.Interface) (*DHCPInterface, error) {
 	tapName := constants.TAP_PREFIX + iface.Name
 	bridgeName := constants.BRIDGE_PREFIX + iface.Name
 
-	if err := createTAPAdapter(tapName); err != nil {
+	handle, err := netlink.NewHandle()
+	if err != nil {
 		return nil, err
 	}
 
-	if err := createBridge(bridgeName); err != nil {
+	tuntap, err := createTAPAdapter(handle, tapName)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := connectAdapterToBridge(tapName, bridgeName); err != nil {
+	bridge, err := createBridge(handle, bridgeName)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := connectAdapterToBridge(iface.Name, bridgeName); err != nil {
+	if err = handle.LinkSetMaster(tuntap, bridge); err != nil {
+		return nil, err
+	}
+
+	link, err := netlink.LinkByName(iface.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = handle.LinkSetMaster(link, bridge); err != nil {
 		return nil, err
 	}
 
@@ -145,6 +157,11 @@ func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
 	if err != nil || addrs == nil || len(addrs) == 0 {
 		// set the bool to true so the caller knows to retry
 		return nil, true, fmt.Errorf("interface %s has no address", iface.Name)
+	}
+
+	handle, err := netlink.NewHandle()
+	if err != nil {
+		return nil, false, errors.Wrapf(err, "failed to acquire handle on network namespace")
 	}
 
 	for _, addr := range addrs {
@@ -169,7 +186,17 @@ func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
 			continue
 		}
 
-		if _, err := util.ExecuteCommand("ip", "addr", "del", ip.String(), "dev", iface.Name); err != nil {
+		link, err := netlink.LinkByName(iface.Name)
+		if err != nil {
+			return nil, false, errors.Wrapf(err, "failed to get interface by name %s", iface.Name)
+		}
+
+		delAddr, err := netlink.ParseAddr(addr.String())
+		if err != nil {
+			return nil, false, errors.Wrapf(err, "failed to parse address from stringified ip %s", addr.String())
+		}
+
+		if err = handle.AddrDel(link, delAddr); err != nil {
 			return nil, false, errors.Wrapf(err, "failed to remove address from interface %s", iface.Name)
 		}
 
@@ -184,28 +211,31 @@ func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
 	return nil, false, fmt.Errorf("interface %s has no valid addresses", iface.Name)
 }
 
-func createTAPAdapter(tapName string) error {
-	if _, err := util.ExecuteCommand("ip", "tuntap", "add", "mode", "tap", tapName); err != nil {
-		return err
+func createTAPAdapter(handle *netlink.Handle, tapName string) (*netlink.Tuntap, error) {
+	la := netlink.NewLinkAttrs()
+	la.Name = tapName
+	tuntap := &netlink.Tuntap{
+		LinkAttrs: la,
+		Mode:      netlink.TUNTAP_MODE_TAP,
 	}
-
-	return setLinkUp(tapName)
-}
-
-func createBridge(bridgeName string) error {
-	if _, err := util.ExecuteCommand("ip", "link", "add", "name", bridgeName, "type", "bridge"); err != nil {
-		return err
+	if err := netlink.LinkAdd(tuntap); err != nil {
+		return nil, err
 	}
-
-	return setLinkUp(bridgeName)
+	if err := netlink.LinkSetUp(tuntap); err != nil {
+		return nil, err
+	}
+	return tuntap, nil
 }
 
-func setLinkUp(adapterName string) error {
-	_, err := util.ExecuteCommand("ip", "link", "set", adapterName, "up")
-	return err
-}
-
-func connectAdapterToBridge(adapterName, bridgeName string) error {
-	_, err := util.ExecuteCommand("ip", "link", "set", adapterName, "master", bridgeName)
-	return err
+func createBridge(handle *netlink.Handle, bridgeName string) (*netlink.Bridge, error) {
+	la := netlink.NewLinkAttrs()
+	la.Name = bridgeName
+	bridge := &netlink.Bridge{LinkAttrs: la}
+	if err := netlink.LinkAdd(bridge); err != nil {
+		return nil, err
+	}
+	if err := netlink.LinkSetUp(bridge); err != nil {
+		return nil, err
+	}
+	return bridge, nil
 }
