@@ -13,7 +13,6 @@ PROJECT = github.com/weaveworks/ignite
 APIS_DIR = ${PROJECT}/pkg/apis
 API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/ignite/v1alpha2,${APIS_DIR}/meta/v1alpha1
 CACHE_DIR = $(shell pwd)/bin/cache
-API_DOCS = docs/api/ignite.md docs/api/meta.md
 DOCS_PORT = 8000
 # Specifies if this is a CI build or not; if it is, it will save the docker image created to bin/$(GOARCH)/image.tar
 IS_CI_BUILD ?= 0
@@ -147,7 +146,7 @@ shell:
 		golang:$(GO_VERSION) \
 		$(COMMAND)
 
-autogen: $(API_DOCS)
+autogen: api-docs
 	$(MAKE) shell COMMAND="make dockerized-autogen"
 
 dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen /go/bin/openapi-gen
