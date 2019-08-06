@@ -1,6 +1,6 @@
 # v1alpha1
 
-`import "/go/src/github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"`
+`import "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"`
 
   - [Overview](#pkg-overview)
   - [Index](#pkg-index)
