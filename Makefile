@@ -13,7 +13,6 @@ PROJECT = github.com/weaveworks/ignite
 APIS_DIR = ${PROJECT}/pkg/apis
 API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/ignite/v1alpha2,${APIS_DIR}/meta/v1alpha1
 CACHE_DIR = $(shell pwd)/bin/cache
-API_DOCS = docs/api/ignite.md docs/api/meta.md
 DOCS_PORT = 8000
 # Specifies if this is a CI build or not; if it is, it will save the docker image created to bin/$(GOARCH)/image.tar
 IS_CI_BUILD ?= 0
@@ -112,16 +111,19 @@ tidy-in-docker:
 graph:
 	hack/graph.sh
 
-.PHONY: $(API_DOCS)
-api-docs: $(API_DOCS)
-$(API_DOCS): docs/api/%.md: godoc2md
-	mkdir -p $$(dirname $@) bin/tmp/$*
-	mv $(shell pwd)/pkg/apis/$*/v1alpha1/zz_generated* bin/tmp/$*
-	$(MAKE) shell COMMAND="godoc2md /go/src/${PROJECT}/pkg/apis/$*/v1alpha1 > bin/tmp/$*.md"
-	sed -e "s|src/target|pkg/apis/$*/v1alpha1|g" -i bin/tmp/$*.md
-	sed -e "s|(/pkg/apis|(https://github.com/weaveworks/ignite/tree/master/pkg/apis|g" -i bin/tmp/$*.md
-	mv bin/tmp/$*/*.go $(shell pwd)/pkg/apis/$*/v1alpha1/
-	rm -r bin/tmp/$*
+api-docs: godoc2md
+	cd pkg/apis/ && for gv in */v1*; do \
+		GROUPVERSION=$$gv GROUP_VERSION=$$(echo $$gv | sed 's|/|_|g') \
+		$(MAKE) -C ../../ api-doc; done
+
+api-doc:
+	mkdir -p docs/api bin/tmp/${GROUPVERSION}
+	mv $(shell pwd)/pkg/apis/${GROUPVERSION}/zz_generated* bin/tmp/${GROUPVERSION}
+	$(MAKE) shell COMMAND="godoc2md /go/src/${PROJECT}/pkg/apis/${GROUPVERSION} > bin/tmp/${GROUP_VERSION}.md"
+	sed -e "s|src/target|pkg/apis/${GROUPVERSION}|g;s|/go/src/||g" -i bin/tmp/${GROUP_VERSION}.md
+	sed -e "s|(/pkg/apis|(https://github.com/weaveworks/ignite/tree/master/pkg/apis|g" -i bin/tmp/${GROUP_VERSION}.md
+	mv bin/tmp/${GROUPVERSION}/*.go $(shell pwd)/pkg/apis/${GROUPVERSION}/
+	rm -r bin/tmp/${GROUPVERSION}
 	# Format the docs with pandoc
 	docker run -it \
 		-v $(shell pwd):/data \
@@ -129,7 +131,7 @@ $(API_DOCS): docs/api/%.md: godoc2md
 		pandoc/core \
 			--from markdown \
 			--to gfm \
-			bin/tmp/$*.md > $@
+			bin/tmp/${GROUP_VERSION}.md > docs/api/${GROUP_VERSION}.md
 
 shell:
 	mkdir -p $(CACHE_DIR)/go $(CACHE_DIR)/cache
@@ -144,7 +146,7 @@ shell:
 		golang:$(GO_VERSION) \
 		$(COMMAND)
 
-autogen: $(API_DOCS)
+autogen: api-docs
 	$(MAKE) shell COMMAND="make dockerized-autogen"
 
 dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen /go/bin/openapi-gen
