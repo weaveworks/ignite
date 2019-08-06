@@ -14,8 +14,9 @@ the flags for this command.
 
 If the name flag (-n, --name) is not specified,
 the VM is given a random name. Using the copy files
-flag (-f, --copy-files), additional files can be added to
-the VM during creation with the syntax /host/path:/vm/path.
+flag (-f, --copy-files), additional files/directories
+can be added to the VM during creation with the syntax
+/host/path:/vm/path.
 
 Example usage:
 	$ ignite create centos:7 \
@@ -34,7 +35,7 @@ ignite create <OCI image> [flags]
 
 ```
       --config string            Specify a path to a file with the API resources you want to pass
-  -f, --copy-files strings       Copy files from the host to the created VM
+  -f, --copy-files strings       Copy files/directories from the host to the created VM
       --cpus uint                VM vCPU count, 1 or even numbers between 1 and 32 (default 1)
   -h, --help                     help for create
       --kernel-args string       Set the command line for the kernel (default "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp")
