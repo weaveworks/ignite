@@ -45,11 +45,14 @@ write_changelog() {
     # Generate the changelog draft
     if [[ ! -f docs/releases/${FULL_VERSION}.md ]]; then
         # Push the tag provisionally, we'll later update it
-        git tag ${FULL_VERSION}
-        git push upstream --tags
+        echo "Tagging the current commit ${FULL_VERSION} temporarily in order to run gren..."
+        git tag -f ${FULL_VERSION}
+        git push upstream --tags -f
 
         run_gren "changelog --generate"
         mv docs/releases/next.md docs/releases/${FULL_VERSION}.md
+        # Add an extra newline in the end of the changelog
+        echo "" >> docs/releases/${FULL_VERSION}.md
     fi
 
     read -p "Please manually fixup the changelog file now. Continue? [y/N] " confirm

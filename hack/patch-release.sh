@@ -54,12 +54,12 @@ push_artifacts() {
         cat <<- EOF
 		Done! Next, do this:
 
-		git push upstream --tags
+		git push upstream --tags -f
 		git push upstream ${RELEASE_BRANCH}
 		EOF
         exit 1
     fi
-    git push upstream --tags
+    git push upstream --tags -f
     git push upstream ${RELEASE_BRANCH}
 }
 
