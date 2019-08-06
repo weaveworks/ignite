@@ -6,7 +6,6 @@ if [[ ! -f bin/gren_token ]]; then
 fi
 
 run_gren() {
-    docker build -t ignite-relnotes hack/relnotes
     docker run -it \
         -v $(pwd):/data \
         -w /data \
@@ -34,13 +33,15 @@ gen_changelog_md() {
     # Generate docs/releases/next.md based of GH release notes
     run_gren "changelog"
     # Add the new release and existing ones to the changelog
-    cat docs/releases/next.md >> ${file}
-    # docs/releases/${FULL_VERSION}.md
+    cat docs/releases/${FULL_VERSION}.md docs/releases/next.md >> ${file}
     # Remove the temporary file
     rm docs/releases/next.md
 }
 
 write_changelog() {
+    # Build the gren image
+    docker build -t ignite-relnotes hack/relnotes
+
     # Generate the changelog draft
     if [[ ! -f docs/releases/${FULL_VERSION}.md ]]; then
         # Push the tag provisionally, we'll later update it
