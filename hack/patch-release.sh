@@ -54,13 +54,13 @@ push_artifacts() {
         cat <<- EOF
 		Done! Next, do this:
 
-		git push --tags
-		git push origin ${RELEASE_BRANCH}
+		git push upstream --tags
+		git push upstream ${RELEASE_BRANCH}
 		EOF
         exit 1
     fi
-    git push --tags
-    git push origin ${RELEASE_BRANCH}
+    git push upstream --tags
+    git push upstream ${RELEASE_BRANCH}
 }
 
 if [[ $1 == "tidy" ]]; then
