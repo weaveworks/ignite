@@ -2,7 +2,7 @@
 
 # Changelog
 
-## v0.4.2
+## v0.4.2, 16/07/2019
 
 The second patch release for the `v0.4.x` release stream.
 If you want to have a look, here are changes for versions [v0.4.0](https://github.com/weaveworks/ignite/blob/master/CHANGELOG.md#v040)
@@ -33,7 +33,7 @@ We hope to see this trend continue, all help is very welcome to this community-d
  - Fix link to `CentOS` image in `README.md` ([#161](https://github.com/weaveworks/ignite/pull/161), [@akshaychhajed](https://github.com/akshaychhajed))
  - Added `loop` kernel module dependency to `docs/dependencies.md` ([#155](https://github.com/weaveworks/ignite/pull/155), [@curx](https://github.com/curx))
  - Clarify usage on `Ubuntu` and `CentOS`, embed links to [Joe Beda](https://twitter.com/jbeda)'s TGIK recording ([#175](https://github.com/weaveworks/ignite/pull/175), [@luxas](https://github.com/luxas))
- - Added a brand new `FAQ`! Check it out at [FAQ.md](docs/FAQ.md)! ([#197](https://github.com/weaveworks/ignite/pull/197), [@luxas](https://github.com/luxas))
+ - Added a brand new `FAQ`! Check it out at [FAQ.md](FAQ.md)! ([#197](https://github.com/weaveworks/ignite/pull/197), [@luxas](https://github.com/luxas))
 
 
 ## Trying it out / Next Steps!
@@ -48,12 +48,15 @@ sudo mv ignite /usr/local/bin
 ```
 
 A more throughout installation guide is available here: https://github.com/weaveworks/ignite/blob/master/docs/installation.md
-## v0.4.1
+
+---
+
+## v0.4.1, 12/07/2019
 
 The first patch release for the `v0.4.x` release stream.
 If you want to go and look at the new and changed stuff in v0.4.0, see [here](https://github.com/weaveworks/ignite/blob/master/CHANGELOG.md#v040).
 
-This release, we had an **amazing** amount of 9 PRs from 6 community contributors, in 48 hours after launch :tada:!
+This release we had an **amazing** amount of 9 PRs from 6 community contributors, in _48 hours after launch_ :tada:!
 We hope to see this trend continue, all help is very welcome to this community-driven project!
 
 ### New Features / UX Improvements
@@ -95,9 +98,14 @@ sudo mv ignite /usr/local/bin
 
 A more throughout installation guide is available here: https://github.com/weaveworks/ignite/blob/master/docs/installation.md
 
+
+---
+
+## v0.4.0, 10/07/2019
+
 ## v0.4.0
 
-The first release candidate for Ignite's biggest release yet!
+Ignite's biggest release yet!
 
 There are many significant changes compared to before:
 
@@ -170,16 +178,64 @@ In short:
 
 ```bash
 export VERSION=v0.4.0
-curl -Lo ignite https://github.com/weaveworks/ignite/releases/download/${VERSION}/ignite
+curl -fLo ignite https://github.com/weaveworks/ignite/releases/download/${VERSION}/ignite
 chmod +x ignite
 sudo mv ignite /usr/local/bin
 ```
 
 A longer installation guide is available here: https://github.com/weaveworks/ignite/blob/master/docs/installation.md
 
-## v0.3.0
 
-Major release with significant UX and internal improvements:
+---
+
+## v0.4.0-rc.1, 09/07/2019
+
+## v0.4.0-rc.1
+
+The first release candidate for Ignite's biggest release yet!
+
+There are many significant changes compared to before:
+
+### New Features
+
+ - Make base and kernel OCI images composable for a VM. You can now choose what kernel to combine with what base image freely https://github.com/weaveworks/ignite/pull/105
+ - Add the GitOps mode for Ignite using `ignite gitops` https://github.com/weaveworks/ignite/pull/100
+ - Make it possible to run `ignite create` and `ignite run` declaratively https://github.com/weaveworks/ignite/commit/57333646b52a0e1e3a725340e994b2749b39e5bd
+ - Added Prometheus metrics for `ignite-spawn` https://github.com/weaveworks/ignite/commit/94abc529972873db3fa3ee954099a4f62d67b6f3
+ - Implemented CNI support https://github.com/weaveworks/ignite/commit/a8897532f9f6a8f5c40025f0f93ab2d24f2c7cd3
+
+### API Machinery
+
+ - Added the `ignite.weave.works/v1alpha1` API group with the Ignite API types https://github.com/weaveworks/ignite/commit/ca1edc8e7a61b950811c6145ba2ad53f8cdc2a04
+ - Add a meta API package containing supporting but generic API types for Ignite https://github.com/weaveworks/ignite/commit/09d51abd409ee361e93884baae24ffc92cde63a9
+ - Create composable interfaces for the internal API machinery: `Client` -> `Cache` -> `Storage` -> `RawStorage` -> `Serializer` https://github.com/weaveworks/ignite/pull/93 https://github.com/weaveworks/ignite/pull/96 https://github.com/weaveworks/ignite/pull/99
+
+### New Commands
+
+ - Add the `ignite inspect` command https://github.com/weaveworks/ignite/pull/107
+ - Add the `ignite gitops` command https://github.com/weaveworks/ignite/pull/100
+
+### Documentation
+
+ - Add user-facing documentation and guides https://github.com/weaveworks/ignite/pull/113
+ - Generate OpenAPI specifications https://github.com/weaveworks/ignite/commit/f1c5bfd473799f712c4c1d8fb276426780c1bf01
+ - Add API type documentation https://github.com/weaveworks/ignite/commit/218c94723f836b8e2cb82886b8664544933ea605
+ - Added architecture diagram https://github.com/weaveworks/ignite/commit/da53f9fc2f5790edacb5d1b541dd4da8a6089673
+ - Added graph of module dependencies https://github.com/weaveworks/ignite/commit/be7cc088c671c5728155fb146367a67d4ada4ea6
+
+### Internal Improvements
+
+ - Add structured logging https://github.com/weaveworks/ignite/pull/110
+ - Factor out `ignite-spawn` into its own binary running in the container https://github.com/weaveworks/ignite/commit/0a1965e7203877c591dc79504ce257a57fd00480
+ - Upgraded the Firecracker version to v0.17.0 https://github.com/weaveworks/ignite/commit/41e3595b9e8d35c24e8cd97037cc1c7045779ee9
+ - Set Go version to 1.12.6 https://github.com/weaveworks/ignite/commit/d00cce7d2b09e97f8d515c4a6161b11fc6c61a2c
+
+
+---
+
+## v0.3.0, 18/06/2019
+
+## Major release with significant UX and internal improvements:
 
  - There is no longer a difference between an Ignite image and an OCI image, this is now the same thing.
      - Ignite operates on OCI images directly, for both OS images and kernels. The kernel is expected to be coupled with the image given to `ignite run`, in `/boot/vmlinux`.
@@ -187,16 +243,19 @@ Major release with significant UX and internal improvements:
  - Now `ignite images` shows OCI images that are cached and ready to use, and `ignite kernels` the kernels already imported from base images.
  - Added an example usage guide for running a Kubernetes cluster in HA mode using kubeadm and Ignite.
  - Removed `ignite build`, and `ignite image/kernel import`; as these are no longer needed
- - Importing an image from a tROADMAPar file is no longer possible, package the contents in an OCI image instead
+ - Importing an image from a tar file is no longer possible, package the contents in an OCI image instead
  - Added a new command `ignite ssh [vm]` and flag: `ignite run --ssh`. This allows for automatic SSH logins.
  - Now Ignite logs user-friendly messages by default. To get machine-readable output, use the `--quiet` flag.
  - Ignite now requires the user to be `root`. This will be revisited later, when the architecture has changed.
  - The command outputs and structure is now more user-friendly.
  - Fixed several bugs both under the hood, and user-affecting ones
 
-## v0.2.0
 
-Major release with significant improvements
+---
+
+## v0.2.0, 06/06/2019
+
+## Major release with significant improvements
 
  - Ignite is now using `devicemapper` under the hood, for overlay snapshots for filesystem writes, allowing for image reuse, efficient use of space and way faster builds!
  - Added sample Ubuntu 18.04 and CentOS 7 OS images & a 4.19 kernel build
@@ -209,10 +268,35 @@ Major release with significant improvements
  - Removed the need for the Ignite container to run with `--privileged`
  - Allow for force-deletions of images, kernels and vms.
  - Added documentation.
- - Moved repo from `luxas/ignite` to `weaveworks/ignite`
+ - Moved repo from luxas/ignite to weaveworks/ignite
 
-## v0.1.0
+### Use it
+
+Download the attached binary, add it to `$PATH`, and execute the following commands:
+
+```bash
+$ ignite build weaveworks/ignite-ubuntu:v0.2.0 \
+    --name ubuntu-image \
+    --import-kernel ubuntu-kernel
+$ ignite images
+$ ignite kernels
+$ ignite run ubuntu-image ubuntu-kernel --name my-vm
+$ ignite ps
+$ ignite logs my-vm
+$ ignite attach my-vm
+
+# Cleanup
+$ ignite stop my-vm
+$ ignite rm my-vm
+$ ignite rmi ubuntu-image
+$ ignite rmk ubuntu-kernel
+```
+
+Also make note of the [known limitations](https://github.com/weaveworks/ignite#known-limitations)
+
+---
+
+## v0.1.0, 31/05/2019
 
 This is the first, proof-of-concept version of Ignite.
 It has all the essential features, and a pretty complete implementation of the docker UX.
-
