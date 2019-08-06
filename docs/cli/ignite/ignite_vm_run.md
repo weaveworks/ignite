@@ -28,7 +28,7 @@ ignite vm run <OCI image> [flags]
 
 ```
       --config string            Specify a path to a file with the API resources you want to pass
-  -f, --copy-files strings       Copy files from the host to the created VM
+  -f, --copy-files strings       Copy files/directories from the host to the created VM
       --cpus uint                VM vCPU count, 1 or even numbers between 1 and 32 (default 1)
   -d, --debug                    Debug mode, keep container after VM shutdown
   -h, --help                     help for run
