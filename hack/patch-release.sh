@@ -45,7 +45,7 @@ tag_release() {
         exit 1
     fi
 
-    git tag ${FULL_VERSION}
+    git tag -f ${FULL_VERSION}
 }
 
 push_artifacts() {
@@ -54,15 +54,11 @@ push_artifacts() {
         cat <<- EOF
 		Done! Next, do this:
 
-		make -C images push-all
-		make image-push
 		git push --tags
 		git push origin ${RELEASE_BRANCH}
 		EOF
         exit 1
     fi
-    make -C images push-all
-    make image-push
     git push --tags
     git push origin ${RELEASE_BRANCH}
 }
@@ -74,14 +70,14 @@ elif [[ $1 == "changelog" ]]; then
 elif [[ $1 == "tag" ]]; then 
     tag_release
 elif [[ $1 == "build" ]]; then 
-    build_artifacts
+    build_push_release_artifacts
 elif [[ $1 == "push" ]]; then 
     push_artifacts
 elif [[ $1 == "all" ]]; then
     make_tidy_autogen
     write_changelog
     tag_release
-    build_artifacts
+    build_push_release_artifacts
     push_artifacts
 else
     echo "Usage: $0 [command]"
