@@ -1,0 +1,8 @@
+FROM ddidier/sphinx-doc
+
+COPY requirements.txt .
+
+RUN apt update && apt install -y linkchecker && \
+    pip install -r requirements.txt
+
+WORKDIR /doc

@@ -3,26 +3,58 @@ jobs:
   build:
     machine:
       image: ubuntu-1604:201903-01
+    environment:
+      # Flag that this is a CI build to the Makefile
+      IS_CI_BUILD: 1
     steps:
-    # Needed for being able to execute "docker" commands
-    # - setup_remote_docker
     # Checkout the repo
     - checkout
     # Build all binaries and docker images
     - run: make build-all
+    - store_artifacts:
+        path: ./bin/amd64
+    - store_artifacts:
+        path: ./bin/arm64
     # TODO: Push to a dev registry
   test:
-    docker:
-    # specify the version
-    - image: circleci/golang:1.12
+    machine:
+      image: ubuntu-1604:201903-01
     steps:
-    # Needed for being able to execute "docker" commands
-    - setup_remote_docker
     # Checkout the repo
     - checkout
+    # Workaround so that /go/bin is writable by the circleci user
+    - run: sudo mkdir -p /go/bin && sudo chown -R circleci /go/bin
     # Run unit tests, TODO
     #- run: go test ./...
+    # Restore bin/docs from a previous build if it exists
+    - restore_cache:
+        key: bin-docs
     # Test that the documentation is okay
     - run: make test-docs
+    # Save the bin/docs directory, containing the builder image for the docs
+    - save_cache:
+        key: bin-docs
+        name: "Caching ./bin/docs for future builds..."
+        paths:
+        - ./bin/docs
+    # Restore bin/cache from a previous build if it exists
+    - restore_cache:
+        key: bin-cache
     # Run autogeneration and see if there are differences
-    - run: make autogen && make tidy && [[ -z $(git status --short) ]]
+    # TODO: Fix this; somehow the docs/api/ignite.md ends up being malformatted in CI; it adds
+    # <sup>@</sup>@ in the beginning of the file for some strange reason in CI, but not locally
+    - run: make autogen && make tidy-in-docker && git status --short && git checkout HEAD docs/api/ignite.md
+    # Save the bin/cache directory
+    - save_cache:
+        key: bin-cache
+        paths:
+        - ./bin/cache
+    # Check so that there weren't any modified files
+    - run: echo "This fails if there are modified files, otherwise succeeds." && git status --short && git --no-pager diff && [[ -z $(git status --short) ]] && echo "Success, no diff!"
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
+      - test

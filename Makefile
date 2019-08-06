@@ -15,8 +15,11 @@ API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/ignite/v1a
 CACHE_DIR = $(shell pwd)/bin/cache
 API_DOCS = docs/api/ignite.md docs/api/meta.md
 DOCS_PORT = 8000
+# Specifies if this is a CI build or not; if it is, it will save the docker image created to bin/$(GOARCH)/image.tar
+IS_CI_BUILD ?= 0
 
 ## Multi-platform-related stuff
+GOHOSTARCH = $(shell go env GOARCH 2>/dev/null || echo "amd64")
 GOARCH ?= amd64
 GOARCH_LIST = amd64 arm64
 QEMUVERSION=v2.9.1
@@ -48,7 +51,7 @@ $(BINARIES):
 .PHONY: bin/$(GOARCH)/ignite bin/$(GOARCH)/ignite-spawn bin/$(GOARCH)/ignited
 bin/$(GOARCH)/ignite bin/$(GOARCH)/ignited bin/$(GOARCH)/ignite-spawn: bin/$(GOARCH)/%:
 	CGO_ENABLED=0 GOARCH=$(GOARCH) go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/$(GOARCH)/$* ./cmd/$*
-ifeq ($(GOARCH),amd64)
+ifeq ($(GOARCH),$(GOHOSTARCH))
 	ln -sf ./$(GOARCH)/$* bin/$*
 endif
 
@@ -68,6 +71,14 @@ endif
 		--build-arg ARCH_SUFFIX=${ARCH_SUFFIX} bin/$(GOARCH)
 ifeq ($(IS_DIRTY),0)
 	docker tag $(IMAGE):${IMAGE_DEV_TAG} $(IMAGE):${IMAGE_TAG}-$(GOARCH)
+ifeq ($(GOARCH),$(GOHOSTARCH))
+	# For dev builds for a clean (non-dirty) environment; "simulate" that
+	# a manifest list has been built by tagging the docker image
+	docker tag $(IMAGE):${IMAGE_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}
+endif
+endif
+ifeq ($(IS_CI_BUILD),1)
+	docker save $(IMAGE):${IMAGE_TAG}-$(GOARCH) -o bin/$(GOARCH)/image.tar
 endif
 
 build-all: $(addprefix build-all-,$(GOARCH_LIST))
@@ -87,7 +98,7 @@ endif
 	@for arch in $(GOARCH_LIST); do docker manifest annotate --arch=$${arch} $(IMAGE):$(IMAGE_TAG) $(IMAGE):$(IMAGE_TAG)-$${arch}; done
 	docker manifest push --purge $(IMAGE):$(IMAGE_TAG)
 
-tidy: $(API_DOCS)
+tidy: /go/bin/goimports
 	go mod tidy
 	go mod vendor
 	hack/generate-client.sh
@@ -95,23 +106,30 @@ tidy: $(API_DOCS)
 	goimports -w pkg cmd
 	go run hack/cobra.go
 
+tidy-in-docker:
+	$(MAKE) shell COMMAND="make tidy"
+
 graph:
 	hack/graph.sh
 
 .PHONY: $(API_DOCS)
-$(API_DOCS): docs/api/%.md: $(CACHE_DIR)/go/bin/godoc2md
+api-docs: $(API_DOCS)
+$(API_DOCS): docs/api/%.md: godoc2md
 	mkdir -p $$(dirname $@) bin/tmp/$*
 	mv $(shell pwd)/pkg/apis/$*/v1alpha1/zz_generated* bin/tmp/$*
-	$(MAKE) shell COMMAND="/go/bin/godoc2md /go/src/${PROJECT}/pkg/apis/$*/v1alpha1 > $@"
-	sed -e "s|src/target|pkg/apis/$*/v1alpha1|g" -i $@
-	sed -e "s|(/pkg/apis|(https://github.com/weaveworks/ignite/tree/master/pkg/apis|g" -i $@
+	$(MAKE) shell COMMAND="godoc2md /go/src/${PROJECT}/pkg/apis/$*/v1alpha1 > bin/tmp/$*.md"
+	sed -e "s|src/target|pkg/apis/$*/v1alpha1|g" -i bin/tmp/$*.md
+	sed -e "s|(/pkg/apis|(https://github.com/weaveworks/ignite/tree/master/pkg/apis|g" -i bin/tmp/$*.md
 	mv bin/tmp/$*/*.go $(shell pwd)/pkg/apis/$*/v1alpha1/
 	rm -r bin/tmp/$*
-
-$(CACHE_DIR)/go/bin/godoc2md:
-	mkdir -p $(CACHE_DIR)/go/bin/
-	curl -sSL https://github.com/luxas/godoc2md/releases/download/v0.1.0/godoc2md > $@
-	chmod +x $@
+	# Format the docs with pandoc
+	docker run -it \
+		-v $(shell pwd):/data \
+		-u $(shell id -u):$(shell id -g) \
+		pandoc/core \
+			--from markdown \
+			--to gfm \
+			bin/tmp/$*.md > $@
 
 shell:
 	mkdir -p $(CACHE_DIR)/go $(CACHE_DIR)/cache
@@ -126,7 +144,7 @@ shell:
 		golang:$(GO_VERSION) \
 		$(COMMAND)
 
-autogen:
+autogen: $(API_DOCS)
 	$(MAKE) shell COMMAND="make dockerized-autogen"
 
 dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen /go/bin/openapi-gen
@@ -150,8 +168,8 @@ dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversio
 	
 	/go/bin/openapi-gen \
 		--input-dirs ${API_DIRS} \
-		--output-package ${PROJECT}/api/openapi \
-		--report-filename api/openapi/violations.txt \
+		--output-package ${PROJECT}/pkg/openapi \
+		--report-filename pkg/openapi/violations.txt \
 		-h /tmp/boilerplate
 
 /go/bin/%: vendor
@@ -159,6 +177,15 @@ dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversio
 
 /go/bin/openapi-gen:
 	go install k8s.io/kube-openapi/cmd/openapi-gen
+
+godoc2md: bin/cache/go/bin/godoc2md
+bin/cache/go/bin/godoc2md:
+	mkdir -p $$(dirname $@)
+	curl -sSL https://github.com/luxas/godoc2md/releases/download/v0.1.0/godoc2md > $@
+	chmod +x $@
+
+/go/bin/goimports:
+	go get golang.org/x/tools/cmd/goimports
 
 # QEMU stuff
 qemu: bin/$(GOARCH)/qemu-$(QEMUARCH)-static
@@ -170,11 +197,17 @@ ifneq ($(GOARCH),amd64)
 endif
 
 # Read the docs stuff
-build-docs:
-	@cd docs && docker build -t ignite-docs .
+bin/docs/builder-image.tar:
+	mkdir -p bin/docs
+	docker build -t ignite-docs-builder -f docs/Dockerfile.build docs
+	docker save ignite-docs-builder -o $@
+
+build-docs: bin/docs/builder-image.tar
+	docker load -i bin/docs/builder-image.tar
+	docker build -t ignite-docs docs
 
 test-docs: build-docs
-	@docker run -it ignite-docs /usr/bin/linkchecker _build/html/index.html
+	docker run -it ignite-docs /usr/bin/linkchecker _build/html/index.html
 
 serve-docs: build-docs
 	@echo Stating docs website on http://localhost:${DOCS_PORT}/_build/html/index.html
