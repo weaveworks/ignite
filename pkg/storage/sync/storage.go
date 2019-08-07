@@ -139,6 +139,7 @@ func (ss *SyncStorage) monitorFunc() {
 	// For now, only update the state on write when Ignite is running
 	for {
 		upd, ok := <-ss.eventStream
+		// TODO: ignite-spawn's updates also fire events
 		log.Debugf("SyncStorage: Received update %v %t", upd, ok)
 		if ok {
 			switch upd.Event {
