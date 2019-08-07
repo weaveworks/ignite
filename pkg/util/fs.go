@@ -47,6 +47,16 @@ func DirExists(dirname string) bool {
 	return info.IsDir()
 }
 
+func IsDeviceFile(filename string) (err error) {
+	if exists, info := PathExists(filename); !exists {
+		err = fmt.Errorf("device path not found")
+	} else if info.Mode()&os.ModeDevice == 0 {
+		err = fmt.Errorf("not a device file")
+	}
+
+	return
+}
+
 // CopyFile copies both files and directories
 func CopyFile(src string, dst string) error {
 	return copy.Copy(src, dst)
