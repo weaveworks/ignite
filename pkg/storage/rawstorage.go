@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -111,8 +112,9 @@ func (r *DefaultRawStorage) Format(key Key) Format {
 	return FormatJSON // The DefaultRawStorage always uses JSON
 }
 
+// This is for watchers, direct them to only the VM directory
 func (r *DefaultRawStorage) Dir() string {
-	return r.dir
+	return path.Join(r.dir, NewKindKey(api.KindVM).String())
 }
 
 func (r *DefaultRawStorage) AddMapping(key Key, path string) {} // Stub
