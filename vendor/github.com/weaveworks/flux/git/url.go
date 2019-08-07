@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/whilp/git-urls"
+	giturls "github.com/whilp/git-urls"
 )
 
 // Remote points at a git repo somewhere.

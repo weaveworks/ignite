@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
@@ -20,7 +20,7 @@ func main() {
 	}
 
 	cmds := map[string]*cobra.Command{
-		"ignite": ignitecmd.NewIgniteCommand(os.Stdin, os.Stdout, os.Stderr),
+		"ignite":  ignitecmd.NewIgniteCommand(os.Stdin, os.Stdout, os.Stderr),
 		"ignited": ignitedcmd.NewIgnitedCommand(os.Stdin, os.Stdout, os.Stderr),
 	}
 
