@@ -30,11 +30,11 @@ Use Google compute from a custom KVM image so that Ignite can be installed and r
 - Login to Google cloud console 
 - Open Google cloud shell
 - run the following command to create custom images with KVM enabled
-
+```
 gcloud compute images create nested-virt \
   --source-image-project=ubuntu-os-cloud \
   --source-image-family=ubuntu-1604-lts \
   --licenses="https://www.googleapis.com/compute/v1/projects/vm-options/global/licenses/enable-vmx"
-
+```
 - Create a compute Engine with the custom image created
 
