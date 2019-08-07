@@ -4,10 +4,8 @@ FROM BASEIMAGE AS build
 # If we're building normally, for amd64, this line is removed
 COPY qemu-QEMUARCH-static /usr/bin/
 
-# Install iproute2 for access to the "ip" command. In the future this dependency will be removed
-# device-mapper is needed for the snapshot functionalities
+# device-mapper is needed for snapshot functionalities
 RUN apk add --no-cache \
-    iproute2 \
     device-mapper
 
 # Download the Firecracker binary from Github
