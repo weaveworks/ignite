@@ -4,26 +4,27 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"path"
 	"path/filepath"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
+	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/util"
-	patchutil "github.com/weaveworks/ignite/pkg/util/patch"
 	"github.com/weaveworks/ignite/pkg/version"
 )
 
 func StartVM(vm *api.VM, debug bool) error {
-	// Make sure the VM container does not exist. Don't care about the error.
-	_ = RemoveVMContainer(vm)
+	// Remove the VM container if it exists
+	if err := RemoveVMContainer(vm); err != nil {
+		return err
+	}
 
 	// Setup the snapshot overlay filesystem
 	if err := dmlegacy.ActivateSnapshot(vm); err != nil {
@@ -46,7 +47,7 @@ func StartVM(vm *api.VM, debug bool) error {
 	}
 
 	config := &runtime.ContainerConfig{
-		Cmd:    []string{vm.GetUID().String()},
+		Cmd:    []string{fmt.Sprintf("--log-level=%s", logs.Logger.Level.String()), vm.GetUID().String()},
 		Labels: map[string]string{"ignite.name": vm.GetName()},
 		Binds: []*runtime.Bind{
 			{
@@ -54,8 +55,14 @@ func StartVM(vm *api.VM, debug bool) error {
 				ContainerPath: vmDir,
 			},
 			{
-				HostPath:      kernelDir,
-				ContainerPath: kernelDir,
+				// Mount the metadata.json file specifically into the container, to a well-known place for ignite-spawn to access
+				HostPath:      path.Join(vmDir, constants.METADATA),
+				ContainerPath: constants.IGNITE_SPAWN_VM_FILE_PATH,
+			},
+			{
+				// Mount the vmlinux file specifically into the container, to a well-known place for ignite-spawn to access
+				HostPath:      path.Join(kernelDir, constants.KERNEL_FILE),
+				ContainerPath: constants.IGNITE_SPAWN_VMLINUX_FILE_PATH,
 			},
 		},
 		CapAdds: []string{
@@ -95,24 +102,10 @@ func StartVM(vm *api.VM, debug bool) error {
 			return err
 		}
 
-		log.Printf("Networking is now handled by CNI")
+		log.Infof("Networking is now handled by CNI")
 	}
 
-	log.Printf("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
-
-	// Set an annotation on the VM object with the containerID for now
-	patch, err := patchutil.Create(vm, func(obj meta.Object) error {
-		patchVM := obj.(*api.VM)
-		patchVM.SetAnnotation("v1alpha1.ignite.weave.works.containerID", containerID)
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	// Perform the patch
-	if err := providers.Client.VMs().Patch(vm.GetUID(), patch); err != nil {
-		return err
-	}
+	log.Infof("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
 
 	// TODO: Follow-up the container here with a defer, or dedicated goroutine. We should output
 	// if it started successfully or not
@@ -122,7 +115,7 @@ func StartVM(vm *api.VM, debug bool) error {
 
 func verifyPulled(image string) error {
 	if _, err := providers.Runtime.InspectImage(image); err != nil {
-		log.Printf("Pulling image %q...", image)
+		log.Infof("Pulling image %q...", image)
 		rc, err := providers.Runtime.PullImage(image)
 		if err != nil {
 			return err

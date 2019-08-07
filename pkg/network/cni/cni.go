@@ -10,6 +10,7 @@ import (
 	"github.com/containernetworking/cni/libcni"
 	cnitypes "github.com/containernetworking/cni/pkg/types"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/ignite/pkg/network"
 	"github.com/weaveworks/ignite/pkg/runtime"
 )
 
@@ -33,7 +34,7 @@ type cniNetwork struct {
 	CNIConfig     libcni.CNI
 }
 
-func GetCNINetworkPlugin(runtime runtime.Interface) (NetworkPlugin, error) {
+func GetCNINetworkPlugin(runtime runtime.Interface) (network.Plugin, error) {
 	binDirs := []string{CNIBinDir}
 	plugin := &cniNetworkPlugin{
 		runtime:        runtime,

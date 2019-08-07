@@ -5,8 +5,8 @@ import (
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdImport imports a new VM image
@@ -21,7 +21,7 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 		`),
 		Args: cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			errutils.Check(func() error {
+			cmdutil.CheckErr(func() error {
 				_, err := run.ImportImage(args[0])
 				return err
 			}())

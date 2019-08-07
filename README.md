@@ -5,11 +5,10 @@
 Weave Ignite is an open source Virtual Machine (VM) manager with a container UX and
 built-in GitOps management.
 
- - Combines [Firecracker MicroVMs](https://aws.amazon.com/about-aws/whats-new/2018/11/firecracker-lightweight-virtualization-for-serverless-computing/) with Docker /
+- Combines [Firecracker MicroVMs](https://aws.amazon.com/about-aws/whats-new/2018/11/firecracker-lightweight-virtualization-for-serverless-computing/) with Docker /
  [OCI images](https://github.com/opencontainers/image-spec) to unify containers and VMs.
- - Works in a [GitOps](https://www.weave.works/blog/what-is-gitops-really) fashion and can
+- Works in a [GitOps](https://www.weave.works/blog/what-is-gitops-really) fashion and can
  manage VMs declaratively and automatically like Kubernetes and Terraform.
-
 
 Ignite is fast and secure because of Firecracker. This is an
 [open source KVM implementation](https://firecracker-microvm.github.io/) from AWS that is
@@ -20,7 +19,7 @@ keeping users isolated (multitenancy). Firecracker has proven to be able to run
 
 ## What is Ignite?
 
-**Read the announcement blog post here:** https://www.weave.works/blog/fire-up-your-vms-with-weave-ignite
+**Read the announcement blog post here:** <https://www.weave.works/blog/fire-up-your-vms-with-weave-ignite>
 
 Ignite makes Firecracker easy to use by adopting its developer experience from _containers_.
 With Ignite, you pick an OCI-compliant image (Docker image) that you want to run as a VM, and then just
@@ -58,9 +57,9 @@ like `systemd` allows to run system-level applications like the kubelet, which n
 
 Example use-cases:
 
- - Set up many secure VMs lightning fast. It's great for testing, CI and ephemeral workloads
- - Launch and manage entire “app ready” stacks from Git because Ignite supports GitOps!
- - Run even legacy or special apps in lightweight VMs (eg for multi-tenancy, or using weird/edge kernels)
+- Set up many secure VMs lightning fast. It's great for testing, CI and ephemeral workloads
+- Launch and manage entire “app ready” stacks from Git because Ignite supports GitOps!
+- Run even legacy or special apps in lightweight VMs (eg for multi-tenancy, or using weird/edge kernels)
 
 And - potentially - we can run a cloud of VMs ‘anywhere’ using Kubernetes for orchestration, Ignite for virtualization, GitOps for management, and supporting cloud native tools and APIs.
 
@@ -74,7 +73,7 @@ Ignite on the other hand lets you run a full-blown VM, easily and super-fast, bu
 
 Please check out the [Releases Page](https://github.com/weaveworks/ignite/releases).
 
-How to install Ignite is covered in [docs/installation.md](docs/installation.md).
+How to install Ignite is covered in [docs/installation.md](https://ignite.readthedocs.io/en/latest/installation.html).
 
 ## Getting Started
 
@@ -121,40 +120,46 @@ ignite ssh my-vm
 ignite rm my-vm
 ```
 
-For a walkthrough of how to use Ignite, go to [**docs/usage.md**](docs/usage.md).
+For a walkthrough of how to use Ignite, go to [**docs/usage.md**](https://ignite.readthedocs.io/en/latest/usage.html).
 
 ## Getting Started the GitOps way
 
-In Git you [declaratively store](docs/declarative-config.md) the desired state of a set of VMs you want to manage.
+In Git you [declaratively store](https://ignite.readthedocs.io/en/latest/declarative-config.html) the desired state of a set of VMs you want to manage.
 `ignite gitops` reconciles the state from Git, and applies the desired changes as state is updated in the repo.
 
 This can then be automated, tracked for correctness, and managed at scale - [just some of the benefits of GitOps](https://www.weave.works/technologies/gitops/).
 
 The workflow is simply this:
 
- - Run `ignite gitops [repo]`, where repo points to your Git repo
- - Create a file with the VM specification, specifying how much vCPUs, RAM, disk, etc. you’d like from the VM
- - Run `git push` and see your VM start on the host
+- Run `ignite gitops [repo]`, where repo points to your Git repo
+- Create a file with the VM specification, specifying how much vCPUs, RAM, disk, etc. you’d like from the VM
+- Run `git push` and see your VM start on the host
 
 See it in action!
 
 [![asciicast](https://asciinema.org/a/255797.svg)](https://asciinema.org/a/255797)
 
+### Awesome Ignite
+
+Want to see how awesome Ignite is?
+
+Take a look at the [awesome-ignite](https://ignite.readthedocs.io/en/latest/awesome.html) page!
+
 ### Documentation
 
 Please refer to the following documents:
 
-- [Documentation Page](docs/)
-- [Installing Ignite](docs/installation.md)
-- [Scope and Dependencies](docs/dependencies.md)
-- [Getting Started Walkthrough](docs/usage.md)
-- [Declaratively Controlling Ignite](docs/declarative-config.md)
-- [CLI Reference](docs/cli/ignite.md)
-- [API Reference](api)
+- **[Documentation Page](https://ignite.readthedocs.io/)**
+- [Installing Ignite](https://ignite.readthedocs.io/en/latest/installation.html)
+- [Scope and Dependencies](https://ignite.readthedocs.io/en/latest/dependencies.html)
+- [Getting Started Walkthrough](https://ignite.readthedocs.io/en/latest/usage.html)
+- [Declaratively Controlling Ignite](https://ignite.readthedocs.io/en/latest/declarative-config.html)
+- [CLI Reference](https://ignite.readthedocs.io/en/latest/cli/ignite/)
+- [API Reference](https://ignite.readthedocs.io/en/latest/api/)
 
 ### Frequently Asked Questions
 
-See the [FAQ.md](FAQ.md) document.
+See the [FAQ.md](https://ignite.readthedocs.io/en/latest/FAQ.html) document.
 
 ### Architecture
 
@@ -183,19 +188,19 @@ but add `systemd`, `openssh`, and similar utilities.
 
 #### Base Images
 
- - [Ubuntu 18.04 Dockerfile](images/ubuntu/Dockerfile) (`weaveworks/ignite-ubuntu`)
- - [CentOS 7 Dockerfile](images/centos/Dockerfile) (`weaveworks/ignite-centos`)
- - [Amazon Linux 2 Dockerfile](images/amazonlinux/Dockerfile) (`weaveworks/ignite-amazonlinux`)
- - [The Firecracker Team's Alpine Image](images/alpine/Dockerfile) (`weaveworks/ignite-alpine`)
+- [Ubuntu 18.04 Dockerfile](images/ubuntu/Dockerfile) (`weaveworks/ignite-ubuntu`)
+- [CentOS 7 Dockerfile](images/centos/Dockerfile) (`weaveworks/ignite-centos`)
+- [Amazon Linux 2 Dockerfile](images/amazonlinux/Dockerfile) (`weaveworks/ignite-amazonlinux`)
+- [The Firecracker Team's Alpine Image](images/alpine/Dockerfile) (`weaveworks/ignite-alpine`)
 
 #### Kernel Images
 
- - [Default Kernel Image](images/kernel/Dockerfile) (`weaveworks/ignite-kernel`)
- - [The Firecracker Team's Kernel](images/amazon-kernel/Dockerfile) (`weaveworks/ignite-amazon-kernel`)
+- [Default Kernel Image](images/kernel/Dockerfile) (`weaveworks/ignite-kernel`)
+- [The Firecracker Team's Kernel](images/amazon-kernel/Dockerfile) (`weaveworks/ignite-amazon-kernel`)
 
 #### Tutorials
 
- - [Guide: Run a HA Kubernetes cluster with Ignite and kubeadm](images/kubeadm) (`weaveworks/ignite-kubeadm`)
+- [Guide: Run a HA Kubernetes cluster with Ignite and kubeadm](images/kubeadm) (`weaveworks/ignite-kubeadm`)
 
 These prebuilt images can be given to `ignite run` directly.
 
@@ -204,10 +209,11 @@ These prebuilt images can be given to `ignite run` directly.
 Please see [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code Of Conduct](CODE_OF_CONDUCT.md).
 
 Other interesting resources include:
- - [The issue tracker](https://github.com/weaveworks/ignite/issues)
- - [The list of milestones](https://github.com/weaveworks/ignite/milestones)
- - [CHANGELOG.md](CHANGELOG.md)
- - [ROADMAP.md](ROADMAP.md)
+
+- [The issue tracker](https://github.com/weaveworks/ignite/issues)
+- [The list of milestones](https://github.com/weaveworks/ignite/milestones)
+- [CHANGELOG.md](CHANGELOG.md)
+- [ROADMAP.md](ROADMAP.md)
 
 ## Getting Help
 
@@ -216,6 +222,8 @@ If you have any questions about, feedback for or problems with `ignite`:
 - Invite yourself to the <a href="https://slack.weave.works/" target="_blank">Weave Users Slack</a>.
 - Ask a question on the [#ignite](https://weave-community.slack.com/messages/ignite/) slack channel.
 - [File an issue](https://github.com/weaveworks/ignite/issues/new).
+- Join [weaveworks-ignite@googlegroups.com](https://groups.google.com/forum/#!forum/weaveworks-ignite) for calendar invites to calls and edit access to community documents.
+- Join our [developer meetings](https://docs.google.com/document/d/1fv8_WD6qXfvlIq7Bb5raCGyBvc42dNF-l8uaoZzoUYI/edit).
 
 Your feedback is always welcome!
 

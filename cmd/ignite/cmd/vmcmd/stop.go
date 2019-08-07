@@ -7,9 +7,9 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdStop stops VMs
@@ -30,7 +30,7 @@ func NewCmdStop(out io.Writer) *cobra.Command {
 		`, constants.STOP_TIMEOUT)),
 		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			errutils.Check(func() error {
+			cmdutil.CheckErr(func() error {
 				so, err := sf.NewStopOptions(args)
 				if err != nil {
 					return err

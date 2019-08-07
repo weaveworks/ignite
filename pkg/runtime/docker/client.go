@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	cont "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/weaveworks/ignite/pkg/runtime"
@@ -71,6 +72,19 @@ func (dc *dockerClient) ExportImage(image string) (io.ReadCloser, string, error)
 
 	rc, err := dc.client.ContainerExport(context.Background(), config.ID)
 	return rc, config.ID, err
+}
+
+func (dc *dockerClient) InspectContainer(container string) (*runtime.ContainerInspectResult, error) {
+	res, _, err := dc.client.ContainerInspectWithRaw(context.Background(), container, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return &runtime.ContainerInspectResult{
+		ID:     res.ID,
+		Image:  res.Image,
+		Status: res.State.Status,
+	}, nil
 }
 
 func (dc *dockerClient) AttachContainer(container string) (err error) {
@@ -140,15 +154,40 @@ func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConf
 }
 
 func (dc *dockerClient) StopContainer(container string, timeout *time.Duration) error {
-	return dc.client.ContainerStop(context.Background(), container, timeout)
+	if err := dc.client.ContainerStop(context.Background(), container, timeout); err != nil {
+		return err
+	}
+
+	// Wait for the container to be stopped
+	return dc.waitForContainer(container, cont.WaitConditionNotRunning, nil)
 }
 
 func (dc *dockerClient) KillContainer(container, signal string) error {
-	return dc.client.ContainerKill(context.Background(), container, signal)
+	if err := dc.client.ContainerKill(context.Background(), container, signal); err != nil {
+		return err
+	}
+
+	// Wait for the container to be killed
+	return dc.waitForContainer(container, cont.WaitConditionNotRunning, nil)
 }
 
 func (dc *dockerClient) RemoveContainer(container string) error {
-	return dc.client.ContainerRemove(context.Background(), container, types.ContainerRemoveOptions{})
+	// Container waiting can fail if the container gets removed before
+	// we reach the waiting fence. Start the waiter in a goroutine before
+	// performing the removal to ensure proper removal detection.
+	errC := make(chan error)
+	readyC := make(chan bool)
+	go func() {
+		errC <- dc.waitForContainer(container, cont.WaitConditionRemoved, &readyC)
+	}()
+
+	<-readyC // The ready channel is used to wait until removal detection has started
+	if err := dc.client.ContainerRemove(context.Background(), container, types.ContainerRemoveOptions{}); err != nil {
+		return err
+	}
+
+	// Wait for the container to be removed
+	return <-errC
 }
 
 func (dc *dockerClient) ContainerLogs(container string) (io.ReadCloser, error) {
@@ -165,6 +204,28 @@ func (dc *dockerClient) ContainerNetNS(container string) (string, error) {
 	}
 
 	return getNetworkNamespace(&r)
+}
+
+func (dc *dockerClient) waitForContainer(container string, condition cont.WaitCondition, readyC *chan bool) error {
+	resultC, errC := dc.client.ContainerWait(context.Background(), container, condition)
+
+	// The ready channel can be used to wait until
+	// the container wait request has been sent to
+	// Docker to ensure proper ordering
+	if readyC != nil {
+		*readyC <- true
+	}
+
+	select {
+	case result := <-resultC:
+		if result.Error != nil {
+			return fmt.Errorf("failed to wait for container %q: %s", container, result.Error.Message)
+		}
+	case err := <-errC:
+		return err
+	}
+
+	return nil
 }
 
 func getNetworkNamespace(c *types.ContainerJSON) (string, error) {

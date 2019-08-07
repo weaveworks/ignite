@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os/exec"
 
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/providers"
@@ -34,7 +34,7 @@ func (ds *DockerSource) Parse(ociRef meta.OCIImageRef) (*api.OCIImageSource, err
 	source := ociRef.String()
 	res, err := providers.Runtime.InspectImage(source)
 	if err != nil {
-		log.Printf("Docker image %q not found locally, pulling...", source)
+		log.Infof("Docker image %q not found locally, pulling...", source)
 		rc, err := providers.Runtime.PullImage(source)
 		if err != nil {
 			return nil, err

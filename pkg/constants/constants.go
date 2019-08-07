@@ -37,8 +37,8 @@ const (
 	// In-container file name for the firecracker metrics FIFO
 	METRICS_FIFO = "firecracker_metrics.fifo"
 
-	// Log level for the firecracker VM
-	VM_LOG_LEVEL = "Error"
+	// Socket with a web server (with metrics for now) for the daemon
+	DAEMON_SOCKET = "daemon.sock"
 
 	// How many characters Ignite UIDs should have
 	IGNITE_UID_LENGTH = 16

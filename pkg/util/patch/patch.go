@@ -2,10 +2,10 @@ package patch
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 )
@@ -52,4 +52,18 @@ func Apply(original, patch []byte, gvk schema.GroupVersionKind) ([]byte, error) 
 	}
 
 	return strategicpatch.StrategicMergePatch(original, patch, emptyobj)
+}
+
+func ApplyOnFile(filePath string, patch []byte, gvk schema.GroupVersionKind) error {
+	oldContent, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	newContent, err := Apply(oldContent, patch, gvk)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(filePath, newContent, 0644)
 }

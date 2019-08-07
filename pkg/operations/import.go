@@ -63,7 +63,7 @@ func importImage(c *client.Client, ociRef meta.OCIImageRef) (*api.Image, error) 
 		return nil, err
 	}
 
-	log.Println("Starting image import...")
+	log.Infoln("Starting image import...")
 
 	// Truncate a file for the filesystem, format it with ext4, and copy in the files from the source
 	if err := dmlegacy.CreateImageFilesystem(image, dockerSource); err != nil {
@@ -74,7 +74,7 @@ func importImage(c *client.Client, ociRef meta.OCIImageRef) (*api.Image, error) 
 		return nil, err
 	}
 
-	log.Printf("Imported OCI image %q (%s) to base image with UID %q", ociRef, image.Status.OCISource.Size, image.GetUID())
+	log.Infof("Imported OCI image %q (%s) to base image with UID %q", ociRef, image.Status.OCISource.Size, image.GetUID())
 	return image, nil
 }
 
@@ -197,7 +197,7 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*api.Kernel, error
 		return nil, err
 	}
 
-	log.Printf("Imported OCI image %q (%s) to kernel image with UID %q", ociRef, kernel.Status.OCISource.Size, kernel.GetUID())
+	log.Infof("Imported OCI image %q (%s) to kernel image with UID %q", ociRef, kernel.Status.OCISource.Size, kernel.GetUID())
 	return kernel, nil
 }
 

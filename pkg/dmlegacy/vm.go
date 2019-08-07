@@ -14,6 +14,7 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/dmlegacy/cleanup"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -86,7 +87,7 @@ func copyToOverlay(vm *api.VM) error {
 	if err := ActivateSnapshot(vm); err != nil {
 		return err
 	}
-	defer DeactivateSnapshot(vm)
+	defer cleanup.DeactivateSnapshot(vm)
 
 	mp, err := util.Mount(vm.SnapshotDev())
 	if err != nil {
@@ -138,6 +139,11 @@ func copyToOverlay(vm *api.VM) error {
 	}
 
 	if err := writeEtcHosts(vm, mp.Path, vm.GetUID().String(), ip); err != nil {
+		return err
+	}
+
+	// Set overlay root permissions
+	if err := os.Chmod(mp.Path, constants.DATA_DIR_PERM); err != nil {
 		return err
 	}
 

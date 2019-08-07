@@ -5,8 +5,8 @@ import (
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/errutils"
 )
 
 // NewCmdVM handles VM-related functionality via its subcommands
@@ -19,7 +19,7 @@ func NewCmdVM(out io.Writer) *cobra.Command {
 		`),
 		Aliases: []string{"vms"},
 		Run: func(cmd *cobra.Command, args []string) {
-			errutils.Check(func() error {
+			cmdutil.CheckErr(func() error {
 				po, err := (&run.PsFlags{All: true}).NewPsOptions()
 				if err != nil {
 					return err

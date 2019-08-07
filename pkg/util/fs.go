@@ -2,16 +2,16 @@ package util
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 
+	"github.com/otiai10/copy"
 	"github.com/weaveworks/ignite/pkg/constants"
 )
 
 // Creates the /var/lib/firecracker/{vm,image,kernel} directories
 func CreateDirectories() error {
-	for _, dir := range []string{constants.VM_DIR, constants.IMAGE_DIR, constants.KERNEL_DIR} {
+	for _, dir := range []string{constants.VM_DIR, constants.IMAGE_DIR, constants.KERNEL_DIR, constants.MANIFEST_DIR} {
 		if err := os.MkdirAll(dir, constants.DATA_DIR_PERM); err != nil {
 			return fmt.Errorf("failed to create directory %q: %v", dir, err)
 		}
@@ -47,30 +47,9 @@ func DirExists(dirname string) bool {
 	return info.IsDir()
 }
 
+// CopyFile copies both files and directories
 func CopyFile(src string, dst string) error {
-	sourceFileStat, err := os.Stat(src)
-	if err != nil {
-		return err
-	}
-
-	if !sourceFileStat.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file", src)
-	}
-
-	source, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer source.Close()
-
-	destination, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer destination.Close()
-
-	_, err = io.Copy(destination, source)
-	return err
+	return copy.Copy(src, dst)
 }
 
 type MountPoint struct {
