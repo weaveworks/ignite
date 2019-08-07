@@ -168,6 +168,11 @@ github.com/spf13/cobra
 github.com/spf13/cobra/doc
 # github.com/spf13/pflag v1.0.3
 github.com/spf13/pflag
+# github.com/vishvananda/netlink v1.0.0
+github.com/vishvananda/netlink
+github.com/vishvananda/netlink/nl
+# github.com/vishvananda/netns v0.0.0-20190625233234-7109fa855b0f
+github.com/vishvananda/netns
 # github.com/weaveworks/flux v0.0.0-20190704153721-8292179855e1 => ./third_party/forked/github.com/weaveworks/flux
 github.com/weaveworks/flux/git
 github.com/weaveworks/flux/errors
@@ -181,7 +186,7 @@ golang.org/x/crypto/internal/chacha20
 golang.org/x/crypto/poly1305
 golang.org/x/crypto/ed25519/internal/edwards25519
 golang.org/x/crypto/internal/subtle
-# golang.org/x/net v0.0.0-20190613194153-d28f0bde5980
+# golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 golang.org/x/net/ipv4
 golang.org/x/net/ipv6
 golang.org/x/net/context
