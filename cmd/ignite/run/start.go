@@ -22,7 +22,7 @@ func (sf *StartFlags) NewStartOptions(vmMatch string) (*startOptions, error) {
 		return nil, err
 	}
 
-	// Disable running check as it takes a while for the in-container Ignite to update the state
+	// Disable running check as it takes a while for ignite-spawn to update the state
 	ao.checkRunning = false
 
 	return &startOptions{sf, ao}, nil

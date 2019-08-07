@@ -51,8 +51,7 @@ func (cf *CreateFlags) constructVMFromCLI(args []string) error {
 
 	// Parse the --copy-files flag
 	var err error
-	cf.VM.Spec.CopyFiles, err = parseFileMappings(cf.CopyFiles)
-	if err != nil {
+	if cf.VM.Spec.CopyFiles, err = parseFileMappings(cf.CopyFiles); err != nil {
 		return err
 	}
 
@@ -130,9 +129,9 @@ func Create(co *createOptions) error {
 	return metadata.Success(co.VM)
 }
 
-// TODO: Move this to meta, or an helper in api
+// TODO: Move this to meta, or a helper in API
 func parseFileMappings(fileMappings []string) ([]api.FileMapping, error) {
-	result := []api.FileMapping{}
+	result := make([]api.FileMapping, 0, len(fileMappings))
 
 	for _, fileMapping := range fileMappings {
 		files := strings.Split(fileMapping, ":")
