@@ -16,7 +16,7 @@ import (
 
 // GenericCheckErr is used by the commands to check if the action failed
 // and respond with a fatal error provided by the logger (calls os.Exit)
-// Ignite has it's own, more detailed implementation of this in cmdutil
+// Ignite has its own, more detailed implementation of this in cmdutil
 func GenericCheckErr(err error) {
 	switch err.(type) {
 	case nil:

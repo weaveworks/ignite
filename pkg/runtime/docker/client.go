@@ -120,8 +120,8 @@ func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConf
 	devices := make([]container.DeviceMapping, 0, len(config.Devices))
 	for _, device := range config.Devices {
 		devices = append(devices, container.DeviceMapping{
-			PathOnHost:        device,
-			PathInContainer:   device,
+			PathOnHost:        device.HostPath,
+			PathInContainer:   device.ContainerPath,
 			CgroupPermissions: "rwm",
 		})
 	}

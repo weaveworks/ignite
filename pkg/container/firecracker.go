@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/logs"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 // ExecuteFirecracker executes the firecracker process using the Go SDK
@@ -59,9 +61,9 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 		KernelArgs:      cmdLine,
 		Drives: []models.Drive{{
 			DriveID:      firecracker.String("1"),
-			PathOnHost:   &drivePath,
-			IsRootDevice: firecracker.Bool(true),
 			IsReadOnly:   firecracker.Bool(false),
+			IsRootDevice: firecracker.Bool(true),
+			PathOnHost:   &drivePath,
 		}},
 		NetworkInterfaces: networkInterfaces,
 		MachineCfg: models.MachineConfiguration{
@@ -81,6 +83,22 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 		// TODO: We could use /dev/null, but firecracker-go-sdk issues Mkfifo which collides with the existing device
 		LogFifo:     logSocketPath,
 		MetricsFifo: metricsSocketPath,
+	}
+
+	// Add the volumes to the VM
+	for i, volume := range vm.Spec.Storage.Volumes {
+		volumePath := path.Join(constants.IGNITE_SPAWN_VOLUME_DIR, volume.Name)
+		if !util.FileExists(volumePath) {
+			log.Warnf("Skipping nonexistent volume: %q", volume.Name)
+			continue // Skip all nonexistent volumes
+		}
+
+		cfg.Drives = append(cfg.Drives, models.Drive{
+			DriveID:      firecracker.String(strconv.Itoa(i + 2)),
+			IsReadOnly:   firecracker.Bool(false), // TODO: Support read-only volumes
+			IsRootDevice: firecracker.Bool(false),
+			PathOnHost:   &volumePath,
+		})
 	}
 
 	// Remove these FIFOs for now
