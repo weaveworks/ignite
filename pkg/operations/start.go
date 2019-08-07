@@ -69,14 +69,26 @@ func StartVM(vm *api.VM, debug bool) error {
 			"SYS_ADMIN", // Needed to run "dmsetup remove" inside the container
 			"NET_ADMIN", // Needed for removing the IP from the container's interface
 		},
-		Devices: []string{
-			"/dev/mapper/control", // This enables containerized Ignite to remove its own dm snapshot
-			"/dev/net/tun",        // Needed for creating TAP adapters
-			"/dev/kvm",            // Pass through virtualization support
-			vm.SnapshotDev(),      // The block device to boot from
+		Devices: []*runtime.Bind{
+			runtime.BindBoth("/dev/mapper/control"), // This enables containerized Ignite to remove its own dm snapshot
+			runtime.BindBoth("/dev/net/tun"),        // Needed for creating TAP adapters
+			runtime.BindBoth("/dev/kvm"),            // Pass through virtualization support
+			runtime.BindBoth(vm.SnapshotDev()),      // The block device to boot from
 		},
 		StopTimeout:  constants.STOP_TIMEOUT + constants.IGNITE_TIMEOUT,
 		PortBindings: vm.Spec.Network.Ports, // Add the port mappings to Docker
+	}
+
+	// Add the volumes to the container devices
+	for _, volume := range vm.Spec.Storage.Volumes {
+		if volume.BlockDevice == nil {
+			continue // Skip all non block device volumes for now
+		}
+
+		config.Devices = append(config.Devices, &runtime.Bind{
+			HostPath:      volume.BlockDevice.Path,
+			ContainerPath: path.Join(constants.IGNITE_SPAWN_VOLUME_DIR, volume.Name),
+		})
 	}
 
 	// If the VM is using CNI networking, disable Docker's own implementation
@@ -96,8 +108,6 @@ func StartVM(vm *api.VM, debug bool) error {
 	}
 
 	if vm.Spec.Network.Mode == api.NetworkModeCNI {
-		// TODO: Right now IP addresses aren't reclaimed when the VM is removed.
-		// NetworkPlugin.RemoveContainerNetwork needs to be called when removing the VM.
 		if err := providers.NetworkPlugin.SetupContainerNetwork(containerID); err != nil {
 			return err
 		}

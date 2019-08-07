@@ -77,4 +77,5 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	cmdutil.OCIImageRefVarP(fs, &cf.VM.Spec.Kernel.OCIClaim.Ref, "kernel-image", "k", "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
 	cmdutil.NetworkModeVar(fs, &cf.VM.Spec.Network.Mode)
 	cmdutil.SSHVar(fs, &cf.SSH)
+	cmdutil.VolumeVarP(fs, &cf.VM.Spec.Storage, "volumes", "v", "Expose block devices from the host inside the VM")
 }

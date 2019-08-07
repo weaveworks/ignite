@@ -6,6 +6,7 @@ import (
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/util"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
@@ -15,6 +16,7 @@ func ValidateVM(obj *api.VM) (allErrs field.ErrorList) {
 	allErrs = append(allErrs, ValidateOCIImageClaim(&obj.Spec.Image.OCIClaim, field.NewPath(".spec.image.ociClaim"))...)
 	allErrs = append(allErrs, ValidateOCIImageClaim(&obj.Spec.Kernel.OCIClaim, field.NewPath(".spec.kernel.ociClaim"))...)
 	allErrs = append(allErrs, ValidateFileMappings(&obj.Spec.CopyFiles, field.NewPath(".spec.copyFiles"))...)
+	allErrs = append(allErrs, ValidateVMStorage(&obj.Spec.Storage, field.NewPath(".spec.storage"))...)
 	allErrs = append(allErrs, ValidateVMState(obj.Status.State, field.NewPath(".status.state"))...)
 	// TODO: Add vCPU, memory, disk max and min sizes
 	return
@@ -46,10 +48,19 @@ func ValidateFileMappings(mappings *[]api.FileMapping, fldPath *field.Path) (all
 	return
 }
 
+// ValidateNonemptyName validated that the given name is nonempty
+func ValidateNonemptyName(name string, fldPath *field.Path) (allErrs field.ErrorList) {
+	if util.IsEmptyString(name) {
+		allErrs = append(allErrs, field.Invalid(fldPath, name, "name must be non-empty"))
+	}
+
+	return
+}
+
 // ValidateAbsolutePath validates if a path is absolute
 func ValidateAbsolutePath(pathStr string, fldPath *field.Path) (allErrs field.ErrorList) {
 	if !path.IsAbs(pathStr) {
-		allErrs = append(allErrs, field.Invalid(fldPath, pathStr, fmt.Sprintf("path must be absolute %q", pathStr)))
+		allErrs = append(allErrs, field.Invalid(fldPath, pathStr, "path must be absolute"))
 	}
 	return
 }
