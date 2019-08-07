@@ -5,7 +5,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -28,6 +30,9 @@ func NewDefaultRawStorage(dir string) RawStorage {
 		dir: dir,
 	}
 }
+
+// TODO: This is a test: Make DefaultRawStorage MappedRawStorage compliant
+var _ MappedRawStorage = &DefaultRawStorage{}
 
 type DefaultRawStorage struct {
 	dir string
@@ -109,3 +114,26 @@ func (r *DefaultRawStorage) Format(key Key) Format {
 func (r *DefaultRawStorage) Dir() string {
 	return r.dir
 }
+
+func (r *DefaultRawStorage) AddMapping(key Key, path string) {} // Stub
+
+func (r *DefaultRawStorage) GetMapping(p string) (key Key, err error) {
+	splitDir := strings.Split(filepath.Clean(r.dir), string(os.PathSeparator))
+	splitPath := strings.Split(filepath.Clean(p), string(os.PathSeparator))
+
+	if len(splitPath) < len(splitDir)+2 {
+		err = fmt.Errorf("path not long enough: %s", p)
+		return
+	}
+
+	for i := 0; i < len(splitDir); i++ {
+		if splitDir[i] != splitPath[i] {
+			err = fmt.Errorf("path has wrong base: %s", p)
+			return
+		}
+	}
+
+	return ParseKey(path.Join(splitPath[len(splitDir)], splitPath[len(splitDir)+1]))
+}
+
+func (r *DefaultRawStorage) RemoveMapping(key Key) {} // Stub

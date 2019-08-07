@@ -1,8 +1,12 @@
 package storage
 
 import (
+	"bytes"
 	"fmt"
+	"os"
 	"path"
+	"path/filepath"
+	"strings"
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
@@ -36,6 +40,19 @@ func NewKey(kind meta.Kind, uid meta.UID) Key {
 	}
 }
 
+// ParseKey parses the given string and returns a Key
+func ParseKey(input string) (k Key, err error) {
+	splitInput := strings.Split(filepath.Clean(input), string(os.PathSeparator))
+	if len(splitInput) != 2 {
+		err = fmt.Errorf("invalid input for key parsing: %s", input)
+	} else {
+		k.Kind = parseKind(splitInput[0])
+		k.UID = meta.UID(splitInput[1])
+	}
+
+	return
+}
+
 // String returns the virtual path for the Kind
 func (k KindKey) String() string {
 	return k.Lower()
@@ -49,4 +66,16 @@ func (k Key) String() string {
 // ToKindKey creates a KindKey out of a Key
 func (k Key) ToKindKey() KindKey {
 	return k.KindKey
+}
+
+// TODO: Move to meta
+func parseKind(input string) meta.Kind {
+	b := bytes.ToUpper([]byte(input))
+
+	// Leave TLAs as uppercase
+	if len(b) > 3 {
+		b = append(b[:1], bytes.ToLower(b[1:])...)
+	}
+
+	return meta.Kind(b)
 }

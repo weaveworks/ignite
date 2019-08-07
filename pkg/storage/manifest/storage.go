@@ -14,10 +14,12 @@ func NewManifestStorage(dataDir string) (*ManifestStorage, error) {
 		return nil, err
 	}
 
-	ss := sync.NewSyncStorage(
-		storage.NewGenericStorage(
-			storage.NewDefaultRawStorage(constants.DATA_DIR), scheme.Serializer),
-		ws)
+	ws2, err := watch.NewGenericWatchStorage(storage.NewGenericStorage(storage.NewDefaultRawStorage(constants.DATA_DIR), scheme.Serializer))
+	if err != nil {
+		return nil, err
+	}
+
+	ss := sync.NewSyncStorage(ws2, ws)
 
 	return &ManifestStorage{
 		Storage: ss,
