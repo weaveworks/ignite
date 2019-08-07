@@ -46,14 +46,15 @@ func ReconcileManifests(s *manifest.ManifestStorage) {
 			// Get the real API object
 			vm, err = c.VMs().Get(upd.APIType.GetUID())
 			if err != nil {
-				log.Errorf("Getting VM %q returned an error: %v", upd.APIType.GetUID(), err)
+				log.Errorf("Getting %s %q returned an error: %v", upd.APIType.GetKind(), upd.APIType.GetUID(), err)
 				continue
 			}
 
 			// If the object was existent in the storage; validate it
 			// Validate the VM object
+			// TODO: Validate name uniqueness
 			if err := validation.ValidateVM(vm).ToAggregate(); err != nil {
-				log.Warn("Skipping %s of %s with UID %s, VM not valid %v.", upd.Event, upd.APIType.GetKind(), upd.APIType.GetUID(), err)
+				log.Warnf("Skipping %s of %s %q, not valid: %v.", upd.Event, upd.APIType.GetKind(), upd.APIType.GetUID(), err)
 				continue
 			}
 		}
