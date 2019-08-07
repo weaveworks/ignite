@@ -9,6 +9,7 @@ import (
 	"text/tabwriter"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 const (
@@ -48,7 +49,7 @@ func populateFstab(vm *api.VM, mountPoint string) error {
 
 	writer := new(tabwriter.Writer)
 	writer.Init(fstab, 0, 8, 1, '\t', 0)
-	entries := make(map[string]*fstabEntry)
+	entries := make(map[string]*fstabEntry, util.MaxInt(len(vm.Spec.Storage.Volumes), len(vm.Spec.Storage.VolumeMounts)))
 
 	// Discover all volumes
 	for _, volume := range vm.Spec.Storage.Volumes {
