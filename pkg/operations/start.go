@@ -132,6 +132,8 @@ func StartVM(vm *api.VM, debug bool) error {
 		return err
 	}
 
+	// This is used to fetch the IP address the runtime gives to the VM container
+	// TODO: This needs to be handled differently for CNI, the IP address will be blank
 	result, err := providers.Runtime.InspectContainer(containerID)
 	if err != nil {
 		return fmt.Errorf("failed to inspect container for VM %q: %v", vm.GetUID(), err)
