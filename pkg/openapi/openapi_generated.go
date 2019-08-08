@@ -47,6 +47,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.PoolDevice":        schema_pkg_apis_ignite_v1alpha2_PoolDevice(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.PoolSpec":          schema_pkg_apis_ignite_v1alpha2_PoolSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.PoolStatus":        schema_pkg_apis_ignite_v1alpha2_PoolStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Runtime":           schema_pkg_apis_ignite_v1alpha2_Runtime(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.SSH":               schema_pkg_apis_ignite_v1alpha2_SSH(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VM":                schema_pkg_apis_ignite_v1alpha2_VM(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMImageSpec":       schema_pkg_apis_ignite_v1alpha2_VMImageSpec(ref),
@@ -1145,6 +1146,26 @@ func schema_pkg_apis_ignite_v1alpha2_PoolStatus(ref common.ReferenceCallback) co
 	}
 }
 
+func schema_pkg_apis_ignite_v1alpha2_Runtime(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "Runtime specifies the VM's runtime information",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"id": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"id"},
+			},
+		},
+	}
+}
+
 func schema_pkg_apis_ignite_v1alpha2_SSH(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -1356,6 +1377,11 @@ func schema_pkg_apis_ignite_v1alpha2_VMStatus(ref common.ReferenceCallback) comm
 							Format: "",
 						},
 					},
+					"runtime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Runtime"),
+						},
+					},
 					"ipAddresses": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
@@ -1384,7 +1410,7 @@ func schema_pkg_apis_ignite_v1alpha2_VMStatus(ref common.ReferenceCallback) comm
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageSource"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageSource", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Runtime"},
 	}
 }
 

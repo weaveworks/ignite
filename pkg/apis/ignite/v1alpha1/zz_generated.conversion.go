@@ -762,6 +762,7 @@ func autoConvert_v1alpha1_VMStatus_To_ignite_VMStatus(in *VMStatus, out *ignite.
 
 func autoConvert_ignite_VMStatus_To_v1alpha1_VMStatus(in *ignite.VMStatus, out *VMStatus, s conversion.Scope) error {
 	// WARNING: in.Running requires manual conversion: does not exist in peer-type
+	// WARNING: in.Runtime requires manual conversion: does not exist in peer-type
 	out.IPAddresses = *(*metav1alpha1.IPAddresses)(unsafe.Pointer(&in.IPAddresses))
 	if err := Convert_ignite_OCIImageSource_To_v1alpha1_OCIImageSource(&in.Image, &out.Image, s); err != nil {
 		return err

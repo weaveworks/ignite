@@ -257,9 +257,15 @@ const (
 	// Whenever updating this list, also update GetNetworkModes in helpers.go
 )
 
+// Runtime specifies the VM's runtime information
+type Runtime struct {
+	ID string `json:"id"`
+}
+
 // VMStatus defines the status of a VM
 type VMStatus struct {
 	Running     bool             `json:"running"`
+	Runtime     *Runtime         `json:"runtime,omitempty"`
 	IPAddresses meta.IPAddresses `json:"ipAddresses,omitempty"`
 	Image       OCIImageSource   `json:"image"`
 	Kernel      OCIImageSource   `json:"kernel"`
