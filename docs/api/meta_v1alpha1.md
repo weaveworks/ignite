@@ -64,6 +64,10 @@
       - [func ParsePortMappings(input \[\]string) (PortMappings,
         error)](#ParsePortMappings)
       - [func (p PortMappings) String() string](#PortMappings.String)
+  - [type Protocol](#Protocol)
+      - [func (p Protocol) String() string](#Protocol.String)
+      - [func (p \*Protocol) UnmarshalJSON(b \[\]byte) (err
+        error)](#Protocol.UnmarshalJSON)
   - [type Size](#Size)
       - [func NewSizeFromBytes(bytes uint64) Size](#NewSizeFromBytes)
       - [func NewSizeFromSectors(sectors uint64)
@@ -192,7 +196,7 @@ func (d *DMID) Pool() bool
 func (d DMID) String() string
 ```
 
-## <a name="IPAddresses">type</a> [IPAddresses](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=1541:1566#L78)
+## <a name="IPAddresses">type</a> [IPAddresses](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=3422:3447#L155)
 
 ``` go
 type IPAddresses []net.IP
@@ -200,7 +204,7 @@ type IPAddresses []net.IP
 
 IPAddresses represents a list of VM IP addresses
 
-### <a name="IPAddresses.String">func</a> (IPAddresses) [String](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=1604:1640#L82)
+### <a name="IPAddresses.String">func</a> (IPAddresses) [String](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=3485:3521#L159)
 
 ``` go
 func (i IPAddresses) String() string
@@ -412,24 +416,26 @@ func (o *ObjectMeta) SetUID(uid UID)
 
 SetUID sets the UID of the Object
 
-## <a name="PortMapping">type</a> [PortMapping](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=132:227#L11)
+## <a name="PortMapping">type</a> [PortMapping](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=190:398#L14)
 
 ``` go
 type PortMapping struct {
-    HostPort uint64 `json:"hostPort"`
-    VMPort   uint64 `json:"vmPort"`
+    BindAddress net.IP   `json:"bindAddress,omitempty"`
+    HostPort    uint64   `json:"hostPort"`
+    VMPort      uint64   `json:"vmPort"`
+    Protocol    Protocol `json:"protocol,omitempty"`
 }
 ```
 
 PortMapping defines a port mapping between the VM and the host
 
-### <a name="PortMapping.String">func</a> (PortMapping) [String](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=265:301#L18)
+### <a name="PortMapping.String">func</a> (PortMapping) [String](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=436:472#L23)
 
 ``` go
 func (p PortMapping) String() string
 ```
 
-## <a name="PortMappings">type</a> [PortMappings](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=418:449#L23)
+## <a name="PortMappings">type</a> [PortMappings](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=826:857#L42)
 
 ``` go
 type PortMappings []PortMapping
@@ -437,16 +443,43 @@ type PortMappings []PortMapping
 
 PortMappings represents a list of port mappings
 
-### <a name="ParsePortMappings">func</a> [ParsePortMappings](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=488:548#L27)
+### <a name="ParsePortMappings">func</a> [ParsePortMappings](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=896:956#L46)
 
 ``` go
 func ParsePortMappings(input []string) (PortMappings, error)
 ```
 
-### <a name="PortMappings.String">func</a> (PortMappings) [String](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=1249:1286#L61)
+### <a name="PortMappings.String">func</a> (PortMappings) [String](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=2475:2512#L104)
 
 ``` go
 func (p PortMappings) String() string
+```
+
+## <a name="Protocol">type</a> [Protocol](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=2761:2781#L121)
+
+``` go
+type Protocol string
+```
+
+Protocol specifies a network port protocol
+
+``` go
+const (
+    ProtocolTCP Protocol = "tcp"
+    ProtocolUDP Protocol = "udp"
+)
+```
+
+### <a name="Protocol.String">func</a> (Protocol) [String](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=3135:3168#L140)
+
+``` go
+func (p Protocol) String() string
+```
+
+### <a name="Protocol.UnmarshalJSON">func</a> (\*Protocol) [UnmarshalJSON](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/net.go?s=3192:3246#L144)
+
+``` go
+func (p *Protocol) UnmarshalJSON(b []byte) (err error)
 ```
 
 ## <a name="Size">type</a> [Size](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/size.go?s=132:171#L11)

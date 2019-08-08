@@ -364,7 +364,9 @@ func (in *VMNetworkSpec) DeepCopyInto(out *VMNetworkSpec) {
 	if in.Ports != nil {
 		in, out := &in.Ports, &out.Ports
 		*out = make(metav1alpha1.PortMappings, len(*in))
-		copy(*out, *in)
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 	return
 }

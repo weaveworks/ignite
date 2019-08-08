@@ -1620,6 +1620,12 @@ func schema_pkg_apis_meta_v1alpha1_PortMapping(ref common.ReferenceCallback) com
 				Description: "PortMapping defines a port mapping between the VM and the host",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
+					"bindAddress": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "byte",
+						},
+					},
 					"hostPort": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"integer"},
@@ -1630,6 +1636,12 @@ func schema_pkg_apis_meta_v1alpha1_PortMapping(ref common.ReferenceCallback) com
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"integer"},
 							Format: "int64",
+						},
+					},
+					"protocol": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 				},
