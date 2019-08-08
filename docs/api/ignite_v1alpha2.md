@@ -1,4 +1,4 @@
-t# v1alpha2
+# v1alpha2
 
 `import "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2"`
 
