@@ -1350,9 +1350,9 @@ func schema_pkg_apis_ignite_v1alpha2_VMStatus(ref common.ReferenceCallback) comm
 				Description: "VMStatus defines the status of a VM",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"state": {
+					"running": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
+							Type:   []string{"boolean"},
 							Format: "",
 						},
 					},
@@ -1380,7 +1380,7 @@ func schema_pkg_apis_ignite_v1alpha2_VMStatus(ref common.ReferenceCallback) comm
 						},
 					},
 				},
-				Required: []string{"state", "image", "kernel"},
+				Required: []string{"running", "image", "kernel"},
 			},
 		},
 		Dependencies: []string{

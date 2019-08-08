@@ -90,7 +90,7 @@ func serveMetrics(metricsSocket string) {
 
 func patchRunning(vm *api.VM, ipAddrs []net.IP) error {
 	return patchVM(vm, func(patchVM *api.VM) error {
-		patchVM.Status.State = api.VMStateRunning
+		patchVM.Status.Running = true
 		patchVM.Status.IPAddresses = ipAddrs
 		return nil
 	})
@@ -98,7 +98,7 @@ func patchRunning(vm *api.VM, ipAddrs []net.IP) error {
 
 func patchStopped(vm *api.VM) error {
 	return patchVM(vm, func(patchVM *api.VM) error {
-		patchVM.Status.State = api.VMStateStopped
+		patchVM.Status.Running = false
 		patchVM.Status.IPAddresses = nil
 		return nil
 	})

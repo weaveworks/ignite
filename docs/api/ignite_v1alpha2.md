@@ -1,4 +1,4 @@
-# v1alpha2
+t# v1alpha2
 
 `import "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2"`
 
@@ -23,7 +23,6 @@
   - [func SetDefaults\_VMNetworkSpec(obj
     \*VMNetworkSpec)](#SetDefaults_VMNetworkSpec)
   - [func SetDefaults\_VMSpec(obj \*VMSpec)](#SetDefaults_VMSpec)
-  - [func SetDefaults\_VMStatus(obj \*VMStatus)](#SetDefaults_VMStatus)
   - [type BlockDeviceVolume](#BlockDeviceVolume)
   - [type FileMapping](#FileMapping)
   - [type Image](#Image)
@@ -52,7 +51,6 @@
   - [type VMKernelSpec](#VMKernelSpec)
   - [type VMNetworkSpec](#VMNetworkSpec)
   - [type VMSpec](#VMSpec)
-  - [type VMState](#VMState)
   - [type VMStatus](#VMStatus)
   - [type VMStorageSpec](#VMStorageSpec)
   - [type Volume](#Volume)
@@ -134,12 +132,6 @@ func SetDefaults_VMNetworkSpec(obj *VMNetworkSpec)
 
 ``` go
 func SetDefaults_VMSpec(obj *VMSpec)
-```
-
-## <a name="SetDefaults_VMStatus">func</a> [SetDefaults\_VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/defaults.go?s=1641:1681#L70)
-
-``` go
-func SetDefaults_VMStatus(obj *VMStatus)
 ```
 
 ## <a name="BlockDeviceVolume">type</a> [BlockDeviceVolume](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=8095:8155#L218)
@@ -493,27 +485,11 @@ type VMSpec struct {
 
 VMSpec describes the configuration of a VM
 
-## <a name="VMState">type</a> [VMState](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=9336:9355#L261)
-
-``` go
-type VMState string
-```
-
-VMState defines different states a VM can be in
-
-``` go
-const (
-    VMStateCreated VMState = "Created"
-    VMStateRunning VMState = "Running"
-    VMStateStopped VMState = "Stopped"
-)
-```
-
-## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=9515:9736#L270)
+## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=9324:9547#L261)
 
 ``` go
 type VMStatus struct {
-    State       VMState          `json:"state"`
+    Running     bool             `json:"running"`
     IPAddresses meta.IPAddresses `json:"ipAddresses,omitempty"`
     Image       OCIImageSource   `json:"image"`
     Kernel      OCIImageSource   `json:"kernel"`

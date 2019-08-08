@@ -804,7 +804,7 @@ func Convert_ignite_VMSpec_To_v1alpha2_VMSpec(in *ignite.VMSpec, out *VMSpec, s 
 }
 
 func autoConvert_v1alpha2_VMStatus_To_ignite_VMStatus(in *VMStatus, out *ignite.VMStatus, s conversion.Scope) error {
-	out.State = ignite.VMState(in.State)
+	out.Running = in.Running
 	out.IPAddresses = *(*v1alpha1.IPAddresses)(unsafe.Pointer(&in.IPAddresses))
 	if err := Convert_v1alpha2_OCIImageSource_To_ignite_OCIImageSource(&in.Image, &out.Image, s); err != nil {
 		return err
@@ -821,7 +821,7 @@ func Convert_v1alpha2_VMStatus_To_ignite_VMStatus(in *VMStatus, out *ignite.VMSt
 }
 
 func autoConvert_ignite_VMStatus_To_v1alpha2_VMStatus(in *ignite.VMStatus, out *VMStatus, s conversion.Scope) error {
-	out.State = VMState(in.State)
+	out.Running = in.Running
 	out.IPAddresses = *(*v1alpha1.IPAddresses)(unsafe.Pointer(&in.IPAddresses))
 	if err := Convert_ignite_OCIImageSource_To_v1alpha2_OCIImageSource(&in.Image, &out.Image, s); err != nil {
 		return err

@@ -26,10 +26,10 @@ func Ps(po *psOptions) error {
 	o := util.NewOutput()
 	defer o.Flush()
 
-	o.Write("VM ID", "IMAGE", "KERNEL", "CREATED", "SIZE", "CPUS", "MEMORY", "STATE", "IPS", "PORTS", "NAME")
+	o.Write("VM ID", "IMAGE", "KERNEL", "CREATED", "SIZE", "CPUS", "MEMORY", "RUNNING", "IPS", "PORTS", "NAME")
 	for _, vm := range po.allVMs {
 		o.Write(vm.GetUID(), vm.Spec.Image.OCIClaim.Ref, vm.Spec.Kernel.OCIClaim.Ref, vm.GetCreated(),
-			vm.Spec.DiskSize, vm.Spec.CPUs, vm.Spec.Memory, vm.Status.State, vm.Status.IPAddresses,
+			vm.Spec.DiskSize, vm.Spec.CPUs, vm.Spec.Memory, vm.Running(), vm.Status.IPAddresses,
 			vm.Spec.Network.Ports, vm.GetName())
 	}
 

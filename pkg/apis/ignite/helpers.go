@@ -21,15 +21,6 @@ func GetImageSourceTypes() []ImageSourceType {
 	}
 }
 
-// GetVMStates gets the list of available VM states
-func GetVMStates() []VMState {
-	return []VMState{
-		VMStateCreated,
-		VMStateRunning,
-		VMStateStopped,
-	}
-}
-
 // SetImage populates relevant fields to an Image on the VM object
 func (vm *VM) SetImage(image *Image) {
 	vm.Spec.Image.OCIClaim = image.Spec.OCIClaim
@@ -50,7 +41,7 @@ func (vm *VM) SnapshotDev() string {
 
 // Running returns true if the VM is running, otherwise false
 func (vm *VM) Running() bool {
-	return vm.Status.State == VMStateRunning
+	return vm.Status.Running
 }
 
 // OverlayFile returns the path to the overlay.dm file for the VM.

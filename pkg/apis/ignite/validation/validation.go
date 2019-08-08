@@ -17,7 +17,6 @@ func ValidateVM(obj *api.VM) (allErrs field.ErrorList) {
 	allErrs = append(allErrs, ValidateOCIImageClaim(&obj.Spec.Kernel.OCIClaim, field.NewPath(".spec.kernel.ociClaim"))...)
 	allErrs = append(allErrs, ValidateFileMappings(&obj.Spec.CopyFiles, field.NewPath(".spec.copyFiles"))...)
 	allErrs = append(allErrs, ValidateVMStorage(&obj.Spec.Storage, field.NewPath(".spec.storage"))...)
-	allErrs = append(allErrs, ValidateVMState(obj.Status.State, field.NewPath(".status.state"))...)
 	// TODO: Add vCPU, memory, disk max and min sizes
 	return
 }
@@ -91,21 +90,6 @@ func ValidateImageSourceType(t api.ImageSourceType, fldPath *field.Path) (allErr
 	}
 	if !found {
 		allErrs = append(allErrs, field.Invalid(fldPath, t, fmt.Sprintf("image source type must be one of %v", types)))
-	}
-	return
-}
-
-// ValidateVMState validates if an VM state is valid
-func ValidateVMState(s api.VMState, fldPath *field.Path) (allErrs field.ErrorList) {
-	found := false
-	states := api.GetVMStates()
-	for _, state := range states {
-		if state == s {
-			found = true
-		}
-	}
-	if !found {
-		allErrs = append(allErrs, field.Invalid(fldPath, s, fmt.Sprintf("VM state must be one of %v", states)))
 	}
 	return
 }
