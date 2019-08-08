@@ -39,7 +39,7 @@ func ReconcileManifests(s *manifest.ManifestStorage) {
 				TypeMeta:   *upd.APIType.GetTypeMeta(),
 				ObjectMeta: *upd.APIType.GetObjectMeta(),
 				Status: api.VMStatus{
-					State: api.VMStateRunning, // TODO: Fix this in StopVM
+					Running: true, // TODO: Fix this in StopVM
 				},
 			}
 		} else {
@@ -61,11 +61,7 @@ func ReconcileManifests(s *manifest.ManifestStorage) {
 
 		// TODO: Parallelization
 		switch upd.Event {
-		case update.ObjectEventCreate:
-			runHandle(func() error {
-				return handleCreate(vm)
-			})
-		case update.ObjectEventModify:
+		case update.ObjectEventCreate, update.ObjectEventModify:
 			runHandle(func() error {
 				return handleChange(vm)
 			})
@@ -81,45 +77,20 @@ func ReconcileManifests(s *manifest.ManifestStorage) {
 	}
 }
 
-// TODO: Maybe paralellize these commands?
+// TODO: Maybe parallelize these commands?
 func runHandle(fn func() error) {
 	if err := fn(); err != nil {
 		log.Errorf("An error occurred when processing a VM update: %v\n", err)
 	}
 }
 
-func handleCreate(vm *api.VM) error {
-	var err error
-
-	switch vm.Status.State {
-	case api.VMStateCreated:
-		err = create(vm)
-	case api.VMStateRunning:
-		err = start(vm)
-	case api.VMStateStopped:
-		log.Infof("VM %q was added to git with status Stopped, nothing to do\n", vm.GetUID())
-	default:
-		log.Infof("Unknown state of VM %q: %s", vm.GetUID().String(), vm.Status.State)
-	}
-
-	return err
-}
-
 func handleChange(vm *api.VM) error {
 	var err error
 
-	// Newly generated VMs that haven't been started yet are loaded via handleChange
-	// with VMStateCreated, so permit changing into the created state for now
-	// TODO: Fix this
-	switch vm.Status.State {
-	case api.VMStateCreated:
-	//	err = fmt.Errorf("VM %q cannot change into the Created state", vm.GetUID())
-	case api.VMStateRunning:
+	if vm.Status.Running {
 		err = start(vm)
-	case api.VMStateStopped:
+	} else {
 		err = stop(vm)
-	default:
-		log.Infof("Unknown state of VM %q: %s", vm.GetUID().String(), vm.Status.State)
 	}
 
 	return err

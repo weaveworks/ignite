@@ -127,7 +127,7 @@ api-doc:
 	mv bin/tmp/${GROUPVERSION}/*.go $(shell pwd)/pkg/apis/${GROUPVERSION}/
 	rm -r bin/tmp/${GROUPVERSION}
 	# Format the docs with pandoc
-	docker run -it \
+	docker run -it --rm \
 		-v $(shell pwd):/data \
 		-u $(shell id -u):$(shell id -g) \
 		pandoc/core \
@@ -211,8 +211,8 @@ build-docs: bin/docs/builder-image.tar
 	docker build -t ignite-docs docs
 
 test-docs: build-docs
-	docker run -it ignite-docs /usr/bin/linkchecker _build/html/index.html
+	docker run -it --rm ignite-docs /usr/bin/linkchecker _build/html/index.html
 
 serve-docs: build-docs
 	@echo Stating docs website on http://localhost:${DOCS_PORT}/_build/html/index.html
-	@docker run -i -p ${DOCS_PORT}:8000 -e USER_ID=$$UID ignite-docs
+	@docker run -i --rm -p ${DOCS_PORT}:8000 -e USER_ID=$$UID ignite-docs

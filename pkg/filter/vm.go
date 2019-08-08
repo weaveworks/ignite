@@ -38,7 +38,7 @@ func (f *VMFilter) Filter(object meta.Object) (filterer.Match, error) {
 			return nil, fmt.Errorf("invalid Object type for VMFilter: %T", object)
 		}
 
-		if vm.Status.State != api.VMStateRunning {
+		if !vm.Running() {
 			return nil, nil
 		}
 	}

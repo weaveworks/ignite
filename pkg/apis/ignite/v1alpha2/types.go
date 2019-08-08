@@ -257,18 +257,9 @@ const (
 	// Whenever updating this list, also update GetNetworkModes in helpers.go
 )
 
-// VMState defines different states a VM can be in
-type VMState string
-
-const (
-	VMStateCreated VMState = "Created"
-	VMStateRunning VMState = "Running"
-	VMStateStopped VMState = "Stopped"
-)
-
 // VMStatus defines the status of a VM
 type VMStatus struct {
-	State       VMState          `json:"state"`
+	Running     bool             `json:"running"`
 	IPAddresses meta.IPAddresses `json:"ipAddresses,omitempty"`
 	Image       OCIImageSource   `json:"image"`
 	Kernel      OCIImageSource   `json:"kernel"`

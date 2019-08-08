@@ -67,12 +67,6 @@ func SetDefaults_VMNetworkSpec(obj *VMNetworkSpec) {
 	}
 }
 
-func SetDefaults_VMStatus(obj *VMStatus) {
-	if obj.State == "" {
-		obj.State = VMStateCreated
-	}
-}
-
 func calcMetadataDevSize(obj *PoolSpec) meta.Size {
 	// The minimum size is 2 MB and the maximum size is 16 GB
 	minSize := meta.NewSizeFromBytes(2 * constants.MB)
