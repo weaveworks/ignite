@@ -107,6 +107,9 @@ func StartVM(vm *api.VM, debug bool) error {
 		return fmt.Errorf("failed to start container for VM %q: %v", vm.GetUID(), err)
 	}
 
+	// Set the container ID for the VM
+	vm.Status.Runtime = &api.Runtime{ID: containerID}
+
 	if vm.Spec.Network.Mode == api.NetworkModeCNI {
 		if err := providers.NetworkPlugin.SetupContainerNetwork(containerID); err != nil {
 			return err
@@ -120,7 +123,16 @@ func StartVM(vm *api.VM, debug bool) error {
 	// TODO: Follow-up the container here with a defer, or dedicated goroutine. We should output
 	// if it started successfully or not
 	// TODO: This is temporary until we have proper communication to the container
-	return waitForSpawn(vm)
+	if err := waitForSpawn(vm); err != nil {
+		return err
+	}
+
+	// TODO: Enable this when ignite-spawn doesn't write to the file anymore
+	//if err := providers.Client.VMs().Set(vm); err != nil {
+	//	return err
+	//}
+
+	return nil
 }
 
 func verifyPulled(image string) error {

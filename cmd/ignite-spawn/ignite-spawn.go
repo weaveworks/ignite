@@ -100,6 +100,7 @@ func patchStopped(vm *api.VM) error {
 	return patchVM(vm, func(patchVM *api.VM) error {
 		patchVM.Status.Running = false
 		patchVM.Status.IPAddresses = nil
+		patchVM.Status.Runtime = nil
 		return nil
 	})
 }

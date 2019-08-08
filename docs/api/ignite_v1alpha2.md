@@ -1,4 +1,4 @@
-t# v1alpha2
+# v1alpha2
 
 `import "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2"`
 
@@ -41,6 +41,7 @@ t# v1alpha2
   - [type PoolDeviceType](#PoolDeviceType)
   - [type PoolSpec](#PoolSpec)
   - [type PoolStatus](#PoolStatus)
+  - [type Runtime](#Runtime)
   - [type SSH](#SSH)
       - [func (s \*SSH) MarshalJSON() (\[\]byte,
         error)](#SSH.MarshalJSON)
@@ -389,6 +390,16 @@ type PoolStatus struct {
 
 PoolStatus defines the Pool’s current status
 
+## <a name="Runtime">type</a> [Runtime](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=9335:9381#L261)
+
+``` go
+type Runtime struct {
+    ID string `json:"id"`
+}
+```
+
+Runtime specifies the VM’s runtime information
+
 ## <a name="SSH">type</a> [SSH](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=8705:8782#L238)
 
 ``` go
@@ -485,11 +496,12 @@ type VMSpec struct {
 
 VMSpec describes the configuration of a VM
 
-## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=9324:9547#L261)
+## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=9422:9702#L266)
 
 ``` go
 type VMStatus struct {
     Running     bool             `json:"running"`
+    Runtime     *Runtime         `json:"runtime,omitempty"`
     IPAddresses meta.IPAddresses `json:"ipAddresses,omitempty"`
     Image       OCIImageSource   `json:"image"`
     Kernel      OCIImageSource   `json:"kernel"`
