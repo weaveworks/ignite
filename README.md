@@ -75,6 +75,8 @@ Please check out the [Releases Page](https://github.com/weaveworks/ignite/releas
 
 How to install Ignite is covered in [docs/installation.md](https://ignite.readthedocs.io/en/latest/installation.html).
 
+Guidance on Cloud Providers' instances that can run Ignite is covered in [docs/cloudprovider.md](docs/cloudprovider.md).
+
 ## Getting Started
 
 **WARNING**: In it's `v0.X` series, Ignite is in **alpha**, which means that it might change in backwards-incompatible ways.

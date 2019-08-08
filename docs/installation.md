@@ -7,6 +7,8 @@ This guide describes the installation and uninstallation process of Ignite.
 Ignite runs on any Intel-based `linux/amd64` system with `KVM` support.
 AMD support is in alpha (Firecracker limitation).
 
+See [cloudprovider.md](cloudprovider.md) for guidance on running Ignite on various cloud providers and suitable instances that you could use.
+
 **Note**: You do **not** need to install any "traditional" QEMU/KVM packages, as long as
 there is virtualization support in the CPU and kernel it works. 
 
