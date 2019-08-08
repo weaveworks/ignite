@@ -10,14 +10,12 @@ import (
 	"github.com/docker/docker/api/types/container"
 	cont "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
-	"github.com/docker/go-connections/nat"
 	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 const (
 	dockerNetNSFmt = "/proc/%v/ns/net"
-	portFormat     = "%d/tcp" // TODO: Support protocols other than TCP
 )
 
 // dockerClient is a runtime.Interface
@@ -103,15 +101,6 @@ func (dc *dockerClient) AttachContainer(container string) (err error) {
 }
 
 func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConfig, name string) (string, error) {
-	portBindings := make(nat.PortMap)
-	for _, portMapping := range config.PortBindings {
-		portBindings[nat.Port(fmt.Sprintf(portFormat, portMapping.VMPort))] = []nat.PortBinding{
-			{
-				HostPort: fmt.Sprintf(portFormat, portMapping.HostPort),
-			},
-		}
-	}
-
 	binds := make([]string, 0, len(config.Binds))
 	for _, bind := range config.Binds {
 		binds = append(binds, fmt.Sprintf("%s:%s", bind.HostPath, bind.ContainerPath))
@@ -139,7 +128,7 @@ func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConf
 	}, &container.HostConfig{
 		Binds:        binds,
 		NetworkMode:  container.NetworkMode(config.NetworkMode),
-		PortBindings: portBindings,
+		PortBindings: portBindingsToPortMap(config.PortBindings),
 		AutoRemove:   config.AutoRemove,
 		CapAdd:       config.CapAdds,
 		Resources: container.Resources{

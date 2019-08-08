@@ -18,6 +18,7 @@ func ValidateVM(obj *api.VM) (allErrs field.ErrorList) {
 	allErrs = append(allErrs, ValidateFileMappings(&obj.Spec.CopyFiles, field.NewPath(".spec.copyFiles"))...)
 	allErrs = append(allErrs, ValidateVMStorage(&obj.Spec.Storage, field.NewPath(".spec.storage"))...)
 	// TODO: Add vCPU, memory, disk max and min sizes
+	// TODO: Add port mapping validation
 	return
 }
 
