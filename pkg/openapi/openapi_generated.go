@@ -1382,6 +1382,11 @@ func schema_pkg_apis_ignite_v1alpha2_VMStatus(ref common.ReferenceCallback) comm
 							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Runtime"),
 						},
 					},
+					"startTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Time"),
+						},
+					},
 					"ipAddresses": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
@@ -1410,7 +1415,7 @@ func schema_pkg_apis_ignite_v1alpha2_VMStatus(ref common.ReferenceCallback) comm
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageSource", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Runtime"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageSource", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Runtime", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Time"},
 	}
 }
 

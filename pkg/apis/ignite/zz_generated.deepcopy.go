@@ -451,6 +451,11 @@ func (in *VMStatus) DeepCopyInto(out *VMStatus) {
 		*out = new(Runtime)
 		**out = **in
 	}
+	if in.StartTime != nil {
+		in, out := &in.StartTime, &out.StartTime
+		*out = new(v1alpha1.Time)
+		(*in).DeepCopyInto(*out)
+	}
 	if in.IPAddresses != nil {
 		in, out := &in.IPAddresses, &out.IPAddresses
 		*out = make(v1alpha1.IPAddresses, len(*in))

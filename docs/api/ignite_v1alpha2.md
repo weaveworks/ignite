@@ -496,12 +496,13 @@ type VMSpec struct {
 
 VMSpec describes the configuration of a VM
 
-## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=9422:9702#L266)
+## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=9422:9761#L266)
 
 ``` go
 type VMStatus struct {
     Running     bool             `json:"running"`
     Runtime     *Runtime         `json:"runtime,omitempty"`
+    StartTime   *meta.Time       `json:"startTime,omitempty"`
     IPAddresses meta.IPAddresses `json:"ipAddresses,omitempty"`
     Image       OCIImageSource   `json:"image"`
     Kernel      OCIImageSource   `json:"kernel"`
