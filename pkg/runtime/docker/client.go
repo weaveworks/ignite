@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -79,9 +80,10 @@ func (dc *dockerClient) InspectContainer(container string) (*runtime.ContainerIn
 	}
 
 	return &runtime.ContainerInspectResult{
-		ID:     res.ID,
-		Image:  res.Image,
-		Status: res.State.Status,
+		ID:        res.ID,
+		Image:     res.Image,
+		Status:    res.State.Status,
+		IPAddress: net.ParseIP(res.NetworkSettings.IPAddress),
 	}, nil
 }
 

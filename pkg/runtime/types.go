@@ -2,6 +2,7 @@ package runtime
 
 import (
 	"io"
+	"net"
 	"time"
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
@@ -14,9 +15,10 @@ type ImageInspectResult struct {
 }
 
 type ContainerInspectResult struct {
-	ID     string
-	Image  string
-	Status string
+	ID        string
+	Image     string
+	Status    string
+	IPAddress net.IP
 }
 
 type Bind struct {

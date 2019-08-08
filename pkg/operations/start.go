@@ -132,12 +132,21 @@ func StartVM(vm *api.VM, debug bool) error {
 		return err
 	}
 
-	// TODO: Enable this when ignite-spawn doesn't write to the file anymore
-	//if err := providers.Client.VMs().Set(vm); err != nil {
-	//	return err
-	//}
+	// This is used to fetch the IP address the runtime gives to the VM container
+	// TODO: This needs to be handled differently for CNI, the IP address will be blank
+	result, err := providers.Runtime.InspectContainer(containerID)
+	if err != nil {
+		return fmt.Errorf("failed to inspect container for VM %q: %v", vm.GetUID(), err)
+	}
 
-	return nil
+	// Append the runtime IP address of the VM to its state
+	vm.Status.IPAddresses = append(vm.Status.IPAddresses, result.IPAddress)
+
+	// Set the VM's status to running
+	vm.Status.Running = true
+
+	// Write the state changes
+	return providers.Client.VMs().Set(vm)
 }
 
 func verifyPulled(image string) error {
