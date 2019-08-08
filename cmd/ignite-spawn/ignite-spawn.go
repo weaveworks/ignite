@@ -101,6 +101,7 @@ func patchStopped(vm *api.VM) error {
 		patchVM.Status.Running = false
 		patchVM.Status.IPAddresses = nil
 		patchVM.Status.Runtime = nil
+		patchVM.Status.StartTime = nil
 		return nil
 	})
 }

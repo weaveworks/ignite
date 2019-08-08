@@ -10,6 +10,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/logs"
@@ -109,6 +110,10 @@ func StartVM(vm *api.VM, debug bool) error {
 
 	// Set the container ID for the VM
 	vm.Status.Runtime = &api.Runtime{ID: containerID}
+
+	// Set the start time for the VM
+	startTime := meta.Timestamp()
+	vm.Status.StartTime = &startTime
 
 	if vm.Spec.Network.Mode == api.NetworkModeCNI {
 		if err := providers.NetworkPlugin.SetupContainerNetwork(containerID); err != nil {

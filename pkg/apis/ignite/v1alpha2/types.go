@@ -266,6 +266,7 @@ type Runtime struct {
 type VMStatus struct {
 	Running     bool             `json:"running"`
 	Runtime     *Runtime         `json:"runtime,omitempty"`
+	StartTime   *meta.Time       `json:"startTime,omitempty"`
 	IPAddresses meta.IPAddresses `json:"ipAddresses,omitempty"`
 	Image       OCIImageSource   `json:"image"`
 	Kernel      OCIImageSource   `json:"kernel"`
