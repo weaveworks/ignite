@@ -11,6 +11,7 @@ import (
 	cont "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -105,8 +106,20 @@ func (dc *dockerClient) AttachContainer(container string) (err error) {
 func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConfig, name string) (string, error) {
 	portBindings := make(nat.PortMap)
 	for _, portMapping := range config.PortBindings {
-		portBindings[nat.Port(fmt.Sprintf(portFormat, portMapping.VMPort))] = []nat.PortBinding{
+		var hostIP string
+		if portMapping.BindAddress != nil {
+			hostIP = portMapping.BindAddress.String()
+		}
+
+		protocol := portMapping.Protocol
+		if len(protocol) == 0 {
+			// Docker uses TCP by default
+			protocol = meta.ProtocolTCP
+		}
+
+		portBindings[nat.Port(fmt.Sprintf("%d/%s", portMapping.VMPort, protocol.String()))] = []nat.PortBinding{
 			{
+				HostIP:   hostIP,
 				HostPort: fmt.Sprintf(portFormat, portMapping.HostPort),
 			},
 		}
