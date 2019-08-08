@@ -185,7 +185,8 @@ type VMSpec struct {
 	// Specifying a path in SSH.Generate means "use this public key"
 	// If SSH.PublicKey is set, this struct will marshal as a string using that path
 	// If SSH.Generate is set, this struct will marshal as a bool => true
-	SSH *SSH `json:"ssh,omitempty"`
+	SSH      *SSH   `json:"ssh,omitempty"`
+	Metadata string `json:"metadata,omitempty"`
 }
 
 type VMImageSpec struct {

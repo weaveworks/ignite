@@ -49,6 +49,7 @@ func StartVM(vm *api.VM, debug bool) error {
 	config := &runtime.ContainerConfig{
 		Cmd:    []string{fmt.Sprintf("--log-level=%s", logs.Logger.Level.String()), vm.GetUID().String()},
 		Labels: map[string]string{"ignite.name": vm.GetName()},
+		Env:    []string{fmt.Sprintf("FC_META=%s", vm.Spec.Metadata)},
 		Binds: []*runtime.Bind{
 			{
 				HostPath:      vmDir,
@@ -74,6 +75,8 @@ func StartVM(vm *api.VM, debug bool) error {
 			runtime.BindBoth("/dev/net/tun"),        // Needed for creating TAP adapters
 			runtime.BindBoth("/dev/kvm"),            // Pass through virtualization support
 			runtime.BindBoth(vm.SnapshotDev()),      // The block device to boot from
+			runtime.BindBoth("/dev/vhost-vsock"),
+			runtime.BindBoth("/dev/vsock"),
 		},
 		StopTimeout:  constants.STOP_TIMEOUT + constants.IGNITE_TIMEOUT,
 		PortBindings: vm.Spec.Network.Ports, // Add the port mappings to Docker

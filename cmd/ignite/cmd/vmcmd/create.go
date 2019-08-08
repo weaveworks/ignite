@@ -70,6 +70,7 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	// Register flags for simple types (int, string, etc.)
 	fs.Uint64Var(&cf.VM.Spec.CPUs, "cpus", cf.VM.Spec.CPUs, "VM vCPU count, 1 or even numbers between 1 and 32")
 	fs.StringVar(&cf.VM.Spec.Kernel.CmdLine, "kernel-args", cf.VM.Spec.Kernel.CmdLine, "Set the command line for the kernel")
+	fs.StringVar(&cf.VM.Spec.Metadata, "metadata", cf.VM.Spec.Metadata, "Enable MMDS and use this JSON value for creation metadata")
 
 	// Register more complex flags with their own flag types
 	cmdutil.SizeVar(fs, &cf.VM.Spec.Memory, "memory", "Amount of RAM to allocate for the VM")

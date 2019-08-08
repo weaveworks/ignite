@@ -22,12 +22,15 @@ import (
 // ExecuteFirecracker executes the firecracker process using the Go SDK
 func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	drivePath := vm.SnapshotDev()
+	mmdsData := os.Getenv("FC_META")
+	enableMmds := mmdsData != ""
 
 	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(dhcpIfaces))
 	for _, dhcpIface := range dhcpIfaces {
 		networkInterfaces = append(networkInterfaces, firecracker.NetworkInterface{
 			MacAddress:  dhcpIface.MACFilter,
 			HostDevName: dhcpIface.VMTAP,
+			AllowMMDS:   enableMmds,
 		})
 	}
 
@@ -83,6 +86,12 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 		// TODO: We could use /dev/null, but firecracker-go-sdk issues Mkfifo which collides with the existing device
 		LogFifo:     logSocketPath,
 		MetricsFifo: metricsSocketPath,
+		VsockDevices: []firecracker.VsockDevice{
+			{
+				CID:  3,
+				Path: "vsock",
+			},
+		},
 	}
 
 	// Add the volumes to the VM
@@ -119,19 +128,23 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	m, err := firecracker.NewMachine(ctx, cfg, firecracker.WithProcessRunner(cmd))
 	if err != nil {
 		return fmt.Errorf("failed to create machine: %s", err)
+
 	}
-
-	//defer os.Remove(cfg.SocketPath)
-
-	//if opts.validMetadata != nil {
-	//	m.EnableMetadata(opts.validMetadata)
-	//}
 
 	if err := m.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start machine: %v", err)
 	}
-	defer m.StopVMM()
 
+	if enableMmds {
+		//cfg.KernelArgs = fmt.Sprintf("%s -device vhost-vsock-pci,id=vhost-vsock-pci0,guest-cid=3")
+		if err := m.SetMetadata(ctx, mmdsData); err != nil {
+			return fmt.Errorf("failed to PUT metadata to MMDS: %v", err)
+		}
+	}
+
+	//defer os.Remove(cfg.SocketPath)
+
+	defer m.StopVMM()
 	installSignalHandlers(ctx, m)
 
 	// wait for the VMM to exit

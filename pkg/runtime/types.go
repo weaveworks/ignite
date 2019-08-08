@@ -43,6 +43,7 @@ type ContainerConfig struct {
 	AutoRemove   bool
 	NetworkMode  string
 	PortBindings meta.PortMappings
+	Env          []string
 }
 
 type Interface interface {

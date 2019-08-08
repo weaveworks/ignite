@@ -36,6 +36,7 @@ ignite vm run <OCI image> [flags]
       --kernel-args string       Set the command line for the kernel (default "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp")
   -k, --kernel-image oci-image   Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules (default weaveworks/ignite-kernel:4.19.47)
       --memory size              Amount of RAM to allocate for the VM (default 512.0 MB)
+      --metadata string          Enable MMDS and use this JSON value for creation metadata
   -n, --name string              Specify the name
       --net network-mode         Networking mode to use. Available options are: [cni docker-bridge] (default docker-bridge)
   -p, --ports strings            Map host ports to VM ports

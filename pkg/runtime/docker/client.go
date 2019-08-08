@@ -127,12 +127,12 @@ func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConf
 	}
 
 	stopTimeout := int(config.StopTimeout)
-
 	c, err := dc.client.ContainerCreate(context.Background(), &container.Config{
 		Hostname:    config.Hostname,
 		Tty:         true, // --tty
 		OpenStdin:   true, // --interactive
 		Cmd:         config.Cmd,
+		Env:         config.Env,
 		Image:       image,
 		Labels:      config.Labels,
 		StopTimeout: &stopTimeout,

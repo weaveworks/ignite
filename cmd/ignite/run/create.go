@@ -1,6 +1,7 @@
 package run
 
 import (
+	"encoding/json"
 	"fmt"
 	"path"
 	"strings"
@@ -53,6 +54,13 @@ func (cf *CreateFlags) constructVMFromCLI(args []string) error {
 	var err error
 	if cf.VM.Spec.CopyFiles, err = parseFileMappings(cf.CopyFiles); err != nil {
 		return err
+	}
+
+	if cf.VM.Spec.Metadata != "" {
+		var dummy interface{}
+		if err := json.Unmarshal([]byte(cf.VM.Spec.Metadata), &dummy); err != nil {
+			return err
+		}
 	}
 
 	// Parse the given port mappings
