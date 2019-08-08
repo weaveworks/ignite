@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"path"
@@ -46,7 +45,7 @@ func ParseKey(input string) (k Key, err error) {
 	if len(splitInput) != 2 {
 		err = fmt.Errorf("invalid input for key parsing: %s", input)
 	} else {
-		k.Kind = parseKind(splitInput[0])
+		k.Kind = meta.ParseKind(splitInput[0])
 		k.UID = meta.UID(splitInput[1])
 	}
 
@@ -66,16 +65,4 @@ func (k Key) String() string {
 // ToKindKey creates a KindKey out of a Key
 func (k Key) ToKindKey() KindKey {
 	return k.KindKey
-}
-
-// TODO: Move to meta
-func parseKind(input string) meta.Kind {
-	b := bytes.ToUpper([]byte(input))
-
-	// Leave TLAs as uppercase
-	if len(b) > 3 {
-		b = append(b[:1], bytes.ToLower(b[1:])...)
-	}
-
-	return meta.Kind(b)
 }
