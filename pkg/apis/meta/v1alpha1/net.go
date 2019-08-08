@@ -6,6 +6,8 @@ import (
 	"net"
 	"strconv"
 	"strings"
+
+	"github.com/docker/go-connections/nat"
 )
 
 // PortMapping defines a port mapping between the VM and the host
@@ -41,65 +43,59 @@ type PortMappings []PortMapping
 
 var _ fmt.Stringer = PortMappings{}
 
-var errInvalidPortMappingFormat = fmt.Errorf("port mappings must be of form [<bind address>:]<host port>:<VM port>[/<protocol>]")
-
 func ParsePortMappings(input []string) (PortMappings, error) {
 	result := make(PortMappings, 0, len(input))
 
-	for _, portMapping := range input {
-		ports := strings.Split(portMapping, ":")
-		if len(ports) > 3 || len(ports) < 2 {
-			return nil, errInvalidPortMappingFormat
+	_, bindings, err := nat.ParsePortSpecs(input)
+	if err != nil {
+		return nil, err
+	}
+
+	for port, bindings := range bindings {
+		if len(bindings) > 1 {
+			// TODO: For now only support mapping a VM port to a single host IP/port
+			return nil, fmt.Errorf("only one host binding per VM binding supported for now, received %d", len(bindings))
 		}
 
+		binding := bindings[0]
+		var err error
 		var bindAddress net.IP
+		var hostPort uint64
+		var vmPort uint64
 		var protocol Protocol
-		offset := 0
 
-		if len(ports) == 3 {
-			offset = 1
-
-			if bindAddress = net.ParseIP(ports[0]); bindAddress == nil {
-				return nil, errInvalidPortMappingFormat
+		if len(binding.HostIP) > 0 {
+			if bindAddress = net.ParseIP(binding.HostIP); bindAddress == nil {
+				return nil, fmt.Errorf("invalid bind address: %q", binding.HostIP)
 			}
 		}
 
-		hostPort, err := strconv.ParseUint(ports[0+offset], 10, 64)
-		if err != nil {
+		if hostPort, err = strconv.ParseUint(binding.HostPort, 10, 64); err != nil {
+			return nil, fmt.Errorf("invalid host port: %q", binding.HostPort)
+		}
+
+		if vmPort, err = strconv.ParseUint(port.Port(), 10, 64); err != nil {
+			return nil, fmt.Errorf("invalid VM port: %q", port.Port())
+		}
+
+		if protocol, err = protocolFromString(port.Proto()); err != nil {
 			return nil, err
 		}
 
-		proto := strings.Split(ports[1+offset], "/")
-
-		if len(proto) > 2 {
-			return nil, errInvalidPortMappingFormat
-		}
-
-		if len(proto) == 2 {
-			if protocol, err = protocolFromString(proto[1]); err != nil {
-				return nil, err
-			}
-		}
-
-		vmPort, err := strconv.ParseUint(proto[0], 10, 64)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, portMapping := range result {
-			if portMapping.HostPort == hostPort && portMapping.Protocol == protocol {
-				return nil, fmt.Errorf("cannot use a port/protocol combination on the host twice")
-			}
-		}
-
-		// TODO: Check for duplicate VM ports
-
-		result = append(result, PortMapping{
+		mapping := PortMapping{
 			BindAddress: bindAddress,
 			HostPort:    hostPort,
 			VMPort:      vmPort,
 			Protocol:    protocol,
-		})
+		}
+
+		for _, portMapping := range result {
+			if portMapping.HostPort == mapping.HostPort && portMapping.Protocol == mapping.Protocol {
+				return nil, fmt.Errorf("cannot use a port/protocol combination on the host twice")
+			}
+		}
+
+		result = append(result, mapping)
 	}
 
 	return result, nil
@@ -143,10 +139,6 @@ func protocolFromString(input string) (Protocol, error) {
 
 func (p Protocol) String() string {
 	return string(p)
-}
-
-func (p Protocol) MarshalJSON() ([]byte, error) {
-	return json.Marshal(p)
 }
 
 func (p *Protocol) UnmarshalJSON(b []byte) (err error) {
