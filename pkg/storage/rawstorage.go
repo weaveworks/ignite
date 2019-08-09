@@ -40,17 +40,17 @@ type RawStorage interface {
 	GetKey(path string) (Key, error)
 }
 
-func NewDefaultRawStorage(dir string) RawStorage {
-	return &DefaultRawStorage{
+func NewGenericRawStorage(dir string) RawStorage {
+	return &GenericRawStorage{
 		dir: dir,
 	}
 }
 
-type DefaultRawStorage struct {
+type GenericRawStorage struct {
 	dir string
 }
 
-func (r *DefaultRawStorage) realPath(key AnyKey) string {
+func (r *GenericRawStorage) realPath(key AnyKey) string {
 	var file string
 
 	switch key.(type) {
@@ -66,15 +66,15 @@ func (r *DefaultRawStorage) realPath(key AnyKey) string {
 	return path.Join(r.dir, key.String(), file)
 }
 
-func (r *DefaultRawStorage) Read(key Key) ([]byte, error) {
+func (r *GenericRawStorage) Read(key Key) ([]byte, error) {
 	return ioutil.ReadFile(r.realPath(key))
 }
 
-func (r *DefaultRawStorage) Exists(key Key) bool {
+func (r *GenericRawStorage) Exists(key Key) bool {
 	return util.FileExists(r.realPath(key))
 }
 
-func (r *DefaultRawStorage) Write(key Key, content []byte) error {
+func (r *GenericRawStorage) Write(key Key, content []byte) error {
 	file := r.realPath(key)
 
 	// Create the underlying directories if they do not exist already
@@ -87,11 +87,11 @@ func (r *DefaultRawStorage) Write(key Key, content []byte) error {
 	return ioutil.WriteFile(file, content, 0644)
 }
 
-func (r *DefaultRawStorage) Delete(key Key) error {
+func (r *GenericRawStorage) Delete(key Key) error {
 	return os.RemoveAll(path.Dir(r.realPath(key)))
 }
 
-func (r *DefaultRawStorage) List(key KindKey) ([]Key, error) {
+func (r *GenericRawStorage) List(key KindKey) ([]Key, error) {
 	entries, err := ioutil.ReadDir(r.realPath(key))
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (r *DefaultRawStorage) List(key KindKey) ([]Key, error) {
 
 // This returns the modification time as a UnixNano string
 // If the file doesn't exist, return blank
-func (r *DefaultRawStorage) Checksum(key Key) (s string, err error) {
+func (r *GenericRawStorage) Checksum(key Key) (s string, err error) {
 	var fi os.FileInfo
 
 	if r.Exists(key) {
@@ -119,15 +119,15 @@ func (r *DefaultRawStorage) Checksum(key Key) (s string, err error) {
 	return
 }
 
-func (r *DefaultRawStorage) Format(key Key) Format {
-	return FormatJSON // The DefaultRawStorage always uses JSON
+func (r *GenericRawStorage) Format(key Key) Format {
+	return FormatJSON // The GenericRawStorage always uses JSON
 }
 
-func (r *DefaultRawStorage) WatchDir() string {
+func (r *GenericRawStorage) WatchDir() string {
 	return r.dir
 }
 
-func (r *DefaultRawStorage) GetKey(p string) (key Key, err error) {
+func (r *GenericRawStorage) GetKey(p string) (key Key, err error) {
 	splitDir := strings.Split(filepath.Clean(r.dir), string(os.PathSeparator))
 	splitPath := strings.Split(filepath.Clean(p), string(os.PathSeparator))
 

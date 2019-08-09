@@ -8,7 +8,7 @@ import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
-var s = NewGenericStorage(NewDefaultRawStorage("/tmp/bar"), scheme.Serializer)
+var s = NewGenericStorage(NewGenericRawStorage("/tmp/bar"), scheme.Serializer)
 var vmGVK = api.SchemeGroupVersion.WithKind("VM")
 
 func TestStorageNew(t *testing.T) {
