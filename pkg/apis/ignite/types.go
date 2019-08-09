@@ -27,7 +27,7 @@ type Image struct {
 
 // ImageSpec declares what the image contains
 type ImageSpec struct {
-	OCIClaim OCIImageClaim `json:"ociClaim"`
+	OCIRef meta.OCIImageRef `json:"oci"`
 }
 
 // ImageSourceType is an enum of different supported Image Source Types
@@ -37,17 +37,6 @@ const (
 	// ImageSourceTypeDocker defines that the image is imported from Docker
 	ImageSourceTypeDocker ImageSourceType = "Docker"
 )
-
-// OCIImageClaim defines a claim for importing an OCI image
-type OCIImageClaim struct {
-	// Type defines how the image should be imported
-	Type ImageSourceType `json:"type"`
-	// Ref defines the reference to use when talking to the backend.
-	// This is most commonly the image name, followed by a tag.
-	// Other supported ways are $registry/$user/$image@sha256:$digest
-	// This ref is also used as ObjectMeta.Name for kinds Images and Kernels
-	Ref meta.OCIImageRef `json:"ref"`
-}
 
 // OCIImageSource specifies how the OCI image was imported.
 // It is the status variant of OCIImageClaim
@@ -136,7 +125,7 @@ type Kernel struct {
 
 // KernelSpec describes the properties of a kernel
 type KernelSpec struct {
-	OCIClaim OCIImageClaim `json:"ociClaim"`
+	OCIRef meta.OCIImageRef `json:"oci"`
 	// Optional future feature, support per-kernel specific default command lines
 	// DefaultCmdLine string
 }
@@ -183,12 +172,12 @@ type VMSpec struct {
 }
 
 type VMImageSpec struct {
-	OCIClaim OCIImageClaim `json:"ociClaim"`
+	OCIRef meta.OCIImageRef `json:"oci"`
 }
 
 type VMKernelSpec struct {
-	OCIClaim OCIImageClaim `json:"ociClaim"`
-	CmdLine  string        `json:"cmdLine,omitempty"`
+	OCIRef  meta.OCIImageRef `json:"oci"`
+	CmdLine string           `json:"cmdLine,omitempty"`
 }
 
 type VMNetworkSpec struct {

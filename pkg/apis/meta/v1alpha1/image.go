@@ -21,13 +21,17 @@ func NewOCIImageRef(imageStr string) (OCIImageRef, error) {
 	if err != nil {
 		return "", err
 	}
+
 	namedTagged, ok := named.(reference.NamedTagged)
 	if !ok {
-		return "", fmt.Errorf("could not parse image name with a tag %s", imageStr)
+		return "", fmt.Errorf("could not parse image %q with a tag", imageStr)
 	}
+
 	return OCIImageRef(reference.FamiliarString(namedTagged)), nil
 }
 
+// OCIImageRef is a string by which an OCI runtime can identify an image to retrieve.
+// It needs to have a tag and usually looks like "weaveworks/ignite-ubuntu:latest".
 type OCIImageRef string
 
 var _ fmt.Stringer = OCIImageRef("")
@@ -40,15 +44,13 @@ func (i OCIImageRef) IsUnset() bool {
 	return len(i) == 0
 }
 
-func (i *OCIImageRef) UnmarshalJSON(b []byte) error {
-	var str string
-	var err error
-
-	if err = json.Unmarshal(b, &str); err != nil {
+func (i *OCIImageRef) UnmarshalJSON(b []byte) (err error) {
+	var s string
+	if err = json.Unmarshal(b, &s); err != nil {
 		return err
 	}
 
-	*i, err = NewOCIImageRef(str)
+	*i, err = NewOCIImageRef(s)
 	return err
 }
 

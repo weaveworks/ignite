@@ -10,10 +10,6 @@ func addDefaultingFuncs(scheme *runtime.Scheme) error {
 	return RegisterDefaults(scheme)
 }
 
-func SetDefaults_OCIImageClaim(obj *OCIImageClaim) {
-	obj.Type = ImageSourceTypeDocker
-}
-
 func SetDefaults_PoolSpec(obj *PoolSpec) {
 	if obj.AllocationSize == meta.EmptySize {
 		obj.AllocationSize = meta.NewSizeFromSectors(constants.POOL_ALLOCATION_SIZE_SECTORS)
@@ -52,8 +48,8 @@ func SetDefaults_VMSpec(obj *VMSpec) {
 
 func SetDefaults_VMKernelSpec(obj *VMKernelSpec) {
 	// Default the kernel image if unset
-	if len(obj.OCIClaim.Ref) == 0 {
-		obj.OCIClaim.Ref, _ = meta.NewOCIImageRef(constants.DEFAULT_KERNEL_IMAGE)
+	if len(obj.OCIRef) == 0 {
+		obj.OCIRef, _ = meta.NewOCIImageRef(constants.DEFAULT_KERNEL_IMAGE)
 	}
 
 	if len(obj.CmdLine) == 0 {
