@@ -131,7 +131,7 @@ func ensureOCIImages(vm *api.VM) error {
 	// Populate relevant data from the Kernel on the VM object
 	vm.SetKernel(kernel)
 
-	// Save the file to disk. This will also write the file to /var/lib/firecracker for compability
+	// Save the file to disk. This will also write the file to /var/lib/firecracker for compatibility.
 	return c.VMs().Set(vm)
 }
 
