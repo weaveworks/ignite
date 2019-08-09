@@ -14,8 +14,8 @@ type dockerNetworkPlugin struct {
 	runtime runtime.Interface
 }
 
-func GetDockerNetworkPlugin(r runtime.Interface) (network.Plugin, error) {
-	return &dockerNetworkPlugin{r}, nil
+func GetDockerNetworkPlugin(r runtime.Interface) network.Plugin {
+	return &dockerNetworkPlugin{r}
 }
 
 func (*dockerNetworkPlugin) Name() string {
@@ -41,6 +41,7 @@ func (plugin *dockerNetworkPlugin) SetupContainerNetwork(containerID string) (*n
 					IP:   result.IPAddress,
 					Mask: net.IPv4Mask(255, 255, 0, 0),
 				},
+				// TODO: Make this auto-detect if the gateway is not using the standard setup
 				Gateway: net.IPv4(result.IPAddress[0], result.IPAddress[1], result.IPAddress[2], 1),
 			},
 		},

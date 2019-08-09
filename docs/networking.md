@@ -1,7 +1,7 @@
 # Networking
 
 The default networking mode is `docker-bridge`, which means that the default docker bridge will be used for the networking setup.
-The default docker bridge is a local `docker0` interface, giving out local addresses to containers in the `172.17.0.1/16` range.
+The default docker bridge is a local `docker0` interface, giving out local addresses to containers in the `172.17.0.0/16` range.
 
 Ignite also supports integration with [CNI](https://github.com/containernetworking/cni), the standard networking interface
 for Kubernetes and many other cloud-native projects and container runtimes. Note that CNI itself is only an interface, not

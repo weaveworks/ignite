@@ -164,7 +164,7 @@ func (plugin *cniNetworkPlugin) Status() error {
 }
 
 func (plugin *cniNetworkPlugin) PrepareContainerSpec(container *runtime.ContainerConfig) error {
-	// we will handle the networking on our own
+	// No need for the container runtime to set up networking, as this plugin will do it
 	container.NetworkMode = "none"
 	return nil
 }

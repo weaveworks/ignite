@@ -15,10 +15,7 @@ func SetDockerRuntime() (err error) {
 
 func SetDockerNetwork() error {
 	log.Trace("Initializing the Docker network provider...")
-	plugin, err := network.GetDockerNetworkPlugin(providers.Runtime)
-	if err != nil {
-		return err
-	}
+	plugin := network.GetDockerNetworkPlugin(providers.Runtime)
 	providers.NetworkPlugins[plugin.Name()] = plugin
 	return nil
 }
