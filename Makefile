@@ -189,7 +189,7 @@ bin/cache/go/bin/godoc2md:
 	chmod +x $@
 
 /go/bin/goimports:
-	go get golang.org/x/tools/cmd/goimports
+	GOFLAGS= go get golang.org/x/tools/cmd/goimports
 
 # QEMU stuff
 qemu: bin/$(GOARCH)/qemu-$(QEMUARCH)-static
