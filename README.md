@@ -156,6 +156,7 @@ Please refer to the following documents:
 - [Scope and Dependencies](https://ignite.readthedocs.io/en/latest/dependencies.html)
 - [Getting Started Walkthrough](https://ignite.readthedocs.io/en/latest/usage.html)
 - [Declaratively Controlling Ignite](https://ignite.readthedocs.io/en/latest/declarative-config.html)
+- [Networking and Multi-Node](https://ignite.readthedocs.io/en/latest/networking.html)
 - [CLI Reference](https://ignite.readthedocs.io/en/latest/cli/ignite/)
 - [API Reference](https://ignite.readthedocs.io/en/latest/api/)
 
