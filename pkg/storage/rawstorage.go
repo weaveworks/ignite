@@ -5,7 +5,9 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -30,8 +32,12 @@ type RawStorage interface {
 	Checksum(key Key) (string, error)
 	// Format returns the format of the contents of the resource indicated by key
 	Format(key Key) Format
+
 	// WatchDir returns the path for Watchers to watch changes in
 	WatchDir() string
+	// GetKey retrieves the Key containing the virtual path based
+	// on the given physical file path returned by a Watcher
+	GetKey(path string) (Key, error)
 }
 
 func NewDefaultRawStorage(dir string) RawStorage {
@@ -119,4 +125,23 @@ func (r *DefaultRawStorage) Format(key Key) Format {
 
 func (r *DefaultRawStorage) WatchDir() string {
 	return r.dir
+}
+
+func (r *DefaultRawStorage) GetKey(p string) (key Key, err error) {
+	splitDir := strings.Split(filepath.Clean(r.dir), string(os.PathSeparator))
+	splitPath := strings.Split(filepath.Clean(p), string(os.PathSeparator))
+
+	if len(splitPath) < len(splitDir)+2 {
+		err = fmt.Errorf("path not long enough: %s", p)
+		return
+	}
+
+	for i := 0; i < len(splitDir); i++ {
+		if splitDir[i] != splitPath[i] {
+			err = fmt.Errorf("path has wrong base: %s", p)
+			return
+		}
+	}
+
+	return ParseKey(path.Join(splitPath[len(splitDir)], splitPath[len(splitDir)+1]))
 }

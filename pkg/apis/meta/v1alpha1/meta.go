@@ -91,6 +91,18 @@ func (k Kind) Lower() string {
 	return string(bytes.ToLower([]byte(k)))
 }
 
+// Returns a Kind parsed from the given string
+func ParseKind(input string) Kind {
+	b := bytes.ToUpper([]byte(input))
+
+	// Leave TLAs as uppercase
+	if len(b) > 3 {
+		b = append(b[:1], bytes.ToLower(b[1:])...)
+	}
+
+	return Kind(b)
+}
+
 // ObjectMeta have to be embedded into any serializable object.
 // It provides the .GetName() and .GetUID() methods that help
 // implement the Object interface

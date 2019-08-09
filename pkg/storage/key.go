@@ -2,7 +2,10 @@ package storage
 
 import (
 	"fmt"
+	"os"
 	"path"
+	"path/filepath"
+	"strings"
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
@@ -34,6 +37,19 @@ func NewKey(kind meta.Kind, uid meta.UID) Key {
 		NewKindKey(kind),
 		uid,
 	}
+}
+
+// ParseKey parses the given string and returns a Key
+func ParseKey(input string) (k Key, err error) {
+	splitInput := strings.Split(filepath.Clean(input), string(os.PathSeparator))
+	if len(splitInput) != 2 {
+		err = fmt.Errorf("invalid input for key parsing: %s", input)
+	} else {
+		k.Kind = meta.ParseKind(splitInput[0])
+		k.UID = meta.UID(splitInput[1])
+	}
+
+	return
 }
 
 // String returns the virtual path for the Kind
