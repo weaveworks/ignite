@@ -56,9 +56,9 @@ func Convert_ignite_OCIImageSource_To_v1alpha1_OCIImageSource(in *ignite.OCIImag
 	// populate the ID field of v1alpha1.OCIImageSource. Otherwise add the
 	// the repo digest of the ID as the only digest for v1alpha1.
 	if in.ID.Local() {
-		out.ID = in.ID.Digest()
+		out.ID = in.ID.Digest().String()
 	} else {
-		out.RepoDigests = []string{in.ID.RepoDigest()}
+		out.RepoDigests = []string{in.ID.RepoDigest().String()}
 	}
 
 	return nil

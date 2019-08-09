@@ -4,9 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/containers/image/docker/reference"
 	"github.com/opencontainers/go-digest"
+)
+
+const (
+	ociSchemeRegistry = "oci://"
+	ociSchemeLocal    = "docker://"
 )
 
 // NewOCIImageRef parses and normalizes a reference to an OCI (docker) image.
@@ -46,6 +52,11 @@ func (i *OCIImageRef) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// ParseOCIContentID takes in a string to parse into an *OCIContentID
+// If given a local Docker SHA like "sha256:3285f65b2651c68b5316e7a1fbabd30b5ae47914ac5791ac4bb9d59d029b924b",
+// it will be parsed into the local format, encoded as "docker://<SHA>". Given a full repo digest, such as
+// "weaveworks/ignite-ubuntu@sha256:3285f65b2651c68b5316e7a1fbabd30b5ae47914ac5791ac4bb9d59d029b924b", it will
+// be parsed into the OCI registry format, encoded as "oci://<full path>@<SHA>".
 func ParseOCIContentID(str string) (*OCIContentID, error) {
 	named, err := reference.ParseDockerRef(str)
 	if err != nil {
@@ -78,11 +89,12 @@ var _ json.Marshaler = &OCIContentID{}
 var _ json.Unmarshaler = &OCIContentID{}
 
 func (o *OCIContentID) String() string {
-	if len(o.repoName) > 0 {
-		return fmt.Sprintf("oci://%s", o.RepoDigest())
+	scheme := ociSchemeRegistry
+	if o.Local() {
+		scheme = ociSchemeLocal
 	}
 
-	return fmt.Sprintf("docker://%s", o.Digest())
+	return scheme + o.ociString()
 }
 
 func parseOCIString(s string) (*OCIContentID, error) {
@@ -95,20 +107,32 @@ func parseOCIString(s string) (*OCIContentID, error) {
 	return ParseOCIContentID(u.Host + u.Path)
 }
 
+// ociString returns the internal string representation for either format
+func (o *OCIContentID) ociString() string {
+	var sb strings.Builder
+	if !o.Local() {
+		sb.WriteString(o.repoName + "@")
+	}
+
+	sb.WriteString(o.digest)
+	return sb.String()
+}
+
 // Local returns true if the image has no repoName, i.e. it's not available from a registry
 func (o *OCIContentID) Local() bool {
 	return len(o.repoName) == 0
 }
 
-// Digest is a getter for the digest field
-func (o *OCIContentID) Digest() string {
-	return o.digest
+// Digest gets the digest of the content ID
+func (o *OCIContentID) Digest() digest.Digest {
+	return digest.Digest(o.digest)
 }
 
 // RepoDigest returns a repo digest based on the OCIContentID if it is not local
-func (o *OCIContentID) RepoDigest() (s string) {
+func (o *OCIContentID) RepoDigest() (n reference.Named) {
 	if !o.Local() {
-		s = fmt.Sprintf("%s@%s", o.repoName, o.digest)
+		// Were parsing already validated data, ignore the error
+		n, _ = reference.ParseDockerRef(o.ociString())
 	}
 
 	return
