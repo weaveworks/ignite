@@ -504,9 +504,8 @@ func Convert_ignite_OCIImageClaim_To_v1alpha2_OCIImageClaim(in *ignite.OCIImageC
 }
 
 func autoConvert_v1alpha2_OCIImageSource_To_ignite_OCIImageSource(in *OCIImageSource, out *ignite.OCIImageSource, s conversion.Scope) error {
-	out.ID = in.ID
+	out.ID = (*v1alpha1.OCIContentID)(unsafe.Pointer(in.ID))
 	out.Size = in.Size
-	out.RepoDigests = *(*[]string)(unsafe.Pointer(&in.RepoDigests))
 	return nil
 }
 
@@ -516,9 +515,8 @@ func Convert_v1alpha2_OCIImageSource_To_ignite_OCIImageSource(in *OCIImageSource
 }
 
 func autoConvert_ignite_OCIImageSource_To_v1alpha2_OCIImageSource(in *ignite.OCIImageSource, out *OCIImageSource, s conversion.Scope) error {
-	out.ID = in.ID
+	out.ID = (*v1alpha1.OCIContentID)(unsafe.Pointer(in.ID))
 	out.Size = in.Size
-	out.RepoDigests = *(*[]string)(unsafe.Pointer(&in.RepoDigests))
 	return nil
 }
 

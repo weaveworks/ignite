@@ -28,12 +28,22 @@
       - [func (k Kind) Lower() string](#Kind.Lower)
       - [func (k Kind) String() string](#Kind.String)
       - [func (k Kind) Title() string](#Kind.Title)
+  - [type OCIContentID](#OCIContentID)
+      - [func ParseOCIContentID(str string) (\*OCIContentID,
+        error)](#ParseOCIContentID)
+      - [func (o \*OCIContentID) Digest() string](#OCIContentID.Digest)
+      - [func (o \*OCIContentID) Local() bool](#OCIContentID.Local)
+      - [func (o \*OCIContentID) MarshalJSON() (\[\]byte,
+        error)](#OCIContentID.MarshalJSON)
+      - [func (o \*OCIContentID) RepoDigest() (s
+        string)](#OCIContentID.RepoDigest)
+      - [func (o \*OCIContentID) String() string](#OCIContentID.String)
+      - [func (o \*OCIContentID) UnmarshalJSON(b \[\]byte) (err
+        error)](#OCIContentID.UnmarshalJSON)
   - [type OCIImageRef](#OCIImageRef)
       - [func NewOCIImageRef(imageStr string) (OCIImageRef,
         error)](#NewOCIImageRef)
       - [func (i OCIImageRef) IsUnset() bool](#OCIImageRef.IsUnset)
-      - [func (i OCIImageRef) MarshalJSON() (\[\]byte,
-        error)](#OCIImageRef.MarshalJSON)
       - [func (i OCIImageRef) String() string](#OCIImageRef.String)
       - [func (i \*OCIImageRef) UnmarshalJSON(b \[\]byte)
         error](#OCIImageRef.UnmarshalJSON)
@@ -240,13 +250,71 @@ func (k Kind) Title() string
 
 Returns a title case string representation of the Kind
 
-## <a name="OCIImageRef">type</a> [OCIImageRef](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=562:585#L23)
+## <a name="OCIContentID">type</a> [OCIContentID](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=1396:1637#L72)
+
+``` go
+type OCIContentID struct {
+    // contains filtered or unexported fields
+}
+```
+
+### <a name="ParseOCIContentID">func</a> [ParseOCIContentID](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=967:1024#L49)
+
+``` go
+func ParseOCIContentID(str string) (*OCIContentID, error)
+```
+
+### <a name="OCIContentID.Digest">func</a> (\*OCIContentID) [Digest](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=2344:2382#L104)
+
+``` go
+func (o *OCIContentID) Digest() string
+```
+
+Digest is a getter for the digest field
+
+### <a name="OCIContentID.Local">func</a> (\*OCIContentID) [Local](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=2231:2266#L99)
+
+``` go
+func (o *OCIContentID) Local() bool
+```
+
+Local returns true if the image has no repoName, i.e. it’s not available
+from a registry
+
+### <a name="OCIContentID.MarshalJSON">func</a> (\*OCIContentID) [MarshalJSON](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=2616:2668#L117)
+
+``` go
+func (o *OCIContentID) MarshalJSON() ([]byte, error)
+```
+
+### <a name="OCIContentID.RepoDigest">func</a> (\*OCIContentID) [RepoDigest](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=2486:2532#L109)
+
+``` go
+func (o *OCIContentID) RepoDigest() (s string)
+```
+
+RepoDigest returns a repo digest based on the OCIContentID if it is not
+local
+
+### <a name="OCIContentID.String">func</a> (\*OCIContentID) [String](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=1720:1758#L80)
+
+``` go
+func (o *OCIContentID) String() string
+```
+
+### <a name="OCIContentID.UnmarshalJSON">func</a> (\*OCIContentID) [UnmarshalJSON](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=2707:2765#L121)
+
+``` go
+func (o *OCIContentID) UnmarshalJSON(b []byte) (err error)
+```
+
+## <a name="OCIImageRef">type</a> [OCIImageRef](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=586:609#L25)
 
 ``` go
 type OCIImageRef string
 ```
 
-### <a name="NewOCIImageRef">func</a> [NewOCIImageRef](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=181:238#L11)
+### <a name="NewOCIImageRef">func</a> [NewOCIImageRef](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=231:288#L13)
 
 ``` go
 func NewOCIImageRef(imageStr string) (OCIImageRef, error)
@@ -255,25 +323,19 @@ func NewOCIImageRef(imageStr string) (OCIImageRef, error)
 NewOCIImageRef parses and normalizes a reference to an OCI (docker)
 image.
 
-### <a name="OCIImageRef.IsUnset">func</a> (OCIImageRef) [IsUnset](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=685:720#L31)
+### <a name="OCIImageRef.IsUnset">func</a> (OCIImageRef) [IsUnset](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=709:744#L33)
 
 ``` go
 func (i OCIImageRef) IsUnset() bool
 ```
 
-### <a name="OCIImageRef.MarshalJSON">func</a> (OCIImageRef) [MarshalJSON](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=746:796#L35)
-
-``` go
-func (i OCIImageRef) MarshalJSON() ([]byte, error)
-```
-
-### <a name="OCIImageRef.String">func</a> (OCIImageRef) [String](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=625:661#L27)
+### <a name="OCIImageRef.String">func</a> (OCIImageRef) [String](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=649:685#L29)
 
 ``` go
 func (i OCIImageRef) String() string
 ```
 
-### <a name="OCIImageRef.UnmarshalJSON">func</a> (\*OCIImageRef) [UnmarshalJSON](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=834:885#L39)
+### <a name="OCIImageRef.UnmarshalJSON">func</a> (\*OCIImageRef) [UnmarshalJSON](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/image.go?s=770:821#L37)
 
 ``` go
 func (i *OCIImageRef) UnmarshalJSON(b []byte) error
