@@ -25,6 +25,7 @@
   - [type IPAddresses](#IPAddresses)
       - [func (i IPAddresses) String() string](#IPAddresses.String)
   - [type Kind](#Kind)
+      - [func ParseKind(input string) Kind](#ParseKind)
       - [func (k Kind) Lower() string](#Kind.Lower)
       - [func (k Kind) String() string](#Kind.String)
       - [func (k Kind) Title() string](#Kind.Title)
@@ -216,6 +217,14 @@ func (i IPAddresses) String() string
 type Kind string
 ```
 
+### <a name="ParseKind">func</a> [ParseKind](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=2055:2088#L95)
+
+``` go
+func ParseKind(input string) Kind
+```
+
+Returns a Kind parsed from the given string
+
 ### <a name="Kind.Lower">func</a> (Kind) [Lower](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=1933:1961#L90)
 
 ``` go
@@ -279,7 +288,7 @@ func (i OCIImageRef) String() string
 func (i *OCIImageRef) UnmarshalJSON(b []byte) error
 ```
 
-## <a name="Object">type</a> [Object](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=4013:4448#L174)
+## <a name="Object">type</a> [Object](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=4245:4680#L186)
 
 ``` go
 type Object interface {
@@ -312,7 +321,7 @@ type Object interface {
 Object extends k8s.io/apimachinery’s runtime.Object with extra GetName()
 and GetUID() methods from ObjectMeta
 
-## <a name="ObjectMeta">type</a> [ObjectMeta](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=2168:2460#L97)
+## <a name="ObjectMeta">type</a> [ObjectMeta](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=2400:2692#L109)
 
 ``` go
 type ObjectMeta struct {
@@ -328,7 +337,7 @@ ObjectMeta have to be embedded into any serializable object. It provides
 the .GetName() and .GetUID() methods that help implement the Object
 interface
 
-### <a name="ObjectMeta.GetAnnotation">func</a> (\*ObjectMeta) [GetAnnotation](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3568:3621#L157)
+### <a name="ObjectMeta.GetAnnotation">func</a> (\*ObjectMeta) [GetAnnotation](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3800:3853#L169)
 
 ``` go
 func (o *ObjectMeta) GetAnnotation(key string) string
@@ -336,7 +345,7 @@ func (o *ObjectMeta) GetAnnotation(key string) string
 
 GetAnnotation returns the label value for the key
 
-### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3005:3043#L131)
+### <a name="ObjectMeta.GetCreated">func</a> (\*ObjectMeta) [GetCreated](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3237:3275#L143)
 
 ``` go
 func (o *ObjectMeta) GetCreated() Time
@@ -344,7 +353,7 @@ func (o *ObjectMeta) GetCreated() Time
 
 GetCreated returns when the Object was created
 
-### <a name="ObjectMeta.GetLabel">func</a> (\*ObjectMeta) [GetLabel](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3226:3274#L141)
+### <a name="ObjectMeta.GetLabel">func</a> (\*ObjectMeta) [GetLabel](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3458:3506#L153)
 
 ``` go
 func (o *ObjectMeta) GetLabel(key string) string
@@ -352,7 +361,7 @@ func (o *ObjectMeta) GetLabel(key string) string
 
 GetLabel returns the label value for the key
 
-### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=2611:2648#L111)
+### <a name="ObjectMeta.GetName">func</a> (\*ObjectMeta) [GetName](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=2843:2880#L123)
 
 ``` go
 func (o *ObjectMeta) GetName() string
@@ -360,7 +369,7 @@ func (o *ObjectMeta) GetName() string
 
 GetName returns the name of the Object
 
-### <a name="ObjectMeta.GetObjectMeta">func</a> (\*ObjectMeta) [GetObjectMeta](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=2505:2553#L106)
+### <a name="ObjectMeta.GetObjectMeta">func</a> (\*ObjectMeta) [GetObjectMeta](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=2737:2785#L118)
 
 ``` go
 func (o *ObjectMeta) GetObjectMeta() *ObjectMeta
@@ -368,7 +377,7 @@ func (o *ObjectMeta) GetObjectMeta() *ObjectMeta
 
 This is a helper for APIType generation
 
-### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=2810:2843#L121)
+### <a name="ObjectMeta.GetUID">func</a> (\*ObjectMeta) [GetUID](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3042:3075#L133)
 
 ``` go
 func (o *ObjectMeta) GetUID() UID
@@ -376,7 +385,7 @@ func (o *ObjectMeta) GetUID() UID
 
 GetUID returns the UID of the Object
 
-### <a name="ObjectMeta.SetAnnotation">func</a> (\*ObjectMeta) [SetAnnotation](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3742:3795#L165)
+### <a name="ObjectMeta.SetAnnotation">func</a> (\*ObjectMeta) [SetAnnotation](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3974:4027#L177)
 
 ``` go
 func (o *ObjectMeta) SetAnnotation(key, value string)
@@ -384,7 +393,7 @@ func (o *ObjectMeta) SetAnnotation(key, value string)
 
 SetAnnotation sets a label value for a key
 
-### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3118:3157#L136)
+### <a name="ObjectMeta.SetCreated">func</a> (\*ObjectMeta) [SetCreated](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3350:3389#L148)
 
 ``` go
 func (o *ObjectMeta) SetCreated(t Time)
@@ -392,7 +401,7 @@ func (o *ObjectMeta) SetCreated(t Time)
 
 SetCreated sets the creation time of the Object
 
-### <a name="ObjectMeta.SetLabel">func</a> (\*ObjectMeta) [SetLabel](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3380:3428#L149)
+### <a name="ObjectMeta.SetLabel">func</a> (\*ObjectMeta) [SetLabel](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3612:3660#L161)
 
 ``` go
 func (o *ObjectMeta) SetLabel(key, value string)
@@ -400,7 +409,7 @@ func (o *ObjectMeta) SetLabel(key, value string)
 
 SetLabel sets a label value for a key
 
-### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=2708:2749#L116)
+### <a name="ObjectMeta.SetName">func</a> (\*ObjectMeta) [SetName](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=2940:2981#L128)
 
 ``` go
 func (o *ObjectMeta) SetName(name string)
@@ -408,7 +417,7 @@ func (o *ObjectMeta) SetName(name string)
 
 SetName sets the name of the Object
 
-### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=2900:2936#L126)
+### <a name="ObjectMeta.SetUID">func</a> (\*ObjectMeta) [SetUID](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/meta.go?s=3132:3168#L138)
 
 ``` go
 func (o *ObjectMeta) SetUID(uid UID)

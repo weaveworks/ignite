@@ -19,6 +19,7 @@ require (
 	github.com/gogo/protobuf v1.2.2-0.20190723190241-65acae22fc9d // indirect
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/gorilla/mux v1.7.2 // indirect
+	github.com/json-iterator/go v1.1.7 // indirect
 	github.com/krolaw/dhcp4 v0.0.0-20190531080455-7b64900047ae
 	github.com/lithammer/dedent v1.1.0
 	github.com/miekg/dns v1.1.14
