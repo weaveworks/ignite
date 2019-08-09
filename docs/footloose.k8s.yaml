@@ -1,0 +1,38 @@
+cluster:
+  name: cluster
+  privateKey: cluster-key
+machines:
+- count: 1
+  spec:
+    image: weaveworks/ignite-kubeadm:latest
+    name: master%d
+    portMappings:
+    - containerPort: 22
+    backend: ignite
+    ignite:
+      cpus: 2
+      memory: 4GB
+      diskSize: 30GB
+      kernel: "weaveworks/ignite-kernel:4.19.47"
+      copyFiles:
+        "<ABSOLUTE_PATH>/run/config.yaml": "/kubeadm.yaml"
+        "<ABSOLUTE_PATH>/run/pki/ca.crt": "/etc/kubernetes/pki/ca.crt"
+        "<ABSOLUTE_PATH>/run/pki/ca.key": "/etc/kubernetes/pki/ca.key"
+        "<ABSOLUTE_PATH>/k8s-master.sh": "/usr/bin/kluster.sh"
+- count: 1
+  spec:
+    image: weaveworks/ignite-kubeadm:latest
+    name: worker%d
+    portMappings:
+    - containerPort: 22
+    backend: ignite
+    ignite:
+      cpus: 2
+      memory: 2GB
+      diskSize: 30GB
+      kernel: "weaveworks/ignite-kernel:4.19.47"
+      copyFiles:
+        "<ABSOLUTE_PATH>/run/k8s-vars.sh": "/etc/profile.d/02-k8s.sh"
+        "<ABSOLUTE_PATH>/run/config-join.yaml": "/kubeadm-join.yaml"
+        "<ABSOLUTE_PATH>/k8s-worker.sh": "/usr/bin/kluster.sh"
+        "<ABSOLUTE_PATH>/run/admin.conf": "/admin.conf"
