@@ -38,15 +38,13 @@ func NewGenericWatchStorage(s storage.Storage) (WatchStorage, error) {
 
 	var err error
 	var files []string
-	if ws.watcher, files, err = watcher.NewFileWatcher(s.RawStorage().Dir()); err != nil {
+	if ws.watcher, files, err = watcher.NewFileWatcher(s.RawStorage().WatchDir()); err != nil {
 		return nil, err
 	}
 
-	if mapped, ok := ws.RawStorage().(storage.MappedRawStorage); ok {
-		ws.monitor = sync.RunMonitor(func() {
-			ws.monitorFunc(mapped, files) // Offload the file registration to the goroutine
-		})
-	}
+	ws.monitor = sync.RunMonitor(func() {
+		ws.monitorFunc(ws.RawStorage(), files) // Offload the file registration to the goroutine
+	})
 
 	return ws, nil
 }
@@ -89,16 +87,19 @@ func (s *GenericWatchStorage) Close() error {
 	return nil
 }
 
-func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files []string) {
+func (s *GenericWatchStorage) monitorFunc(raw storage.RawStorage, files []string) {
 	log.Debug("GenericWatchStorage: Monitoring thread started")
 	defer log.Debug("GenericWatchStorage: Monitoring thread stopped")
 
-	// Fill the mappings of the MappedRawStorage before starting to monitor changes
+	// Send a MODIFY event for all files (and fill the mappings
+	// of the MappedRawStorage) before starting to monitor changes
 	for _, file := range files {
 		if obj, err := resolveAPIType(file); err != nil {
 			log.Warnf("Ignoring %q: %v", file, err)
 		} else {
-			mapped.AddMapping(storage.NewKey(obj.GetKind(), obj.GetUID()), file)
+			if mapped, ok := raw.(storage.MappedRawStorage); ok {
+				mapped.AddMapping(storage.NewKey(obj.GetKind(), obj.GetUID()), file)
+			}
 			// Send the event to the events channel
 			s.sendEvent(update.ObjectEventModify, obj)
 		}
@@ -120,7 +121,7 @@ func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files
 			log.Tracef("GenericWatchStorage: Processing event: %s", event.Event)
 			if event.Event == watcher.FileEventDelete {
 				var key storage.Key
-				if key, err = mapped.GetMapping(event.Path); err != nil {
+				if key, err = raw.GetKey(event.Path); err != nil {
 					log.Warnf("Failed to retrieve data for %q: %v", event.Path, err)
 					continue
 				}
@@ -143,8 +144,10 @@ func (s *GenericWatchStorage) monitorFunc(mapped storage.MappedRawStorage, files
 
 				// This is based on the key's existence instead of watcher.EventCreate,
 				// as Objects can get updated (via watcher.FileEventModify) to be conformant
-				if _, err = mapped.GetMapping(event.Path); err != nil {
-					mapped.AddMapping(storage.NewKey(obj.GetKind(), obj.GetUID()), event.Path)
+				if _, err = raw.GetKey(event.Path); err != nil {
+					if mapped, ok := raw.(storage.MappedRawStorage); ok {
+						mapped.AddMapping(storage.NewKey(obj.GetKind(), obj.GetUID()), event.Path)
+					}
 					// This is what actually determines if an Object is created,
 					// so update the event to update.ObjectEventCreate here
 					objectEvent = update.ObjectEventCreate
