@@ -18,9 +18,6 @@ type MappedRawStorage interface {
 
 	// AddMapping binds a Key's virtual path to a physical file path
 	AddMapping(key Key, path string)
-	// GetMapping retrieves the Key containing the virtual
-	// path based on the given physical file path
-	GetMapping(path string) (Key, error)
 	// RemoveMapping removes the physical file
 	// path mapping matching the given Key
 	RemoveMapping(key Key)
@@ -135,16 +132,11 @@ func (r *GenericMappedRawStorage) Format(key Key) (f Format) {
 	return
 }
 
-func (r *GenericMappedRawStorage) Dir() string {
+func (r *GenericMappedRawStorage) WatchDir() string {
 	return r.dir
 }
 
-func (r *GenericMappedRawStorage) AddMapping(key Key, path string) {
-	log.Debugf("GenericMappedRawStorage: AddMapping: %q -> %q", key, path)
-	r.fileMappings[key] = path
-}
-
-func (r *GenericMappedRawStorage) GetMapping(path string) (Key, error) {
+func (r *GenericMappedRawStorage) GetKey(path string) (Key, error) {
 	for key, p := range r.fileMappings {
 		if p == path {
 			return key, nil
@@ -152,6 +144,11 @@ func (r *GenericMappedRawStorage) GetMapping(path string) (Key, error) {
 	}
 
 	return Key{}, fmt.Errorf("no mapping found for path %q", path)
+}
+
+func (r *GenericMappedRawStorage) AddMapping(key Key, path string) {
+	log.Debugf("GenericMappedRawStorage: AddMapping: %q -> %q", key, path)
+	r.fileMappings[key] = path
 }
 
 func (r *GenericMappedRawStorage) RemoveMapping(key Key) {

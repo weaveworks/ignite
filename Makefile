@@ -16,6 +16,8 @@ CACHE_DIR = $(shell pwd)/bin/cache
 DOCS_PORT = 8000
 # Specifies if this is a CI build or not; if it is, it will save the docker image created to bin/$(GOARCH)/image.tar
 IS_CI_BUILD ?= 0
+# Unset any GOFLAGS that would interfere with the build
+undefine GOFLAGS
 
 ## Multi-platform-related stuff
 GOHOSTARCH = $(shell go env GOARCH 2>/dev/null || echo "amd64")

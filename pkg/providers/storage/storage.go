@@ -13,6 +13,6 @@ func SetGenericStorage() error {
 	log.Trace("Initializing the GenericStorage provider...")
 	providers.Storage = cache.NewCache(
 		storage.NewGenericStorage(
-			storage.NewDefaultRawStorage(constants.DATA_DIR), scheme.Serializer))
+			storage.NewGenericRawStorage(constants.DATA_DIR), scheme.Serializer))
 	return nil
 }

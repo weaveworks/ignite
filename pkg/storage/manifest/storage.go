@@ -16,7 +16,7 @@ func NewManifestStorage(dataDir string) (*ManifestStorage, error) {
 
 	ss := sync.NewSyncStorage(
 		storage.NewGenericStorage(
-			storage.NewDefaultRawStorage(constants.DATA_DIR), scheme.Serializer),
+			storage.NewGenericRawStorage(constants.DATA_DIR), scheme.Serializer),
 		ws)
 
 	return &ManifestStorage{
