@@ -8,8 +8,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage"
 )
 
-// NetworkPlugin provides the default network plugin implementation
-var NetworkPlugin network.Plugin
+// NetworkPlugins provides the initialized network plugins indexed by their name
+var NetworkPlugins map[string]network.Plugin
 
 // Runtime provides the default container runtime
 var Runtime runtime.Interface
@@ -21,6 +21,10 @@ var Client *client.Client
 var Storage storage.Storage
 
 type ProviderInitFunc func() error
+
+func init() {
+	NetworkPlugins = make(map[string]network.Plugin)
+}
 
 // Populate initializes all providers
 func Populate(providers []ProviderInitFunc) error {
