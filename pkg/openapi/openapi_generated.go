@@ -60,6 +60,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VolumeMount":       schema_pkg_apis_ignite_v1alpha2_VolumeMount(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.APIType":             schema_pkg_apis_meta_v1alpha1_APIType(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.DMID":                schema_pkg_apis_meta_v1alpha1_DMID(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIContentID":        schema_pkg_apis_meta_v1alpha1_OCIContentID(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta":          schema_pkg_apis_meta_v1alpha1_ObjectMeta(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.PortMapping":         schema_pkg_apis_meta_v1alpha1_PortMapping(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size":                schema_pkg_apis_meta_v1alpha1_Size(ref),
@@ -964,9 +965,8 @@ func schema_pkg_apis_ignite_v1alpha2_OCIImageSource(ref common.ReferenceCallback
 				Properties: map[string]spec.Schema{
 					"id": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ID defines the source's ID (e.g. the Docker image ID)",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "ID defines the source's content ID (e.g. the canonical OCI path or Docker image ID)",
+							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIContentID"),
 						},
 					},
 					"size": {
@@ -975,26 +975,12 @@ func schema_pkg_apis_ignite_v1alpha2_OCIImageSource(ref common.ReferenceCallback
 							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"),
 						},
 					},
-					"repoDigests": {
-						SchemaProps: spec.SchemaProps{
-							Description: "RepoDigests defines the image name as it was when pulled from a repository, and the digest of the image The format is $registry/$user/$image@sha256:$digest This field is unpopulated if the image used as the source has never been pushed to or pulled from a registry",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
 				},
 				Required: []string{"id", "size"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
+			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIContentID", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
 	}
 }
 
@@ -1547,6 +1533,32 @@ func schema_pkg_apis_meta_v1alpha1_DMID(ref common.ReferenceCallback) common.Ope
 					},
 				},
 				Required: []string{"index"},
+			},
+		},
+	}
+}
+
+func schema_pkg_apis_meta_v1alpha1_OCIContentID(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"repoName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"digest": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Fully qualified image name, e.g. \"docker.io/library/node\" or blank if the image is local",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+				Required: []string{"repoName", "digest"},
 			},
 		},
 	}

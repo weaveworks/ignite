@@ -52,16 +52,10 @@ type OCIImageClaim struct {
 // OCIImageSource specifies how the OCI image was imported.
 // It is the status variant of OCIImageClaim
 type OCIImageSource struct {
-	// ID defines the source's ID (e.g. the Docker image ID)
-	ID string `json:"id"`
+	// ID defines the source's content ID (e.g. the canonical OCI path or Docker image ID)
+	ID *meta.OCIContentID `json:"id"`
 	// Size defines the size of the source in bytes
 	Size meta.Size `json:"size"`
-	// RepoDigests defines the image name as it was when pulled
-	// from a repository, and the digest of the image
-	// The format is $registry/$user/$image@sha256:$digest
-	// This field is unpopulated if the image used as the source
-	// has never been pushed to or pulled from a registry
-	RepoDigests []string `json:"repoDigests,omitempty"`
 }
 
 // ImageStatus defines the status of the image

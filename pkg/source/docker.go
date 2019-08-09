@@ -54,10 +54,26 @@ func (ds *DockerSource) Parse(ociRef meta.OCIImageRef) (*api.OCIImageSource, err
 	}
 
 	ds.imageID = res.ID
+
+	// By default parse the OCI content ID from the Docker image ID
+	contentRef := res.ID
+	if len(res.RepoDigests) > 0 {
+		// If the image has Repo digests, use the first one of them to parse
+		// the fully qualified OCI image name and digest. All of the digests
+		// point to the same contents, so it doesn't matter which one we use
+		// here. It will be translated to the right content by the runtime.
+		contentRef = res.RepoDigests[0]
+	}
+
+	// Parse the OCI content ID based on the available reference
+	ci, err := meta.ParseOCIContentID(contentRef)
+	if err != nil {
+		return nil, err
+	}
+
 	return &api.OCIImageSource{
-		ID:          res.ID,
-		RepoDigests: res.RepoDigests,
-		Size:        meta.NewSizeFromBytes(uint64(res.Size)),
+		ID:   ci,
+		Size: meta.NewSizeFromBytes(uint64(res.Size)),
 	}, nil
 }
 
