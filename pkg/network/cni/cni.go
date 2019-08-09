@@ -9,6 +9,7 @@ import (
 
 	"github.com/containernetworking/cni/libcni"
 	cnitypes "github.com/containernetworking/cni/pkg/types"
+	cnicurrentapi "github.com/containernetworking/cni/pkg/types/current"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/network"
 	"github.com/weaveworks/ignite/pkg/runtime"
@@ -162,22 +163,46 @@ func (plugin *cniNetworkPlugin) Status() error {
 	return plugin.checkInitialized()
 }
 
-func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string) error {
+func (plugin *cniNetworkPlugin) PrepareContainerSpec(container *runtime.ContainerConfig) error {
+	// we will handle the networking on our own
+	container.NetworkMode = "none"
+	return nil
+}
+
+func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string) (*network.Result, error) {
 	if err := plugin.checkInitialized(); err != nil {
-		return err
+		return nil, err
 	}
 
 	netnsPath, err := plugin.runtime.ContainerNetNS(containerid)
 	if err != nil {
-		return fmt.Errorf("CNI failed to retrieve network namespace path: %v", err)
+		return nil, fmt.Errorf("CNI failed to retrieve network namespace path: %v", err)
 	}
 
 	if _, err = plugin.addToNetwork(plugin.loNetwork, containerid, netnsPath); err != nil {
-		return err
+		return nil, err
 	}
 
-	_, err = plugin.addToNetwork(plugin.getDefaultNetwork(), containerid, netnsPath)
-	return err
+	genericResult, err := plugin.addToNetwork(plugin.getDefaultNetwork(), containerid, netnsPath)
+	if err != nil {
+		return nil, err
+	}
+	result, err := cnicurrentapi.NewResultFromResult(genericResult)
+	if err != nil {
+		return nil, err
+	}
+	return cniToIgniteResult(result), nil
+}
+
+func cniToIgniteResult(r *cnicurrentapi.Result) *network.Result {
+	result := &network.Result{}
+	for _, ip := range r.IPs {
+		result.Addresses = append(result.Addresses, network.Address{
+			IPNet:   ip.Address,
+			Gateway: ip.Gateway,
+		})
+	}
+	return result
 }
 
 func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerid string) error {
