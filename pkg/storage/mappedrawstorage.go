@@ -135,7 +135,7 @@ func (r *GenericMappedRawStorage) Format(key Key) (f Format) {
 	return
 }
 
-func (r *GenericMappedRawStorage) Dir() string {
+func (r *GenericMappedRawStorage) WatchDir() string {
 	return r.dir
 }
 

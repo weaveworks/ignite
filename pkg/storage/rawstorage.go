@@ -12,15 +12,26 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
+// RawStorage is a Key-indexed low-level interface to
+// store byte-encoded Objects (resources) in non-volatile
+// memory.
 type RawStorage interface {
+	// Read returns a resource's content based on key
 	Read(key Key) ([]byte, error)
+	// Exists checks if the resource indicated by key exists
 	Exists(key Key) bool
+	// Write writes the given content to the resource indicated by key
 	Write(key Key, content []byte) error
+	// Delete deletes the resource indicated by key
 	Delete(key Key) error
+	// List returns all matching resource Keys based on the given KindKey
 	List(key KindKey) ([]Key, error)
+	// Checksum returns a string checksum for the resource indicated by key
 	Checksum(key Key) (string, error)
+	// Format returns the format of the contents of the resource indicated by key
 	Format(key Key) Format
-	Dir() string
+	// WatchDir returns the path for Watchers to watch changes in
+	WatchDir() string
 }
 
 func NewDefaultRawStorage(dir string) RawStorage {
@@ -106,6 +117,6 @@ func (r *DefaultRawStorage) Format(key Key) Format {
 	return FormatJSON // The DefaultRawStorage always uses JSON
 }
 
-func (r *DefaultRawStorage) Dir() string {
+func (r *DefaultRawStorage) WatchDir() string {
 	return r.dir
 }

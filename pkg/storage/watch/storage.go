@@ -38,7 +38,7 @@ func NewGenericWatchStorage(s storage.Storage) (WatchStorage, error) {
 
 	var err error
 	var files []string
-	if ws.watcher, files, err = watcher.NewFileWatcher(s.RawStorage().Dir()); err != nil {
+	if ws.watcher, files, err = watcher.NewFileWatcher(s.RawStorage().WatchDir()); err != nil {
 		return nil, err
 	}
 
