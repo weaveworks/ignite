@@ -60,8 +60,8 @@ func RemoveVMContainer(vm meta.Object) error {
 		return fmt.Errorf("failed to remove container for VM %q: %v", vm.GetUID(), err)
 	}
 
-	// Remove the CNI networking of the VM
-	return removeCNINetworking(vm.(*api.VM), result.ID)
+	// Tear down the networking of the VM
+	return removeNetworking(vm.(*api.VM), result.ID)
 }
 
 // StopVM stops or kills a VM
@@ -95,13 +95,9 @@ func StopVM(vm *api.VM, kill, silent bool) error {
 	return nil
 }
 
-func removeCNINetworking(vm *api.VM, containerID string) error {
-	// Skip all other network modes
-	if vm.Spec.Network.Mode != api.NetworkModeCNI {
-		return nil
-	}
-
+func removeNetworking(vm *api.VM, containerID string) error {
 	// Perform the removal
-	log.Infof("Trying to remove the container with ID %q from the CNI network", containerID)
-	return providers.NetworkPlugin.RemoveContainerNetwork(containerID)
+	networkPlugin := providers.NetworkPlugins[vm.Spec.Network.Mode.String()]
+	log.Debugf("Removing the container with ID %q from the %s network", networkPlugin.Name(), containerID)
+	return networkPlugin.RemoveContainerNetwork(containerID)
 }

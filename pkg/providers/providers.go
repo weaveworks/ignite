@@ -8,8 +8,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/storage"
 )
 
-// NetworkPlugin provides the default network plugin implementation
-var NetworkPlugin network.Plugin
+// NetworkPlugins provides the initialized network plugins indexed by their name
+var NetworkPlugins = make(map[string]network.Plugin)
 
 // Runtime provides the default container runtime
 var Runtime runtime.Interface

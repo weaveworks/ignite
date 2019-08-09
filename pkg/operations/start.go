@@ -92,9 +92,11 @@ func StartVM(vm *api.VM, debug bool) error {
 		})
 	}
 
-	// If the VM is using CNI networking, disable Docker's own implementation
-	if vm.Spec.Network.Mode == api.NetworkModeCNI {
-		config.NetworkMode = "none"
+	networkPlugin := providers.NetworkPlugins[vm.Spec.Network.Mode.String()]
+
+	// Prepare the networking for the container, for the given network plugin
+	if err := networkPlugin.PrepareContainerSpec(config); err != nil {
+		return err
 	}
 
 	// If we're not debugging, remove the container post-run
@@ -108,21 +110,13 @@ func StartVM(vm *api.VM, debug bool) error {
 		return fmt.Errorf("failed to start container for VM %q: %v", vm.GetUID(), err)
 	}
 
-	// Set the container ID for the VM
-	vm.Status.Runtime = &api.Runtime{ID: containerID}
-
-	// Set the start time for the VM
-	startTime := meta.Timestamp()
-	vm.Status.StartTime = &startTime
-
-	if vm.Spec.Network.Mode == api.NetworkModeCNI {
-		if err := providers.NetworkPlugin.SetupContainerNetwork(containerID); err != nil {
-			return err
-		}
-
-		log.Infof("Networking is now handled by CNI")
+	// Set up the networking
+	result, err := networkPlugin.SetupContainerNetwork(containerID)
+	if err != nil {
+		return err
 	}
 
+	log.Infof("Networking is handled by %q", networkPlugin.Name())
 	log.Infof("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
 
 	// TODO: Follow-up the container here with a defer, or dedicated goroutine. We should output
@@ -132,15 +126,17 @@ func StartVM(vm *api.VM, debug bool) error {
 		return err
 	}
 
-	// This is used to fetch the IP address the runtime gives to the VM container
-	// TODO: This needs to be handled differently for CNI, the IP address will be blank
-	result, err := providers.Runtime.InspectContainer(containerID)
-	if err != nil {
-		return fmt.Errorf("failed to inspect container for VM %q: %v", vm.GetUID(), err)
-	}
+	// Set the container ID for the VM
+	vm.Status.Runtime = &api.Runtime{ID: containerID}
+
+	// Set the start time for the VM
+	startTime := meta.Timestamp()
+	vm.Status.StartTime = &startTime
 
 	// Append the runtime IP address of the VM to its state
-	vm.Status.IPAddresses = append(vm.Status.IPAddresses, result.IPAddress)
+	for _, addr := range result.Addresses {
+		vm.Status.IPAddresses = append(vm.Status.IPAddresses, addr.IP)
+	}
 
 	// Set the VM's status to running
 	vm.Status.Running = true
