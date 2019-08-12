@@ -6,6 +6,8 @@
 Ignite Documentation
 ====================
 
+.. image:: logo.png
+
 In this folder you can read more about how to use Ignite, and how it works:
 
 .. toctree::
