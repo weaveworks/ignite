@@ -49,7 +49,8 @@ write_changelog() {
         git tag -f ${FULL_VERSION}
         git push upstream --tags -f
 
-        run_gren "changelog --generate"
+        echo "Creating a changelog for PRs between tags ${FULL_VERSION}..${PREVIOUS_TAG}"
+        run_gren "changelog --generate --tags=${FULL_VERSION}..${PREVIOUS_TAG}"
         mv docs/releases/next.md docs/releases/${FULL_VERSION}.md
         # Add an extra newline in the end of the changelog
         echo "" >> docs/releases/${FULL_VERSION}.md
