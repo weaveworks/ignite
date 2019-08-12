@@ -2,7 +2,44 @@
 
 # Changelog
 
-## v0.5.0-alpha.1, 06/08/2019
+## v0.5.0-rc.1
+
+**Released:** 12/08/2019
+
+This is the first release candidate for `v0.5.0`. We hope to release `v0.5.0` very shortly.
+
+### New Features
+
+- Support external volumes (block devices) in Ignite VMs ([#275](https://github.com/weaveworks/ignite/pull/275), [@twelho](https://github.com/twelho))
+
+### API Changes
+
+- Remove `.spec.network.mode`; use a global `--network-plugin` flag instead ([#319](https://github.com/weaveworks/ignite/pull/319), [@luxas](https://github.com/luxas))
+- Rename `.spec.image.ociClaim.ref` to `.spec.image.oci` for simplicity ([#311](https://github.com/weaveworks/ignite/pull/311), [@twelho](https://github.com/twelho))
+- Redesign OCI image status: Display the image's exact repository digest ([#307](https://github.com/weaveworks/ignite/pull/307), [@twelho](https://github.com/twelho))
+- Add `.status.runtime.id` the VM container's ID ([#294](https://github.com/weaveworks/ignite/pull/294), [@twelho](https://github.com/twelho))
+- Support configuring `BindAddress` and `Protocol` for a `PortMapping` ([#299](https://github.com/weaveworks/ignite/pull/299), [@twelho](https://github.com/twelho))
+- Add `vm.status.startTime` to track the VM's uptime externally ([#296](https://github.com/weaveworks/ignite/pull/296), [@twelho](https://github.com/twelho))
+- Replace `vm.status.state` with `vm.status.running` ([#292](https://github.com/weaveworks/ignite/pull/292), [@twelho](https://github.com/twelho))
+
+### Enhancements
+
+- Refactor: Use the `netlink` library instead of exec'ing out to `ip` ([#279](https://github.com/weaveworks/ignite/pull/279), [@alexeldeib](https://github.com/alexeldeib))
+- Improve the CNI implementation, and documentation ([#308](https://github.com/weaveworks/ignite/pull/308), [@luxas](https://github.com/luxas))
+
+### Bug Fixes
+
+- Fix `ignite rm -f` for a running VM without `--debug` ([#320](https://github.com/weaveworks/ignite/pull/320), [@twelho](https://github.com/twelho))
+
+### Documentation
+
+- Add logo to docs ([#326](https://github.com/weaveworks/ignite/pull/326), [@dholbach](https://github.com/dholbach))
+- Document cloud provider instances with KVM support ([#222](https://github.com/weaveworks/ignite/pull/222), [@paavan98pm](https://github.com/paavan98pm))
+- Add Ignite + Footloose documentation ([#313](https://github.com/weaveworks/ignite/pull/313), [@robertojrojas](https://github.com/robertojrojas))
+
+## v0.5.0-alpha.1
+
+**Released:** 06/08/2019
 
 This is the first prerelease in the `v0.5.x` series. Please try it out, and also note we now have arm64 builds!
 
@@ -58,7 +95,30 @@ This is the first prerelease in the `v0.5.x` series. Please try it out, and also
 -  Add an awesome-ignite list for ignite ([#270](https://github.com/weaveworks/ignite/pull/270), [@luxas](https://github.com/luxas))
 -  Changed --kernel to --kernel-image for accuracy ([#217](https://github.com/weaveworks/ignite/pull/217), [@paavan98pm](https://github.com/paavan98pm))
 
-## v0.4.2, 16/07/2019
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.5.0-alpha.1
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+
+---
+
+## v0.4.2
+
+**Released:** 16/07/2019
 
 The second patch release for the `v0.4.x` release stream.
 If you want to have a look, here are changes for versions [v0.4.0](https://github.com/weaveworks/ignite/blob/master/CHANGELOG.md#v040)
@@ -107,7 +167,9 @@ A more throughout installation guide is available here: https://github.com/weave
 
 ---
 
-## v0.4.1, 12/07/2019
+## v0.4.1
+
+**Released:** 12/07/2019
 
 The first patch release for the `v0.4.x` release stream.
 If you want to go and look at the new and changed stuff in v0.4.0, see [here](https://github.com/weaveworks/ignite/blob/master/CHANGELOG.md#v040).
@@ -157,7 +219,9 @@ A more throughout installation guide is available here: https://github.com/weave
 
 ---
 
-## v0.4.0, 10/07/2019
+## v0.4.0
+
+**Released:** 10/07/2019
 
 ## v0.4.0
 
@@ -244,7 +308,9 @@ A longer installation guide is available here: https://github.com/weaveworks/ign
 
 ---
 
-## v0.4.0-rc.1, 09/07/2019
+## v0.4.0-rc.1
+
+**Released:** 09/07/2019
 
 ## v0.4.0-rc.1
 
@@ -289,7 +355,9 @@ There are many significant changes compared to before:
 
 ---
 
-## v0.3.0, 18/06/2019
+## v0.3.0
+
+**Released:** 18/06/2019
 
 ## Major release with significant UX and internal improvements:
 
@@ -309,7 +377,9 @@ There are many significant changes compared to before:
 
 ---
 
-## v0.2.0, 06/06/2019
+## v0.2.0
+
+**Released:** 06/06/2019
 
 ## Major release with significant improvements
 
@@ -352,7 +422,9 @@ Also make note of the [known limitations](https://github.com/weaveworks/ignite#k
 
 ---
 
-## v0.1.0, 31/05/2019
+## v0.1.0
+
+**Released:** 31/05/2019
 
 This is the first, proof-of-concept version of Ignite.
 It has all the essential features, and a pretty complete implementation of the docker UX.
