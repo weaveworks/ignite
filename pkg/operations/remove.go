@@ -33,7 +33,7 @@ func CleanupVM(vm *api.VM) error {
 
 	// If the VM is running, try to kill it first so we don't leave dangling containers
 	if vm.Running() {
-		if err := StopVM(vm, true, false); err != nil {
+		if err := StopVM(vm, true, true); err != nil {
 			return err
 		}
 	}
