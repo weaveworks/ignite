@@ -94,10 +94,8 @@ func StartVM(vm *api.VM, debug bool) error {
 		})
 	}
 
-	networkPlugin := providers.NetworkPlugins[vm.Spec.Network.Mode.String()]
-
 	// Prepare the networking for the container, for the given network plugin
-	if err := networkPlugin.PrepareContainerSpec(config); err != nil {
+	if err := providers.NetworkPlugin.PrepareContainerSpec(config); err != nil {
 		return err
 	}
 
@@ -113,12 +111,12 @@ func StartVM(vm *api.VM, debug bool) error {
 	}
 
 	// Set up the networking
-	result, err := networkPlugin.SetupContainerNetwork(containerID)
+	result, err := providers.NetworkPlugin.SetupContainerNetwork(containerID)
 	if err != nil {
 		return err
 	}
 
-	log.Infof("Networking is handled by %q", networkPlugin.Name())
+	log.Infof("Networking is handled by %q", providers.NetworkPlugin.Name())
 	log.Infof("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
 
 	// TODO: Follow-up the container here with a defer, or dedicated goroutine. We should output

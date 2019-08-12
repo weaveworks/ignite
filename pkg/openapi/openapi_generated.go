@@ -1219,12 +1219,6 @@ func schema_pkg_apis_ignite_v1alpha2_VMNetworkSpec(ref common.ReferenceCallback)
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"mode": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 					"ports": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
@@ -1238,7 +1232,6 @@ func schema_pkg_apis_ignite_v1alpha2_VMNetworkSpec(ref common.ReferenceCallback)
 						},
 					},
 				},
-				Required: []string{"mode"},
 			},
 		},
 		Dependencies: []string{

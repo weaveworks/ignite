@@ -29,7 +29,8 @@ ignited gitops <repo-url> [flags]
 ### Options inherited from parent commands
 
 ```
-      --log-level loglevel   Specify the loglevel for the program (default info)
+      --log-level loglevel      Specify the loglevel for the program (default info)
+      --network-plugin plugin   Network plugin to use. Available options are: [cni docker-bridge] (default docker-bridge)
 ```
 
 ### SEE ALSO

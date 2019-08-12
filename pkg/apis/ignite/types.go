@@ -1,8 +1,6 @@
 package ignite
 
 import (
-	"fmt"
-
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
@@ -173,7 +171,6 @@ type VMKernelSpec struct {
 }
 
 type VMNetworkSpec struct {
-	Mode  NetworkMode       `json:"mode"`
 	Ports meta.PortMappings `json:"ports,omitempty"`
 }
 
@@ -214,23 +211,6 @@ type SSH struct {
 	Generate  bool   `json:"-"`
 	PublicKey string `json:"-"`
 }
-
-// NetworkMode defines different states a VM can be in
-type NetworkMode string
-
-var _ fmt.Stringer = NetworkMode("")
-
-func (nm NetworkMode) String() string {
-	return string(nm)
-}
-
-const (
-	// NetworkModeCNI specifies the network mode where CNI is used
-	NetworkModeCNI NetworkMode = "cni"
-	// NetworkModeDockerBridge specifies the default docker bridge network is used
-	NetworkModeDockerBridge NetworkMode = "docker-bridge"
-	// Whenever updating this list, also update GetNetworkModes in helpers.go
-)
 
 // Runtime specifies the VM's runtime information
 type Runtime struct {

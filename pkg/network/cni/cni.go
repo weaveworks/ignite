@@ -154,8 +154,8 @@ func (plugin *cniNetworkPlugin) checkInitialized() error {
 	return nil
 }
 
-func (plugin *cniNetworkPlugin) Name() string {
-	return CNIPluginName
+func (plugin *cniNetworkPlugin) Name() network.PluginName {
+	return network.PluginCNI
 }
 
 func (plugin *cniNetworkPlugin) Status() error {
