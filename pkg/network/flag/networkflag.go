@@ -14,18 +14,13 @@ type NetworkPluginFlag struct {
 }
 
 func (nf *NetworkPluginFlag) Set(val string) error {
-	var foundPlugin *network.PluginName
 	for _, plugin := range plugins {
 		if plugin.String() == val {
-			foundPlugin = &plugin
-			break
+			*nf.value = plugin
+			return nil
 		}
 	}
-	if foundPlugin == nil {
-		return fmt.Errorf("Invalid network mode %q, must be one of %v", val, plugins)
-	}
-	*nf.value = *foundPlugin
-	return nil
+	return fmt.Errorf("invalid network plugin %q, must be one of %v", val, plugins)
 }
 
 func (nf *NetworkPluginFlag) String() string {
@@ -36,13 +31,13 @@ func (nf *NetworkPluginFlag) String() string {
 }
 
 func (nf *NetworkPluginFlag) Type() string {
-	return "network-mode"
+	return "plugin"
 }
 
 var _ pflag.Value = &NetworkPluginFlag{}
 
 func NetworkPluginVar(fs *pflag.FlagSet, ptr *network.PluginName) {
-	fs.Var(&NetworkPluginFlag{value: ptr}, "network-plugin", fmt.Sprintf("Networking mode to use. Available options are: %v", plugins))
+	fs.Var(&NetworkPluginFlag{value: ptr}, "network-plugin", fmt.Sprintf("Network plugin to use. Available options are: %v", plugins))
 }
 
 // RegisterNetworkPluginFlag binds network.ActivePlugin to the --network-plugin flag
