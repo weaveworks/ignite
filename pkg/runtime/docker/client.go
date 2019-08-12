@@ -167,7 +167,7 @@ func (dc *dockerClient) RemoveContainer(container string) error {
 	// we reach the waiting fence. Start the waiter in a goroutine before
 	// performing the removal to ensure proper removal detection.
 	errC := make(chan error)
-	readyC := make(chan bool)
+	readyC := make(chan struct{})
 	go func() {
 		errC <- dc.waitForContainer(container, cont.WaitConditionRemoved, &readyC)
 	}()
@@ -197,14 +197,14 @@ func (dc *dockerClient) ContainerNetNS(container string) (string, error) {
 	return getNetworkNamespace(&r)
 }
 
-func (dc *dockerClient) waitForContainer(container string, condition cont.WaitCondition, readyC *chan bool) error {
+func (dc *dockerClient) waitForContainer(container string, condition cont.WaitCondition, readyC *chan struct{}) error {
 	resultC, errC := dc.client.ContainerWait(context.Background(), container, condition)
 
 	// The ready channel can be used to wait until
 	// the container wait request has been sent to
 	// Docker to ensure proper ordering
 	if readyC != nil {
-		*readyC <- true
+		*readyC <- struct{}{}
 	}
 
 	select {
