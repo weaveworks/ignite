@@ -31,19 +31,28 @@ func Ps(po *psOptions) error {
 	o.Write("VM ID", "IMAGE", "KERNEL", "SIZE", "CPUS", "MEMORY", "CREATED", "STATUS", "IPS", "PORTS", "NAME")
 	for _, vm := range po.allVMs {
 		o.Write(vm.GetUID(), vm.Spec.Image.OCI, vm.Spec.Kernel.OCI,
-			vm.Spec.DiskSize, vm.Spec.CPUs, vm.Spec.Memory, vm.GetCreated(), formatStatus(vm), vm.Status.IPAddresses,
+			vm.Spec.DiskSize, vm.Spec.CPUs, vm.Spec.Memory, formatCreated(vm), formatStatus(vm), vm.Status.IPAddresses,
 			vm.Spec.Network.Ports, vm.GetName())
 	}
 
 	return nil
 }
 
-func formatStatus(vm *api.VM) (s string) {
-	if vm.Running() {
-		s = fmt.Sprintf("Up %s", vm.Status.StartTime)
-	} else {
-		s = "Stopped"
+func formatCreated(vm *api.VM) string {
+	created := vm.GetCreated()
+
+	var suffix string
+	if !created.IsZero() {
+		suffix = " ago"
 	}
 
-	return
+	return fmt.Sprint(created, suffix)
+}
+
+func formatStatus(vm *api.VM) string {
+	if vm.Running() {
+		return fmt.Sprintf("Up %s", vm.Status.StartTime)
+	}
+
+	return "Stopped"
 }
