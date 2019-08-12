@@ -14,6 +14,9 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
+	"github.com/weaveworks/ignite/pkg/network"
+	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
+	"github.com/weaveworks/ignite/pkg/providers"
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
 )
 
@@ -32,6 +35,8 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// Set the desired logging level, now that the flags are parsed
 			logs.Logger.SetLevel(logLevel)
+			// Set the desired network plugin
+			providers.NetworkPlugin = providers.NetworkPlugins[network.ActivePlugin]
 		},
 		Long: dedent.Dedent(fmt.Sprintf(`
 			Ignite is a containerized Firecracker microVM administration tool.
@@ -88,6 +93,7 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 func addGlobalFlags(fs *pflag.FlagSet) {
 	AddQuietFlag(fs)
 	logflag.LogLevelFlagVar(fs, &logLevel)
+	networkflag.RegisterNetworkPluginFlag(fs)
 }
 
 // AddQuietFlag adds the quiet flag to a flagset

@@ -12,7 +12,6 @@ import (
 
 // ValidateVM validates a VM object and collects all encountered errors
 func ValidateVM(obj *api.VM) (allErrs field.ErrorList) {
-	allErrs = append(allErrs, ValidateNetworkMode(obj.Spec.Network.Mode, field.NewPath(".spec.network.mode"))...)
 	allErrs = append(allErrs, RequireOCIImageRef(&obj.Spec.Image.OCI, field.NewPath(".spec.image.oci"))...)
 	allErrs = append(allErrs, RequireOCIImageRef(&obj.Spec.Kernel.OCI, field.NewPath(".spec.kernel.oci"))...)
 	allErrs = append(allErrs, ValidateFileMappings(&obj.Spec.CopyFiles, field.NewPath(".spec.copyFiles"))...)
@@ -55,23 +54,6 @@ func ValidateNonemptyName(name string, fldPath *field.Path) (allErrs field.Error
 func ValidateAbsolutePath(pathStr string, fldPath *field.Path) (allErrs field.ErrorList) {
 	if !path.IsAbs(pathStr) {
 		allErrs = append(allErrs, field.Invalid(fldPath, pathStr, "path must be absolute"))
-	}
-
-	return
-}
-
-// ValidateNetworkMode validates if a network mode is valid
-func ValidateNetworkMode(mode api.NetworkMode, fldPath *field.Path) (allErrs field.ErrorList) {
-	found := false
-	modes := api.GetNetworkModes()
-	for _, nm := range modes {
-		if nm == mode {
-			found = true
-		}
-	}
-
-	if !found {
-		allErrs = append(allErrs, field.Invalid(fldPath, mode, fmt.Sprintf("network mode must be one of %v", modes)))
 	}
 
 	return

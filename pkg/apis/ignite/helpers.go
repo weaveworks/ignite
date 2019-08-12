@@ -6,14 +6,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/constants"
 )
 
-// GetNetworkModes gets the list of available network modes
-func GetNetworkModes() []NetworkMode {
-	return []NetworkMode{
-		NetworkModeCNI,
-		NetworkModeDockerBridge,
-	}
-}
-
 // SetImage populates relevant fields to an Image on the VM object
 func (vm *VM) SetImage(image *Image) {
 	vm.Spec.Image.OCI = image.Spec.OCI

@@ -57,12 +57,6 @@ func SetDefaults_VMKernelSpec(obj *VMKernelSpec) {
 	}
 }
 
-func SetDefaults_VMNetworkSpec(obj *VMNetworkSpec) {
-	if len(obj.Mode) == 0 {
-		obj.Mode = NetworkModeDockerBridge
-	}
-}
-
 func calcMetadataDevSize(obj *PoolSpec) meta.Size {
 	// The minimum size is 2 MB and the maximum size is 16 GB
 	minSize := meta.NewSizeFromBytes(2 * constants.MB)

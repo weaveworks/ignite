@@ -10,6 +10,9 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
+	"github.com/weaveworks/ignite/pkg/network"
+	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
+	"github.com/weaveworks/ignite/pkg/providers"
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
 )
 
@@ -24,6 +27,8 @@ func NewIgnitedCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// Set the desired logging level, now that the flags are parsed
 			logs.Logger.SetLevel(logLevel)
+			// Set the desired network plugin
+			providers.NetworkPlugin = providers.NetworkPlugins[network.ActivePlugin]
 		},
 		Long: dedent.Dedent(`
 			Ignite is a containerized Firecracker microVM administration tool.
@@ -43,4 +48,5 @@ func NewIgnitedCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 
 func addGlobalFlags(fs *pflag.FlagSet) {
 	logflag.LogLevelFlagVar(fs, &logLevel)
+	networkflag.RegisterNetworkPluginFlag(fs)
 }

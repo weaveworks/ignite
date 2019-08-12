@@ -8,8 +8,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/runtime"
 )
 
-const pluginName = "docker-bridge"
-
 type dockerNetworkPlugin struct {
 	runtime runtime.Interface
 }
@@ -18,8 +16,8 @@ func GetDockerNetworkPlugin(r runtime.Interface) network.Plugin {
 	return &dockerNetworkPlugin{r}
 }
 
-func (*dockerNetworkPlugin) Name() string {
-	return pluginName
+func (*dockerNetworkPlugin) Name() network.PluginName {
+	return network.PluginDockerBridge
 }
 
 func (*dockerNetworkPlugin) PrepareContainerSpec(_ *runtime.ContainerConfig) error {
