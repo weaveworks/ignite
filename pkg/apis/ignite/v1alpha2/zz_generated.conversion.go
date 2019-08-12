@@ -710,7 +710,6 @@ func Convert_ignite_VMKernelSpec_To_v1alpha2_VMKernelSpec(in *ignite.VMKernelSpe
 }
 
 func autoConvert_v1alpha2_VMNetworkSpec_To_ignite_VMNetworkSpec(in *VMNetworkSpec, out *ignite.VMNetworkSpec, s conversion.Scope) error {
-	out.Mode = ignite.NetworkMode(in.Mode)
 	out.Ports = *(*v1alpha1.PortMappings)(unsafe.Pointer(&in.Ports))
 	return nil
 }
@@ -721,7 +720,6 @@ func Convert_v1alpha2_VMNetworkSpec_To_ignite_VMNetworkSpec(in *VMNetworkSpec, o
 }
 
 func autoConvert_ignite_VMNetworkSpec_To_v1alpha2_VMNetworkSpec(in *ignite.VMNetworkSpec, out *VMNetworkSpec, s conversion.Scope) error {
-	out.Mode = NetworkMode(in.Mode)
 	out.Ports = *(*v1alpha1.PortMappings)(unsafe.Pointer(&in.Ports))
 	return nil
 }

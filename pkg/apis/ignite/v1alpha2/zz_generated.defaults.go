@@ -24,5 +24,4 @@ func SetObjectDefaults_Pool(in *Pool) {
 func SetObjectDefaults_VM(in *VM) {
 	SetDefaults_VMSpec(&in.Spec)
 	SetDefaults_VMKernelSpec(&in.Spec.Kernel)
-	SetDefaults_VMNetworkSpec(&in.Spec.Network)
 }
