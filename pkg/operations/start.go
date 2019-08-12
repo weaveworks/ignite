@@ -22,9 +22,11 @@ import (
 )
 
 func StartVM(vm *api.VM, debug bool) error {
-	// Remove the VM container if it exists
-	if err := RemoveVMContainer(vm); err != nil {
-		return err
+	// Inspect the VM container and remove it if it exists
+	if result, _ := providers.Runtime.InspectContainer(util.NewPrefixer().Prefix(vm.GetUID())); result != nil {
+		if err := RemoveVMContainer(vm, result); err != nil {
+			return err
+		}
 	}
 
 	// Setup the snapshot overlay filesystem
