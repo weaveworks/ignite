@@ -13,10 +13,16 @@ Everything apart from above, is not supported, and out of scope.
 ## Host Requirements
 
  - A host running Linux 4.14 or newer
- - An Intel or AMD (alpha) CPU
  - `sysctl net.ipv4.ip_forward=1`
  - loaded kernel loop module: `modprobe -v loop`
  - Optional: `sysctl net.bridge.bridge-nf-call-iptables=0`
+ - One of the following CPUs:
+ 
+| CPU   | Architecture     | Support level | Notes                                                                                                                                                                         |
+|-------|------------------|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Intel | x86_64           | Complete      | Requires <a href="https://en.wikipedia.org/wiki/X86_virtualization#Intel_virtualization_(VT-x)">VT-x</a>, most non-Atom 64-bit Intel CPUs since Pentium 4 should be supported |
+| AMD   | x86_64           | Alpha         | Requires [AMD-V](https://en.wikipedia.org/wiki/X86_virtualization#AMD_virtualization_.28AMD-V.29), most AMD CPUs since the Athlon 64 "Orleans" should be supported            |
+| ARM   | AArch64 (64-bit) | Alpha         | Requires GICv3, see [here](https://github.com/firecracker-microvm/firecracker/issues/1196)                                                                                    |
 
 ## Guest Requirements
 
@@ -50,7 +56,7 @@ With time, we aim to eliminate as many of these as possible.
  - `docker` for managing the containers ignite uses
    - Ubuntu package: `docker.io`
    - CentOS package: `docker`
- - `dmsetup` for managing devicemapper snapshots and overlays
+ - `dmsetup` for managing device mapper snapshots and overlays
    - Ubuntu package: `dmsetup`
    - CentOS package: `device-mapper` (installed by default)
  - `ssh` for SSH-ing into the VM (optional, for `ignite ssh` only)
