@@ -8,7 +8,7 @@ import (
 )
 
 func ImageUIDForVM(vm *api.VM, c *client.Client) (meta.UID, error) {
-	image, err := c.Images().Find(filter.NewNameFilter(vm.Spec.Image.OCIRef.String()))
+	image, err := c.Images().Find(filter.NewNameFilter(vm.Spec.Image.OCI.String()))
 	if err != nil {
 		return "", err
 	}
@@ -17,7 +17,7 @@ func ImageUIDForVM(vm *api.VM, c *client.Client) (meta.UID, error) {
 }
 
 func KernelUIDForVM(vm *api.VM, c *client.Client) (meta.UID, error) {
-	kernel, err := c.Kernels().Find(filter.NewNameFilter(vm.Spec.Kernel.OCIRef.String()))
+	kernel, err := c.Kernels().Find(filter.NewNameFilter(vm.Spec.Kernel.OCI.String()))
 	if err != nil {
 		return "", err
 	}

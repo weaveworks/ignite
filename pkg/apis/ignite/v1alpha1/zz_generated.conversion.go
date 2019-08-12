@@ -345,7 +345,7 @@ func autoConvert_v1alpha1_ImageSpec_To_ignite_ImageSpec(in *ImageSpec, out *igni
 }
 
 func autoConvert_ignite_ImageSpec_To_v1alpha1_ImageSpec(in *ignite.ImageSpec, out *ImageSpec, s conversion.Scope) error {
-	// WARNING: in.OCIRef requires manual conversion: does not exist in peer-type
+	// WARNING: in.OCI requires manual conversion: does not exist in peer-type
 	return nil
 }
 
@@ -413,7 +413,7 @@ func autoConvert_v1alpha1_KernelSpec_To_ignite_KernelSpec(in *KernelSpec, out *i
 }
 
 func autoConvert_ignite_KernelSpec_To_v1alpha1_KernelSpec(in *ignite.KernelSpec, out *KernelSpec, s conversion.Scope) error {
-	// WARNING: in.OCIRef requires manual conversion: does not exist in peer-type
+	// WARNING: in.OCI requires manual conversion: does not exist in peer-type
 	return nil
 }
 
@@ -624,7 +624,7 @@ func autoConvert_v1alpha1_VMImageSpec_To_ignite_VMImageSpec(in *VMImageSpec, out
 }
 
 func autoConvert_ignite_VMImageSpec_To_v1alpha1_VMImageSpec(in *ignite.VMImageSpec, out *VMImageSpec, s conversion.Scope) error {
-	// WARNING: in.OCIRef requires manual conversion: does not exist in peer-type
+	// WARNING: in.OCI requires manual conversion: does not exist in peer-type
 	return nil
 }
 
@@ -635,7 +635,7 @@ func autoConvert_v1alpha1_VMKernelSpec_To_ignite_VMKernelSpec(in *VMKernelSpec, 
 }
 
 func autoConvert_ignite_VMKernelSpec_To_v1alpha1_VMKernelSpec(in *ignite.VMKernelSpec, out *VMKernelSpec, s conversion.Scope) error {
-	// WARNING: in.OCIRef requires manual conversion: does not exist in peer-type
+	// WARNING: in.OCI requires manual conversion: does not exist in peer-type
 	out.CmdLine = in.CmdLine
 	return nil
 }

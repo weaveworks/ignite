@@ -114,7 +114,7 @@ func create(vm *api.VM) error {
 // ensureOCIImages imports the base/kernel OCI images if needed
 func ensureOCIImages(vm *api.VM) error {
 	// Check if a image with this name already exists, or import it
-	image, err := operations.FindOrImportImage(c, vm.Spec.Image.OCIRef)
+	image, err := operations.FindOrImportImage(c, vm.Spec.Image.OCI)
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func ensureOCIImages(vm *api.VM) error {
 	vm.SetImage(image)
 
 	// Check if a kernel with this name already exists, or import it
-	kernel, err := operations.FindOrImportKernel(c, vm.Spec.Kernel.OCIRef)
+	kernel, err := operations.FindOrImportKernel(c, vm.Spec.Kernel.OCI)
 	if err != nil {
 		return err
 	}

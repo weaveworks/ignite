@@ -46,7 +46,7 @@ func (cf *CreateFlags) constructVMFromCLI(args []string) error {
 			return err
 		}
 
-		cf.VM.Spec.Image.OCIRef = ociRef
+		cf.VM.Spec.Image.OCI = ociRef
 	}
 
 	// Parse the --copy-files flag
@@ -91,7 +91,7 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 
 	// Get the image, or import it if it doesn't exist
 	var err error
-	co.image, err = operations.FindOrImportImage(providers.Client, cf.VM.Spec.Image.OCIRef)
+	co.image, err = operations.FindOrImportImage(providers.Client, cf.VM.Spec.Image.OCI)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 	cf.VM.SetImage(co.image)
 
 	// Get the kernel, or import it if it doesn't exist
-	co.kernel, err = operations.FindOrImportKernel(providers.Client, cf.VM.Spec.Kernel.OCIRef)
+	co.kernel, err = operations.FindOrImportKernel(providers.Client, cf.VM.Spec.Kernel.OCI)
 	if err != nil {
 		return nil, err
 	}

@@ -27,16 +27,8 @@ type Image struct {
 
 // ImageSpec declares what the image contains
 type ImageSpec struct {
-	OCIRef meta.OCIImageRef `json:"oci"`
+	OCI meta.OCIImageRef `json:"oci"`
 }
-
-// ImageSourceType is an enum of different supported Image Source Types
-type ImageSourceType string
-
-const (
-	// ImageSourceTypeDocker defines that the image is imported from Docker
-	ImageSourceTypeDocker ImageSourceType = "Docker"
-)
 
 // OCIImageSource specifies how the OCI image was imported.
 // It is the status variant of OCIImageClaim
@@ -125,7 +117,7 @@ type Kernel struct {
 
 // KernelSpec describes the properties of a kernel
 type KernelSpec struct {
-	OCIRef meta.OCIImageRef `json:"oci"`
+	OCI meta.OCIImageRef `json:"oci"`
 	// Optional future feature, support per-kernel specific default command lines
 	// DefaultCmdLine string
 }
@@ -172,11 +164,11 @@ type VMSpec struct {
 }
 
 type VMImageSpec struct {
-	OCIRef meta.OCIImageRef `json:"oci"`
+	OCI meta.OCIImageRef `json:"oci"`
 }
 
 type VMKernelSpec struct {
-	OCIRef  meta.OCIImageRef `json:"oci"`
+	OCI     meta.OCIImageRef `json:"oci"`
 	CmdLine string           `json:"cmdLine,omitempty"`
 }
 
