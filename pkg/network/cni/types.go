@@ -1,8 +1,6 @@
 package cni
 
 const (
-	// CNIPluginName describes the name of the CNI network plugin
-	CNIPluginName = "cni"
 	// DefaultInterfaceName describes the interface name that the CNI network plugin will set up
 	DefaultInterfaceName = "eth0"
 	// CNIBinDir describes the directory where the CNI binaries are stored
