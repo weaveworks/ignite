@@ -39,13 +39,9 @@ In this folder you can read more about how to use Ignite, and how it works:
 
 .. toctree::
    :caption: Releases
+   :glob:
+   :reversed:
    :titlesonly:
    :maxdepth: 0
 
-   releases/v0.4.2
-   releases/v0.4.1
-   releases/v0.4.0
-   releases/v0.4.0-rc.1
-   releases/v0.3.0
-   releases/v0.2.0
-   releases/v0.1.0
+   releases/v?.?.?
