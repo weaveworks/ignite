@@ -6,14 +6,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/constants"
 )
 
-// GetNetworkModes gets the list of available network modes
-func GetNetworkModes() []NetworkMode {
-	return []NetworkMode{
-		NetworkModeCNI,
-		NetworkModeDockerBridge,
-	}
-}
-
 // GetImageSourceTypes gets the list of available network modes
 func GetImageSourceTypes() []ImageSourceType {
 	return []ImageSourceType{
