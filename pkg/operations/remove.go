@@ -5,7 +5,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/providers"
@@ -39,10 +38,8 @@ func CleanupVM(vm *api.VM) error {
 	}
 
 	// Remove the VM container if it exists
-	if result != nil {
-		if err := RemoveVMContainer(vm, result); err != nil {
-			return err
-		}
+	if err := RemoveVMContainer(result); err != nil {
+		return err
 	}
 
 	if logs.Quiet {
@@ -54,7 +51,11 @@ func CleanupVM(vm *api.VM) error {
 	return nil
 }
 
-func RemoveVMContainer(vm meta.Object, result *runtime.ContainerInspectResult) error {
+func RemoveVMContainer(result *runtime.ContainerInspectResult) error {
+	if result == nil {
+		return nil // If given no result, don't attempt removal
+	}
+
 	// Remove the VM container. If the container has been/is being automatically removed
 	// between InspectContainer and this call, RemoveContainer will throw an error. Currently
 	// we have no real way to inspect and remove immediately without having a potential race
@@ -62,7 +63,7 @@ func RemoveVMContainer(vm meta.Object, result *runtime.ContainerInspectResult) e
 	_ = providers.Runtime.RemoveContainer(result.ID)
 
 	// Tear down the networking of the VM
-	return removeNetworking(vm.(*api.VM), result.ID)
+	return removeNetworking(result.ID)
 }
 
 // StopVM stops or kills a VM
@@ -96,7 +97,7 @@ func StopVM(vm *api.VM, kill, silent bool) error {
 	return nil
 }
 
-func removeNetworking(vm *api.VM, containerID string) error {
+func removeNetworking(containerID string) error {
 	log.Debugf("Removing the container with ID %q from the %q network", containerID, providers.NetworkPlugin.Name())
 	return providers.NetworkPlugin.RemoveContainerNetwork(containerID)
 }
