@@ -22,8 +22,9 @@ import (
 )
 
 func StartVM(vm *api.VM, debug bool) error {
-	// Remove the VM container if it exists
-	if err := RemoveVMContainer(vm); err != nil {
+	// Inspect the VM container and remove it if it exists
+	inspectResult, _ := providers.Runtime.InspectContainer(util.NewPrefixer().Prefix(vm.GetUID()))
+	if err := RemoveVMContainer(inspectResult); err != nil {
 		return err
 	}
 

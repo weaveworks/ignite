@@ -21,7 +21,7 @@ module.exports = {
         noLabel: "closed",
         group: "\n### {{heading}}\n",
         changelogTitle: "",
-        release: "## {{release}}, {{date}}\n\n{{body}}",
+        release: "## {{release}}\n\n**Released:** {{date}}\n\n{{body}}",
         releaseSeparator: "\n\n---\n\n"
     }
 }
