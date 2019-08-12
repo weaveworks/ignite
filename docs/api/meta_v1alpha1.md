@@ -650,7 +650,7 @@ type Time struct {
 }
 ```
 
-### <a name="Timestamp">func</a> [Timestamp](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/time.go?s=549:570#L30)
+### <a name="Timestamp">func</a> [Timestamp](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/time.go?s=526:547#L30)
 
 ``` go
 func Timestamp() Time
@@ -658,7 +658,7 @@ func Timestamp() Time
 
 Timestamp returns the current UTC time
 
-### <a name="Time.MarshalJSON">func</a> (Time) [MarshalJSON](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/time.go?s=640:689#L38)
+### <a name="Time.MarshalJSON">func</a> (Time) [MarshalJSON](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/time.go?s=617:666#L38)
 
 ``` go
 func (t Time) MarshalJSON() (b []byte, err error)
