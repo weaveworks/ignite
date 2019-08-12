@@ -1,12 +1,8 @@
-
-
-## Cloud Provider KVM supported instances
+# Cloud Provider Instances with KVM support
 
 If you intend to use a cloud provider to test Ignite, you can use the instructions below to provision an instance that satisfies the KVM system requirements described in the [installation guide](./installation.md).
 
-### Amazon Web Services
-
-#### Amazon EC2 Bare Metal Instances
+## Amazon Web Services
 
 Amazon EC2 [bare metal instances](https://aws.amazon.com/about-aws/whats-new/2018/05/announcing-general-availability-of-amazon-ec2-bare-metal-instances/) provide direct access to the  Intel® Xeon® Scalable processor and memory resources of the underlying server. These instances are ideal for workloads that require access to the hardware feature set (such as Intel® VT-x), for applications that need to run in non-virtualized environments for licensing or support requirements, or for customers who wish to use their own hypervisor.
 
@@ -24,17 +20,21 @@ Here's a list of instances with KVM support, with pricing (as of July 2019), to 
 
 Use the AWS console to [launch one of these instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/LaunchingAndUsingInstances.html) and [connect to your instance using SSH](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html). Then, follow the instructions in the [installation guide](./installation.md).
 
-### Google Cloud (Source: https://blog.kubernauts.io/ignite-on-google-cloud-5d5228a5ffec)
+## Google Cloud
 
-Use Google compute from a custom KVM image so that Ignite can be installed and run easily. 
-- Login to Google cloud console 
-- Open Google cloud shell
-- run the following command to create custom images with KVM enabled
-```
-gcloud compute images create nested-virt \
-  --source-image-project=ubuntu-os-cloud \
-  --source-image-family=ubuntu-1604-lts \
-  --licenses="https://www.googleapis.com/compute/v1/projects/vm-options/global/licenses/enable-vmx"
-```
-- Create a compute Engine with the custom image created
+Source: https://blog.kubernauts.io/ignite-on-google-cloud-5d5228a5ffec
 
+Use Google compute from a custom KVM image so that Ignite can be installed and run easily.
+
+- Login to Google Cloud Console
+- Open Google Cloud Shell
+- Run the following command to create custom images with KVM enabled
+
+  ```bash
+  gcloud compute images create nested-virt \
+    --source-image-project=ubuntu-os-cloud \
+    --source-image-family=ubuntu-1604-lts \
+    --licenses="https://www.googleapis.com/compute/v1/projects/vm-options/global/licenses/enable-vmx"
+  ```
+
+- Create an instance with the custom image created
