@@ -12,19 +12,9 @@ import (
 // Public to allow building arbitrary schemes.
 // All generated defaulters are covering - they call all nested defaulters.
 func RegisterDefaults(scheme *runtime.Scheme) error {
-	scheme.AddTypeDefaultingFunc(&Image{}, func(obj interface{}) { SetObjectDefaults_Image(obj.(*Image)) })
-	scheme.AddTypeDefaultingFunc(&Kernel{}, func(obj interface{}) { SetObjectDefaults_Kernel(obj.(*Kernel)) })
 	scheme.AddTypeDefaultingFunc(&Pool{}, func(obj interface{}) { SetObjectDefaults_Pool(obj.(*Pool)) })
 	scheme.AddTypeDefaultingFunc(&VM{}, func(obj interface{}) { SetObjectDefaults_VM(obj.(*VM)) })
 	return nil
-}
-
-func SetObjectDefaults_Image(in *Image) {
-	SetDefaults_OCIImageClaim(&in.Spec.OCIClaim)
-}
-
-func SetObjectDefaults_Kernel(in *Kernel) {
-	SetDefaults_OCIImageClaim(&in.Spec.OCIClaim)
 }
 
 func SetObjectDefaults_Pool(in *Pool) {
@@ -33,8 +23,6 @@ func SetObjectDefaults_Pool(in *Pool) {
 
 func SetObjectDefaults_VM(in *VM) {
 	SetDefaults_VMSpec(&in.Spec)
-	SetDefaults_OCIImageClaim(&in.Spec.Image.OCIClaim)
 	SetDefaults_VMKernelSpec(&in.Spec.Kernel)
-	SetDefaults_OCIImageClaim(&in.Spec.Kernel.OCIClaim)
 	SetDefaults_VMNetworkSpec(&in.Spec.Network)
 }

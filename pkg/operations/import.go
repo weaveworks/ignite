@@ -54,7 +54,7 @@ func importImage(c *client.Client, ociRef meta.OCIImageRef) (*api.Image, error) 
 	// Set the image name
 	image.Name = ociRef.String()
 	// Set the image's ociRef
-	image.Spec.OCIClaim.Ref = ociRef
+	image.Spec.OCI = ociRef
 	// Set the image's ociSource
 	image.Status.OCISource = *src
 
@@ -112,7 +112,7 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*api.Kernel, error
 	// Set the kernel name
 	kernel.Name = ociRef.String()
 	// Set the kernel's ociRef
-	kernel.Spec.OCIClaim.Ref = ociRef
+	kernel.Spec.OCI = ociRef
 	// Set the kernel's ociSource
 	kernel.Status.OCISource = *src
 
