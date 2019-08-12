@@ -16,7 +16,7 @@ module.exports = {
     "ignore-labels": ["kind/cleanup"],
     "template": {
         commit: ({ message, url, author, name }) => `- [${message}](${url}) - ${author ? `@${author}` : name}`,
-        issue: "- {{labels}} {{name}} ([{{text}}]({{url}}), [@{{user_login}}]({{user_url}}))",
+        issue: "- {{name}} ([{{text}}]({{url}}), [@{{user_login}}]({{user_url}}))",
         label: "",
         noLabel: "closed",
         group: "\n### {{heading}}\n",
