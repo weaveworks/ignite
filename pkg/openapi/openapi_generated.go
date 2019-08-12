@@ -41,7 +41,6 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Kernel":            schema_pkg_apis_ignite_v1alpha2_Kernel(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelSpec":        schema_pkg_apis_ignite_v1alpha2_KernelSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelStatus":      schema_pkg_apis_ignite_v1alpha2_KernelStatus(ref),
-		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageClaim":     schema_pkg_apis_ignite_v1alpha2_OCIImageClaim(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageSource":    schema_pkg_apis_ignite_v1alpha2_OCIImageSource(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Pool":              schema_pkg_apis_ignite_v1alpha2_Pool(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.PoolDevice":        schema_pkg_apis_ignite_v1alpha2_PoolDevice(ref),
@@ -807,17 +806,16 @@ func schema_pkg_apis_ignite_v1alpha2_ImageSpec(ref common.ReferenceCallback) com
 				Description: "ImageSpec declares what the image contains",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"ociClaim": {
+					"oci": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageClaim"),
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 				},
-				Required: []string{"ociClaim"},
+				Required: []string{"oci"},
 			},
 		},
-		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageClaim"},
 	}
 }
 
@@ -887,17 +885,16 @@ func schema_pkg_apis_ignite_v1alpha2_KernelSpec(ref common.ReferenceCallback) co
 				Description: "KernelSpec describes the properties of a kernel",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"ociClaim": {
+					"oci": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageClaim"),
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 				},
-				Required: []string{"ociClaim"},
+				Required: []string{"oci"},
 			},
 		},
-		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageClaim"},
 	}
 }
 
@@ -925,34 +922,6 @@ func schema_pkg_apis_ignite_v1alpha2_KernelStatus(ref common.ReferenceCallback) 
 		},
 		Dependencies: []string{
 			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageSource"},
-	}
-}
-
-func schema_pkg_apis_ignite_v1alpha2_OCIImageClaim(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "OCIImageClaim defines a claim for importing an OCI image",
-				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"type": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Type defines how the image should be imported",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"ref": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Ref defines the reference to use when talking to the backend. This is most commonly the image name, followed by a tag. Other supported ways are $registry/$user/$image@sha256:$digest This ref is also used as ObjectMeta.Name for kinds Images and Kernels",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-				},
-				Required: []string{"type", "ref"},
-			},
-		},
 	}
 }
 
@@ -1206,17 +1175,16 @@ func schema_pkg_apis_ignite_v1alpha2_VMImageSpec(ref common.ReferenceCallback) c
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"ociClaim": {
+					"oci": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageClaim"),
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 				},
-				Required: []string{"ociClaim"},
+				Required: []string{"oci"},
 			},
 		},
-		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageClaim"},
 	}
 }
 
@@ -1226,9 +1194,10 @@ func schema_pkg_apis_ignite_v1alpha2_VMKernelSpec(ref common.ReferenceCallback) 
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"ociClaim": {
+					"oci": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageClaim"),
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 					"cmdLine": {
@@ -1238,11 +1207,9 @@ func schema_pkg_apis_ignite_v1alpha2_VMKernelSpec(ref common.ReferenceCallback) 
 						},
 					},
 				},
-				Required: []string{"ociClaim"},
+				Required: []string{"oci"},
 			},
 		},
-		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageClaim"},
 	}
 }
 

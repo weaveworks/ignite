@@ -6,22 +6,15 @@ import (
 	"github.com/weaveworks/ignite/pkg/constants"
 )
 
-// GetImageSourceTypes gets the list of available network modes
-func GetImageSourceTypes() []ImageSourceType {
-	return []ImageSourceType{
-		ImageSourceTypeDocker,
-	}
-}
-
 // SetImage populates relevant fields to an Image on the VM object
 func (vm *VM) SetImage(image *Image) {
-	vm.Spec.Image.OCIClaim = image.Spec.OCIClaim
+	vm.Spec.Image.OCI = image.Spec.OCI
 	vm.Status.Image = image.Status.OCISource
 }
 
 // SetKernel populates relevant fields to a Kernel on the VM object
 func (vm *VM) SetKernel(kernel *Kernel) {
-	vm.Spec.Kernel.OCIClaim = kernel.Spec.OCIClaim
+	vm.Spec.Kernel.OCI = kernel.Spec.OCI
 	vm.Status.Kernel = kernel.Status.OCISource
 }
 
