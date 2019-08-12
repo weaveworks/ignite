@@ -16,8 +16,11 @@ In this folder you can read more about how to use Ignite, and how it works:
    dependencies
    usage
    declarative-config
+   networking
    prometheus
+   footloose
    awesome
+   cloudprovider
    devel
    FAQ
 
