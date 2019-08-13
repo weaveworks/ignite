@@ -115,7 +115,7 @@ func SetDefaults_VMKernelSpec(obj *VMKernelSpec)
 func SetDefaults_VMSpec(obj *VMSpec)
 ```
 
-## <a name="BlockDeviceVolume">type</a> [BlockDeviceVolume](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7015:7075#L190)
+## <a name="BlockDeviceVolume">type</a> [BlockDeviceVolume](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7339:7399#L194)
 
 ``` go
 type BlockDeviceVolume struct {
@@ -125,7 +125,7 @@ type BlockDeviceVolume struct {
 
 BlockDeviceVolume defines a block device on the host
 
-## <a name="FileMapping">type</a> [FileMapping](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7310:7405#L201)
+## <a name="FileMapping">type</a> [FileMapping](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7634:7729#L205)
 
 ``` go
 type FileMapping struct {
@@ -310,7 +310,7 @@ type PoolStatus struct {
 
 PoolStatus defines the Pool’s current status
 
-## <a name="Runtime">type</a> [Runtime](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7754:7800#L216)
+## <a name="Runtime">type</a> [Runtime](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=8078:8124#L220)
 
 ``` go
 type Runtime struct {
@@ -320,7 +320,7 @@ type Runtime struct {
 
 Runtime specifies the VM’s runtime information
 
-## <a name="SSH">type</a> [SSH](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7625:7702#L210)
+## <a name="SSH">type</a> [SSH](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7949:8026#L214)
 
 ``` go
 type SSH struct {
@@ -364,7 +364,7 @@ VM represents a virtual machine run by Firecracker These files are
 stored in /var/lib/firecracker/vm/{vm-id}/metadata.json
 +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-## <a name="VMImageSpec">type</a> [VMImageSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6315:6377#L164)
+## <a name="VMImageSpec">type</a> [VMImageSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6639:6701#L168)
 
 ``` go
 type VMImageSpec struct {
@@ -372,7 +372,7 @@ type VMImageSpec struct {
 }
 ```
 
-## <a name="VMKernelSpec">type</a> [VMKernelSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6379:6499#L168)
+## <a name="VMKernelSpec">type</a> [VMKernelSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6703:6823#L172)
 
 ``` go
 type VMKernelSpec struct {
@@ -381,7 +381,7 @@ type VMKernelSpec struct {
 }
 ```
 
-## <a name="VMNetworkSpec">type</a> [VMNetworkSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6501:6580#L173)
+## <a name="VMNetworkSpec">type</a> [VMNetworkSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6825:6904#L177)
 
 ``` go
 type VMNetworkSpec struct {
@@ -389,17 +389,21 @@ type VMNetworkSpec struct {
 }
 ```
 
-## <a name="VMSpec">type</a> [VMSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=5380:6313#L144)
+## <a name="VMSpec">type</a> [VMSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=5380:6637#L144)
 
 ``` go
 type VMSpec struct {
-    Image    VMImageSpec   `json:"image"`
-    Kernel   VMKernelSpec  `json:"kernel"`
-    CPUs     uint64        `json:"cpus"`
-    Memory   meta.Size     `json:"memory"`
-    DiskSize meta.Size     `json:"diskSize"`
-    Network  VMNetworkSpec `json:"network"`
-    Storage  VMStorageSpec `json:"storage,omitempty"`
+    Image    VMImageSpec  `json:"image"`
+    Kernel   VMKernelSpec `json:"kernel"`
+    CPUs     uint64       `json:"cpus"`
+    Memory   meta.Size    `json:"memory"`
+    DiskSize meta.Size    `json:"diskSize"`
+    // TODO: Implement working omitempty without pointers for the following entries
+    // Currently both will show in the JSON output as empty arrays. Making them
+    // pointers requires plenty of nil checks (as their contents are accessed directly)
+    // and is very risky for stability. APIMachinery potentially has a solution.
+    Network VMNetworkSpec `json:"network,omitempty"`
+    Storage VMStorageSpec `json:"storage,omitempty"`
     // This will be done at either "ignite start" or "ignite create" time
     // TODO: We might revisit this later
     CopyFiles []FileMapping `json:"copyFiles,omitempty"`
@@ -415,7 +419,7 @@ type VMSpec struct {
 
 VMSpec describes the configuration of a VM
 
-## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7841:8180#L221)
+## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=8165:8504#L225)
 
 ``` go
 type VMStatus struct {
@@ -430,7 +434,7 @@ type VMStatus struct {
 
 VMStatus defines the status of a VM
 
-## <a name="VMStorageSpec">type</a> [VMStorageSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6641:6785#L178)
+## <a name="VMStorageSpec">type</a> [VMStorageSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6965:7109#L182)
 
 ``` go
 type VMStorageSpec struct {
@@ -441,7 +445,7 @@ type VMStorageSpec struct {
 
 VMStorageSpec defines the VM’s Volumes and VolumeMounts
 
-## <a name="Volume">type</a> [Volume](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6826:6957#L184)
+## <a name="Volume">type</a> [Volume](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7150:7281#L188)
 
 ``` go
 type Volume struct {
@@ -452,7 +456,7 @@ type Volume struct {
 
 Volume defines named storage volume
 
-## <a name="VolumeMount">type</a> [VolumeMount](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7147:7243#L195)
+## <a name="VolumeMount">type</a> [VolumeMount](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7471:7567#L199)
 
 ``` go
 type VolumeMount struct {

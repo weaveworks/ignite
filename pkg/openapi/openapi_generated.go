@@ -1274,7 +1274,8 @@ func schema_pkg_apis_ignite_v1alpha2_VMSpec(ref common.ReferenceCallback) common
 					},
 					"network": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMNetworkSpec"),
+							Description: "Currently both will show in the JSON output as empty arrays. Making them pointers requires plenty of nil checks (as their contents are accessed directly) and is very risky for stability. APIMachinery potentially has a solution.",
+							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMNetworkSpec"),
 						},
 					},
 					"storage": {
@@ -1302,7 +1303,7 @@ func schema_pkg_apis_ignite_v1alpha2_VMSpec(ref common.ReferenceCallback) common
 						},
 					},
 				},
-				Required: []string{"image", "kernel", "cpus", "memory", "diskSize", "network"},
+				Required: []string{"image", "kernel", "cpus", "memory", "diskSize"},
 			},
 		},
 		Dependencies: []string{
