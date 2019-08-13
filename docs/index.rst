@@ -18,6 +18,7 @@ In this folder you can read more about how to use Ignite, and how it works:
    dependencies
    usage
    declarative-config
+   gitops
    networking
    prometheus
    footloose

@@ -4,12 +4,12 @@ This guide describes the installation and uninstallation process of Ignite.
 
 ## System requirements
 
-Ignite runs on any Intel-based `linux/amd64` system with `KVM` support.
-AMD support is in alpha (Firecracker limitation).
+Ignite runs on most Intel, AMD or ARM (AArch64) based `linux/amd64` systems with `KVM` support.
+See the full CPU support table in [dependencies.md](dependencies.md) for more information.
 
 See [cloudprovider.md](cloudprovider.md) for guidance on running Ignite on various cloud providers and suitable instances that you could use.
 
-**Note**: You do **not** need to install any "traditional" QEMU/KVM packages, as long as
+**NOTE:** You do **not** need to install any "traditional" QEMU/KVM packages, as long as
 there is virtualization support in the CPU and kernel it works. 
 
 See [dependencies.md](dependencies.md) for needed dependencies.
@@ -70,10 +70,15 @@ save it as `/usr/local/bin/ignite` and make it executable.
 To install Ignite from the command line, follow these steps:
 
 ```bash
-export VERSION=v0.4.2
-curl -fLo ignite https://github.com/weaveworks/ignite/releases/download/${VERSION}/ignite
-chmod +x ignite
-sudo mv ignite /usr/local/bin
+export VERSION=v0.5.0-alpha.1
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
 ```
 
 Ignite uses [semantic versioning](https://semver.org), select the version to be installed
@@ -100,6 +105,6 @@ To completely remove the Ignite installation, execute the following as root:
 ignite rm -f $(ignite ps -aq)
 # Remove the data directory
 rm -r /var/lib/firecracker
-# Remove the Ignite binary
-rm /usr/local/bin/ignite
+# Remove the ignite and ignited binaries
+rm /usr/local/bin/ignite{,d}
 ```

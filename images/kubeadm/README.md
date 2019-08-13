@@ -2,13 +2,13 @@
 
 This short guide shows you how to setup Kubernetes in HA mode with Ignite VMs.
 
-**Note:** At the moment, you need to execute all these commands as `root`.
+**NOTE:** At the moment, you need to execute all these commands as `root`.
 
-**Note:** This guide assumes you have no running containers, in other words, that
+**NOTE:** This guide assumes you have no running containers, in other words, that
 the IP of the first docker container that will be run is `172.17.0.2`. You can check
-this with `docker run busybox ip addr`.
+this with `docker run --rm busybox ip addr`.
 
-First set up some files and certificates using `prepare.sh`
+First set up some files and certificates using `prepare.sh` from this directory:
 
 ```bash
 ./prepare.sh
@@ -31,10 +31,10 @@ ignite run weaveworks/ignite-kubeadm:latest \
     --name master-0
 ```
 
-Log into it using `ignite ssh master-0` and an initialize it with `kubeadm`:
+Initialize it with `kubeadm` using `ignite exec`:
 
 ```bash
-kubeadm init --config /kubeadm.yaml --upload-certs
+ignite exec master-0 kubeadm init --config /kubeadm.yaml --upload-certs
 ```
 
 ### Join additional masters
@@ -52,14 +52,16 @@ for i in {1..2}; do
 done
 ```
 
-SSH into each VM with `ignite ssh master-{1,2}`, and join the control plane:
+Use `ignite exec` to join each VM to the control plane:
 
 ```bash
-kubeadm join firekube.luxas.dev:6443 \
-    --token ${TOKEN} \
-    --discovery-token-ca-cert-hash sha256:${CA_HASH} \
-    --certificate-key ${CERT_KEY} \
-    --control-plane
+for i in {1..2}; do
+    ignite exec master-${i} kubeadm join firekube.luxas.dev:6443 \
+        --token ${TOKEN} \
+        --discovery-token-ca-cert-hash sha256:${CA_HASH} \
+        --certificate-key ${CERT_KEY} \
+        --control-plane
+done
 ```
 
 ### Set up a HAProxy loadbalancer locally
@@ -82,7 +84,7 @@ Right now it's expected that the nodes are in state `NotReady`, as CNI networkin
 
 #### Install a CNI Network -- Weave Net
 
-We're gonna use [Weave Net](https://github.com/weaveworks/weave).
+We're going to use [Weave Net](https://github.com/weaveworks/weave).
 
 ```bash
 kubectl apply -f https://git.io/weave-kube-1.6
@@ -101,6 +103,5 @@ kubectl get nodes
 ```
 
 What's happening underneath here is that HAproxy (or any other loadbalancer) notices that
-`master-0` is unhealthy, and removes it from the roundrobin list, while etcd also realizes
-that one peer is lost, and re-electing a leader amongst the two that are still standing.
-When this is done (takes a second or two) the cluster can continue to serve requests as before.
+`master-0` is unhealthy, and removes it from the roundrobin list. etcd also realizes
+that one peer is lost, and re-elects a leader amongst the two that are still standing.

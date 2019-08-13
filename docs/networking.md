@@ -1,12 +1,18 @@
 # Networking
 
-The default networking mode is `docker-bridge`, which means that the default docker bridge will be used for the networking setup.
-The default docker bridge is a local `docker0` interface, giving out local addresses to containers in the `172.17.0.0/16` range.
+Ignite uses network plugins to manage VM networking. The default plugin is `docker-bridge`, which means that the default docker bridge will be
+used for the networking setup. The default docker bridge is a local `docker0` interface, giving out local addresses to containers in the `172.17.0.0/16` range.
 
-Ignite also supports integration with [CNI](https://github.com/containernetworking/cni), the standard networking interface
-for Kubernetes and many other cloud-native projects and container runtimes. Note that CNI itself is only an interface, not
+Via the `cni` plugin Ignite also supports integration with [CNI](https://github.com/containernetworking/cni), the standard networking
+interface for Kubernetes and many other cloud-native projects and container runtimes. Note that CNI itself is only an interface, not
 an implementation, so if you use this mode you need to install an implementation of this interface. Any implementation that works
 with Kubernetes should technically work with Ignite.
+
+To select the network plugin, use the `--network-plugin` flag for `ignite` and `ignited`:
+```console
+ignite --network-plugin cni <command>
+ignited --network-plugin docker-bridge <command>
+```
 
 ## Comparison
 
