@@ -21,7 +21,7 @@ spec:
   memory: 800MB
 ```
 
-This API object specifies a need for 2 vCPUs, 800 MB of RAM and 3 GB of disks space.
+This API object specifies a need for 2 vCPUs, 800 MB of RAM and 3 GB of disk space.
 
 We can tell Ignite to make this happen by simply running:
 
