@@ -28,7 +28,7 @@ Go ahead and create a Git repository.
 back to the repository using the default key for it. To edit your root's git configuration, run
 `sudo gitconfig --global --edit`. The root requirement will be removed in a future release.
 
- Here's a sample configuration you can push to it ([my-vm.yaml](my-vm.yaml)):
+ Here's a sample configuration you can push to it (my-vm.yaml):
 ```yaml
 apiVersion: ignite.weave.works/v1alpha2
 kind: VM
