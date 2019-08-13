@@ -38,3 +38,27 @@ Use Google compute from a custom KVM image so that Ignite can be installed and r
   ```
 
 - Create an instance with the custom image created
+
+## Microsoft Azure
+
+Azure supports nested virtualizations on Dv3 and Ev3 series virtual machines with 4 or more vCPUs. The smallest sizes supporting Ignite are listed below for development purposes. Larger and more specialized SKUs also support virtualization. There is no special configuration required. Follow the standard Ignite installation instructions for Ubuntu.
+
+
+| Family | Type | $/hr (West US 2) | $/month | vCPUs | Memory (GiB) | Instance Storage (GB) | 
+| ----           | ------ | :----: | :-----: | :-: | :-: | :----: 
+|General purpose | D4s_v3 | $0.192 | $140.16 | 4   | 16  | 32GiB  |
+|General purpose | D8s_v3 | $0.384 | $280.32 | 8   | 32  | 64GiB  |
+|Memory optimized| E4s_v3 | $0.252 | $183.96 | 4   | 32  | 64GiB  | 
+|Memory optimized| E8s_v3 | $0.504 | $367.92 | 8   | 64  | 128GiB |
+
+
+## Packet
+
+As a bare metal provider Packet naturally supports virtualization. For development purposes, using a t1.small.x86 with Ubuntu 18.04 or 19.04 works well.
+
+| Config | $/hr | $/month | CPUs | Memory (GiB) | Instance Storage (GB) |  
+| ------ | :----: | :-----: | :-: | :-: | :----: 
+| t1.small.x86 | $0.07 | ~$51.1 | 4@2.4Ghz  | 8  | 80GiB   |
+| c1.small.x86 | $0.40 | ~$292  | 4@3.5Ghz  | 32 | 120GiB  |
+
+
