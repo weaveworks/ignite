@@ -227,8 +227,8 @@ Other interesting resources include:
 
 - [The issue tracker](https://github.com/weaveworks/ignite/issues)
 - [The list of milestones](https://github.com/weaveworks/ignite/milestones)
+- [The Roadmap](docs/roadmap.md)
 - [CHANGELOG.md](CHANGELOG.md)
-- [ROADMAP.md](ROADMAP.md)
 
 ## Getting Help
 
