@@ -6,13 +6,14 @@ Ignite's upcoming daemon binary.
 
 In Git you declaratively store the desired state of a set of VMs you want to manage.
 `ignited gitops` reconciles the state from Git, and applies the desired changes as state is updated in the repo.
+It also commits and pushes any local changes/additions to the managed VMs back to the repository.
 
 This can then be automated, tracked for correctness, and managed at scale - [just some of the benefits of GitOps](https://www.weave.works/technologies/gitops/).
 
 The workflow is simply this:
 
  - Run `ignited gitops [repo]`, where repo is an **SSH url** to your Git repo
- - Create a file with the VM specification, specifying how much vCPUs, RAM, disk, etc. you’d like from the VM
+ - Create a file with the VM specification, specifying how much vCPUs, RAM, disk, etc. you’d like for the VM
  - Run `git push` and see your VM start on the host
 
 See it in action! (Note: The screencast is from an older version which differs somewhat)
