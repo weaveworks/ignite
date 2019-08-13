@@ -12,7 +12,7 @@ Here's an example API object file contents:
 apiVersion: ignite.weave.works/v1alpha2
 kind: VM
 metadata:
-  name: test-vm
+  name: my-vm
 spec:
   image:
     oci: weaveworks/ignite-ubuntu
@@ -26,7 +26,7 @@ This API object specifies a need for 2 vCPUs, 800 MB of RAM and 3 GB of disk spa
 We can tell Ignite to make this happen by simply running:
 
 ```console
-$ ignite run --config test-vm.yaml
+$ ignite run --config my-vm.yaml
 ```
 
 The full reference format for the `VM` kind is as follows:
