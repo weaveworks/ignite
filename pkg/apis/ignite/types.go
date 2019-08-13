@@ -142,13 +142,17 @@ type VM struct {
 
 // VMSpec describes the configuration of a VM
 type VMSpec struct {
-	Image    VMImageSpec   `json:"image"`
-	Kernel   VMKernelSpec  `json:"kernel"`
-	CPUs     uint64        `json:"cpus"`
-	Memory   meta.Size     `json:"memory"`
-	DiskSize meta.Size     `json:"diskSize"`
-	Network  VMNetworkSpec `json:"network"`
-	Storage  VMStorageSpec `json:"storage,omitempty"`
+	Image    VMImageSpec  `json:"image"`
+	Kernel   VMKernelSpec `json:"kernel"`
+	CPUs     uint64       `json:"cpus"`
+	Memory   meta.Size    `json:"memory"`
+	DiskSize meta.Size    `json:"diskSize"`
+	// TODO: Implement working omitempty without pointers for the following entries
+	// Currently both will show in the JSON output as empty arrays. Making them
+	// pointers requires plenty of nil checks (as their contents are accessed directly)
+	// and is very risky for stability. APIMachinery potentially has a solution.
+	Network VMNetworkSpec `json:"network,omitempty"`
+	Storage VMStorageSpec `json:"storage,omitempty"`
 	// This will be done at either "ignite start" or "ignite create" time
 	// TODO: We might revisit this later
 	CopyFiles []FileMapping `json:"copyFiles,omitempty"`
