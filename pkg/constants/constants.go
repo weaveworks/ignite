@@ -10,6 +10,10 @@ const (
 	// Permissions for the data directory and its subdirectories
 	DATA_DIR_PERM = 0755
 
+	// Permissions for files in the data directory
+	// TODO: Make all writes to DATA_DIR use this
+	DATA_DIR_FILE_PERM = 644
+
 	// Filename for metadata files
 	METADATA = "metadata.json"
 

@@ -136,6 +136,24 @@ func TestRoot() error {
 	return fmt.Errorf("This program needs to run as root.")
 }
 
+// This is a light weight handler to capture
+// errors during detach that would otherwise
+// be silently ignored. Pass a pointer to the
+// error to be returned and the function to run.
+// TODO: Replace all ignored defers with this
+func DeferErr(err *error, f func() error) {
+	if err == nil {
+		panic("nil pointer given to DeferErr")
+	}
+
+	// If the given function returned an error
+	// and there isn't already an error to be
+	// returned, assign the function's error
+	if fErr := f(); fErr != nil && *err == nil {
+		*err = fErr
+	}
+}
+
 type Prefixer struct {
 	prefix    string
 	separator string
