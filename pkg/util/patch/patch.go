@@ -6,6 +6,7 @@ import (
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 )
@@ -51,7 +52,12 @@ func Apply(original, patch []byte, gvk schema.GroupVersionKind) ([]byte, error) 
 		return nil, err
 	}
 
-	return strategicpatch.StrategicMergePatch(original, patch, emptyobj)
+	b, err := strategicpatch.StrategicMergePatch(original, patch, emptyobj)
+	if err != nil {
+		return nil, err
+	}
+
+	return serializerEncode(b)
 }
 
 func ApplyOnFile(filePath string, patch []byte, gvk schema.GroupVersionKind) error {
@@ -66,4 +72,16 @@ func ApplyOnFile(filePath string, patch []byte, gvk schema.GroupVersionKind) err
 	}
 
 	return ioutil.WriteFile(filePath, newContent, 0644)
+}
+
+// StrategicMergePatch returns an unindented, unorganized JSON byte slice,
+// this helper takes that as an input and returns the same JSON re-encoded
+// with the serializer so it conforms to a runtime.Object
+func serializerEncode(input []byte) (result []byte, err error) {
+	var obj runtime.Object
+	if obj, err = serializer.Decode(input, true); err == nil {
+		result, err = serializer.EncodeJSON(obj)
+	}
+
+	return
 }
