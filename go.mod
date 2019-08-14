@@ -39,13 +39,14 @@ require (
 	github.com/weaveworks/flux v0.0.0-20190704153721-8292179855e1
 	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
-	golang.org/x/net v0.0.0-20190620200207-3b0461eec859 // indirect
+	golang.org/x/net v0.0.0-20190812203447-cdfb69ac37fc // indirect
 	golang.org/x/sys v0.0.0-20190616124812-15dcb6c0061f
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/alessio/shellescape.v1 v1.0.0-20170105083845-52074bc9df61
 	gotest.tools v2.2.0+incompatible // indirect
 	k8s.io/apimachinery v0.0.0-20190612205821-1799e75a0719
+	k8s.io/klog v0.4.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20190709113604-33be087ad058
 	sigs.k8s.io/yaml v1.1.0
 )
