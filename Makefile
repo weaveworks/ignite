@@ -20,7 +20,8 @@ IS_CI_BUILD ?= 0
 undefine GOFLAGS
 
 ## Multi-platform-related stuff
-GOHOSTARCH = $(shell go env GOARCH 2>/dev/null || echo "amd64")
+# Ignore GOARCH from the environment for the query, otherwise it results in the environment's GOARCH
+GOHOSTARCH := $(shell GOARCH= go env GOARCH 2>/dev/null || echo "amd64")
 GOARCH ?= amd64
 GOARCH_LIST = amd64 arm64
 QEMUVERSION=v2.9.1
@@ -67,11 +68,15 @@ else
 	# Register /usr/bin/qemu-ARCH-static as the handler for non-x86 binaries in the kernel
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset
 endif
-	docker build -t $(IMAGE):${IMAGE_DEV_TAG} \
+	docker build -t $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) \
 		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} \
 		--build-arg ARCH_SUFFIX=${ARCH_SUFFIX} bin/$(GOARCH)
+ifeq ($(GOARCH),$(GOHOSTARCH))
+	# Only tag the development image if its architecture matches the host
+	docker tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_DEV_TAG}
+endif
 ifeq ($(IS_DIRTY),0)
-	docker tag $(IMAGE):${IMAGE_DEV_TAG} $(IMAGE):${IMAGE_TAG}-$(GOARCH)
+	docker tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}-$(GOARCH)
 ifeq ($(GOARCH),$(GOHOSTARCH))
 	# For dev builds for a clean (non-dirty) environment; "simulate" that
 	# a manifest list has been built by tagging the docker image
