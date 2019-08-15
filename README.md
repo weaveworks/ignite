@@ -77,7 +77,7 @@ Ignite on the other hand lets you run a full-blown VM, easily and super-fast, bu
 
 Please check out the [Releases Page](https://github.com/weaveworks/ignite/releases).
 
-How to install Ignite is covered in [docs/installation.md](docs/installation.md) or on [Read the Docs](https://ignite.readthedocs.io/en/latest/installation.html).
+How to install Ignite is covered in [docs/installation.md](docs/installation.md) or on [Read the Docs](https://ignite.readthedocs.io/en/stable/installation.html).
 
 Guidance on Cloud Providers' instances that can run Ignite is covered in [docs/cloudprovider.md](docs/cloudprovider.md).
 
@@ -126,7 +126,7 @@ ignite ssh my-vm
 ignite rm my-vm
 ```
 
-For a walkthrough of how to use Ignite, go to [**docs/usage.md**](https://ignite.readthedocs.io/en/latest/usage.html).
+For a walkthrough of how to use Ignite, go to [**docs/usage.md**](https://ignite.readthedocs.io/en/stable/usage.html).
 
 ## Getting Started the GitOps way
 
@@ -156,24 +156,24 @@ For the complete guide, see [docs/gitops.md](docs/gitops.md).
 
 Want to see how awesome Ignite is?
 
-Take a look at the [awesome-ignite](https://ignite.readthedocs.io/en/latest/awesome.html) page!
+Take a look at the [awesome-ignite](https://ignite.readthedocs.io/en/stable/awesome.html) page!
 
 ### Documentation
 
-Please refer to the following documents powered by [Read the Docs](https://readthedocs.org/):
+Please refer to the following documents powered by [Read the Docs](https://readthedocs.io/):
 
-- **[Documentation Page](https://ignite.readthedocs.io/)**
-- [Installing Ignite](https://ignite.readthedocs.io/en/latest/installation.html)
-- [Scope and Dependencies](https://ignite.readthedocs.io/en/latest/dependencies.html)
-- [Getting Started Walkthrough](https://ignite.readthedocs.io/en/latest/usage.html)
-- [Declaratively Controlling Ignite](https://ignite.readthedocs.io/en/latest/declarative-config.html)
-- [Networking and Multi-Node](https://ignite.readthedocs.io/en/latest/networking.html)
-- [CLI Reference](https://ignite.readthedocs.io/en/latest/cli/ignite/)
-- [API Reference](https://ignite.readthedocs.io/en/latest/api/)
+- **[Documentation Page](https://ignite.readthedocs.io/en/stable)**
+- [Installing Ignite](https://ignite.readthedocs.io/en/stable/installation.html)
+- [Scope and Dependencies](https://ignite.readthedocs.io/en/stable/dependencies.html)
+- [Getting Started Walkthrough](https://ignite.readthedocs.io/en/stable/usage.html)
+- [Declaratively Controlling Ignite](https://ignite.readthedocs.io/en/stable/declarative-config.html)
+- [Networking and Multi-Node](https://ignite.readthedocs.io/en/stable/networking.html)
+- [CLI Reference](https://ignite.readthedocs.io/en/stable/cli/ignite/)
+- [API Reference](https://ignite.readthedocs.io/en/stable/api/)
 
 ### Frequently Asked Questions
 
-See the [FAQ.md](https://ignite.readthedocs.io/en/latest/FAQ.html) document.
+See the [FAQ.md](https://ignite.readthedocs.io/en/stable/FAQ.html) document.
 
 ### Architecture
 
