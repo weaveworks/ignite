@@ -39,7 +39,7 @@ fi
 
 # Calculate from where to build the changelog. For a prerelease, the changelog is incremental, but the
 # changelog for a stable release includes notes from the last stable release on this release branch
-if [[ ${EXTRA} == "" ]]; then
+if [[ ${EXTRA} == "" ]]; then
     PREVIOUS_TAG=$(git tag --sort taggerdate | sort -r | grep -E "v[0-9]+\.${MINOR}\.[0-9]+$" | head -1)
 else
     PREVIOUS_TAG=$(git tag --sort taggerdate | sort -r | grep -E "v[0-9]+\.${MINOR}" | head -1)
