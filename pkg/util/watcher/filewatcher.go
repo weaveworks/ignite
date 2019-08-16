@@ -305,6 +305,10 @@ func (m *moveCache) cookie() uint32 {
 	return ievent(m.event).Cookie
 }
 
+// If the moveCache isn't cancelled, the move is considered incomplete and this
+// method is fired. A complete move consists out of a "from" event and a "to" event,
+// if only one is received, the file is moved in/out of a watched directory, which
+// is treated as a normal creation/deletion by this method.
 func (m *moveCache) incomplete() {
 	var event FileEvent
 
@@ -351,8 +355,8 @@ func (w *FileWatcher) move(event notify.EventInfo) (moveUpdate *FileUpdate) {
 		sourcePath, destPath = destPath, sourcePath
 		fallthrough
 	case notify.InMovedTo:
-		cache.cancel()                                    // Cancel dispatching the cache's update
-		moveUpdate = &FileUpdate{FileEventMove, destPath} // Register an internal move instead
+		cache.cancel()                                    // Cancel dispatching the cache's incomplete move
+		moveUpdate = &FileUpdate{FileEventMove, destPath} // Register an internal, complete move instead
 		log.Tracef("FileWatcher: Detected move: %q -> %q", sourcePath, destPath)
 	}
 
