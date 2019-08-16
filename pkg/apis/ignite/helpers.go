@@ -4,6 +4,7 @@ import (
 	"path"
 
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 // SetImage populates relevant fields to an Image on the VM object
@@ -20,8 +21,7 @@ func (vm *VM) SetKernel(kernel *Kernel) {
 
 // SnapshotDev returns the path where the (legacy) DM snapshot exists
 func (vm *VM) SnapshotDev() string {
-	// TODO: Reuse the prefixer here
-	return path.Join("/dev/mapper", constants.IGNITE_PREFIX+vm.GetUID().String())
+	return path.Join("/dev/mapper", util.NewPrefixer().Prefix(vm.GetUID()))
 }
 
 // Running returns true if the VM is running, otherwise false

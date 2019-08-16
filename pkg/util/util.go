@@ -12,6 +12,7 @@ import (
 
 	"github.com/goombaio/namegenerator"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/ignite/pkg/constants"
 )
 
 // GenericCheckErr is used by the commands to check if the action failed
@@ -161,7 +162,7 @@ type Prefixer struct {
 
 func NewPrefixer() *Prefixer {
 	return &Prefixer{
-		prefix:    "ignite", // TODO: Remove the dash from IGNITE_PREFIX and use it here
+		prefix:    constants.IGNITE_PREFIX,
 		separator: "-",
 	}
 }

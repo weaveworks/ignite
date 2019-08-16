@@ -2,7 +2,7 @@ package constants
 
 const (
 	// Common Ignite prefix
-	IGNITE_PREFIX = "ignite-"
+	IGNITE_PREFIX = "ignite"
 
 	// Ignite data base directory
 	DATA_DIR = "/var/lib/firecracker"
