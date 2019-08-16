@@ -14,7 +14,7 @@ import (
 
 // ActivateSnapshot sets up the snapshot with devicemapper so that it is active and can be used
 func ActivateSnapshot(vm *api.VM) error {
-	device := constants.IGNITE_PREFIX + vm.GetUID().String()
+	device := util.NewPrefixer().Prefix(vm.GetUID())
 	devicePath := vm.SnapshotDev()
 
 	// Return if the snapshot is already setup
