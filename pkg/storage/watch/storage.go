@@ -142,6 +142,16 @@ func (s *GenericWatchStorage) monitorFunc(raw storage.RawStorage, files []string
 					continue
 				}
 
+				if event.Event == watcher.FileEventMove {
+					// Update the mappings for the moved file (AddMapping overwrites)
+					if mapped, ok := raw.(storage.MappedRawStorage); ok {
+						mapped.AddMapping(storage.NewKey(obj.GetKind(), obj.GetUID()), event.Path)
+					}
+
+					// Internal move events are a no-op
+					continue
+				}
+
 				// This is based on the key's existence instead of watcher.EventCreate,
 				// as Objects can get updated (via watcher.FileEventModify) to be conformant
 				if _, err = raw.GetKey(event.Path); err != nil {

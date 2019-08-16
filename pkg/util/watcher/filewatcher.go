@@ -198,7 +198,7 @@ func (w *FileWatcher) dispatchFunc() {
 		// Wait until we have a batch dispatched to us
 		ok := w.batcher.ProcessBatch(func(key, val interface{}) bool {
 			// Concatenate all known events, and dispatch them to be handled one by one
-			for _, event := range concatenateEvents(val.(notifyEvents)) {
+			for _, event := range w.concatenateEvents(val.(notifyEvents)) {
 				w.sendUpdate(event)
 			}
 
@@ -283,39 +283,90 @@ func convertUpdate(event notify.EventInfo) *FileUpdate {
 }
 
 // moveCache caches an event during a move operation
-var moveCache notify.EventInfo
+// and dispatches a FileUpdate if it's not cancelled
+type moveCache struct {
+	watcher *FileWatcher
+	event   notify.EventInfo
+	timer   *time.Timer
+}
+
+func (w *FileWatcher) newMoveCache(event notify.EventInfo) *moveCache {
+	m := &moveCache{
+		watcher: w,
+		event:   event,
+	}
+
+	// moveCaches wait one second to be cancelled before firing
+	m.timer = time.AfterFunc(time.Second, m.incomplete)
+	return m
+}
+
+func (m *moveCache) cookie() uint32 {
+	return ievent(m.event).Cookie
+}
+
+// If the moveCache isn't cancelled, the move is considered incomplete and this
+// method is fired. A complete move consists out of a "from" event and a "to" event,
+// if only one is received, the file is moved in/out of a watched directory, which
+// is treated as a normal creation/deletion by this method.
+func (m *moveCache) incomplete() {
+	var event FileEvent
+
+	switch m.event.Event() {
+	case notify.InMovedFrom:
+		event = FileEventDelete
+	case notify.InMovedTo:
+		event = FileEventModify
+	default:
+		// This should never happen
+		panic(fmt.Sprintf("moveCache: unrecognized event: %v", m.event.Event()))
+	}
+
+	log.Tracef("moveCache: Timer expired for %d, dispatching...", m.cookie())
+	m.watcher.sendUpdate(&FileUpdate{event, m.event.Path()})
+
+	// Delete the cache after the timer has fired
+	delete(moveCaches, m.cookie())
+}
+
+func (m *moveCache) cancel() {
+	m.timer.Stop()
+	delete(moveCaches, m.cookie())
+	log.Tracef("moveCache: Dispatching cancelled for %d", m.cookie())
+}
+
+// moveCaches keeps track of active moves by cookie
+var moveCaches = make(map[uint32]*moveCache)
 
 // move processes InMovedFrom and InMovedTo events in any order
-// and converts them to FileEvents when a move is detected
-func move(event notify.EventInfo) (updates FileUpdates) {
-	if moveCache == nil {
-		moveCache = event
+// and dispatches FileUpdates when a move is detected
+func (w *FileWatcher) move(event notify.EventInfo) (moveUpdate *FileUpdate) {
+	cookie := ievent(event).Cookie
+	cache, ok := moveCaches[cookie]
+	if !ok {
+		// The cookie is not cached, create a new cache object for it
+		moveCaches[cookie] = w.newMoveCache(event)
 		return
 	}
 
-	deletePath, modifyPath := moveCache.Path(), event.Path()
+	sourcePath, destPath := cache.event.Path(), event.Path()
 	switch event.Event() {
 	case notify.InMovedFrom:
-		deletePath, modifyPath = modifyPath, deletePath
+		sourcePath, destPath = destPath, sourcePath
 		fallthrough
 	case notify.InMovedTo:
-		if ievent(moveCache).Cookie == ievent(event).Cookie {
-			updates = append(updates, &FileUpdate{FileEventDelete, deletePath},
-				&FileUpdate{FileEventModify, modifyPath})
-			moveCache = nil
-		} else {
-			moveCache = event
-		}
+		cache.cancel()                                    // Cancel dispatching the cache's incomplete move
+		moveUpdate = &FileUpdate{FileEventMove, destPath} // Register an internal, complete move instead
+		log.Tracef("FileWatcher: Detected move: %q -> %q", sourcePath, destPath)
 	}
 
-	log.Tracef("FileWatcher: Detected move: %q -> %q", deletePath, modifyPath)
 	return
 }
 
 // concatenateEvents takes in a slice of events and concatenates
 // all events possible based on combinedEvents. It also manages
 // file moving and conversion from notifyEvents to FileUpdates
-func concatenateEvents(events notifyEvents) FileUpdates {
+func (w *FileWatcher) concatenateEvents(events notifyEvents) FileUpdates {
 	for _, combinedEvent := range combinedEvents {
 		// Test if the prefix of the given events matches combinedEvent.input
 		if event, ok := combinedEvent.match(events); ok {
@@ -326,7 +377,7 @@ func concatenateEvents(events notifyEvents) FileUpdates {
 			}
 
 			log.Tracef("FileWatcher: Concatenated events: %v -> %v", events, concatenated)
-			return concatenateEvents(concatenated)
+			return w.concatenateEvents(concatenated)
 		}
 	}
 
@@ -335,8 +386,10 @@ func concatenateEvents(events notifyEvents) FileUpdates {
 	for _, event := range events {
 		switch event.Event() {
 		case notify.InMovedFrom, notify.InMovedTo:
-			if moveUpdates := move(event); len(moveUpdates) > 0 {
-				updates = append(updates, moveUpdates...)
+			// Send move-related events to w.move
+			if update := w.move(event); update != nil {
+				// Add the update to the list if we get something back
+				updates = append(updates, update)
 			}
 		default:
 			updates = append(updates, convertUpdate(event))

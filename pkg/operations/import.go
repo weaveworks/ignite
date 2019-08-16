@@ -189,7 +189,7 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*api.Kernel, error
 		if err != nil {
 			kernel.Status.Version = "<unknown>"
 		} else {
-			kernel.Status.Version = string(out)
+			kernel.Status.Version = out
 		}
 	}
 
