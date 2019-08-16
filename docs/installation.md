@@ -70,7 +70,7 @@ save it as `/usr/local/bin/ignite` and make it executable.
 To install Ignite from the command line, follow these steps:
 
 ```bash
-export VERSION=v0.5.0-alpha.1
+export VERSION=v0.5.1
 export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
 
 for binary in ignite ignited; do
