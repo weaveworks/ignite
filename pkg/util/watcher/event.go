@@ -5,13 +5,14 @@ import (
 	"strings"
 )
 
-// FileEvent is an enum describing a change in a file's state.
+// FileEvent is an enum describing a change in a file's state
 type FileEvent byte
 
 const (
 	FileEventNone   FileEvent = iota // 0
 	FileEventModify                  // 1
 	FileEventDelete                  // 2
+	FileEventMove                    // 3
 )
 
 func (e FileEvent) String() string {
@@ -22,6 +23,8 @@ func (e FileEvent) String() string {
 		return "MODIFY"
 	case 2:
 		return "DELETE"
+	case 3:
+		return "MOVE"
 	}
 
 	return "UNKNOWN"
