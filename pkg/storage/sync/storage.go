@@ -139,8 +139,8 @@ func (ss *SyncStorage) monitorFunc() {
 	// For now, only update the state on write when Ignite is running
 	for {
 		upd, ok := <-ss.eventStream
-		log.Debugf("SyncStorage: Received update %v %t", upd, ok)
 		if ok {
+			log.Debugf("SyncStorage: Received update %v %t", upd, ok)
 			switch upd.Event {
 			case update.ObjectEventModify, update.ObjectEventCreate:
 				// First load the Object using the Storage given in the update,
