@@ -4,6 +4,8 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/gitops/gitdir"
 	"github.com/weaveworks/ignite/pkg/operations/reconcile"
 	"github.com/weaveworks/ignite/pkg/storage/manifest"
@@ -22,7 +24,7 @@ func RunGitOps(url, branch string, paths []string) error {
 	gitDir.WaitForClone()
 
 	// Construct a manifest storage for the path backed by git
-	s, err := manifest.NewManifestStorage(gitDir.Dir())
+	s, err := manifest.NewTwoWayManifestStorage(gitDir.Dir(), constants.DATA_DIR, scheme.Serializer)
 	if err != nil {
 		return err
 	}
