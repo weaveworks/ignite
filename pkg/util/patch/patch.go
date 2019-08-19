@@ -4,27 +4,36 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"k8s.io/apimachinery/pkg/runtime"
+	"github.com/weaveworks/ignite/pkg/serializer"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 )
 
-// The default serializer used here. In the future we maybe want to
-// make this configurable
-var serializer = scheme.Serializer
+type Patcher interface {
+	Create(new meta.Object, applyFn func(meta.Object) error) ([]byte, error)
+	Apply(original, patch []byte, gvk schema.GroupVersionKind) ([]byte, error)
+	ApplyOnFile(filePath string, patch []byte, gvk schema.GroupVersionKind) error
+}
+
+func NewPatcher(s serializer.Serializer) Patcher {
+	return &patcher{serializer: s}
+}
+
+type patcher struct {
+	serializer serializer.Serializer
+}
 
 // Create is a helper that creates a patch out of the change made in applyFn
-func Create(new meta.Object, applyFn func(meta.Object) error) ([]byte, error) {
+func (p *patcher) Create(new meta.Object, applyFn func(meta.Object) error) ([]byte, error) {
 	old := new.DeepCopyObject().(meta.Object)
 
-	oldbytes, err := serializer.EncodeJSON(old)
+	oldbytes, err := p.serializer.EncodeJSON(old)
 	if err != nil {
 		return nil, err
 	}
 
-	emptyobj, err := serializer.Scheme().New(old.GroupVersionKind())
+	emptyobj, err := p.serializer.Scheme().New(old.GroupVersionKind())
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +42,7 @@ func Create(new meta.Object, applyFn func(meta.Object) error) ([]byte, error) {
 		return nil, err
 	}
 
-	newbytes, err := serializer.EncodeJSON(new)
+	newbytes, err := p.serializer.EncodeJSON(new)
 	if err != nil {
 		return nil, err
 	}
@@ -46,42 +55,25 @@ func Create(new meta.Object, applyFn func(meta.Object) error) ([]byte, error) {
 	return patchBytes, nil
 }
 
-func Apply(original, patch []byte, gvk schema.GroupVersionKind) ([]byte, error) {
-	emptyobj, err := serializer.Scheme().New(gvk)
+func (p *patcher) Apply(original, patch []byte, gvk schema.GroupVersionKind) ([]byte, error) {
+	emptyobj, err := p.serializer.Scheme().New(gvk)
 	if err != nil {
 		return nil, err
 	}
 
-	b, err := strategicpatch.StrategicMergePatch(original, patch, emptyobj)
-	if err != nil {
-		return nil, err
-	}
-
-	return serializerEncode(b)
+	return strategicpatch.StrategicMergePatch(original, patch, emptyobj)
 }
 
-func ApplyOnFile(filePath string, patch []byte, gvk schema.GroupVersionKind) error {
+func (p *patcher) ApplyOnFile(filePath string, patch []byte, gvk schema.GroupVersionKind) error {
 	oldContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
 
-	newContent, err := Apply(oldContent, patch, gvk)
+	newContent, err := p.Apply(oldContent, patch, gvk)
 	if err != nil {
 		return err
 	}
 
 	return ioutil.WriteFile(filePath, newContent, 0644)
-}
-
-// StrategicMergePatch returns an unindented, unorganized JSON byte slice,
-// this helper takes that as an input and returns the same JSON re-encoded
-// with the serializer so it conforms to a runtime.Object
-func serializerEncode(input []byte) (result []byte, err error) {
-	var obj runtime.Object
-	if obj, err = serializer.Decode(input, true); err == nil {
-		result, err = serializer.EncodeJSON(obj)
-	}
-
-	return
 }
