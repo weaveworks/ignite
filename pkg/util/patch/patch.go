@@ -6,6 +6,7 @@ import (
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/serializer"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 )
@@ -61,7 +62,12 @@ func (p *patcher) Apply(original, patch []byte, gvk schema.GroupVersionKind) ([]
 		return nil, err
 	}
 
-	return strategicpatch.StrategicMergePatch(original, patch, emptyobj)
+	b, err := strategicpatch.StrategicMergePatch(original, patch, emptyobj)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.serializerEncode(b)
 }
 
 func (p *patcher) ApplyOnFile(filePath string, patch []byte, gvk schema.GroupVersionKind) error {
@@ -76,4 +82,17 @@ func (p *patcher) ApplyOnFile(filePath string, patch []byte, gvk schema.GroupVer
 	}
 
 	return ioutil.WriteFile(filePath, newContent, 0644)
+}
+
+// StrategicMergePatch returns an unindented, unorganized JSON byte slice,
+// this helper takes that as an input and returns the same JSON re-encoded
+// with the serializer so it conforms to a runtime.Object
+// TODO: Just use encoding/json.Indent here instead?
+func (p *patcher) serializerEncode(input []byte) (result []byte, err error) {
+	var obj runtime.Object
+	if obj, err = p.serializer.Decode(input, true); err == nil {
+		result, err = p.serializer.EncodeJSON(obj)
+	}
+
+	return
 }
