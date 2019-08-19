@@ -3,6 +3,7 @@ package cache
 import (
 	log "github.com/sirupsen/logrus"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/serializer"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -35,6 +36,10 @@ func NewCache(backingStorage storage.Storage) Cache {
 	}
 
 	return c
+}
+
+func (s *cache) Serializer() serializer.Serializer {
+	return s.storage.Serializer()
 }
 
 func (c *cache) New(gvk schema.GroupVersionKind) (meta.Object, error) {

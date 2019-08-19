@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/storage/serializer"
+	"github.com/weaveworks/ignite/pkg/serializer"
 	patchutil "github.com/weaveworks/ignite/pkg/util/patch"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -44,22 +44,29 @@ type Storage interface {
 	Checksum(gvk schema.GroupVersionKind, uid meta.UID) (string, error)
 	// RawStorage returns the RawStorage instance backing this Storage
 	RawStorage() RawStorage
+	// Serializer returns the serializer
+	Serializer() serializer.Serializer
 	// Close closes all underlying resources (e.g. goroutines) used; before the application exits
 	Close() error
 }
 
 // NewGenericStorage constructs a new Storage
 func NewGenericStorage(rawStorage RawStorage, serializer serializer.Serializer) Storage {
-	return &GenericStorage{rawStorage, serializer}
+	return &GenericStorage{rawStorage, serializer, patchutil.NewPatcher(serializer)}
 }
 
 // GenericStorage implements the Storage interface
 type GenericStorage struct {
 	raw        RawStorage
 	serializer serializer.Serializer
+	patcher    patchutil.Patcher
 }
 
 var _ Storage = &GenericStorage{}
+
+func (s *GenericStorage) Serializer() serializer.Serializer {
+	return s.serializer
+}
 
 // New creates a new Object for the specified kind
 // TODO: Create better error handling if the GVK specified is not recognized
@@ -141,7 +148,7 @@ func (s *GenericStorage) Patch(gvk schema.GroupVersionKind, uid meta.UID, patch 
 		return err
 	}
 
-	newContent, err := patchutil.Apply(oldContent, patch, gvk)
+	newContent, err := s.patcher.Apply(oldContent, patch, gvk)
 	if err != nil {
 		return err
 	}

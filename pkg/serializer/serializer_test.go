@@ -6,7 +6,7 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/storage/serializer"
+	"github.com/weaveworks/ignite/pkg/serializer"
 )
 
 var s = serializer.NewSerializer(scheme.Scheme, nil)

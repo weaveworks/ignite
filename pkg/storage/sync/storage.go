@@ -5,7 +5,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/watch"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
@@ -131,9 +130,6 @@ func (ss *SyncStorage) monitorFunc() {
 	log.Debug("SyncStorage: Monitoring thread started")
 	defer log.Debug("SyncStorage: Monitoring thread stopped")
 
-	// This is the internal client for propagating updates
-	c := client.NewClient(ss)
-
 	// TODO: Support detecting changes done when Ignite isn't running
 	// This is difficult to do though, as we have don't know which state is the latest
 	// For now, only update the state on write when Ignite is running
@@ -145,20 +141,19 @@ func (ss *SyncStorage) monitorFunc() {
 			case update.ObjectEventModify, update.ObjectEventCreate:
 				// First load the Object using the Storage given in the update,
 				// then set it using the client constructed above
-				updClient := client.NewClient(upd.Storage).Dynamic(upd.APIType.GetKind())
-				obj, err := updClient.Get(upd.APIType.GetUID())
+				obj, err := upd.Storage.Get(upd.APIType.GroupVersionKind(), upd.APIType.GetUID())
 				if err != nil {
 					log.Errorf("Failed to get Object with UID %q: %v", upd.APIType.GetUID(), err)
 					continue
 				}
 
-				if err = c.Dynamic(upd.APIType.GetKind()).Set(obj); err != nil {
+				if err = ss.Set(obj.GroupVersionKind(), obj); err != nil {
 					log.Errorf("Failed to set Object with UID %q: %v", upd.APIType.GetUID(), err)
 					continue
 				}
 			case update.ObjectEventDelete:
 				// For deletion we use the generated "fake" APIType object
-				if err := c.Dynamic(upd.APIType.GetKind()).Delete(upd.APIType.GetUID()); err != nil {
+				if err := ss.Delete(upd.APIType.GroupVersionKind(), upd.APIType.GetUID()); err != nil {
 					log.Errorf("Failed to delete Object with UID %q: %v", upd.APIType.GetUID(), err)
 					continue
 				}
