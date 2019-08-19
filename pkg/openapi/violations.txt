@@ -11,5 +11,3 @@ API rule violation: names_match,github.com/weaveworks/ignite/pkg/apis/meta/v1alp
 API rule violation: names_match,github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1,OCIContentID,digest
 API rule violation: names_match,github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1,OCIContentID,repoName
 API rule violation: names_match,github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1,Size,ByteSize
-API rule violation: names_match,github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1,Time,Time
-API rule violation: names_match,github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1,TypeMeta,TypeMeta

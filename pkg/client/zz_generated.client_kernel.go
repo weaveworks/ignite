@@ -10,10 +10,10 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
+	"github.com/weaveworks/gitops-toolkit/pkg/storage"
+	"github.com/weaveworks/gitops-toolkit/pkg/storage/filterer"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/storage"
-	"github.com/weaveworks/ignite/pkg/storage/filterer"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -22,12 +22,12 @@ type KernelClient interface {
 	// New returns a new Kernel
 	New() *api.Kernel
 	// Get returns the Kernel matching given UID from the storage
-	Get(meta.UID) (*api.Kernel, error)
+	Get(runtime.UID) (*api.Kernel, error)
 	// Set saves the given Kernel into persistent storage
 	Set(*api.Kernel) error
 	// Patch performs a strategic merge patch on the object with
 	// the given UID, using the byte-encoded patch given
-	Patch(meta.UID, []byte) error
+	Patch(runtime.UID, []byte) error
 	// Find returns the Kernel matching the given filter, filters can
 	// match e.g. the Object's Name, UID or a specific property
 	Find(filter filterer.BaseFilter) (*api.Kernel, error)
@@ -35,7 +35,7 @@ type KernelClient interface {
 	// match e.g. the Object's Name, UID or a specific property
 	FindAll(filter filterer.BaseFilter) ([]*api.Kernel, error)
 	// Delete deletes the Kernel with the given UID from the storage
-	Delete(uid meta.UID) error
+	Delete(uid runtime.UID) error
 	// List returns a list of all Kernels available
 	List() ([]*api.Kernel, error)
 }
@@ -104,7 +104,7 @@ func (c *kernelClient) FindAll(filter filterer.BaseFilter) ([]*api.Kernel, error
 }
 
 // Get returns the Kernel matching given UID from the storage
-func (c *kernelClient) Get(uid meta.UID) (*api.Kernel, error) {
+func (c *kernelClient) Get(uid runtime.UID) (*api.Kernel, error) {
 	log.Tracef("Client.Get; UID: %q, GVK: %v", uid, c.gvk)
 	object, err := c.storage.Get(c.gvk, uid)
 	if err != nil {
@@ -122,12 +122,12 @@ func (c *kernelClient) Set(kernel *api.Kernel) error {
 
 // Patch performs a strategic merge patch on the object with
 // the given UID, using the byte-encoded patch given
-func (c *kernelClient) Patch(uid meta.UID, patch []byte) error {
+func (c *kernelClient) Patch(uid runtime.UID, patch []byte) error {
 	return c.storage.Patch(c.gvk, uid, patch)
 }
 
 // Delete deletes the Kernel from the storage
-func (c *kernelClient) Delete(uid meta.UID) error {
+func (c *kernelClient) Delete(uid runtime.UID) error {
 	log.Tracef("Client.Delete; UID: %q, GVK: %v", uid, c.gvk)
 	return c.storage.Delete(c.gvk, uid)
 }

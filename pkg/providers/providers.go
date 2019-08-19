@@ -2,10 +2,10 @@ package providers
 
 import (
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/gitops-toolkit/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/network"
 	"github.com/weaveworks/ignite/pkg/runtime"
-	"github.com/weaveworks/ignite/pkg/storage"
 )
 
 // NetworkPlugins provides the initialized network plugins indexed by their name

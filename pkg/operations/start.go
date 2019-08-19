@@ -9,8 +9,8 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	apiruntime "github.com/weaveworks/gitops-toolkit/pkg/runtime"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/logs"
@@ -129,7 +129,7 @@ func StartVM(vm *api.VM, debug bool) error {
 	vm.Status.Runtime = &api.Runtime{ID: containerID}
 
 	// Set the start time for the VM
-	startTime := meta.Timestamp()
+	startTime := apiruntime.Timestamp()
 	vm.Status.StartTime = &startTime
 
 	// Append the runtime IP address of the VM to its state

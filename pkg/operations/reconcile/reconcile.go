@@ -2,14 +2,14 @@ package reconcile
 
 import (
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/gitops-toolkit/pkg/storage/cache"
+	"github.com/weaveworks/gitops-toolkit/pkg/storage/manifest"
+	"github.com/weaveworks/gitops-toolkit/pkg/storage/watch/update"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/operations"
-	"github.com/weaveworks/ignite/pkg/storage/cache"
-	"github.com/weaveworks/ignite/pkg/storage/manifest"
-	"github.com/weaveworks/ignite/pkg/storage/watch/update"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 

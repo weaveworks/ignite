@@ -1,8 +1,8 @@
 package run
 
 import (
+	"github.com/weaveworks/gitops-toolkit/pkg/filter"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/providers"
 )
 

@@ -12,10 +12,10 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
+	"github.com/weaveworks/gitops-toolkit/pkg/storage"
+	"github.com/weaveworks/gitops-toolkit/pkg/storage/filterer"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/storage"
-	"github.com/weaveworks/ignite/pkg/storage/filterer"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -24,12 +24,12 @@ type ResourceClient interface {
 	// New returns a new Resource
 	New() *api.Resource
 	// Get returns the Resource matching given UID from the storage
-	Get(meta.UID) (*api.Resource, error)
+	Get(runtime.UID) (*api.Resource, error)
 	// Set saves the given Resource into persistent storage
 	Set(*api.Resource) error
 	// Patch performs a strategic merge patch on the object with
 	// the given UID, using the byte-encoded patch given
-	Patch(meta.UID, []byte) error
+	Patch(runtime.UID, []byte) error
 	// Find returns the Resource matching the given filter, filters can
 	// match e.g. the Object's Name, UID or a specific property
 	Find(filter filterer.BaseFilter) (*api.Resource, error)
@@ -37,7 +37,7 @@ type ResourceClient interface {
 	// match e.g. the Object's Name, UID or a specific property
 	FindAll(filter filterer.BaseFilter) ([]*api.Resource, error)
 	// Delete deletes the Resource with the given UID from the storage
-	Delete(uid meta.UID) error
+	Delete(uid runtime.UID) error
 	// List returns a list of all Resources available
 	List() ([]*api.Resource, error)
 }
@@ -106,7 +106,7 @@ func (c *resourceClient) FindAll(filter filterer.BaseFilter) ([]*api.Resource, e
 }
 
 // Get returns the Resource matching given UID from the storage
-func (c *resourceClient) Get(uid meta.UID) (*api.Resource, error) {
+func (c *resourceClient) Get(uid runtime.UID) (*api.Resource, error) {
 	log.Tracef("Client.Get; UID: %q, GVK: %v", uid, c.gvk)
 	object, err := c.storage.Get(c.gvk, uid)
 	if err != nil {
@@ -124,12 +124,12 @@ func (c *resourceClient) Set(resource *api.Resource) error {
 
 // Patch performs a strategic merge patch on the object with
 // the given UID, using the byte-encoded patch given
-func (c *resourceClient) Patch(uid meta.UID, patch []byte) error {
+func (c *resourceClient) Patch(uid runtime.UID, patch []byte) error {
 	return c.storage.Patch(c.gvk, uid, patch)
 }
 
 // Delete deletes the Resource from the storage
-func (c *resourceClient) Delete(uid meta.UID) error {
+func (c *resourceClient) Delete(uid runtime.UID) error {
 	log.Tracef("Client.Delete; UID: %q, GVK: %v", uid, c.gvk)
 	return c.storage.Delete(c.gvk, uid)
 }

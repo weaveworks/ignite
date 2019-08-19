@@ -184,11 +184,11 @@ github.com/godbus/dbus
 github.com/gogo/googleapis/google/rpc
 # github.com/gogo/protobuf v1.2.2-0.20190723190241-65acae22fc9d
 github.com/gogo/protobuf/proto
-github.com/gogo/protobuf/sortkeys
 github.com/gogo/protobuf/types
+github.com/gogo/protobuf/sortkeys
 github.com/gogo/protobuf/gogoproto
 github.com/gogo/protobuf/protoc-gen-gogo/descriptor
-# github.com/golang/protobuf v1.3.1
+# github.com/golang/protobuf v1.3.2
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
@@ -196,7 +196,7 @@ github.com/golang/protobuf/ptypes/duration
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/google/gofuzz v1.0.0
 github.com/google/gofuzz
-# github.com/googleapis/gnostic v0.0.0-20170729233727-0c5108395e2d
+# github.com/googleapis/gnostic v0.3.0
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
@@ -206,7 +206,7 @@ github.com/goombaio/namegenerator
 github.com/inconshreveable/mousetrap
 # github.com/json-iterator/go v1.1.7
 github.com/json-iterator/go
-# github.com/konsorten/go-windows-terminal-sequences v1.0.1
+# github.com/konsorten/go-windows-terminal-sequences v1.0.2
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/krolaw/dhcp4 v0.0.0-20190531080455-7b64900047ae
 github.com/krolaw/dhcp4
@@ -273,9 +273,24 @@ github.com/vishvananda/netlink
 github.com/vishvananda/netlink/nl
 # github.com/vishvananda/netns v0.0.0-20190625233234-7109fa855b0f
 github.com/vishvananda/netns
-# github.com/weaveworks/flux v0.0.0-20190704153721-8292179855e1 => ./third_party/forked/github.com/weaveworks/flux
+# github.com/weaveworks/flux v0.0.0-20190704153721-8292179855e1
 github.com/weaveworks/flux/git
 github.com/weaveworks/flux/errors
+# github.com/weaveworks/gitops-toolkit v0.0.0-00010101000000-000000000000 => github.com/luxas/gitops-toolkit v0.0.0-20190819143013-52823007f89f
+github.com/weaveworks/gitops-toolkit/pkg/filter
+github.com/weaveworks/gitops-toolkit/pkg/runtime
+github.com/weaveworks/gitops-toolkit/pkg/util/patch
+github.com/weaveworks/gitops-toolkit/pkg/serializer
+github.com/weaveworks/gitops-toolkit/pkg/storage
+github.com/weaveworks/gitops-toolkit/pkg/storage/filterer
+github.com/weaveworks/gitops-toolkit/pkg/storage/manifest
+github.com/weaveworks/gitops-toolkit/pkg/storage/cache
+github.com/weaveworks/gitops-toolkit/pkg/storage/watch/update
+github.com/weaveworks/gitops-toolkit/pkg/util
+github.com/weaveworks/gitops-toolkit/pkg/storage/sync
+github.com/weaveworks/gitops-toolkit/pkg/storage/watch
+github.com/weaveworks/gitops-toolkit/pkg/util/sync
+github.com/weaveworks/gitops-toolkit/pkg/util/watcher
 # github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
 github.com/whilp/git-urls
 # golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
@@ -296,9 +311,9 @@ golang.org/x/net/internal/socket
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/trace
 golang.org/x/net/proxy
-golang.org/x/net/http2
 golang.org/x/net/idna
 golang.org/x/net/internal/timeseries
+golang.org/x/net/http2
 golang.org/x/net/http2/hpack
 golang.org/x/net/internal/socks
 golang.org/x/net/http/httpguts
@@ -315,7 +330,7 @@ golang.org/x/text/width
 golang.org/x/text/secure/bidirule
 golang.org/x/text/unicode/bidi
 golang.org/x/text/transform
-# google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8
+# google.golang.org/genproto v0.0.0-20190404172233-64821d5d2107
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.21.1
 google.golang.org/grpc
@@ -353,7 +368,7 @@ google.golang.org/grpc/binarylog/grpc_binarylog_v1
 google.golang.org/grpc/internal/syscall
 # gopkg.in/alessio/shellescape.v1 v1.0.0-20170105083845-52074bc9df61
 gopkg.in/alessio/shellescape.v1
-# gopkg.in/inf.v0 v0.9.0
+# gopkg.in/inf.v0 v0.9.1
 gopkg.in/inf.v0
 # gopkg.in/yaml.v2 v2.2.2
 gopkg.in/yaml.v2
@@ -364,16 +379,16 @@ k8s.io/apimachinery/pkg/runtime/serializer
 k8s.io/apimachinery/pkg/util/runtime
 k8s.io/apimachinery/pkg/conversion
 k8s.io/apimachinery/pkg/util/validation/field
+k8s.io/apimachinery/pkg/util/wait
 k8s.io/apimachinery/pkg/apis/meta/v1
 k8s.io/apimachinery/pkg/util/duration
-k8s.io/apimachinery/pkg/util/wait
-k8s.io/apimachinery/pkg/runtime/serializer/json
 k8s.io/apimachinery/pkg/util/strategicpatch
 k8s.io/apimachinery/pkg/conversion/queryparams
 k8s.io/apimachinery/pkg/util/errors
 k8s.io/apimachinery/pkg/util/json
 k8s.io/apimachinery/pkg/util/naming
 k8s.io/apimachinery/pkg/util/sets
+k8s.io/apimachinery/pkg/runtime/serializer/json
 k8s.io/apimachinery/pkg/runtime/serializer/protobuf
 k8s.io/apimachinery/pkg/runtime/serializer/recognizer
 k8s.io/apimachinery/pkg/runtime/serializer/versioning
@@ -385,16 +400,16 @@ k8s.io/apimachinery/pkg/selection
 k8s.io/apimachinery/pkg/types
 k8s.io/apimachinery/pkg/util/intstr
 k8s.io/apimachinery/pkg/watch
-k8s.io/apimachinery/pkg/util/framer
-k8s.io/apimachinery/pkg/util/yaml
 k8s.io/apimachinery/pkg/apis/meta/v1/unstructured
 k8s.io/apimachinery/pkg/util/mergepatch
 k8s.io/apimachinery/third_party/forked/golang/json
+k8s.io/apimachinery/pkg/util/framer
+k8s.io/apimachinery/pkg/util/yaml
 k8s.io/apimachinery/pkg/util/validation
 k8s.io/apimachinery/pkg/util/net
 # k8s.io/klog v0.4.0
 k8s.io/klog
-# k8s.io/kube-openapi v0.0.0-20190709113604-33be087ad058
+# k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf
 k8s.io/kube-openapi/pkg/common
 k8s.io/kube-openapi/pkg/util/proto
 # sigs.k8s.io/yaml v1.1.0

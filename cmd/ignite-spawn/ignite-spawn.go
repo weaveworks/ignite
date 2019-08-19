@@ -6,13 +6,13 @@ import (
 	"path"
 
 	log "github.com/sirupsen/logrus"
+	patchutil "github.com/weaveworks/gitops-toolkit/pkg/util/patch"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/container"
 	dmcleanup "github.com/weaveworks/ignite/pkg/dmlegacy/cleanup"
 	"github.com/weaveworks/ignite/pkg/prometheus"
-	patchutil "github.com/weaveworks/ignite/pkg/util/patch"
 )
 
 func main() {
