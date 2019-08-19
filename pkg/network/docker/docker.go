@@ -35,10 +35,7 @@ func (plugin *dockerNetworkPlugin) SetupContainerNetwork(containerID string) (*n
 	return &network.Result{
 		Addresses: []network.Address{
 			{
-				IPNet: net.IPNet{
-					IP:   result.IPAddress,
-					Mask: net.IPv4Mask(255, 255, 0, 0),
-				},
+				IP: result.IPAddress,
 				// TODO: Make this auto-detect if the gateway is not using the standard setup
 				Gateway: net.IPv4(result.IPAddress[0], result.IPAddress[1], result.IPAddress[2], 1),
 			},
@@ -48,10 +45,5 @@ func (plugin *dockerNetworkPlugin) SetupContainerNetwork(containerID string) (*n
 
 func (*dockerNetworkPlugin) RemoveContainerNetwork(_ string) error {
 	// no-op for docker, this is handled automatically
-	return nil
-}
-
-func (*dockerNetworkPlugin) Status() error {
-	// no-op, we assume the bridge to be working :)
 	return nil
 }
