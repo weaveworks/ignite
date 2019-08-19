@@ -3,9 +3,10 @@ package filter
 import (
 	"fmt"
 
+	"github.com/weaveworks/gitops-toolkit/pkg/filter"
+	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
+	"github.com/weaveworks/gitops-toolkit/pkg/storage/filterer"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/storage/filterer"
 )
 
 // The VMFilter filters only VMs, but has special functionality for matching
@@ -13,7 +14,7 @@ import (
 // This ObjectFilter embeds a MetaFilter, which is OK, as ObjectFilter
 // interface compatibility is checked before the MetaFilter interface
 type VMFilter struct {
-	*IDNameFilter
+	*filter.IDNameFilter
 	all bool
 }
 
@@ -25,12 +26,12 @@ func NewVMFilter(p string) *VMFilter {
 
 func NewVMFilterAll(p string, all bool) *VMFilter {
 	return &VMFilter{
-		IDNameFilter: NewIDNameFilter(p),
+		IDNameFilter: filter.NewIDNameFilter(p),
 		all:          all,
 	}
 }
 
-func (f *VMFilter) Filter(object meta.Object) (filterer.Match, error) {
+func (f *VMFilter) Filter(object runtime.Object) (filterer.Match, error) {
 	// Option to list just running VMs
 	if !f.all {
 		vm, ok := object.(*api.VM)

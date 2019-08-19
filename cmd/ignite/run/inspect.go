@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/weaveworks/gitops-toolkit/pkg/filter"
+	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/providers"
 )
 
@@ -18,12 +18,12 @@ type InspectFlags struct {
 
 type inspectOptions struct {
 	*InspectFlags
-	object meta.Object
+	object runtime.Object
 }
 
 func (i *InspectFlags) NewInspectOptions(k, objectMatch string) (*inspectOptions, error) {
 	var err error
-	var kind meta.Kind
+	var kind runtime.Kind
 	io := &inspectOptions{InspectFlags: i}
 
 	switch strings.ToLower(k) {

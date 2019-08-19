@@ -7,13 +7,13 @@ import (
 	"path"
 	"regexp"
 
+	"github.com/weaveworks/gitops-toolkit/pkg/filter"
+	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
+	"github.com/weaveworks/gitops-toolkit/pkg/storage/filterer"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/providers"
-	"github.com/weaveworks/ignite/pkg/storage/filterer"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -23,11 +23,11 @@ var (
 )
 
 type Metadata interface {
-	meta.Object
+	runtime.Object
 }
 
 // SetNameAndUID sets the name and UID for an object if that isn't set automatically
-func SetNameAndUID(obj meta.Object, c *client.Client) error {
+func SetNameAndUID(obj runtime.Object, c *client.Client) error {
 	if obj == nil {
 		return fmt.Errorf("object cannot be nil when initializing runtime data")
 	}
@@ -46,7 +46,7 @@ func SetNameAndUID(obj meta.Object, c *client.Client) error {
 }
 
 // processUID a new 8-byte ID and handles directory creation/deletion
-func processUID(obj meta.Object, c *client.Client) error {
+func processUID(obj runtime.Object, c *client.Client) error {
 	uid := obj.GetUID().String()
 
 	// Validate the given UID if set
@@ -75,7 +75,7 @@ func processUID(obj meta.Object, c *client.Client) error {
 			// If the generated UID is unique break the generator loop
 			if err := verifyUIDOrName(c, uid, obj.GetKind()); err == nil {
 				// Set the generated UID to the object
-				obj.SetUID(meta.UID(uid))
+				obj.SetUID(runtime.UID(uid))
 				break
 			}
 		}
@@ -91,7 +91,7 @@ func processUID(obj meta.Object, c *client.Client) error {
 	return nil
 }
 
-func processName(obj meta.Object, c *client.Client) error {
+func processName(obj runtime.Object, c *client.Client) error {
 	name := obj.GetName()
 	kind := obj.GetKind()
 
@@ -121,7 +121,7 @@ func processName(obj meta.Object, c *client.Client) error {
 	return nil
 }
 
-func verifyUIDOrName(c *client.Client, match string, kind meta.Kind) error {
+func verifyUIDOrName(c *client.Client, match string, kind runtime.Kind) error {
 	_, err := c.Dynamic(kind).Find(filter.NewIDNameFilter(match))
 	switch err.(type) {
 	case *filterer.NonexistentError:

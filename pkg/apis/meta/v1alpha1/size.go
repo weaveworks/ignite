@@ -7,6 +7,8 @@ import (
 	"github.com/c2h5oh/datasize"
 )
 
+const sectorSize = 512
+
 // Size specifies a common unit for data sizes
 type Size struct {
 	datasize.ByteSize
