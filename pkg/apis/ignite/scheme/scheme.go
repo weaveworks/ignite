@@ -8,7 +8,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2"
-	"github.com/weaveworks/ignite/pkg/storage/serializer"
+	"github.com/weaveworks/ignite/pkg/serializer"
 )
 
 var (
