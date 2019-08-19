@@ -3,6 +3,7 @@ package cni
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	gocni "github.com/containerd/go-cni"
 	log "github.com/sirupsen/logrus"
@@ -22,6 +23,7 @@ const (
 type cniNetworkPlugin struct {
 	cni     gocni.CNI
 	runtime runtime.Interface
+	once    *sync.Once
 }
 
 func GetCNINetworkPlugin(runtime runtime.Interface) (network.Plugin, error) {
@@ -33,17 +35,11 @@ func GetCNINetworkPlugin(runtime runtime.Interface) (network.Plugin, error) {
 		return nil, err
 	}
 
-	if err := cniInstance.Load(gocni.WithLoNetwork, gocni.WithDefaultConf); err != nil {
-		log.Errorf("failed to load cni configuration: %v", err)
-		return nil, err
-	}
-
-	plugin := &cniNetworkPlugin{
+	return &cniNetworkPlugin{
 		runtime: runtime,
 		cni:     cniInstance,
-	}
-
-	return plugin, nil
+		once:    &sync.Once{},
+	}, nil
 }
 
 func (plugin *cniNetworkPlugin) Name() network.PluginName {
@@ -57,6 +53,10 @@ func (plugin *cniNetworkPlugin) PrepareContainerSpec(container *runtime.Containe
 }
 
 func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string) (*network.Result, error) {
+	if err := plugin.initialize(); err != nil {
+		return nil, err
+	}
+
 	netnsPath, err := plugin.runtime.ContainerNetNS(containerid)
 	if err != nil {
 		return nil, fmt.Errorf("CNI failed to retrieve network namespace path: %v", err)
@@ -69,6 +69,15 @@ func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string) (*netw
 	}
 
 	return cniToIgniteResult(result), nil
+}
+
+func (plugin *cniNetworkPlugin) initialize() (err error) {
+	plugin.once.Do(func() {
+		if err = plugin.cni.Load(gocni.WithLoNetwork, gocni.WithDefaultConf); err != nil {
+			log.Errorf("failed to load cni configuration: %v", err)
+		}
+	})
+	return
 }
 
 func cniToIgniteResult(r *gocni.CNIResult) *network.Result {
@@ -85,6 +94,10 @@ func cniToIgniteResult(r *gocni.CNIResult) *network.Result {
 }
 
 func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerid string) error {
+	if err := plugin.initialize(); err != nil {
+		return err
+	}
+
 	// Lack of namespace should not be fatal on teardown
 	netnsPath, err := plugin.runtime.ContainerNetNS(containerid)
 	if err != nil {
