@@ -21,9 +21,6 @@ type Plugin interface {
 
 	// RemoveContainerNetwork is the method called before a container using the network plugin can be deleted
 	RemoveContainerNetwork(containerID string) error
-
-	// Status returns error if the network plugin is in error state
-	Status() error
 }
 
 type Result struct {
@@ -31,7 +28,7 @@ type Result struct {
 }
 
 type Address struct {
-	net.IPNet
+	IP      net.IP
 	Gateway net.IP
 }
 
