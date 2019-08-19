@@ -85,6 +85,8 @@ github.com/containerd/continuity/sysx
 github.com/containerd/continuity/syscallx
 # github.com/containerd/fifo v0.0.0-20190816180239-bda0ff6ed73c
 github.com/containerd/fifo
+# github.com/containerd/go-cni v0.0.0-20190813230227-49fbd9b210f3
+github.com/containerd/go-cni
 # github.com/containerd/ttrpc v0.0.0-20190613183316-1fb3814edf44
 github.com/containerd/ttrpc
 # github.com/containerd/typeurl v0.0.0-20190515163108-7312978f2987

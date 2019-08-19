@@ -12,9 +12,10 @@ require (
 	github.com/containerd/containerd v1.3.0-beta.1
 	github.com/containerd/continuity v0.0.0-20190815185530-f2a389ac0a02 // indirect
 	github.com/containerd/fifo v0.0.0-20190816180239-bda0ff6ed73c // indirect
+	github.com/containerd/go-cni v0.0.0-20190813230227-49fbd9b210f3
 	github.com/containerd/ttrpc v0.0.0-20190613183316-1fb3814edf44 // indirect
 	github.com/containerd/typeurl v0.0.0-20190515163108-7312978f2987 // indirect
-	github.com/containernetworking/cni v0.7.1
+	github.com/containernetworking/cni v0.7.1 // indirect
 	github.com/containers/image v2.0.0+incompatible
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
