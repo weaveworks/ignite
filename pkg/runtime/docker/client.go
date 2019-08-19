@@ -118,19 +118,21 @@ func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConf
 	}
 
 	stopTimeout := int(config.StopTimeout)
+	bindings, exposed := portBindingsToDocker(config.PortBindings)
 
 	c, err := dc.client.ContainerCreate(context.Background(), &container.Config{
-		Hostname:    config.Hostname,
-		Tty:         true, // --tty
-		OpenStdin:   true, // --interactive
-		Cmd:         config.Cmd,
-		Image:       image,
-		Labels:      config.Labels,
-		StopTimeout: &stopTimeout,
+		Hostname:     config.Hostname,
+		ExposedPorts: exposed,
+		Tty:          true, // --tty
+		OpenStdin:    true, // --interactive
+		Cmd:          config.Cmd,
+		Image:        image,
+		Labels:       config.Labels,
+		StopTimeout:  &stopTimeout,
 	}, &container.HostConfig{
 		Binds:        binds,
 		NetworkMode:  container.NetworkMode(config.NetworkMode),
-		PortBindings: portBindingsToPortMap(config.PortBindings),
+		PortBindings: bindings,
 		AutoRemove:   config.AutoRemove,
 		CapAdd:       config.CapAdds,
 		Resources: container.Resources{

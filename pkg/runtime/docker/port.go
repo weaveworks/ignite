@@ -8,8 +8,10 @@ import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
-func portBindingsToPortMap(portMappings meta.PortMappings) nat.PortMap {
-	portMap := make(nat.PortMap)
+// portBindingsToDocker takes in portMappings and returns a nat.PortMap of the
+// port bindings and a nat.PortSet of the exposed ports for the Docker client
+func portBindingsToDocker(portMappings meta.PortMappings) (nat.PortMap, nat.PortSet) {
+	bindings, exposed := make(nat.PortMap, len(portMappings)), make(nat.PortSet, len(portMappings))
 
 	for _, portMapping := range portMappings {
 		var hostIP string
@@ -23,7 +25,9 @@ func portBindingsToPortMap(portMappings meta.PortMappings) nat.PortMap {
 			protocol = meta.ProtocolTCP
 		}
 
-		portMap[nat.Port(fmt.Sprintf("%d/%s", portMapping.VMPort, protocol.String()))] = []nat.PortBinding{
+		port := nat.Port(fmt.Sprintf("%d/%s", portMapping.VMPort, protocol.String()))
+		exposed[port] = struct{}{}
+		bindings[port] = []nat.PortBinding{
 			{
 				HostIP:   hostIP,
 				HostPort: strconv.FormatUint(portMapping.HostPort, 10),
@@ -31,5 +35,5 @@ func portBindingsToPortMap(portMappings meta.PortMappings) nat.PortMap {
 		}
 	}
 
-	return portMap
+	return bindings, exposed
 }
