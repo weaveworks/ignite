@@ -5,8 +5,6 @@ import (
 	"io/ioutil"
 
 	log "github.com/sirupsen/logrus"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/storage/watch/update"
@@ -42,8 +40,12 @@ func NewGenericWatchStorage(s storage.Storage) (WatchStorage, error) {
 		return nil, err
 	}
 
+	// TODO: Fix this
+	gvs := s.Serializer().Scheme().PreferredVersionAllGroups()
+	groupName := gvs[0].Group
+
 	ws.monitor = sync.RunMonitor(func() {
-		ws.monitorFunc(ws.RawStorage(), files) // Offload the file registration to the goroutine
+		ws.monitorFunc(ws.RawStorage(), files, groupName) // Offload the file registration to the goroutine
 	})
 
 	return ws, nil
@@ -87,14 +89,14 @@ func (s *GenericWatchStorage) Close() error {
 	return nil
 }
 
-func (s *GenericWatchStorage) monitorFunc(raw storage.RawStorage, files []string) {
+func (s *GenericWatchStorage) monitorFunc(raw storage.RawStorage, files []string, groupName string) {
 	log.Debug("GenericWatchStorage: Monitoring thread started")
 	defer log.Debug("GenericWatchStorage: Monitoring thread stopped")
 
 	// Send a MODIFY event for all files (and fill the mappings
 	// of the MappedRawStorage) before starting to monitor changes
 	for _, file := range files {
-		if obj, err := resolveAPIType(file); err != nil {
+		if obj, err := s.resolveAPIType(file); err != nil {
 			log.Warnf("Ignoring %q: %v", file, err)
 		} else {
 			if mapped, ok := raw.(storage.MappedRawStorage); ok {
@@ -132,12 +134,12 @@ func (s *GenericWatchStorage) monitorFunc(raw storage.RawStorage, files []string
 				obj.SetName("<deleted>")
 				obj.SetUID(key.UID)
 				obj.SetGroupVersionKind(schema.GroupVersionKind{
-					Group:   api.GroupName,
+					Group:   groupName,
 					Version: runtime.APIVersionInternal,
 					Kind:    key.Kind.Title(),
 				})
 			} else {
-				if obj, err = resolveAPIType(event.Path); err != nil {
+				if obj, err = s.resolveAPIType(event.Path); err != nil {
 					log.Warnf("Ignoring %q: %v", event.Path, err)
 					continue
 				}
@@ -177,7 +179,7 @@ func (s *GenericWatchStorage) sendEvent(event update.ObjectEvent, obj meta.Objec
 	}
 }
 
-func resolveAPIType(path string) (meta.Object, error) {
+func (s *GenericWatchStorage) resolveAPIType(path string) (meta.Object, error) {
 	obj := meta.NewAPIType()
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -192,7 +194,7 @@ func resolveAPIType(path string) (meta.Object, error) {
 	gvk := obj.GroupVersionKind()
 
 	// Don't decode API objects unknown to Ignite (e.g. Kubernetes manifests)
-	if !scheme.Scheme.Recognizes(gvk) {
+	if !s.Serializer().Scheme().Recognizes(gvk) {
 		return nil, fmt.Errorf("unknown API version %q and/or kind %q", obj.APIVersion, obj.Kind)
 	}
 
