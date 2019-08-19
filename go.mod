@@ -28,11 +28,8 @@ require (
 	github.com/fullsailor/pkcs7 v0.0.0-20190404230743-d7302db945fa // indirect
 	github.com/go-openapi/spec v0.19.2
 	github.com/godbus/dbus v4.1.0+incompatible // indirect
-	github.com/gogo/googleapis v1.2.0 // indirect
-	github.com/gogo/protobuf v1.2.2-0.20190723190241-65acae22fc9d // indirect
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/gorilla/mux v1.7.2 // indirect
-	github.com/json-iterator/go v1.1.7 // indirect
 	github.com/krolaw/dhcp4 v0.0.0-20190531080455-7b64900047ae
 	github.com/lithammer/dedent v1.1.0
 	github.com/miekg/dns v1.1.14
@@ -40,14 +37,12 @@ require (
 	github.com/miscreant/miscreant.go v0.0.0-20190615163012-4f5dc8c406f6 // indirect
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
 	github.com/opencontainers/go-digest v1.0.0-rc1
-	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/opencontainers/runtime-spec v1.0.1 // indirect
 	github.com/otiai10/copy v1.0.1
 	github.com/otiai10/curr v0.0.0-20190513014714-f5a3d24e5776 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.0.0
-	github.com/rjeczalik/notify v0.9.2
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
@@ -55,22 +50,18 @@ require (
 	github.com/vishvananda/netlink v1.0.0
 	github.com/vishvananda/netns v0.0.0-20190625233234-7109fa855b0f // indirect
 	github.com/weaveworks/flux v0.0.0-20190704153721-8292179855e1
-	github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa // indirect
+	github.com/weaveworks/gitops-toolkit v0.0.0-00010101000000-000000000000
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
-	golang.org/x/net v0.0.0-20190812203447-cdfb69ac37fc // indirect
-	golang.org/x/sys v0.0.0-20190616124812-15dcb6c0061f
-	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/alessio/shellescape.v1 v1.0.0-20170105083845-52074bc9df61
 	gopkg.in/square/go-jose.v2 v2.3.1 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
 	k8s.io/apimachinery v0.0.0-20190612205821-1799e75a0719
-	k8s.io/klog v0.4.0 // indirect
-	k8s.io/kube-openapi v0.0.0-20190709113604-33be087ad058
+	k8s.io/kube-openapi v0.0.0-20190816220812-743ec37842bf
 	sigs.k8s.io/yaml v1.1.0
 )
 
 replace (
 	github.com/docker/distribution => github.com/docker/distribution v2.7.1+incompatible
-	github.com/weaveworks/flux => ./third_party/forked/github.com/weaveworks/flux
+	github.com/weaveworks/gitops-toolkit => github.com/luxas/gitops-toolkit v0.0.0-20190819143013-52823007f89f
 )

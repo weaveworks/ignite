@@ -57,14 +57,10 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStorageSpec":     schema_pkg_apis_ignite_v1alpha2_VMStorageSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Volume":            schema_pkg_apis_ignite_v1alpha2_Volume(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VolumeMount":       schema_pkg_apis_ignite_v1alpha2_VolumeMount(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.APIType":             schema_pkg_apis_meta_v1alpha1_APIType(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.DMID":                schema_pkg_apis_meta_v1alpha1_DMID(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIContentID":        schema_pkg_apis_meta_v1alpha1_OCIContentID(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta":          schema_pkg_apis_meta_v1alpha1_ObjectMeta(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.PortMapping":         schema_pkg_apis_meta_v1alpha1_PortMapping(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size":                schema_pkg_apis_meta_v1alpha1_Size(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Time":                schema_pkg_apis_meta_v1alpha1_Time(ref),
-		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.TypeMeta":            schema_pkg_apis_meta_v1alpha1_TypeMeta(ref),
 	}
 }
 
@@ -108,8 +104,8 @@ func schema_pkg_apis_ignite_v1alpha1_Image(ref common.ReferenceCallback) common.
 					},
 					"metadata": {
 						SchemaProps: spec.SchemaProps{
-							Description: "meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID Name is available at the .metadata.name JSON path ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)",
-							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta"),
+							Description: "runtime.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID Name is available at the .metadata.name JSON path ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)",
+							Ref:         ref("github.com/weaveworks/gitops-toolkit/pkg/runtime.ObjectMeta"),
 						},
 					},
 					"spec": {
@@ -127,7 +123,7 @@ func schema_pkg_apis_ignite_v1alpha1_Image(ref common.ReferenceCallback) common.
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageStatus", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+			"github.com/weaveworks/gitops-toolkit/pkg/runtime.ObjectMeta", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -188,8 +184,8 @@ func schema_pkg_apis_ignite_v1alpha1_Kernel(ref common.ReferenceCallback) common
 					},
 					"metadata": {
 						SchemaProps: spec.SchemaProps{
-							Description: "meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID Name is available at the .metadata.name JSON path ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)",
-							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta"),
+							Description: "runtime.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID Name is available at the .metadata.name JSON path ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)",
+							Ref:         ref("github.com/weaveworks/gitops-toolkit/pkg/runtime.ObjectMeta"),
 						},
 					},
 					"spec": {
@@ -207,7 +203,7 @@ func schema_pkg_apis_ignite_v1alpha1_Kernel(ref common.ReferenceCallback) common
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelStatus", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+			"github.com/weaveworks/gitops-toolkit/pkg/runtime.ObjectMeta", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -503,8 +499,8 @@ func schema_pkg_apis_ignite_v1alpha1_VM(ref common.ReferenceCallback) common.Ope
 					},
 					"metadata": {
 						SchemaProps: spec.SchemaProps{
-							Description: "meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID Name is available at the .metadata.name JSON path ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)",
-							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta"),
+							Description: "runtime.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID Name is available at the .metadata.name JSON path ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)",
+							Ref:         ref("github.com/weaveworks/gitops-toolkit/pkg/runtime.ObjectMeta"),
 						},
 					},
 					"spec": {
@@ -522,7 +518,7 @@ func schema_pkg_apis_ignite_v1alpha1_VM(ref common.ReferenceCallback) common.Ope
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMStatus", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+			"github.com/weaveworks/gitops-toolkit/pkg/runtime.ObjectMeta", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -776,8 +772,8 @@ func schema_pkg_apis_ignite_v1alpha2_Image(ref common.ReferenceCallback) common.
 					},
 					"metadata": {
 						SchemaProps: spec.SchemaProps{
-							Description: "meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID Name is available at the .metadata.name JSON path ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)",
-							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta"),
+							Description: "runtime.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID Name is available at the .metadata.name JSON path ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)",
+							Ref:         ref("github.com/weaveworks/gitops-toolkit/pkg/runtime.ObjectMeta"),
 						},
 					},
 					"spec": {
@@ -795,7 +791,7 @@ func schema_pkg_apis_ignite_v1alpha2_Image(ref common.ReferenceCallback) common.
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.ImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.ImageStatus", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+			"github.com/weaveworks/gitops-toolkit/pkg/runtime.ObjectMeta", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.ImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.ImageStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -855,8 +851,8 @@ func schema_pkg_apis_ignite_v1alpha2_Kernel(ref common.ReferenceCallback) common
 					},
 					"metadata": {
 						SchemaProps: spec.SchemaProps{
-							Description: "meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID Name is available at the .metadata.name JSON path ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)",
-							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta"),
+							Description: "runtime.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID Name is available at the .metadata.name JSON path ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)",
+							Ref:         ref("github.com/weaveworks/gitops-toolkit/pkg/runtime.ObjectMeta"),
 						},
 					},
 					"spec": {
@@ -874,7 +870,7 @@ func schema_pkg_apis_ignite_v1alpha2_Kernel(ref common.ReferenceCallback) common
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelStatus", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+			"github.com/weaveworks/gitops-toolkit/pkg/runtime.ObjectMeta", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -1146,8 +1142,8 @@ func schema_pkg_apis_ignite_v1alpha2_VM(ref common.ReferenceCallback) common.Ope
 					},
 					"metadata": {
 						SchemaProps: spec.SchemaProps{
-							Description: "meta.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID Name is available at the .metadata.name JSON path ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)",
-							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta"),
+							Description: "runtime.ObjectMeta is also embedded into the struct, and defines the human-readable name, and the machine-readable ID Name is available at the .metadata.name JSON path ID is available at the .metadata.uid JSON path (the Go type is k8s.io/apimachinery/pkg/types.UID, which is only a typed string)",
+							Ref:         ref("github.com/weaveworks/gitops-toolkit/pkg/runtime.ObjectMeta"),
 						},
 					},
 					"spec": {
@@ -1165,7 +1161,7 @@ func schema_pkg_apis_ignite_v1alpha2_VM(ref common.ReferenceCallback) common.Ope
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStatus", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+			"github.com/weaveworks/gitops-toolkit/pkg/runtime.ObjectMeta", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -1331,7 +1327,7 @@ func schema_pkg_apis_ignite_v1alpha2_VMStatus(ref common.ReferenceCallback) comm
 					},
 					"startTime": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Time"),
+							Ref: ref("github.com/weaveworks/gitops-toolkit/pkg/runtime.Time"),
 						},
 					},
 					"ipAddresses": {
@@ -1362,7 +1358,7 @@ func schema_pkg_apis_ignite_v1alpha2_VMStatus(ref common.ReferenceCallback) comm
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageSource", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Runtime", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Time"},
+			"github.com/weaveworks/gitops-toolkit/pkg/runtime.Time", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageSource", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Runtime"},
 	}
 }
 
@@ -1458,27 +1454,6 @@ func schema_pkg_apis_ignite_v1alpha2_VolumeMount(ref common.ReferenceCallback) c
 	}
 }
 
-func schema_pkg_apis_meta_v1alpha1_APIType(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "APIType is a struct implementing Object, used for unmarshalling unknown objects into this intermediate type where .Name, .UID, .Kind and .APIVersion become easily available",
-				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"metadata": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta"),
-						},
-					},
-				},
-				Required: []string{"metadata"},
-			},
-		},
-		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.ObjectMeta"},
-	}
-}
-
 func schema_pkg_apis_meta_v1alpha1_DMID(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -1522,67 +1497,6 @@ func schema_pkg_apis_meta_v1alpha1_OCIContentID(ref common.ReferenceCallback) co
 				Required: []string{"repoName", "digest"},
 			},
 		},
-	}
-}
-
-func schema_pkg_apis_meta_v1alpha1_ObjectMeta(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "ObjectMeta have to be embedded into any serializable object. It provides the .GetName() and .GetUID() methods that help implement the Object interface",
-				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"name": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"uid": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"created": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Time"),
-						},
-					},
-					"labels": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Allows: true,
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
-					"annotations": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Allows: true,
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "",
-									},
-								},
-							},
-						},
-					},
-				},
-				Required: []string{"name", "created"},
-			},
-		},
-		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Time"},
 	}
 }
 
@@ -1641,46 +1555,5 @@ func schema_pkg_apis_meta_v1alpha1_Size(ref common.ReferenceCallback) common.Ope
 				Required: []string{"ByteSize"},
 			},
 		},
-	}
-}
-
-func schema_pkg_apis_meta_v1alpha1_Time(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"Time": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
-						},
-					},
-				},
-				Required: []string{"Time"},
-			},
-		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
-	}
-}
-
-func schema_pkg_apis_meta_v1alpha1_TypeMeta(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "TypeMeta is an alias for the k8s/apimachinery TypeMeta with some additional methods",
-				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"TypeMeta": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"),
-						},
-					},
-				},
-				Required: []string{"TypeMeta"},
-			},
-		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }

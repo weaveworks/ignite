@@ -7,6 +7,7 @@ package ignite
 import (
 	net "net"
 
+	pkgruntime "github.com/weaveworks/gitops-toolkit/pkg/runtime"
 	v1alpha1 "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
@@ -435,7 +436,7 @@ func (in *VMStatus) DeepCopyInto(out *VMStatus) {
 	}
 	if in.StartTime != nil {
 		in, out := &in.StartTime, &out.StartTime
-		*out = new(v1alpha1.Time)
+		*out = new(pkgruntime.Time)
 		(*in).DeepCopyInto(*out)
 	}
 	if in.IPAddresses != nil {
