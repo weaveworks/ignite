@@ -28,7 +28,7 @@ github.com/beorn7/perks/quantile
 github.com/c2h5oh/datasize
 # github.com/containerd/cgroups v0.0.0-20190717030353-c4b9ac5c7601
 github.com/containerd/cgroups
-# github.com/containerd/containerd v1.3.0-beta.1
+# github.com/containerd/containerd v1.3.0-beta.1 => github.com/containerd/containerd v1.3.0-beta.1
 github.com/containerd/containerd
 github.com/containerd/containerd/api/services/containers/v1
 github.com/containerd/containerd/api/services/content/v1
@@ -106,7 +106,7 @@ github.com/coreos/go-systemd/dbus
 github.com/cpuguy83/go-md2man/md2man
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
-# github.com/docker/distribution v2.7.1+incompatible => github.com/docker/distribution v2.7.1+incompatible
+# github.com/docker/distribution v2.7.1+incompatible => github.com/docker/distribution v0.0.0-20190711223531-1fb7fffdb266
 github.com/docker/distribution/reference
 github.com/docker/distribution/registry/api/errcode
 github.com/docker/distribution/digestset
@@ -178,7 +178,7 @@ github.com/go-openapi/strfmt
 github.com/go-openapi/swag
 # github.com/go-openapi/validate v0.17.1
 github.com/go-openapi/validate
-# github.com/godbus/dbus v4.1.0+incompatible
+# github.com/godbus/dbus v4.1.0+incompatible => github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f
 github.com/godbus/dbus
 # github.com/gogo/googleapis v1.2.0
 github.com/gogo/googleapis/google/rpc
@@ -236,7 +236,7 @@ github.com/opencontainers/image-spec/specs-go/v1
 # github.com/opencontainers/runc v0.1.1
 github.com/opencontainers/runc/libcontainer/system
 github.com/opencontainers/runc/libcontainer/user
-# github.com/opencontainers/runtime-spec v1.0.1
+# github.com/opencontainers/runtime-spec v1.0.1 => github.com/opencontainers/runtime-spec v0.1.2-0.20190812154431-4f2ab155bbdd
 github.com/opencontainers/runtime-spec/specs-go
 # github.com/otiai10/copy v1.0.1
 github.com/otiai10/copy
