@@ -15,7 +15,7 @@ var NetworkPlugins = make(map[network.PluginName]network.Plugin)
 // This should be set after parsing user input on what network mode to use
 var NetworkPlugin network.Plugin
 
-// Runtime provides the default container runtime
+// Runtime provides the container runtime for retrieving OCI images and running VM containers
 var Runtime runtime.Interface
 
 // Client is the default client that can be easily used

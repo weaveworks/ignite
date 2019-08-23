@@ -16,32 +16,52 @@ const (
 )
 
 // NewOCIImageRef parses and normalizes a reference to an OCI (docker) image.
-func NewOCIImageRef(imageStr string) (OCIImageRef, error) {
+func NewOCIImageRef(imageStr string) (o OCIImageRef, err error) {
 	named, err := reference.ParseDockerRef(imageStr)
 	if err != nil {
-		return "", err
+		return
 	}
 
-	namedTagged, ok := named.(reference.NamedTagged)
-	if !ok {
-		return "", fmt.Errorf("could not parse image %q with a tag", imageStr)
+	if namedTagged, ok := named.(reference.NamedTagged); ok {
+		o.name, o.tag = namedTagged.Name(), namedTagged.Tag()
+	} else {
+		err = fmt.Errorf("could not parse image %q with a tag", imageStr)
 	}
 
-	return OCIImageRef(reference.FamiliarString(namedTagged)), nil
+	return
 }
 
-// OCIImageRef is a string by which an OCI runtime can identify an image to retrieve.
-// It needs to have a tag and usually looks like "weaveworks/ignite-ubuntu:latest".
-type OCIImageRef string
+// OCIImageRef is a struct containing a names and tagged reference
+// by which an OCI runtime can identify an image to retrieve.
+type OCIImageRef struct {
+	name string
+	tag  string
+}
 
-var _ fmt.Stringer = OCIImageRef("")
+var _ fmt.Stringer = OCIImageRef{}
 
+// Ref parses the internal strings to a reference.NamedTagged
+func (i OCIImageRef) Ref() reference.NamedTagged {
+	r, _ := reference.ParseDockerRef(fmt.Sprintf("%s:%s", i.name, i.tag))
+	return r.(reference.NamedTagged)
+}
+
+// String returns the familiar form of the reference, e.g. "weaveworks/ignite-ubuntu:latest"
 func (i OCIImageRef) String() string {
-	return string(i)
+	return reference.FamiliarString(i.Ref())
+}
+
+// Normalized returns the normalized reference, e.g. "docker.io/weaveworks/ignite-ubuntu:latest"
+func (i OCIImageRef) Normalized() string {
+	return i.Ref().String()
 }
 
 func (i OCIImageRef) IsUnset() bool {
-	return len(i) == 0
+	return len(i.name) == 0
+}
+
+func (i OCIImageRef) MarshalJSON() ([]byte, error) {
+	return json.Marshal(i.String())
 }
 
 func (i *OCIImageRef) UnmarshalJSON(b []byte) (err error) {
@@ -90,15 +110,6 @@ type OCIContentID struct {
 var _ json.Marshaler = &OCIContentID{}
 var _ json.Unmarshaler = &OCIContentID{}
 
-func (o *OCIContentID) String() string {
-	scheme := ociSchemeRegistry
-	if o.Local() {
-		scheme = ociSchemeLocal
-	}
-
-	return scheme + o.ociString()
-}
-
 func parseOCIString(s string) (*OCIContentID, error) {
 	u, err := url.Parse(s)
 	if err != nil {
@@ -109,8 +120,8 @@ func parseOCIString(s string) (*OCIContentID, error) {
 	return ParseOCIContentID(u.Host + u.Path)
 }
 
-// ociString returns the internal string representation for either format
-func (o *OCIContentID) ociString() string {
+// String returns the string representation for either format
+func (o *OCIContentID) String() string {
 	var sb strings.Builder
 	if !o.Local() {
 		sb.WriteString(o.repoName + "@")
@@ -118,6 +129,16 @@ func (o *OCIContentID) ociString() string {
 
 	sb.WriteString(o.digest)
 	return sb.String()
+}
+
+// Scheme returns the string representation with the scheme prefix
+func (o *OCIContentID) SchemeString() string {
+	scheme := ociSchemeRegistry
+	if o.Local() {
+		scheme = ociSchemeLocal
+	}
+
+	return scheme + o.String()
 }
 
 // Local returns true if the image has no repoName, i.e. it's not available from a registry
@@ -134,14 +155,14 @@ func (o *OCIContentID) Digest() digest.Digest {
 func (o *OCIContentID) RepoDigest() (n reference.Named) {
 	if !o.Local() {
 		// Were parsing already validated data, ignore the error
-		n, _ = reference.ParseDockerRef(o.ociString())
+		n, _ = reference.ParseDockerRef(o.String())
 	}
 
 	return
 }
 
 func (o *OCIContentID) MarshalJSON() ([]byte, error) {
-	return json.Marshal(o.String())
+	return json.Marshal(o.SchemeString())
 }
 
 func (o *OCIContentID) UnmarshalJSON(b []byte) (err error) {

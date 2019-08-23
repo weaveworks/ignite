@@ -9,9 +9,8 @@ import (
 )
 
 type ImageInspectResult struct {
-	ID          string
-	RepoDigests []string
-	Size        int64
+	ID   *meta.OCIContentID
+	Size int64
 }
 
 type ContainerInspectResult struct {
@@ -19,6 +18,7 @@ type ContainerInspectResult struct {
 	Image     string
 	Status    string
 	IPAddress net.IP
+	PID       uint32
 }
 
 type Bind struct {
@@ -48,18 +48,17 @@ type ContainerConfig struct {
 }
 
 type Interface interface {
-	InspectImage(image string) (*ImageInspectResult, error)
-	PullImage(image string) (io.ReadCloser, error)
-	ExportImage(image string) (io.ReadCloser, string, error)
+	PullImage(image meta.OCIImageRef) error
+	InspectImage(image meta.OCIImageRef) (*ImageInspectResult, error)
+	ExportImage(image meta.OCIImageRef) (io.ReadCloser, func() error, error)
 
 	InspectContainer(container string) (*ContainerInspectResult, error)
 	AttachContainer(container string) error
-	RunContainer(image string, config *ContainerConfig, name string) (string, error)
+	RunContainer(image meta.OCIImageRef, config *ContainerConfig, name string) (string, error)
 	StopContainer(container string, timeout *time.Duration) error
 	KillContainer(container, signal string) error
 	RemoveContainer(container string) error
 	ContainerLogs(container string) (io.ReadCloser, error)
-	ContainerNetNS(container string) (string, error)
 
 	RawClient() interface{}
 }

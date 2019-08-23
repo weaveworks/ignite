@@ -18,6 +18,8 @@ const (
 	CNIBinDir = "/opt/cni/bin"
 	// CNIConfDir describes the directory where the CNI plugin's configuration is stored
 	CNIConfDir = "/etc/cni/net.d"
+	// netNSPathFmt gives the path to the a process network namespace, given the pid
+	netNSPathFmt = "/proc/%d/ns/net"
 )
 
 type cniNetworkPlugin struct {
@@ -57,11 +59,12 @@ func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string) (*netw
 		return nil, err
 	}
 
-	netnsPath, err := plugin.runtime.ContainerNetNS(containerid)
+	c, err := plugin.runtime.InspectContainer(containerid)
 	if err != nil {
 		return nil, fmt.Errorf("CNI failed to retrieve network namespace path: %v", err)
 	}
 
+	netnsPath := fmt.Sprintf(netNSPathFmt, c.PID)
 	result, err := plugin.cni.Setup(context.Background(), containerid, netnsPath)
 	if err != nil {
 		log.Errorf("failed to setup network for namespace %q: %v", containerid, err)
@@ -99,9 +102,16 @@ func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerid string) error
 	}
 
 	// Lack of namespace should not be fatal on teardown
-	netnsPath, err := plugin.runtime.ContainerNetNS(containerid)
+	c, err := plugin.runtime.InspectContainer(containerid)
 	if err != nil {
 		log.Infof("CNI failed to retrieve network namespace path: %v", err)
+		return nil
+	}
+
+	netnsPath := fmt.Sprintf(netNSPathFmt, c.PID)
+	if c.PID == 0 {
+		log.Info("CNI failed to retrieve network namespace path, PID was 0")
+		return nil
 	}
 
 	return plugin.cni.Remove(context.Background(), containerid, netnsPath)

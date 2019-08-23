@@ -106,6 +106,16 @@ func NewMAC(buffer *[]string) error {
 	return nil
 }
 
+func NewUID() (s string, err error) {
+	b := make([]byte, constants.IGNITE_UID_LENGTH/2)
+	if _, err = rand.Read(b); err == nil {
+		// Convert the byte slice to a string literally
+		s = fmt.Sprintf("%x", b)
+	}
+
+	return
+}
+
 func RandomName() string {
 	return namegenerator.NewNameGenerator(time.Now().UTC().UnixNano()).Generate()
 }

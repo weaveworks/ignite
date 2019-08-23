@@ -59,6 +59,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VolumeMount":       schema_pkg_apis_ignite_v1alpha2_VolumeMount(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.DMID":                schema_pkg_apis_meta_v1alpha1_DMID(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIContentID":        schema_pkg_apis_meta_v1alpha1_OCIContentID(ref),
+		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIImageRef":         schema_pkg_apis_meta_v1alpha1_OCIImageRef(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.PortMapping":         schema_pkg_apis_meta_v1alpha1_PortMapping(ref),
 		"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size":                schema_pkg_apis_meta_v1alpha1_Size(ref),
 	}
@@ -272,14 +273,15 @@ func schema_pkg_apis_ignite_v1alpha1_OCIImageClaim(ref common.ReferenceCallback)
 					"ref": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Ref defines the reference to use when talking to the backend. This is most commonly the image name, followed by a tag. Other supported ways are $registry/$user/$image@sha256:$digest This ref is also used as ObjectMeta.Name for kinds Images and Kernels",
-							Type:        []string{"string"},
-							Format:      "",
+							Ref:         ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIImageRef"),
 						},
 					},
 				},
 				Required: []string{"type", "ref"},
 			},
 		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIImageRef"},
 	}
 }
 
@@ -804,14 +806,15 @@ func schema_pkg_apis_ignite_v1alpha2_ImageSpec(ref common.ReferenceCallback) com
 				Properties: map[string]spec.Schema{
 					"oci": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIImageRef"),
 						},
 					},
 				},
 				Required: []string{"oci"},
 			},
 		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIImageRef"},
 	}
 }
 
@@ -883,14 +886,15 @@ func schema_pkg_apis_ignite_v1alpha2_KernelSpec(ref common.ReferenceCallback) co
 				Properties: map[string]spec.Schema{
 					"oci": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIImageRef"),
 						},
 					},
 				},
 				Required: []string{"oci"},
 			},
 		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIImageRef"},
 	}
 }
 
@@ -1173,14 +1177,15 @@ func schema_pkg_apis_ignite_v1alpha2_VMImageSpec(ref common.ReferenceCallback) c
 				Properties: map[string]spec.Schema{
 					"oci": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIImageRef"),
 						},
 					},
 				},
 				Required: []string{"oci"},
 			},
 		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIImageRef"},
 	}
 }
 
@@ -1192,8 +1197,7 @@ func schema_pkg_apis_ignite_v1alpha2_VMKernelSpec(ref common.ReferenceCallback) 
 				Properties: map[string]spec.Schema{
 					"oci": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIImageRef"),
 						},
 					},
 					"cmdLine": {
@@ -1206,6 +1210,8 @@ func schema_pkg_apis_ignite_v1alpha2_VMKernelSpec(ref common.ReferenceCallback) 
 				Required: []string{"oci"},
 			},
 		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIImageRef"},
 	}
 }
 
@@ -1495,6 +1501,32 @@ func schema_pkg_apis_meta_v1alpha1_OCIContentID(ref common.ReferenceCallback) co
 					},
 				},
 				Required: []string{"repoName", "digest"},
+			},
+		},
+	}
+}
+
+func schema_pkg_apis_meta_v1alpha1_OCIImageRef(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "OCIImageRef is a struct containing a names and tagged reference by which an OCI runtime can identify an image to retrieve.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"tag": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"name", "tag"},
 			},
 		},
 	}
