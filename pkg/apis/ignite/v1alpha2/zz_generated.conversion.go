@@ -341,7 +341,7 @@ func Convert_ignite_Image_To_v1alpha2_Image(in *ignite.Image, out *Image, s conv
 }
 
 func autoConvert_v1alpha2_ImageSpec_To_ignite_ImageSpec(in *ImageSpec, out *ignite.ImageSpec, s conversion.Scope) error {
-	out.OCI = v1alpha1.OCIImageRef(in.OCI)
+	out.OCI = in.OCI
 	return nil
 }
 
@@ -351,7 +351,7 @@ func Convert_v1alpha2_ImageSpec_To_ignite_ImageSpec(in *ImageSpec, out *ignite.I
 }
 
 func autoConvert_ignite_ImageSpec_To_v1alpha2_ImageSpec(in *ignite.ImageSpec, out *ImageSpec, s conversion.Scope) error {
-	out.OCI = v1alpha1.OCIImageRef(in.OCI)
+	out.OCI = in.OCI
 	return nil
 }
 
@@ -419,7 +419,7 @@ func Convert_ignite_Kernel_To_v1alpha2_Kernel(in *ignite.Kernel, out *Kernel, s 
 }
 
 func autoConvert_v1alpha2_KernelSpec_To_ignite_KernelSpec(in *KernelSpec, out *ignite.KernelSpec, s conversion.Scope) error {
-	out.OCI = v1alpha1.OCIImageRef(in.OCI)
+	out.OCI = in.OCI
 	return nil
 }
 
@@ -429,7 +429,7 @@ func Convert_v1alpha2_KernelSpec_To_ignite_KernelSpec(in *KernelSpec, out *ignit
 }
 
 func autoConvert_ignite_KernelSpec_To_v1alpha2_KernelSpec(in *ignite.KernelSpec, out *KernelSpec, s conversion.Scope) error {
-	out.OCI = v1alpha1.OCIImageRef(in.OCI)
+	out.OCI = in.OCI
 	return nil
 }
 
@@ -669,7 +669,7 @@ func Convert_ignite_VM_To_v1alpha2_VM(in *ignite.VM, out *VM, s conversion.Scope
 }
 
 func autoConvert_v1alpha2_VMImageSpec_To_ignite_VMImageSpec(in *VMImageSpec, out *ignite.VMImageSpec, s conversion.Scope) error {
-	out.OCI = v1alpha1.OCIImageRef(in.OCI)
+	out.OCI = in.OCI
 	return nil
 }
 
@@ -679,7 +679,7 @@ func Convert_v1alpha2_VMImageSpec_To_ignite_VMImageSpec(in *VMImageSpec, out *ig
 }
 
 func autoConvert_ignite_VMImageSpec_To_v1alpha2_VMImageSpec(in *ignite.VMImageSpec, out *VMImageSpec, s conversion.Scope) error {
-	out.OCI = v1alpha1.OCIImageRef(in.OCI)
+	out.OCI = in.OCI
 	return nil
 }
 
@@ -689,7 +689,7 @@ func Convert_ignite_VMImageSpec_To_v1alpha2_VMImageSpec(in *ignite.VMImageSpec, 
 }
 
 func autoConvert_v1alpha2_VMKernelSpec_To_ignite_VMKernelSpec(in *VMKernelSpec, out *ignite.VMKernelSpec, s conversion.Scope) error {
-	out.OCI = v1alpha1.OCIImageRef(in.OCI)
+	out.OCI = in.OCI
 	out.CmdLine = in.CmdLine
 	return nil
 }
@@ -700,7 +700,7 @@ func Convert_v1alpha2_VMKernelSpec_To_ignite_VMKernelSpec(in *VMKernelSpec, out 
 }
 
 func autoConvert_ignite_VMKernelSpec_To_v1alpha2_VMKernelSpec(in *ignite.VMKernelSpec, out *VMKernelSpec, s conversion.Scope) error {
-	out.OCI = v1alpha1.OCIImageRef(in.OCI)
+	out.OCI = in.OCI
 	out.CmdLine = in.CmdLine
 	return nil
 }
