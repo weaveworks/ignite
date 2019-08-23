@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"time"
 
@@ -11,12 +12,9 @@ import (
 	"github.com/docker/docker/api/types/container"
 	cont "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/util"
-)
-
-const (
-	dockerNetNSFmt = "/proc/%v/ns/net"
 )
 
 // dockerClient is a runtime.Interface
@@ -28,7 +26,7 @@ type dockerClient struct {
 var _ runtime.Interface = &dockerClient{}
 
 // GetDockerClient builds a client for talking to docker
-func GetDockerClient() (runtime.Interface, error) {
+func GetDockerClient() (*dockerClient, error) {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithVersion("1.35"))
 	if err != nil {
 		return nil, err
@@ -43,34 +41,61 @@ func (dc *dockerClient) RawClient() interface{} {
 	return dc.client
 }
 
-func (dc *dockerClient) InspectImage(image string) (*runtime.ImageInspectResult, error) {
-	res, _, err := dc.client.ImageInspectWithRaw(context.Background(), image)
+func (dc *dockerClient) PullImage(image meta.OCIImageRef) (err error) {
+	var rc io.ReadCloser
+	if rc, err = dc.client.ImagePull(context.Background(), image.Normalized(), types.ImagePullOptions{}); err == nil {
+		// Don't output the pull command
+		util.DeferErr(&err, rc.Close)
+		_, err = io.Copy(ioutil.Discard, rc)
+	}
+
+	return
+}
+
+func (dc *dockerClient) InspectImage(image meta.OCIImageRef) (*runtime.ImageInspectResult, error) {
+	res, _, err := dc.client.ImageInspectWithRaw(context.Background(), image.Normalized())
 	if err != nil {
 		return nil, err
 	}
 
-	return &runtime.ImageInspectResult{
-		ID:          res.ID,
-		RepoDigests: res.RepoDigests,
-		Size:        res.Size,
-	}, nil
-}
-
-func (dc *dockerClient) PullImage(image string) (io.ReadCloser, error) {
-	return dc.client.ImagePull(context.Background(), image, types.ImagePullOptions{})
-}
-
-func (dc *dockerClient) ExportImage(image string) (io.ReadCloser, string, error) {
-	config, err := dc.client.ContainerCreate(context.Background(), &container.Config{
-		Cmd:   []string{"sh"}, // We need a temporary command, this doesn't need to exist in the image
-		Image: image,
-	}, nil, nil, "")
-	if err != nil {
-		return nil, "", err
+	// By default parse the OCI content ID from the Docker image ID
+	contentRef := res.ID
+	if len(res.RepoDigests) > 0 {
+		// If the image has Repo digests, use the first one of them to parse
+		// the fully qualified OCI image name and digest. All of the digests
+		// point to the same contents, so it doesn't matter which one we use
+		// here. It will be translated to the right content by the runtime.
+		contentRef = res.RepoDigests[0]
 	}
 
-	rc, err := dc.client.ContainerExport(context.Background(), config.ID)
-	return rc, config.ID, err
+	// Parse the OCI content ID based on the available reference
+	id, err := meta.ParseOCIContentID(contentRef)
+	if err != nil {
+		return nil, err
+	}
+
+	r := &runtime.ImageInspectResult{
+		ID:   id,
+		Size: res.Size,
+	}
+
+	return r, nil
+}
+
+func (dc *dockerClient) ExportImage(image meta.OCIImageRef) (r io.ReadCloser, cleanup func() error, err error) {
+	config, err := dc.client.ContainerCreate(context.Background(), &container.Config{
+		Cmd:   []string{"sh"}, // We need a temporary command, this doesn't need to exist in the image
+		Image: image.Normalized(),
+	}, nil, nil, "")
+	if err != nil {
+		return
+	}
+
+	if r, err = dc.client.ContainerExport(context.Background(), config.ID); err == nil {
+		cleanup = func() error { return dc.RemoveContainer(config.ID) }
+	}
+
+	return
 }
 
 func (dc *dockerClient) InspectContainer(container string) (*runtime.ContainerInspectResult, error) {
@@ -84,6 +109,7 @@ func (dc *dockerClient) InspectContainer(container string) (*runtime.ContainerIn
 		Image:     res.Image,
 		Status:    res.State.Status,
 		IPAddress: net.ParseIP(res.NetworkSettings.IPAddress),
+		PID:       uint32(res.State.Pid),
 	}, nil
 }
 
@@ -102,7 +128,7 @@ func (dc *dockerClient) AttachContainer(container string) (err error) {
 	return
 }
 
-func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConfig, name string) (string, error) {
+func (dc *dockerClient) RunContainer(image meta.OCIImageRef, config *runtime.ContainerConfig, name string) (string, error) {
 	binds := make([]string, 0, len(config.Binds))
 	for _, bind := range config.Binds {
 		binds = append(binds, fmt.Sprintf("%s:%s", bind.HostPath, bind.ContainerPath))
@@ -126,7 +152,7 @@ func (dc *dockerClient) RunContainer(image string, config *runtime.ContainerConf
 		Tty:          true, // --tty
 		OpenStdin:    true, // --interactive
 		Cmd:          config.Cmd,
-		Image:        image,
+		Image:        image.Normalized(),
 		Labels:       config.Labels,
 		StopTimeout:  &stopTimeout,
 	}, &container.HostConfig{
@@ -189,16 +215,6 @@ func (dc *dockerClient) ContainerLogs(container string) (io.ReadCloser, error) {
 	})
 }
 
-// ContainerNetNS returns the network namespace of the given container.
-func (dc *dockerClient) ContainerNetNS(container string) (string, error) {
-	r, err := dc.client.ContainerInspect(context.TODO(), container)
-	if err != nil {
-		return "", err
-	}
-
-	return getNetworkNamespace(&r)
-}
-
 func (dc *dockerClient) waitForContainer(container string, condition cont.WaitCondition, readyC *chan struct{}) error {
 	resultC, errC := dc.client.ContainerWait(context.Background(), container, condition)
 
@@ -219,13 +235,4 @@ func (dc *dockerClient) waitForContainer(container string, condition cont.WaitCo
 	}
 
 	return nil
-}
-
-func getNetworkNamespace(c *types.ContainerJSON) (string, error) {
-	if c.State.Pid == 0 {
-		// Docker reports pid 0 for an exited container.
-		return "", fmt.Errorf("cannot find network namespace for the terminated container %q", c.ID)
-	}
-
-	return fmt.Sprintf(dockerNetNSFmt, c.State.Pid), nil
 }
