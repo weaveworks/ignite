@@ -9,8 +9,8 @@ import (
 
 // Source represents a source for VM images
 type Source interface {
-	// ID returns the ID of the source
-	ID() string
+	// Ref returns the reference of the source
+	Ref() meta.OCIImageRef
 
 	// Parse verifies the ImageSource, fills in any missing fields and prepares the reader
 	Parse(src meta.OCIImageRef) (*api.OCIImageSource, error)
