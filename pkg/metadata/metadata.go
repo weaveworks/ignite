@@ -1,7 +1,6 @@
 package metadata
 
 import (
-	"crypto/rand"
 	"fmt"
 	"os"
 	"path"
@@ -62,15 +61,11 @@ func processUID(obj runtime.Object, c *client.Client) error {
 		}
 	} else {
 		// No UID set, generate one
-		var uidBytes []byte
+		var err error
 		for {
-			uidBytes = make([]byte, constants.IGNITE_UID_LENGTH/2)
-			if _, err := rand.Read(uidBytes); err != nil {
+			if uid, err = util.NewUID(); err != nil {
 				return fmt.Errorf("failed to generate ID: %v", err)
 			}
-
-			// Convert the byte slice to a string literally
-			uid = fmt.Sprintf("%x", uidBytes)
 
 			// If the generated UID is unique break the generator loop
 			if err := verifyUIDOrName(c, uid, obj.GetKind()); err == nil {
