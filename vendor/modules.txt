@@ -28,8 +28,17 @@ github.com/beorn7/perks/quantile
 github.com/c2h5oh/datasize
 # github.com/containerd/cgroups v0.0.0-20190717030353-c4b9ac5c7601
 github.com/containerd/cgroups
-# github.com/containerd/containerd v1.3.0-beta.1 => github.com/containerd/containerd v1.3.0-beta.1
+# github.com/containerd/console v0.0.0-20181022165439-0650fd9eeb50
+github.com/containerd/console
+# github.com/containerd/containerd v1.3.0-beta.1 => github.com/containerd/containerd v1.3.0-beta.2
 github.com/containerd/containerd
+github.com/containerd/containerd/cio
+github.com/containerd/containerd/containers
+github.com/containerd/containerd/mount
+github.com/containerd/containerd/namespaces
+github.com/containerd/containerd/oci
+github.com/containerd/containerd/plugin
+github.com/containerd/containerd/snapshots
 github.com/containerd/containerd/api/services/containers/v1
 github.com/containerd/containerd/api/services/content/v1
 github.com/containerd/containerd/api/services/diff/v1
@@ -44,8 +53,6 @@ github.com/containerd/containerd/api/services/version/v1
 github.com/containerd/containerd/api/types
 github.com/containerd/containerd/archive
 github.com/containerd/containerd/archive/compression
-github.com/containerd/containerd/cio
-github.com/containerd/containerd/containers
 github.com/containerd/containerd/content
 github.com/containerd/containerd/content/proxy
 github.com/containerd/containerd/defaults
@@ -56,25 +63,20 @@ github.com/containerd/containerd/images
 github.com/containerd/containerd/images/archive
 github.com/containerd/containerd/leases
 github.com/containerd/containerd/leases/proxy
-github.com/containerd/containerd/mount
-github.com/containerd/containerd/namespaces
-github.com/containerd/containerd/oci
 github.com/containerd/containerd/pkg/dialer
 github.com/containerd/containerd/platforms
-github.com/containerd/containerd/plugin
 github.com/containerd/containerd/remotes
 github.com/containerd/containerd/remotes/docker
 github.com/containerd/containerd/remotes/docker/schema1
 github.com/containerd/containerd/rootfs
 github.com/containerd/containerd/runtime/linux/runctypes
 github.com/containerd/containerd/runtime/v2/runc/options
-github.com/containerd/containerd/snapshots
 github.com/containerd/containerd/snapshots/proxy
-github.com/containerd/containerd/api/types/task
 github.com/containerd/containerd/log
 github.com/containerd/containerd/sys
-github.com/containerd/containerd/reference
 github.com/containerd/containerd/events/exchange
+github.com/containerd/containerd/api/types/task
+github.com/containerd/containerd/reference
 github.com/containerd/containerd/labels
 github.com/containerd/containerd/version
 github.com/containerd/containerd/filters
@@ -231,11 +233,11 @@ github.com/modern-go/reflect2
 github.com/opencontainers/go-digest
 # github.com/opencontainers/image-spec v1.0.1
 github.com/opencontainers/image-spec/identity
-github.com/opencontainers/image-spec/specs-go
 github.com/opencontainers/image-spec/specs-go/v1
+github.com/opencontainers/image-spec/specs-go
 # github.com/opencontainers/runc v0.1.1
-github.com/opencontainers/runc/libcontainer/system
 github.com/opencontainers/runc/libcontainer/user
+github.com/opencontainers/runc/libcontainer/system
 # github.com/opencontainers/runtime-spec v1.0.1 => github.com/opencontainers/runtime-spec v0.1.2-0.20190812154431-4f2ab155bbdd
 github.com/opencontainers/runtime-spec/specs-go
 # github.com/otiai10/copy v1.0.1
