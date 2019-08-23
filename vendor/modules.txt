@@ -278,7 +278,7 @@ github.com/vishvananda/netns
 # github.com/weaveworks/flux v0.0.0-20190704153721-8292179855e1
 github.com/weaveworks/flux/git
 github.com/weaveworks/flux/errors
-# github.com/weaveworks/gitops-toolkit v0.0.0-00010101000000-000000000000 => github.com/luxas/gitops-toolkit v0.0.0-20190819143013-52823007f89f
+# github.com/weaveworks/gitops-toolkit v0.0.0-20190819143013-52823007f89f
 github.com/weaveworks/gitops-toolkit/pkg/filter
 github.com/weaveworks/gitops-toolkit/pkg/runtime
 github.com/weaveworks/gitops-toolkit/pkg/util/patch

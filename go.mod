@@ -48,7 +48,7 @@ require (
 	github.com/vishvananda/netlink v1.0.0
 	github.com/vishvananda/netns v0.0.0-20190625233234-7109fa855b0f // indirect
 	github.com/weaveworks/flux v0.0.0-20190704153721-8292179855e1
-	github.com/weaveworks/gitops-toolkit v0.0.0-00010101000000-000000000000
+	github.com/weaveworks/gitops-toolkit v0.0.0-20190819143013-52823007f89f
 	go.etcd.io/bbolt v1.3.3 // indirect
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/sys v0.0.0-20190616124812-15dcb6c0061f
@@ -65,5 +65,4 @@ replace (
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20190711223531-1fb7fffdb266
 	github.com/godbus/dbus => github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f
 	github.com/opencontainers/runtime-spec => github.com/opencontainers/runtime-spec v0.1.2-0.20190812154431-4f2ab155bbdd
-	github.com/weaveworks/gitops-toolkit => github.com/luxas/gitops-toolkit v0.0.0-20190819143013-52823007f89f
 )
