@@ -4,11 +4,15 @@ import (
 	"fmt"
 
 	"github.com/weaveworks/ignite/pkg/operations"
+	"github.com/weaveworks/ignite/pkg/preflight"
+	"github.com/weaveworks/ignite/pkg/util"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 type StartFlags struct {
-	Interactive bool
-	Debug       bool
+	Interactive            bool
+	Debug                  bool
+	IgnoredPreflightErrors []string
 }
 
 type startOptions struct {
@@ -32,6 +36,11 @@ func Start(so *startOptions) error {
 	// Check if the given VM is already running
 	if so.vm.Running() {
 		return fmt.Errorf("VM %q is already running", so.vm.GetUID())
+	}
+
+	ignoredPreflightErrors := sets.NewString(util.ToLower(so.StartFlags.IgnoredPreflightErrors)...)
+	if err := preflight.StartCmdChecks(so.vm, ignoredPreflightErrors); err != nil {
+		return err
 	}
 
 	if err := operations.StartVM(so.vm, so.Debug); err != nil {
