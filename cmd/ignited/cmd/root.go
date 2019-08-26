@@ -40,6 +40,7 @@ func NewIgnitedCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 
 	addGlobalFlags(root.PersistentFlags())
 
+	root.AddCommand(NewCmdCompletion(os.Stdout, root))
 	root.AddCommand(NewCmdGitOps(os.Stdout))
 	root.AddCommand(NewCmdDaemon(os.Stdout))
 	root.AddCommand(versioncmd.NewCmdVersion(os.Stdout))
