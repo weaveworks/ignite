@@ -2,22 +2,52 @@
 
 # Changelog
 
+## v0.5.2
+
+**Released:** 26/08/2019
+
+This is the second patch release in the `v0.5.X` series, containing one bug fix needed for integrating well with [Footloose](https://github.com/weaveworks/footloose).
+
+### Bug Fixes
+
+- Fix Docker client port mappings by actually exposing them after binding ([#350](https://github.com/weaveworks/ignite/pull/350), [@twelho](https://github.com/twelho))
+
 ## v0.5.1
 
 **Released:** 16/08/2019
 
 The first patch release in the `v0.5.X` series. Contains some much needed UX improvements, go ahead and try it out!
 
-### Enhancements
+## Enhancements
 
 - Make `ignite daemon` handle file moves without re-creating and support multiple active moves at once ([#341](https://github.com/weaveworks/ignite/pull/341), [@twelho](https://github.com/twelho))
 - Fix `GOHOSTARCH` propagation in the Makefile, tag development image for the host architecture only ([#340](https://github.com/weaveworks/ignite/pull/340), [@twelho](https://github.com/twelho))
 - Fix `ignite-spawn`'s VM metadata formatting when performing a cleanup ([#336](https://github.com/weaveworks/ignite/pull/336), [@twelho](https://github.com/twelho))
 - Automatically optimize the size of imported images, support importing large images ([#335](https://github.com/weaveworks/ignite/pull/335), [@twelho](https://github.com/twelho))
 
-### Documentation
+## Documentation
 
 - Change Read the Docs links to point to the stable branch in main README ([#338](https://github.com/weaveworks/ignite/pull/338), [@twelho](https://github.com/twelho))
+
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.5.1
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+---
 
 ## v0.5.0
 
