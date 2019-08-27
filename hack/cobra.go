@@ -15,7 +15,8 @@ import (
 )
 
 func main() {
-	if err := providers.Populate(ignite.Providers); err != nil {
+	// Only preloaded providers are needed
+	if err := providers.Populate(ignite.Preload); err != nil {
 		log.Fatal(err)
 	}
 
@@ -28,6 +29,7 @@ func main() {
 		if err := doc.GenMarkdownTree(cmd, fmt.Sprintf("./docs/cli/%s", name)); err != nil {
 			log.Fatal(err)
 		}
+
 		sedCmd := fmt.Sprintf(`sed -e "/Auto generated/d" -i docs/cli/%s/*.md`, name)
 		if output, err := exec.Command("/bin/bash", "-c", sedCmd).CombinedOutput(); err != nil {
 			log.Fatal(string(output), err)

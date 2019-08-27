@@ -39,8 +39,3 @@ var _ pflag.Value = &NetworkPluginFlag{}
 func NetworkPluginVar(fs *pflag.FlagSet, ptr *network.PluginName) {
 	fs.Var(&NetworkPluginFlag{value: ptr}, "network-plugin", fmt.Sprintf("Network plugin to use. Available options are: %v", plugins))
 }
-
-// RegisterNetworkPluginFlag binds network.ActivePlugin to the --network-plugin flag
-func RegisterNetworkPluginFlag(fs *pflag.FlagSet) {
-	NetworkPluginVar(fs, &network.ActivePlugin)
-}

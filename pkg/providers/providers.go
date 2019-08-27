@@ -8,14 +8,20 @@ import (
 	"github.com/weaveworks/ignite/pkg/runtime"
 )
 
-// NetworkPlugins provides the initialized network plugins indexed by their name
-var NetworkPlugins = make(map[network.PluginName]network.Plugin)
+// NetworkPluginName binds to the global flag to select the network plugin
+// The default network plugin is "docker-bridge"
+var NetworkPluginName = network.PluginDockerBridge
 
 // NetworkPlugin provides the chosen network plugin that should be used
-// This should be set after parsing user input on what network mode to use
+// This should be set after parsing user input on what network plugin to use
 var NetworkPlugin network.Plugin
 
-// Runtime provides the container runtime for retrieving OCI images and running VM containers
+// RuntimeName binds to the global flag to select the container runtime
+// The default runtime is "docker"
+var RuntimeName = runtime.RuntimeDocker
+
+// Runtime provides the chosen container runtime for retrieving OCI images and running VM containers
+// This should be set after parsing user input on what runtime to use
 var Runtime runtime.Interface
 
 // Client is the default client that can be easily used
@@ -26,11 +32,10 @@ var Storage storage.Storage
 
 type ProviderInitFunc func() error
 
-// Populate initializes all providers
+// Populate initializes all given providers
 func Populate(providers []ProviderInitFunc) error {
 	log.Trace("Populating providers...")
-	for i, init := range providers {
-		log.Tracef("Provider %d...", i)
+	for _, init := range providers {
 		if err := init(); err != nil {
 			return err
 		}

@@ -8,10 +8,6 @@ import (
 
 func SetCNINetworkPlugin() (err error) {
 	log.Trace("Initializing the CNI provider...")
-	plugin, err := cni.GetCNINetworkPlugin(providers.Runtime)
-	if err != nil {
-		return err
-	}
-	providers.NetworkPlugins[plugin.Name()] = plugin
+	providers.NetworkPlugin, err = cni.GetCNINetworkPlugin(providers.Runtime)
 	return
 }
