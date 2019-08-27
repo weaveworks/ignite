@@ -7,12 +7,15 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/containerd/console"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/containers"
+	"github.com/containerd/containerd/errdefs"
 	"github.com/containerd/containerd/mount"
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/oci"
@@ -30,8 +33,9 @@ import (
 )
 
 const (
-	ctdSocket    = "/run/containerd/containerd.sock"
-	ctdNamespace = "firecracker"
+	ctdSocket        = "/run/containerd/containerd.sock"
+	ctdNamespace     = "firecracker"
+	stopTimeoutLabel = "IgniteStopTimeout"
 )
 
 // ctdClient is a runtime.Interface
@@ -293,63 +297,72 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 		return
 	}
 
-	// TODO: Fix this, simulates the Docker "entrypoint"
-	config.Cmd = append([]string{"ignite-spawn"}, config.Cmd...)
+	// Delete the container if it exists
+	var cont containerd.Container
+	if cont, err = cc.client.LoadContainer(cc.ctx, name); err == nil {
+		if err = cont.Delete(cc.ctx); err != nil {
+			return
+		}
+	} else if !errdefs.IsNotFound(err) {
+		return
+	}
+
+	// Load the default snapshotter
+	snapshotter := cc.client.SnapshotService(containerd.DefaultSnapshotter)
 
 	// Add the /etc/resolv.conf mount, this isn't done automatically by containerd
 	config.Binds = append(config.Binds, runtime.BindBoth("/etc/resolv.conf"))
 
+	// Add the stop timeout as a label, as containerd doesn't natively support it
+	config.Labels[stopTimeoutLabel] = strconv.FormatUint(uint64(config.StopTimeout), 10)
+
 	// Build the OCI specification
-	// TODO: Refine this, add missing options
 	opts := []oci.SpecOpts{
 		oci.WithDefaultSpec(),
 		oci.WithDefaultUnixDevices,
-		oci.WithImageConfig(img),
-		oci.WithProcessArgs(config.Cmd...),
+		oci.WithTTY,
+		oci.WithImageConfigArgs(img, config.Cmd),
 		withAddedCaps(config.CapAdds),
 		withHostname(config.Hostname),
 		withMounts(config.Binds),
 		withDevices(config.Devices),
 	}
 
-	tty := true
-	if tty {
-		opts = append(opts, oci.WithTTY)
-	}
+	// Known limitations, containerd doesn't support the following config fields:
+	// - StopTimeout
+	// - AutoRemove
+	// - NetworkMode (only CNI supported)
+	// - PortBindings
 
-	// TODO: Handle CapAdd & Hostname
-	// Known limitations, containerd doesn't support the following config fields
-	// StopTimeout
-	// AutoRemove
-	// NetworkMode (only CNI supported)
-	// PortBindings
+	snapshotOpt := containerd.WithSnapshot(name)
+	_, err = snapshotter.Stat(cc.ctx, name)
+	if errdefs.IsNotFound(err) {
+		// Even if "read only" is set, we don't use a KindView snapshot here (#1495).
+		// We pass the writable snapshot to the OCI runtime, and the runtime remounts
+		// it as read-only after creating some mount points on-demand.
+		snapshotOpt = containerd.WithNewSnapshot(name, img)
+	} else if err != nil {
+		return
+	}
 
 	cOpts := []containerd.NewContainerOpts{
 		containerd.WithImage(img),
-		// Even when "readonly" is set, we don't use KindView snapshot here. (#1495)
-		// We pass writable snapshot to the OCI runtime, and the runtime remounts it as read-only,
-		// after creating some mount points on demand.
-		//containerd.WithSnapshot(name),
-		containerd.WithNewSnapshot(name, img),
-		containerd.WithImageStopSignal(img, "SIGTERM"),
+		snapshotOpt,
+		//containerd.WithImageStopSignal(img, "SIGTERM"),
 		containerd.WithNewSpec(opts...),
 		// TODO: Upgrade to v2
 		containerd.WithRuntime(plugin.RuntimeRuncV1, nil),
 		containerd.WithContainerLabels(config.Labels),
 	}
 
-	cont, err := cc.client.NewContainer(cc.ctx, name, cOpts...)
-	if err != nil {
+	if cont, err = cc.client.NewContainer(cc.ctx, name, cOpts...); err != nil {
 		return
 	}
 
-	var con console.Console
-	if tty {
-		con = console.Current()
-		defer con.Reset()
-		if err = con.SetRaw(); err != nil {
-			return
-		}
+	con := console.Current()
+	defer util.DeferErr(&err, con.Reset)
+	if err = con.SetRaw(); err != nil {
+		return
 	}
 
 	/*stdinC := &stdinCloser{
@@ -466,12 +479,64 @@ func (cc *ctdClient) StopContainer(container string, timeout *time.Duration) (er
 		return
 	}
 
+	if timeout == nil {
+		var labels map[string]string
+		var duration uint64
+
+		if labels, err = cont.Labels(cc.ctx); err != nil {
+			return
+		}
+
+		if duration, err = strconv.ParseUint(labels[stopTimeoutLabel], 10, 32); err != nil {
+			return
+		}
+
+		to := time.Duration(duration) * time.Second
+		timeout = &to
+	}
+
 	task, err := cont.Task(cc.ctx, cio.Load)
 	if err != nil {
 		return
 	}
 
-	_, err = task.Delete(cc.ctx) // TODO: This probably force-kills, also handle the exit status
+	// Initiate a wait
+	waitC, err := task.Wait(cc.ctx)
+	if err != nil {
+		return
+	}
+
+	// Send a SIGTERM signal to request a clean shutdown
+	if err = task.Kill(cc.ctx, syscall.SIGTERM); err != nil {
+		return
+	}
+
+	// After sending the signal, start the timeout timer
+	timeoutC := make(chan error)
+	time.AfterFunc(*timeout, func() {
+		timeoutC <- fmt.Errorf("timeout")
+	})
+
+	// Wait for the task to stop or the timer to fire
+	select {
+	case exitStatus := <-waitC:
+		err = exitStatus.Error() // TODO: Handle exit code
+	case err = <-timeoutC:
+		// Force-kill the task
+		if e := task.Kill(cc.ctx, syscall.SIGQUIT); e != nil {
+			err = fmt.Errorf("%v, failed to kill task: %v", err, e)
+		}
+	}
+
+	// Delete the task
+	if _, e := task.Delete(cc.ctx); e != nil {
+		if err != nil {
+			err = fmt.Errorf("%v, task deletion failed: %v", err, e) // TODO: Multierror
+		} else {
+			err = e
+		}
+	}
+
 	return
 }
 

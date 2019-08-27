@@ -153,7 +153,7 @@ func installSignalHandlers(ctx context.Context, m *firecracker.Machine) {
 		for {
 			switch s := <-c; {
 			case s == syscall.SIGTERM || s == os.Interrupt:
-				fmt.Println("Caught SIGINT, requesting clean shutdown")
+				fmt.Println("Caught SIGTERM, requesting clean shutdown")
 				m.Shutdown(ctx)
 				time.Sleep(constants.STOP_TIMEOUT * time.Second)
 
@@ -164,7 +164,7 @@ func installSignalHandlers(ctx context.Context, m *firecracker.Machine) {
 					m.StopVMM()
 				}
 			case s == syscall.SIGQUIT:
-				fmt.Println("Caught SIGTERM, forcing shutdown")
+				fmt.Println("Caught SIGQUIT, forcing shutdown")
 				m.StopVMM()
 			}
 		}
