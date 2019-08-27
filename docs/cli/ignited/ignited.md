@@ -21,6 +21,7 @@ TODO: ignited documentation
 
 ### SEE ALSO
 
+* [ignited completion](ignited_completion.md)	 - Output bash completion for ignited to stdout
 * [ignited daemon](ignited_daemon.md)	 - Operates in daemon mode and watches /etc/firecracker/manifests for VM specifications to run.
 * [ignited gitops](ignited_gitops.md)	 - Run the GitOps feature of Ignite
 * [ignited version](ignited_version.md)	 - Print the version of ignite
