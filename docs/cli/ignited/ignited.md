@@ -17,6 +17,7 @@ TODO: ignited documentation
   -h, --help                    help for ignited
       --log-level loglevel      Specify the loglevel for the program (default info)
       --network-plugin plugin   Network plugin to use. Available options are: [cni docker-bridge] (default docker-bridge)
+      --runtime runtime         Container runtime to use. Available options are: [docker containerd] (default docker)
 ```
 
 ### SEE ALSO
