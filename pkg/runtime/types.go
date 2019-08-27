@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"fmt"
 	"io"
 	"net"
 	"time"
@@ -60,5 +61,30 @@ type Interface interface {
 	RemoveContainer(container string) error
 	ContainerLogs(container string) (io.ReadCloser, error)
 
+	Name() Name
 	RawClient() interface{}
+}
+
+// Name defines a name for a runtime
+type Name string
+
+var _ fmt.Stringer = Name("")
+
+func (n Name) String() string {
+	return string(n)
+}
+
+const (
+	// RuntimeDocker specifies the Docker runtime
+	RuntimeDocker Name = "docker"
+	// RuntimeContainerd specifies the containerd runtime
+	RuntimeContainerd Name = "containerd"
+)
+
+// ListRuntimes gets the list of available runtimes
+func ListRuntimes() []Name {
+	return []Name{
+		RuntimeDocker,
+		RuntimeContainerd,
+	}
 }

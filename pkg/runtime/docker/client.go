@@ -37,10 +37,6 @@ func GetDockerClient() (*dockerClient, error) {
 	}, nil
 }
 
-func (dc *dockerClient) RawClient() interface{} {
-	return dc.client
-}
-
 func (dc *dockerClient) PullImage(image meta.OCIImageRef) (err error) {
 	var rc io.ReadCloser
 	if rc, err = dc.client.ImagePull(context.Background(), image.Normalized(), types.ImagePullOptions{}); err == nil {
@@ -213,6 +209,14 @@ func (dc *dockerClient) ContainerLogs(container string) (io.ReadCloser, error) {
 	return dc.client.ContainerLogs(context.Background(), container, types.ContainerLogsOptions{
 		ShowStdout: true, // We only need stdout, as TTY mode merges stderr into it
 	})
+}
+
+func (cc *dockerClient) Name() runtime.Name {
+	return runtime.RuntimeDocker
+}
+
+func (dc *dockerClient) RawClient() interface{} {
+	return dc.client
 }
 
 func (dc *dockerClient) waitForContainer(container string, condition cont.WaitCondition, readyC *chan struct{}) error {

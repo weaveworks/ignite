@@ -25,8 +25,8 @@ func Run() error {
 	// Create the directories needed for running
 	util.GenericCheckErr(util.CreateDirectories())
 
-	// Populate the providers
-	util.GenericCheckErr(providers.Populate(ignite.Providers))
+	// Preload necessary providers
+	util.GenericCheckErr(providers.Populate(ignite.Preload))
 
 	c := cmd.NewIgniteCommand(os.Stdin, os.Stdout, os.Stderr)
 	return c.Execute()

@@ -7,6 +7,7 @@ import (
 
 	"github.com/lithammer/dedent"
 	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/imgcmd"
@@ -14,9 +15,10 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
-	"github.com/weaveworks/ignite/pkg/network"
 	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/providers/ignite"
+	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
 )
 
@@ -24,7 +26,6 @@ var logLevel = logrus.InfoLevel
 
 // NewIgniteCommand returns the root command for ignite
 func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
-
 	imageCmd := imgcmd.NewCmdImage(os.Stdout)
 	kernelCmd := kerncmd.NewCmdKernel(os.Stdout)
 	vmCmd := vmcmd.NewCmdVM(os.Stdout)
@@ -35,8 +36,11 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// Set the desired logging level, now that the flags are parsed
 			logs.Logger.SetLevel(logLevel)
-			// Set the desired network plugin
-			providers.NetworkPlugin = providers.NetworkPlugins[network.ActivePlugin]
+
+			// Populate the providers after flags have been parsed
+			if err := providers.Populate(ignite.Providers); err != nil {
+				log.Fatal(err)
+			}
 		},
 		Long: dedent.Dedent(fmt.Sprintf(`
 			Ignite is a containerized Firecracker microVM administration tool.
@@ -93,7 +97,8 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 func addGlobalFlags(fs *pflag.FlagSet) {
 	AddQuietFlag(fs)
 	logflag.LogLevelFlagVar(fs, &logLevel)
-	networkflag.RegisterNetworkPluginFlag(fs)
+	runtimeflag.RuntimeVar(fs, &providers.RuntimeName)
+	networkflag.NetworkPluginVar(fs, &providers.NetworkPluginName)
 }
 
 // AddQuietFlag adds the quiet flag to a flagset

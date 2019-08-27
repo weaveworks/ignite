@@ -6,13 +6,15 @@ import (
 
 	"github.com/lithammer/dedent"
 	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
-	"github.com/weaveworks/ignite/pkg/network"
 	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/providers/ignite"
+	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
 )
 
@@ -20,15 +22,17 @@ var logLevel = logrus.InfoLevel
 
 // NewIgnitedCommand returns the root command for ignited
 func NewIgnitedCommand(in io.Reader, out, err io.Writer) *cobra.Command {
-
 	root := &cobra.Command{
 		Use:   "ignited",
 		Short: "ignited: run Firecracker VMs declaratively through a manifest directory or Git",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// Set the desired logging level, now that the flags are parsed
 			logs.Logger.SetLevel(logLevel)
-			// Set the desired network plugin
-			providers.NetworkPlugin = providers.NetworkPlugins[network.ActivePlugin]
+
+			// Populate the providers after flags have been parsed
+			if err := providers.Populate(ignite.Providers); err != nil {
+				log.Fatal(err)
+			}
 		},
 		Long: dedent.Dedent(`
 			Ignite is a containerized Firecracker microVM administration tool.
@@ -49,5 +53,6 @@ func NewIgnitedCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 
 func addGlobalFlags(fs *pflag.FlagSet) {
 	logflag.LogLevelFlagVar(fs, &logLevel)
-	networkflag.RegisterNetworkPluginFlag(fs)
+	runtimeflag.RuntimeVar(fs, &providers.RuntimeName)
+	networkflag.NetworkPluginVar(fs, &providers.NetworkPluginName)
 }

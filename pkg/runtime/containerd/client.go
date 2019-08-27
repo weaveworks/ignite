@@ -45,6 +45,8 @@ var _ runtime.Interface = &ctdClient{}
 
 // GetContainerdClient builds a client for talking to containerd
 func GetContainerdClient() (*ctdClient, error) {
+	log.Warn("The containerd runtime is unstable/incomplete, here be dragons")
+
 	cli, err := containerd.New(ctdSocket)
 	if err != nil {
 		return nil, err
@@ -489,6 +491,10 @@ func (cc *ctdClient) RemoveContainer(container string) error {
 func (cc *ctdClient) ContainerLogs(container string) (io.ReadCloser, error) {
 	// TODO: Implement logs for containerd
 	return nil, unsupported("logs")
+}
+
+func (cc *ctdClient) Name() runtime.Name {
+	return runtime.RuntimeContainerd
 }
 
 func (cc *ctdClient) RawClient() interface{} {

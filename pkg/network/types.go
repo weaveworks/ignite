@@ -41,10 +41,6 @@ func (pn PluginName) String() string {
 	return string(pn)
 }
 
-// ActivePlugin is set at runtime to the plugin that is chosen to be active.
-// The default mode is docker-bridge
-var ActivePlugin = PluginDockerBridge
-
 const (
 	// PluginCNI specifies the network mode where CNI is used
 	PluginCNI PluginName = "cni"
