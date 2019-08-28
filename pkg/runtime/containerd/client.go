@@ -263,7 +263,6 @@ func (cc *ctdClient) AttachContainer(container string) (err error) {
 	if task, err = cont.Task(cc.ctx, cio.NewAttach(cio.WithStdio)); err != nil {
 		return
 	}
-	defer util.DeferErr(&err, func() error { _, err := task.Delete(cc.ctx); return err })
 
 	if statusC, err = task.Wait(cc.ctx); err != nil {
 		return
@@ -297,13 +296,8 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 		return
 	}
 
-	// Delete the container if it exists
-	var cont containerd.Container
-	if cont, err = cc.client.LoadContainer(cc.ctx, name); err == nil {
-		if err = cont.Delete(cc.ctx); err != nil {
-			return
-		}
-	} else if !errdefs.IsNotFound(err) {
+	// Remove the container if it exists
+	if err = cc.RemoveContainer(name); err != nil {
 		return
 	}
 
@@ -335,8 +329,7 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 	// - PortBindings
 
 	snapshotOpt := containerd.WithSnapshot(name)
-	_, err = snapshotter.Stat(cc.ctx, name)
-	if errdefs.IsNotFound(err) {
+	if _, err = snapshotter.Stat(cc.ctx, name); errdefs.IsNotFound(err) {
 		// Even if "read only" is set, we don't use a KindView snapshot here (#1495).
 		// We pass the writable snapshot to the OCI runtime, and the runtime remounts
 		// it as read-only after creating some mount points on-demand.
@@ -355,7 +348,8 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 		containerd.WithContainerLabels(config.Labels),
 	}
 
-	if cont, err = cc.client.NewContainer(cc.ctx, name, cOpts...); err != nil {
+	cont, err := cc.client.NewContainer(cc.ctx, name, cOpts...)
+	if err != nil {
 		return
 	}
 
@@ -411,7 +405,7 @@ func withHostname(hostname string) oci.SpecOpts {
 }
 
 func withMounts(binds []*runtime.Bind) oci.SpecOpts {
-	mounts := make([]specs.Mount, 0)
+	mounts := make([]specs.Mount, 0, len(binds))
 	for _, bind := range binds {
 		mounts = append(mounts, specs.Mount{
 			Source:      bind.HostPath,
@@ -479,6 +473,7 @@ func (cc *ctdClient) StopContainer(container string, timeout *time.Duration) (er
 		return
 	}
 
+	// Use the container-specific timeout if no timeout is given
 	if timeout == nil {
 		var labels map[string]string
 		var duration uint64
@@ -511,21 +506,18 @@ func (cc *ctdClient) StopContainer(container string, timeout *time.Duration) (er
 		return
 	}
 
-	// After sending the signal, start the timeout timer
+	// After sending the signal, start the timer to force-kill the task
 	timeoutC := make(chan error)
-	time.AfterFunc(*timeout, func() {
-		timeoutC <- fmt.Errorf("timeout")
+	timer := time.AfterFunc(*timeout, func() {
+		timeoutC <- task.Kill(cc.ctx, syscall.SIGQUIT)
 	})
 
 	// Wait for the task to stop or the timer to fire
 	select {
 	case exitStatus := <-waitC:
+		timer.Stop()             // Cancel the force-kill timer
 		err = exitStatus.Error() // TODO: Handle exit code
-	case err = <-timeoutC:
-		// Force-kill the task
-		if e := task.Kill(cc.ctx, syscall.SIGQUIT); e != nil {
-			err = fmt.Errorf("%v, failed to kill task: %v", err, e)
-		}
+	case err = <-timeoutC: // The kill timer has fired
 	}
 
 	// Delete the task
@@ -540,17 +532,53 @@ func (cc *ctdClient) StopContainer(container string, timeout *time.Duration) (er
 	return
 }
 
-func (cc *ctdClient) KillContainer(container, signal string) error {
-	return cc.StopContainer(container, nil) // TODO: Handle this separately
-}
-
-func (cc *ctdClient) RemoveContainer(container string) error {
+func (cc *ctdClient) KillContainer(container, signal string) (err error) {
 	cont, err := cc.client.LoadContainer(cc.ctx, container)
 	if err != nil {
-		return err
+		return
 	}
 
-	return cont.Delete(cc.ctx)
+	task, err := cont.Task(cc.ctx, cio.Load)
+	if err != nil {
+		return
+	}
+
+	// Initiate a wait
+	waitC, err := task.Wait(cc.ctx)
+	if err != nil {
+		return
+	}
+
+	// Send a SIGQUIT signal to force stop
+	if err = task.Kill(cc.ctx, syscall.SIGQUIT); err != nil {
+		return
+	}
+
+	// Wait for the container to stop
+	<-waitC
+
+	// Delete the task
+	_, err = task.Delete(cc.ctx)
+	return
+}
+
+func (cc *ctdClient) RemoveContainer(container string) (err error) {
+	// Remove the container if it exists
+	var cont containerd.Container
+	var task containerd.Task
+	if cont, err = cc.client.LoadContainer(cc.ctx, container); ifFound(&err) {
+		// Load the container's task without attaching
+		if task, err = cont.Task(cc.ctx, nil); ifFound(&err) {
+			_, err = task.Delete(cc.ctx)
+		}
+
+		// Delete the container
+		if err == nil {
+			err = cont.Delete(cc.ctx, containerd.WithSnapshotCleanup)
+		}
+	}
+
+	return
 }
 
 func (cc *ctdClient) ContainerLogs(container string) (io.ReadCloser, error) {
@@ -608,4 +636,22 @@ func deviceType(device string, devType *string) (err error) {
 	}
 
 	return
+}
+
+// ifFound is a helper for functions returning errdefs.ErrNotFound in if-statements.
+// If in points to that error, the value is changed to nil and false is returned.
+// If in points to any other error, no change is performed and false is returned.
+// If in points to nil, no change is performed and true is returned.
+func ifFound(in *error) bool {
+	if in == nil {
+		panic("nil pointer given to ifFound")
+	}
+
+	// If the given error is an errdefs.ErrNotFound, clear it
+	if errdefs.IsNotFound(*in) {
+		*in = nil
+		return false
+	}
+
+	return *in == nil
 }
