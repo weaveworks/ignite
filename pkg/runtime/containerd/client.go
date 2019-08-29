@@ -588,9 +588,31 @@ func (cc *ctdClient) RemoveContainer(container string) (err error) {
 	return
 }
 
-func (cc *ctdClient) ContainerLogs(container string) (io.ReadCloser, error) {
-	// TODO: Implement logs for containerd
-	return nil, unsupported("logs")
+func (cc *ctdClient) ContainerLogs(container string) (r io.ReadCloser, err error) {
+	var (
+		cont containerd.Container
+	)
+
+	if cont, err = cc.client.LoadContainer(cc.ctx, container); err != nil {
+		return
+	}
+
+	var retriever *logRetriever
+	if retriever, err = newlogRetriever(fmt.Sprintf(logPathTemplate, container)); err != nil {
+		return
+	}
+
+	if _, err = cont.Task(cc.ctx, cio.NewAttach(retriever.Opt())); err != nil {
+		return
+	}
+
+	// Currently we have no way of detecting if the task's attach has filled the stdout and stderr
+	// buffers without asynchronous I/O (syscall.Conn and syscall.Splice). If the read reaches
+	// the end, the application hangs indefinitely waiting for new output from the container.
+	// TODO: Get rid of this, implement asynchronous I/O and read until the streams have been exhausted
+	time.Sleep(time.Second)
+
+	return retriever, nil
 }
 
 func (cc *ctdClient) Name() runtime.Name {
