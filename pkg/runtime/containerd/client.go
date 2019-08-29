@@ -36,6 +36,7 @@ const (
 	ctdSocket        = "/run/containerd/containerd.sock"
 	ctdNamespace     = "firecracker"
 	stopTimeoutLabel = "IgniteStopTimeout"
+	logPathTemplate  = "/tmp/%s-log"
 )
 
 // ctdClient is a runtime.Interface
@@ -228,6 +229,12 @@ func (cc *ctdClient) InspectContainer(container string) (*runtime.ContainerInspe
 	}, nil
 }
 
+/*
+FIFO handling with attach and logs:
+- Attach will read the stdout FIFO and in addition to writing to screen, copy the output to a file
+- Logs will first read and print the file, then read the FIFO and write it's output to the file and the screen
+*/
+
 func (cc *ctdClient) AttachContainer(container string) (err error) {
 	var (
 		cont containerd.Container
@@ -256,11 +263,17 @@ func (cc *ctdClient) AttachContainer(container string) (err error) {
 	}
 
 	var (
-		task    containerd.Task
-		statusC <-chan containerd.ExitStatus
+		task     containerd.Task
+		statusC  <-chan containerd.ExitStatus
+		igniteIO *igniteIO
 	)
 
-	if task, err = cont.Task(cc.ctx, cio.NewAttach(cio.WithStdio)); err != nil {
+	if igniteIO, err = newIgniteIO(fmt.Sprintf(logPathTemplate, container)); err != nil {
+		return
+	}
+	defer util.DeferErr(&err, igniteIO.Close)
+
+	if task, err = cont.Task(cc.ctx, cio.NewAttach(igniteIO.Opt())); err != nil {
 		return
 	}
 
@@ -277,13 +290,16 @@ func (cc *ctdClient) AttachContainer(container string) (err error) {
 		defer StopCatch(sigc)
 	}
 
-	ec := <-statusC
-	code, _, err := ec.Result()
-	if err != nil {
-		return
+	var code uint32
+	select {
+	case ec := <-statusC:
+		code, _, err = ec.Result()
+	case <-igniteIO.Detach():
+		fmt.Println() // Use a new line for the log entry
+		log.Println("Detached")
 	}
 
-	if code != 0 {
+	if code != 0 && err == nil {
 		err = fmt.Errorf("attach exited with code %d", code)
 	}
 
@@ -353,23 +369,8 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 		return
 	}
 
-	con := console.Current()
-	defer util.DeferErr(&err, con.Reset)
-	if err = con.SetRaw(); err != nil {
-		return
-	}
-
-	/*stdinC := &stdinCloser{
-		stdin: os.Stdin,
-	}*/
-	ioOpts := []cio.Opt{cio.WithFIFODir("/run/containerd/fifo")}
-	//stdio := cio.NewCreator(append([]cio.Opt{cio.WithStreams(stdinC, os.Stdout, os.Stderr)}, ioOpts...)...)
-	ioCreator := cio.NewCreator(append([]cio.Opt{cio.WithStreams(con, con, nil), cio.WithTerminal}, ioOpts...)...)
-
-	/*task, err := tasks.NewTask(ctx, client, container, context.String("checkpoint"), con, context.Bool("null-io"), context.String("log-uri"), ioOpts, opts...)
-	if err != nil {
-		return err
-	}*/
+	// TODO: Set up dummy I/O to not output the initial VM log to stdout, nil makes containerd panic!
+	ioCreator := cio.NewCreator(cio.WithTerminal, cio.WithStdio)
 
 	// TODO: Set up TTY and stdio streams
 	task, err := cont.NewTask(cc.ctx, ioCreator)
@@ -575,6 +576,12 @@ func (cc *ctdClient) RemoveContainer(container string) (err error) {
 		// Delete the container
 		if err == nil {
 			err = cont.Delete(cc.ctx, containerd.WithSnapshotCleanup)
+		}
+
+		// Remove the log file if it exists
+		logFile := fmt.Sprintf(logPathTemplate, container)
+		if util.FileExists(logFile) && err == nil {
+			err = os.RemoveAll(logFile)
 		}
 	}
 
