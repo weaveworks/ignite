@@ -4,10 +4,10 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/gitops-toolkit/pkg/git/gitdir"
 	"github.com/weaveworks/gitops-toolkit/pkg/storage/manifest"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/gitops/gitdir"
 	"github.com/weaveworks/ignite/pkg/operations/reconcile"
 )
 
