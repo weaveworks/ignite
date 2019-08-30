@@ -176,7 +176,7 @@ func (d *GitDirectory) commitLoop() error {
 
 		files, err := d.checkout.ChangedFiles(context.Background(), d.branch)
 		if err != nil {
-			log.Errorf("couldn't get changed files: %v")
+			log.Errorf("couldn't get changed files: %v", err)
 			continue
 		}
 
