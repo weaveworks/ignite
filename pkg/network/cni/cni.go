@@ -10,6 +10,7 @@ import (
 
 	gocni "github.com/containerd/go-cni"
 	log "github.com/sirupsen/logrus"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/network"
 	"github.com/weaveworks/ignite/pkg/runtime"
@@ -31,18 +32,28 @@ const (
 
 // igniteCNIConf is a base CNI configuration that will enable VMs to access the internet connection (docker-bridge style)
 var igniteCNIConf = `{
-		"cniVersion": "0.4.0",
-		"name": "ignite-containerd-default",
-		"type": "bridge",
-		"bridge": "cni0",
-		"isGateway": true,
-		"isDefaultGateway": true,
-		"promiscMode": true,
-		"ipMasq": true,
-		"ipam": {
+	"cniVersion": "0.4.0",
+	"name": "ignite-containerd-bridge",
+	"plugins": [
+		{
+			"type": "bridge",
+			"bridge": "cni0",
+			"isGateway": true,
+			"isDefaultGateway": true,
+			"promiscMode": true,
+			"ipMasq": true,
+			"ipam": {
 				"type": "host-local",
 				"subnet": "172.18.0.0/16"
-	}
+			}
+		},
+		{
+			"type": "portmap",
+			"capabilities": {
+				"portMappings": true
+			}
+		}
+	]
 }
 `
 
@@ -85,7 +96,7 @@ func (plugin *cniNetworkPlugin) PrepareContainerSpec(container *runtime.Containe
 	return nil
 }
 
-func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string) (*network.Result, error) {
+func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string, portMappings ...meta.PortMapping) (*network.Result, error) {
 	if err := plugin.initialize(); err != nil {
 		return nil, err
 	}
@@ -95,8 +106,22 @@ func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string) (*netw
 		return nil, fmt.Errorf("CNI failed to retrieve network namespace path: %v", err)
 	}
 
+	pms := []gocni.PortMapping{}
+	for _, pm := range portMappings {
+		hostIP := ""
+		if pm.BindAddress != nil {
+			hostIP = pm.BindAddress.String()
+		}
+		pms = append(pms, gocni.PortMapping{
+			HostPort:      int32(pm.HostPort),
+			ContainerPort: int32(pm.VMPort),
+			Protocol:      pm.Protocol.String(),
+			HostIP:        hostIP,
+		})
+	}
+
 	netnsPath := fmt.Sprintf(netNSPathFmt, c.PID)
-	result, err := plugin.cni.Setup(context.Background(), containerid, netnsPath)
+	result, err := plugin.cni.Setup(context.Background(), containerid, netnsPath, gocni.WithCapabilityPortMap(pms))
 	if err != nil {
 		log.Errorf("failed to setup network for namespace %q: %v", containerid, err)
 		return nil, err

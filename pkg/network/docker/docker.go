@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/network"
 	"github.com/weaveworks/ignite/pkg/runtime"
 )
@@ -25,7 +26,7 @@ func (*dockerNetworkPlugin) PrepareContainerSpec(_ *runtime.ContainerConfig) err
 	return nil
 }
 
-func (plugin *dockerNetworkPlugin) SetupContainerNetwork(containerID string) (*network.Result, error) {
+func (plugin *dockerNetworkPlugin) SetupContainerNetwork(containerID string, _ ...meta.PortMapping) (*network.Result, error) {
 	// This is used to fetch the IP address the runtime gives to the VM container
 	result, err := plugin.runtime.InspectContainer(containerID)
 	if err != nil {
