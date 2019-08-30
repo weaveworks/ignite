@@ -23,9 +23,7 @@ import (
 func StartVM(vm *api.VM, debug bool) error {
 	// Inspect the VM container and remove it if it exists
 	inspectResult, _ := providers.Runtime.InspectContainer(util.NewPrefixer().Prefix(vm.GetUID()))
-	if err := RemoveVMContainer(inspectResult); err != nil {
-		return err
-	}
+	RemoveVMContainer(inspectResult)
 
 	// Setup the snapshot overlay filesystem
 	if err := dmlegacy.ActivateSnapshot(vm); err != nil {

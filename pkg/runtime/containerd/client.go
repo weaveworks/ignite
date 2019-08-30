@@ -199,7 +199,7 @@ func (cc *ctdClient) InspectContainer(container string) (*runtime.ContainerInspe
 		return nil, err
 	}
 
-	t, err := cont.Task(cc.ctx, nil)
+	task, err := cont.Task(cc.ctx, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -209,21 +209,12 @@ func (cc *ctdClient) InspectContainer(container string) (*runtime.ContainerInspe
 		return nil, err
 	}
 
-	pids, err := t.Pids(cc.ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(pids) == 0 {
-		return nil, fmt.Errorf("no running tasks found for container %q", container)
-	}
-
 	return &runtime.ContainerInspectResult{
 		ID:        info.ID,
-		Image:     info.Image,  // TODO: This may be incorrect
-		Status:    "",          // TODO: This
-		IPAddress: nil,         // TODO: This, containerd only supports CNI
-		PID:       pids[0].Pid, // TODO: This should respect multiple tasks, we need a way to identify ignite-spawn
+		Image:     info.Image, // TODO: This may be incorrect
+		Status:    "",         // TODO: This
+		IPAddress: nil,        // TODO: This, containerd only supports CNI
+		PID:       task.Pid(),
 	}, nil
 }
 

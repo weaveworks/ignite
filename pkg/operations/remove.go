@@ -38,9 +38,7 @@ func CleanupVM(vm *api.VM) error {
 	}
 
 	// Remove the VM container if it exists
-	if err := RemoveVMContainer(result); err != nil {
-		return err
-	}
+	RemoveVMContainer(result)
 
 	if logs.Quiet {
 		fmt.Println(vm.GetUID())
@@ -51,9 +49,9 @@ func CleanupVM(vm *api.VM) error {
 	return nil
 }
 
-func RemoveVMContainer(result *runtime.ContainerInspectResult) error {
+func RemoveVMContainer(result *runtime.ContainerInspectResult) {
 	if result == nil {
-		return nil // If given no result, don't attempt removal
+		return // If given no result, don't attempt removal
 	}
 
 	// Remove the VM container. If the container has been/is being automatically removed
@@ -61,9 +59,6 @@ func RemoveVMContainer(result *runtime.ContainerInspectResult) error {
 	// we have no real way to inspect and remove immediately without having a potential race
 	// condition, so ignore the error for now. TODO: Robust conditional remove support
 	_ = providers.Runtime.RemoveContainer(result.ID)
-
-	// Tear down the networking of the VM
-	return removeNetworking(result.ID)
 }
 
 // StopVM stops or kills a VM
@@ -71,6 +66,11 @@ func StopVM(vm *api.VM, kill, silent bool) error {
 	var err error
 	container := util.NewPrefixer().Prefix(vm.GetUID())
 	action := "stop"
+
+	// Remove VM networking
+	if err = removeNetworking(util.NewPrefixer().Prefix(vm.GetUID())); err != nil {
+		return err
+	}
 
 	// Stop or kill the VM container
 	if kill {
