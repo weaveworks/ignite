@@ -108,7 +108,7 @@ func StartVM(vm *api.VM, debug bool) error {
 	}
 
 	// Set up the networking
-	result, err := providers.NetworkPlugin.SetupContainerNetwork(containerID)
+	result, err := providers.NetworkPlugin.SetupContainerNetwork(containerID, vm.Spec.Network.Ports...)
 	if err != nil {
 		return err
 	}

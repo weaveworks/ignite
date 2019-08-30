@@ -98,6 +98,6 @@ func StopVM(vm *api.VM, kill, silent bool) error {
 }
 
 func removeNetworking(containerID string) error {
-	log.Debugf("Removing the container with ID %q from the %q network", containerID, providers.NetworkPlugin.Name())
+	log.Infof("Removing the container with ID %q from the %q network", containerID, providers.NetworkPlugin.Name())
 	return providers.NetworkPlugin.RemoveContainerNetwork(containerID)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/runtime"
 )
 
@@ -17,7 +18,7 @@ type Plugin interface {
 
 	// SetupContainerNetwork sets up the networking for a container
 	// This is ran _after_ the container has been started
-	SetupContainerNetwork(containerID string) (*Result, error)
+	SetupContainerNetwork(containerID string, portmappings ...meta.PortMapping) (*Result, error)
 
 	// RemoveContainerNetwork is the method called before a container using the network plugin can be deleted
 	RemoveContainerNetwork(containerID string) error
