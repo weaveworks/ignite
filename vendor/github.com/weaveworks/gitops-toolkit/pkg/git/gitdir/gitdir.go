@@ -7,8 +7,8 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/flux/git"
-	"github.com/weaveworks/ignite/pkg/util"
+	"github.com/weaveworks/gitops-toolkit/pkg/git"
+	"github.com/weaveworks/gitops-toolkit/pkg/util"
 )
 
 func NewGitDirectory(url, branch string, paths []string, interval time.Duration) *GitDirectory {

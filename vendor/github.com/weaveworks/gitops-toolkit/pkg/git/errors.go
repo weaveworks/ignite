@@ -4,11 +4,11 @@ import (
 	"errors"
 	"strings"
 
-	fluxerr "github.com/weaveworks/flux/errors"
+	giterr "github.com/weaveworks/gitops-toolkit/pkg/git/errors"
 )
 
-var NoRepoError = &fluxerr.Error{
-	Type: fluxerr.User,
+var NoRepoError = &giterr.Error{
+	Type: giterr.User,
 	Err:  errors.New("no repo in user config"),
 	Help: `No Git repository URL in your config
 
@@ -16,14 +16,14 @@ We need to clone a git repo to proceed, and you haven't supplied
 one. Please upload a config file, including a git repository URL, as
 described in
 
-    https://github.com/weaveworks/flux/blob/master/site/fluxctl.md
+    https://github.com/weaveworks/gitops-toolkit/blob/master/site/fluxctl.md
 
 `,
 }
 
 func CloningError(url string, actual error) error {
-	return &fluxerr.Error{
-		Type: fluxerr.User,
+	return &giterr.Error{
+		Type: giterr.User,
 		Err:  actual,
 		Help: `Could not clone the upstream git repository
 
@@ -79,16 +79,16 @@ create a new deploy key. To create a new one, use
 `
 	}
 
-	return &fluxerr.Error{
-		Type: fluxerr.User,
+	return &giterr.Error{
+		Type: giterr.User,
 		Err:  actual,
 		Help: help,
 	}
 }
 
 func PushError(url string, actual error) error {
-	return &fluxerr.Error{
-		Type: fluxerr.User,
+	return &giterr.Error{
+		Type: giterr.User,
 		Err:  actual,
 		Help: `Problem committing and pushing to git repository.
 
