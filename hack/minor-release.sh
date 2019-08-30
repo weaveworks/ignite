@@ -33,7 +33,7 @@ echo "Releasing version ${FULL_VERSION}"
 # Calculate from where to build the changelog. For a prerelease, the changelog is incremental, but the
 # changelog for a stable release includes notes from the last stable release
 if [[ ${EXTRA} == "" ]]; then
-    PREVIOUS_TAG=$(git tag --sort taggerdate | sort -r | grep -E "v[0-9]+\.[0-9]+\.[0-9]+$" | head -1)
+    PREVIOUS_TAG=$(git tag --sort taggerdate | sort -r | grep -E "v[0-9]+\.[0-9]+\.0$" | head -1)
 else
     PREVIOUS_TAG=$(git tag --sort taggerdate | sort -r | head -1)
 fi
