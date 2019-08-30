@@ -32,7 +32,7 @@ const (
 	// netNSPathFmt gives the path to the a process network namespace, given the pid
 	netNSPathFmt = "/proc/%d/ns/net"
 	// igniteCNIConfName is the filename of Ignite's CNI configuration file
-	igniteCNIConfName = "10-ignite.conf"
+	igniteCNIConfName = "10-ignite.conflist"
 	// igniteBridgeName specifies the default "docker-bridge"-like plugin for containerd to use if no other CNI plugin is available
 	igniteBridgeName = "ignite-containerd-bridge"
 )
@@ -113,7 +113,7 @@ func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string, portMa
 		return nil, fmt.Errorf("CNI failed to retrieve network namespace path: %v", err)
 	}
 
-	pms := []gocni.PortMapping{}
+	pms := make([]gocni.PortMapping, 0, len(portMappings))
 	for _, pm := range portMappings {
 		hostIP := ""
 		if pm.BindAddress != nil {
@@ -156,13 +156,14 @@ func (plugin *cniNetworkPlugin) initialize() (err error) {
 func cniToIgniteResult(r *gocni.CNIResult) *network.Result {
 	result := &network.Result{}
 	for _, iface := range r.Interfaces {
-		for _, ip := range iface.IPConfigs {
+		for _, i := range iface.IPConfigs {
 			result.Addresses = append(result.Addresses, network.Address{
-				IP:      ip.IP,
-				Gateway: ip.Gateway,
+				IP:      i.IP,
+				Gateway: i.Gateway,
 			})
 		}
 	}
+
 	return result
 }
 
@@ -229,5 +230,6 @@ func getIPChains(containerID string) (result []*ipChain, err error) {
 			}
 		}
 	}
+
 	return
 }
