@@ -134,13 +134,13 @@ func cniToIgniteResult(r *gocni.CNIResult) *network.Result {
 	return result
 }
 
-func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerid string) error {
+func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerID string) error {
 	if err := plugin.initialize(); err != nil {
 		return err
 	}
 
 	// Lack of namespace should not be fatal on teardown
-	c, err := plugin.runtime.InspectContainer(containerid)
+	c, err := plugin.runtime.InspectContainer(containerID)
 	if err != nil {
 		log.Infof("CNI failed to retrieve network namespace path: %v", err)
 		return nil
@@ -152,5 +152,5 @@ func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerid string) error
 		return nil
 	}
 
-	return plugin.cni.Remove(context.Background(), containerid, netnsPath)
+	return plugin.cni.Remove(context.Background(), containerID, netnsPath)
 }
