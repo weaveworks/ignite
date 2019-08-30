@@ -5,7 +5,6 @@ go 1.12
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/Microsoft/go-winio v0.4.12 // indirect
-	github.com/Microsoft/hcsshim v0.8.6 // indirect
 	github.com/alessio/shellescape v0.0.0-20190409004728-b115ca0f9053 // indirect
 	github.com/c2h5oh/datasize v0.0.0-20171227191756-4eba002a5eae
 	github.com/containerd/cgroups v0.0.0-20190717030353-c4b9ac5c7601 // indirect
@@ -17,7 +16,9 @@ require (
 	github.com/containerd/ttrpc v0.0.0-20190613183316-1fb3814edf44 // indirect
 	github.com/containerd/typeurl v0.0.0-20190515163108-7312978f2987 // indirect
 	github.com/containernetworking/cni v0.7.1 // indirect
+	github.com/containernetworking/plugins v0.8.2
 	github.com/containers/image v2.0.0+incompatible
+	github.com/coreos/go-iptables v0.4.2
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0

@@ -100,8 +100,15 @@ github.com/containernetworking/cni/pkg/types/current
 github.com/containernetworking/cni/pkg/invoke
 github.com/containernetworking/cni/pkg/version
 github.com/containernetworking/cni/pkg/types/020
+# github.com/containernetworking/plugins v0.8.2
+github.com/containernetworking/plugins/pkg/ip
+github.com/containernetworking/plugins/pkg/utils
+github.com/containernetworking/plugins/pkg/ns
+github.com/containernetworking/plugins/pkg/utils/hwaddr
 # github.com/containers/image v2.0.0+incompatible
 github.com/containers/image/docker/reference
+# github.com/coreos/go-iptables v0.4.2
+github.com/coreos/go-iptables/iptables
 # github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f
 github.com/coreos/go-systemd/dbus
 # github.com/cpuguy83/go-md2man v1.0.10
@@ -261,6 +268,8 @@ github.com/prometheus/procfs/internal/fs
 github.com/rjeczalik/notify
 # github.com/russross/blackfriday v1.5.2
 github.com/russross/blackfriday
+# github.com/safchain/ethtool v0.0.0-20190326074333-42ed695e3de8
+github.com/safchain/ethtool
 # github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
 # github.com/spf13/cobra v0.0.5
