@@ -64,7 +64,7 @@ Example use-cases:
 - Launch and manage entire “app ready” stacks from Git because Ignite supports GitOps!
 - Run even legacy or special apps in lightweight VMs (eg for multi-tenancy, or using weird/edge kernels).
 
-And- potentially- we can run a cloud of VMs ‘anywhere’ using Kubernetes for orchestration,
+And - potentially - we can run a cloud of VMs ‘anywhere’ using Kubernetes for orchestration,
 Ignite for virtualization, GitOps for management, and supporting cloud native tools and APIs.
 
 ### Scope
@@ -138,7 +138,7 @@ In Git you declaratively store the desired state of a set of VMs you want to man
 `ignited gitops` reconciles the state from Git, and applies the desired changes as state is updated in the repo.
 It also commits and pushes any local changes/additions to the managed VMs back to the repository.
 
-This can then be automated, tracked for correctness, and managed at scale- [just some of the benefits of GitOps](https://www.weave.works/technologies/gitops/).
+This can then be automated, tracked for correctness, and managed at scale - [just some of the benefits of GitOps](https://www.weave.works/technologies/gitops/).
 
 The workflow is simply this:
 

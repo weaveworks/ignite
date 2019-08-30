@@ -15,12 +15,12 @@ using, mentioning or buidling on top of Ignite.
 - [Ignite on Google Cloud](https://blog.kubernauts.io/ignite-on-google-cloud-5d5228a5ffec) by Saiyam Pathak, 13rd of July, 2019
 - [The clearest sign of AWS' open source success wasn't built by Amazon](https://www.techrepublic.com/article/the-clearest-sign-of-aws-open-source-success-wasnt-built-by-amazon) by Matt Asay, 16th of July, 2019
 - [Weaveworks Releases Ignite, AWS Firecracker-Powered Software for Running Containers as VMs](https://www.infoq.com/news/2019/07/weaveworks-ignite-firecracker) by Richard Seroter, 18th of July, 2019
-- [Ignite- container workload in real virtual machines](https://felixwiedmann.de/ignite/) by Felix Wiedmann, 20th of July, 2019
+- [Ignite - container workload in real virtual machines](https://felixwiedmann.de/ignite/) by Felix Wiedmann, 20th of July, 2019
 - [Weave Ignite Brings a Container GitOps Experience to VMs](https://thenewstack.io/weave-ignite-brings-a-container-gitops-experience-to-vms/) by Mike Melanson, 25th of July, 2019
 
 ## YouTube Videos
 
-- [Weave Ignite- FireCracker Micro VM manager demo](https://youtu.be/s_O75zt-oBg) by Paavan Mistry, 10th of July, 2019
+- [Weave Ignite - Firecracker Micro VM manager demo](https://youtu.be/s_O75zt-oBg) by Paavan Mistry, 10th of July, 2019
 - [TGI Kubernetes 082: Weaveworks Ignite](https://youtu.be/aq-wlslJ5MQ) by Joe Beda, 12nd of July, 2019
 
 ## Online Events

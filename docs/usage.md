@@ -163,7 +163,8 @@ Login using the credentials set in the `image` (usually `root` with password `ro
 **To detach** from the TTY, enter the key combination **^P^Q** (Ctrl + P + Q):
 
 ```console
-root@3c5fa9a18682741f:~# <^P^Q> read escape sequence
+root@3c5fa9a18682741f:~# <^P^Q>
+INFO[0001] Detached
 $
 ```
 
