@@ -1,20 +1,17 @@
-package preflight
+package checkers
 
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"net"
 	"os"
-	"path"
-	"path/filepath"
+	"os/exec"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/providers"
 )
 
@@ -57,6 +54,12 @@ type ExistingFileChecker struct {
 	filePath string
 }
 
+func NewExistingFileChecker(filePath string) ExistingFileChecker {
+	return ExistingFileChecker{
+		filePath: filePath,
+	}
+}
+
 func (efc ExistingFileChecker) Check() error {
 	if _, err := os.Stat(efc.filePath); os.IsNotExist(err) {
 		return fmt.Errorf("File %s, does not exist", efc.filePath)
@@ -72,41 +75,41 @@ func (efc ExistingFileChecker) Type() string {
 	return "ExistingFile"
 }
 
-type AvailablePathChecker struct {
-	path string
+type BinInPathChecker struct {
+	bin string
 }
 
-func (apc AvailablePathChecker) Check() error {
-	if _, err := os.Stat(apc.path); !os.IsExist(err) {
-		return fmt.Errorf("Path %s, already exist", apc.path)
+func (bipc BinInPathChecker) Check() error {
+	_, err := exec.LookPath(bipc.bin)
+	if err != nil {
+		return fmt.Errorf("Bin %s is not in your PATH", bipc.bin)
 	}
 	return nil
 }
 
-func (apc AvailablePathChecker) Name() string {
-	return fmt.Sprintf("AvailablePath-%s", strings.Replace(apc.path, oldPathString, newPathString, noReplaceLimit))
+func (bipc BinInPathChecker) Name() string {
+	return ""
 }
 
-func (apc AvailablePathChecker) Type() string {
-	return "AvailablePath"
+func (bipc BinInPathChecker) Type() string {
+	return ""
+}
+
+type AvailablePathChecker struct {
+	path string
 }
 
 func StartCmdChecks(vm *api.VM, ignoredPreflightErrors sets.String) error {
 	checks := []Checker{}
-	kernelUID, err := lookup.KernelUIDForVM(vm, providers.Client)
-	if err != nil {
-		return err
-	}
-	vmDir := filepath.Join(constants.VM_DIR, vm.GetUID().String())
-	kernelDir := filepath.Join(constants.KERNEL_DIR, kernelUID.String())
-	log.Println(vm.GetUID().String())
-	checks = append(checks, ExistingFileChecker{filePath: path.Join(vmDir, constants.METADATA)})
-	checks = append(checks, ExistingFileChecker{filePath: path.Join(kernelDir, constants.KERNEL_FILE)})
 	checks = append(checks, ExistingFileChecker{filePath: "/dev/mapper/control"})
 	checks = append(checks, ExistingFileChecker{filePath: "/dev/net/tun"})
 	checks = append(checks, ExistingFileChecker{filePath: "/dev/kvm"})
+	checks = append(checks, providers.Runtime.PreflightChecker())
 	for _, port := range vm.Spec.Network.Ports {
 		checks = append(checks, PortOpenChecker{port: port.HostPort})
+	}
+	for _, dependency := range constants.Dependencies {
+		checks = append(checks, BinInPathChecker{bin: dependency})
 	}
 	return runChecks(checks, ignoredPreflightErrors)
 }
