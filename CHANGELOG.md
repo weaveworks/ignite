@@ -2,15 +2,99 @@
 
 # Changelog
 
+## v0.6.0
+
+**Released:** 30/08/2019
+
+Welcome to the `v0.6.0` release, consisting of major underlying improvements, and a more efficient runtime.
+
+This release consists of **25** noteworthy PRs from 4 contributors; although v0.5.0 was released just two weeks ago!
+We had **5** contributions from 2 external contributors, thanks!
+
+The main themes of this release has been:
+
+- **containerd** is now used as the default container runtime for higher security and speed, and less resource usage
+  - This means that Ignite doesn't depend on `docker` anymore!
+- **CNI** is now the default networking plugin; by default the `bridge` and `portmap` plugins are used
+  - You can still use your third-party CNI implementation of choice, see [the networking doc](https://ignite.readthedocs.io/en/stable/networking.html)
+- **GitOps Toolkit** refactor is complete; now everything you need to create your Git-backed application is available at **https://github.com/weaveworks/gitops-toolkit**
+  - Ignite is using this toolkit internally to perform its GitOps capabilities, now you can easily use this functionality, too!
+- **Bugfixes and usability improvements** all around the place
+
+Also, our documentation is now available at **https://ignite.readthedocs.org**.
+Check that site out whenever you need some information, or open an issue :)
+
+### Deprecations
+
+- As per v0.5.0, the `v1alpha2` API version is the default. Going forward, the `v1alpha1` API version is deprecated, and will be removed in a future release.
+
+### New Features
+
+- Make containerd the default runtime and CNI the default network plugin ([#371](https://github.com/weaveworks/ignite/pull/371), [@twelho](https://github.com/twelho))
+- Implement the containerd runtime for Ignite ([#337](https://github.com/weaveworks/ignite/pull/337), [@twelho](https://github.com/twelho))
+- Add a default CNI `bridge` and `portmap` network for Ignite ([#370](https://github.com/weaveworks/ignite/pull/370), [@twelho](https://github.com/twelho))
+- Implement hostPort support with CNI ([#375](https://github.com/weaveworks/ignite/pull/375), [@luxas](https://github.com/luxas))
+- Add openSUSE images ([#357](https://github.com/weaveworks/ignite/pull/357), [@aojea](https://github.com/aojea))
+
+### Enhancements
+
+- Implement cleanup of CNI networks using the default bridge ([#376](https://github.com/weaveworks/ignite/pull/376), [@luxas](https://github.com/luxas))
+- containerd backend improvements ([#368](https://github.com/weaveworks/ignite/pull/368), [@twelho](https://github.com/twelho))
+- Implement runtime selection, only load necessary providers ([#366](https://github.com/weaveworks/ignite/pull/366), [@twelho](https://github.com/twelho))
+- Split packages so we can extract `gitops-toolkit` ([#347](https://github.com/weaveworks/ignite/pull/347), [@luxas](https://github.com/luxas))
+- Switch to using `weaveworks/gitops-toolkit` ([#359](https://github.com/weaveworks/ignite/pull/359), [@luxas](https://github.com/luxas))
+- Switch imports to utilize `gitops-toolkit` ([#354](https://github.com/weaveworks/ignite/pull/354), [@luxas](https://github.com/luxas))
+- Simplify the CNI code by vendoring `github.com/containerd/go-cni` ([#349](https://github.com/weaveworks/ignite/pull/349), [@luxas](https://github.com/luxas))
+- FileWatcher: Support internal moves without re-creating and multiple active moves at once ([#341](https://github.com/weaveworks/ignite/pull/341), [@twelho](https://github.com/twelho))
+- Fix GOHOSTARCH propagation, tag development image for the host architecture only ([#340](https://github.com/weaveworks/ignite/pull/340), [@twelho](https://github.com/twelho))
+- Fix ignite-spawn's formatting when performing cleanup on VM metadata ([#336](https://github.com/weaveworks/ignite/pull/336), [@twelho](https://github.com/twelho))
+- Automatically optimize the size of an imported image ([#335](https://github.com/weaveworks/ignite/pull/335), [@twelho](https://github.com/twelho))
+- Add shell autocompletion for `ignited` ([#363](https://github.com/weaveworks/ignite/pull/363), [@silenceshell](https://github.com/silenceshell))
+
+### Bug Fixes
+
+- Add `err` as a param for `log.Errorf` ([#367](https://github.com/weaveworks/ignite/pull/367), [@silenceshell](https://github.com/silenceshell))
+- Fix an issue in the GitDirectory loop when trying to commit without any actual changes ([#369](https://github.com/weaveworks/ignite/pull/369), [@silenceshell](https://github.com/silenceshell))
+- GitOps: only change the VM state if it differs from the current one ([#374](https://github.com/weaveworks/ignite/pull/374), [@twelho](https://github.com/twelho))
+- Move VM network removal to logically correct place ([#373](https://github.com/weaveworks/ignite/pull/373), [@twelho](https://github.com/twelho))
+- Fix Docker client port mappings by actually exposing them after binding ([#350](https://github.com/weaveworks/ignite/pull/350), [@twelho](https://github.com/twelho))
+
+### Documentation
+
+- Update the docs for v0.6.0 ([#378](https://github.com/weaveworks/ignite/pull/378), [@luxas](https://github.com/luxas))
+- Docs: Bump latest Ignite version to v0.5.1 ([#362](https://github.com/weaveworks/ignite/pull/362), [@silenceshell](https://github.com/silenceshell))
+- Change Read the Docs links to point to the stable branch in main README ([#338](https://github.com/weaveworks/ignite/pull/338), [@twelho](https://github.com/twelho))
+
 ## v0.5.2
 
 **Released:** 26/08/2019
 
 This is the second patch release in the `v0.5.X` series, containing one bug fix needed for integrating well with [Footloose](https://github.com/weaveworks/footloose).
 
-### Bug Fixes
+## Bug Fixes
 
 - Fix Docker client port mappings by actually exposing them after binding ([#350](https://github.com/weaveworks/ignite/pull/350), [@twelho](https://github.com/twelho))
+
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.5.2
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+
+---
 
 ## v0.5.1
 
