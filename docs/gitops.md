@@ -1,4 +1,4 @@
-## Ignite - the GitOps VM
+# Ignite - the GitOps VM
 
 Ignite is a “GitOps-first” project, GitOps is supported out of the box using the `ignited gitops` command.
 Previously this was integrated as `ignite gitops`, but this functionality has now moved to `ignited`,
@@ -12,15 +12,15 @@ This can then be automated, tracked for correctness, and managed at scale - [jus
 
 The workflow is simply this:
 
- - Run `ignited gitops [repo]`, where repo is an **SSH url** to your Git repo
- - Create a file with the VM specification, specifying how much vCPUs, RAM, disk, etc. you’d like for the VM
- - Run `git push` and see your VM start on the host
+- Run `ignited gitops [repo]`, where repo is an **SSH url** to your Git repo
+- Create a file with the VM specification, specifying how much vCPUs, RAM, disk, etc. you’d like for the VM
+- Run `git push` and see your VM start on the host
 
 See it in action! (Note: The screencast is from an older version which differs somewhat)
 
 [![asciicast](https://asciinema.org/a/255797.svg)](https://asciinema.org/a/255797)
 
-### Try it out
+## Try it out
 
 Go ahead and create a Git repository.
 
@@ -29,6 +29,7 @@ back to the repository using the default key for it. To edit your root's git con
 `sudo gitconfig --global --edit`. The root requirement will be removed in a future release.
 
  Here's a sample configuration you can push to it (my-vm.yaml):
+
 ```yaml
 apiVersion: ignite.weave.works/v1alpha2
 kind: VM
@@ -45,12 +46,13 @@ spec:
 status:
   running: true
 ```
-(For a more complete example repository configuration, see https://github.com/luxas/ignite-gitops.)
+
+For a more complete example repository configuration, see [luxas/ignite-gitops](https://github.com/luxas/ignite-gitops)
 
 After you have [installed Ignite](../docs/installation.md), you can do the following:
 
 ```console
-ignite gitops git@github.com:<user>/<respitory>.git
+ignited gitops git@github.com:<user>/<repository>.git
 ```
 
 **NOTE:** HTTPS doesn't preserve authentication information for `ignited` to push changes,

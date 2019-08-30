@@ -1,7 +1,7 @@
 SHELL:=/bin/bash
 UID_GID?=$(shell id -u):$(shell id -g)
 FIRECRACKER_VERSION:=$(shell cat hack/FIRECRACKER_VERSION)
-GO_VERSION=1.12.6
+GO_VERSION=1.12.9
 DOCKER_USER?=weaveworks
 IMAGE=$(DOCKER_USER)/ignite
 GIT_VERSION:=$(shell hack/ldflags.sh --version-only)
