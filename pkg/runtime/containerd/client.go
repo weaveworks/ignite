@@ -384,8 +384,7 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 	defer util.DeferErr(&err, dummyReader.Close)
 
 	// Spawn the Creator with the dummy streams
-	ioCreator := cio.NewCreator(cio.WithTerminal, cio.WithStreams(dummyReader, con,  con))
-	//ioCreator := cio.NewCreator(cio.WithTerminal, cio.WithStdio)
+	ioCreator := cio.NewCreator(cio.WithTerminal, cio.WithStreams(dummyReader, con, con))
 
 	task, err := cont.NewTask(cc.ctx, ioCreator)
 	if err != nil {
