@@ -46,6 +46,10 @@ func config(ctx context.Context, workingDir, user, email string) error {
 	return nil
 }
 
+// TODO: make this way faster by:
+// cp ${bare_clone_dir} ${clone_dir}/.git
+// git -C ${clone_dir} config --unset core.bare
+// git -C ${clone_dir} reset --hard HEAD
 func clone(ctx context.Context, workingDir, repoURL, repoBranch string) (path string, err error) {
 	repoPath := workingDir
 	args := []string{"clone"}
@@ -59,6 +63,7 @@ func clone(ctx context.Context, workingDir, repoURL, repoBranch string) (path st
 	return repoPath, nil
 }
 
+// TODO: make this faster by allowing the user to specify how much history to preserve
 func mirror(ctx context.Context, workingDir, repoURL string) (path string, err error) {
 	repoPath := workingDir
 	args := []string{"clone", "--mirror"}
@@ -113,7 +118,10 @@ func commit(ctx context.Context, workingDir string, commitAction CommitAction) e
 	if commitAction.Author != "" {
 		args = append(args, "--author", commitAction.Author)
 	}
-	if commitAction.SigningKey != "" {
+	if commitAction.SigningKey == "" {
+		args = append(args, "--no-gpg-sign")
+	} else {
+		// TODO: do we support gpg keys with passphrases? I don't think so
 		args = append(args, fmt.Sprintf("--gpg-sign=%s", commitAction.SigningKey))
 	}
 	args = append(args, "--")
