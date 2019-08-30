@@ -25,7 +25,7 @@ using, mentioning or buidling on top of Ignite.
 
 ## Online Events
 
-- [WOUG: Introducing Ignite- the GitOps VM with Lucas Käldström & Radu Weiss](https://www.meetup.com/Weave-User-Group/events/262973798/) by Tamao Nakahara, 17th of July, 2019
+- [WOUG: Introducing Ignite - the GitOps VM with Lucas Käldström & Radu Weiss](https://www.meetup.com/Weave-User-Group/events/262973798/) by Tamao Nakahara, 17th of July, 2019
 
 ## Screencasts
 
