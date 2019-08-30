@@ -6,7 +6,7 @@ another way: telling Ignite what to do _declaratively_, using a file containing
 an API object.
 
 The first commands to support this feature are `ignite run` and `ignite create`.
-Here's an example API object file contents: 
+Here's an example API object file contents:
 
 ```yaml
 apiVersion: ignite.weave.works/v1alpha2
@@ -27,6 +27,9 @@ We can tell Ignite to make this happen by simply running:
 
 ```console
 $ ignite run --config my-vm.yaml
+INFO[0001] Created VM with ID "e04128e6f96176a8" and name "my-vm"
+INFO[0002] Networking is handled by "cni"
+INFO[0002] Started Firecracker VM "e04128e6f96176a8" in a container with ID "ignite-e04128e6f96176a8"
 ```
 
 The full reference format for the `VM` kind is as follows:

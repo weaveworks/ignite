@@ -42,7 +42,7 @@ Now we can deploy and manage full-blown VM systems just like e.g. Kubernetes wor
 The images used are OCI/Docker images, but instead of running them as containers, it executes
 their contents as a real VM with a dedicated kernel and `/sbin/init` as PID 1.
 
-Networking is set up automatically, the VM gets the same IP as any docker container on the host would.
+Networking is set up automatically, the VM gets the same IP as any container on the host would.
 
 And Firecracker is **fast**! Building and starting VMs takes just some _fraction of a second_, or
 at most some seconds. With Ignite you can get started with Firecracker in no time!
@@ -64,7 +64,7 @@ Example use-cases:
 - Launch and manage entire “app ready” stacks from Git because Ignite supports GitOps!
 - Run even legacy or special apps in lightweight VMs (eg for multi-tenancy, or using weird/edge kernels).
 
-And - potentially - we can run a cloud of VMs ‘anywhere’ using Kubernetes for orchestration,
+And- potentially- we can run a cloud of VMs ‘anywhere’ using Kubernetes for orchestration,
 Ignite for virtualization, GitOps for management, and supporting cloud native tools and APIs.
 
 ### Scope
@@ -91,7 +91,7 @@ Note: At the moment `ignite` and `ignited` need root privileges on the host to o
 due to certain operations (e.g. `mount`). This will change in the future.
 
 ```bash
-# Let's run the weaveworks/ignite-ubuntu docker image as a VM
+# Let's run the weaveworks/ignite-ubuntu OCI image as a VM
 # Use 2 vCPUs and 1GB of RAM, enable automatic SSH access and name it my-vm
 ignite run weaveworks/ignite-ubuntu \
     --cpus 2 \
@@ -112,7 +112,7 @@ ignite logs my-vm
 # SSH into the VM
 ignite ssh my-vm
 
-# Inside the VM you can check that the kernel version is different, and the IP address came from the Docker bridge
+# Inside the VM you can check that the kernel version is different, and the IP address came from the container
 # Also the memory is limited to what you specify, as well as the vCPUs
 > uname -a
 > ip addr
@@ -138,13 +138,13 @@ In Git you declaratively store the desired state of a set of VMs you want to man
 `ignited gitops` reconciles the state from Git, and applies the desired changes as state is updated in the repo.
 It also commits and pushes any local changes/additions to the managed VMs back to the repository.
 
-This can then be automated, tracked for correctness, and managed at scale - [just some of the benefits of GitOps](https://www.weave.works/technologies/gitops/).
+This can then be automated, tracked for correctness, and managed at scale- [just some of the benefits of GitOps](https://www.weave.works/technologies/gitops/).
 
 The workflow is simply this:
 
- - Run `ignited gitops [repo]`, where repo is an **SSH url** to your Git repo
- - Create a file with the VM specification, specifying how much vCPUs, RAM, disk, etc. you’d like for the VM
- - Run `git push` and see your VM start on the host
+- Run `ignited gitops [repo]`, where repo is an **SSH url** to your Git repo
+- Create a file with the VM specification, specifying how much vCPUs, RAM, disk, etc. you’d like for the VM
+- Run `git push` and see your VM start on the host
 
 See it in action! (Note: The screencast is from an older version which differs somewhat)
 

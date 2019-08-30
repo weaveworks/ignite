@@ -4,20 +4,22 @@ Ignite is a containerized Firecracker microVM administration tool.
 It runs and manages virtual machines in separate containers
 using [Firecracker](https://firecracker-microvm.github.io/).
 
-This is a quick guide on how to get started with Ignite. 
+This is a quick guide on how to get started with Ignite.
 The guide will cover the following topics in order:
- - [Importing a VM base image](#importing-a-vm-base-image)
- - [Creating a new VM based on the imported image](#creating-a-new-vm-based-on-the-imported-image)
-   - [Options for VM generation](#options-for-vm-generation)
- - [Starting a VM](#starting-a-vm)
- - [Inspecting VMs and their resources](#inspecting-vms-and-their-resources)
- - [Accessing a VM](#accessing-a-vm)
-   - [Attaching to the TTY](#attaching-to-the-tty)
-   - [SSH into the VM](#ssh-into-the-vm)
- - [All in one](#all-in-one)
- - [Stopping a VM](#stopping-a-vm)
- - [Removing a VM](#removing-a-vm)
- - [Removing other resources](#removing-other-resources)
+
+- [How to use Ignite to run VMs](#how-to-use-ignite-to-run-vms)
+  - [Importing a VM base image](#importing-a-vm-base-image)
+  - [Creating a new VM based on the imported image](#creating-a-new-vm-based-on-the-imported-image)
+    - [Options for VM generation](#options-for-vm-generation)
+  - [Starting a VM](#starting-a-vm)
+  - [Inspecting VMs and their resources](#inspecting-vms-and-their-resources)
+  - [Accessing a VM](#accessing-a-vm)
+    - [Attaching to the TTY](#attaching-to-the-tty)
+  - [SSH into the VM](#ssh-into-the-vm)
+  - [All in one](#all-in-one)
+  - [Stopping a VM](#stopping-a-vm)
+  - [Removing a VM](#removing-a-vm)
+  - [Removing other resources](#removing-other-resources)
 
 Keep in mind that all Ignite commands require `root` for now.
 This will change later.
@@ -68,13 +70,13 @@ on top of the `image`. All changes to the `VM` will be saved in the snapshot.
 
 Let's create a new VM with some options:
 
-```
+```console
 # ignite create weaveworks/ignite-ubuntu \
-	--name my-vm \
-	--cpus 2 \
-	--memory 1GB \
-	--size 6GB \
-	--ssh
+  --name my-vm \
+  --cpus 2 \
+  --memory 1GB \
+  --size 6GB \
+  --ssh
 ...
 INFO[0001] Created VM with ID "3c5fa9a18682741f" and name "my-vm" 
 ```
@@ -112,6 +114,7 @@ The `kernels` are quite transparent, and get automatically imported from the doc
 image `weaveworks/ignite-kernel:4.19.47` by default (overridable during `create`).
 
 To list the available `kernels`, enter:
+
 ```
 # ignite kernels
 KERNEL ID               NAME                                    CREATED SIZE    VERSION
@@ -119,6 +122,7 @@ aefb459546315344        weaveworks/ignite-kernel:4.19.47        61m ago 49.0 MB 
 ```
 
 To list the imported `images`, enter:
+
 ```
 # ignite images
 IMAGE ID                NAME                            CREATED SIZE
@@ -126,11 +130,13 @@ cae0ac317cca74ba        weaveworks/ignite-ubuntu:latest 82m ago 268.9 MB
 ```
 
 And to list the running `VMs`, enter:
+
 ```
 # ignite ps
 VM ID                   IMAGE                           KERNEL                                  CREATED SIZE    CPUS    MEMORY          STATE   IPS             PORTS   NAME
 3c5fa9a18682741f        weaveworks/ignite-ubuntu:latest weaveworks/ignite-kernel:4.19.47        63m ago 4.0 GB  2       1.0 GB          Running 172.17.0.3              my-vm
 ```
+
 To list all `VMs` instead of just running ones, add the `-a` flag to `ps`.
 
 ## Accessing a VM
@@ -141,7 +147,8 @@ and the other is to SSH into the `VM`.
 ### Attaching to the TTY
 
 To attach to the running `VM's` TTY, enter:
-```
+
+```console
 # ignite attach my-vm
 3c5fa9a18682741f
 <enter>
@@ -149,11 +156,13 @@ Ubuntu 18.04.2 LTS 3c5fa9a18682741f ttyS0
 
 3c5fa9a18682741f login:
 ```
+
 If nothing is displayed, hit Enter to re-display the login prompt.
 Login using the credentials set in the `image` (usually `root` with password `root`).
 
 **To detach** from the TTY, enter the key combination **^P^Q** (Ctrl + P + Q):
-```
+
+```console
 root@3c5fa9a18682741f:~# <^P^Q> read escape sequence
 $
 ```
@@ -165,7 +174,8 @@ no public keys imported into the `VM` and most `images` have password-based root
 disabled for security reasons.
 
 To SSH into a `VM`, enter:
-```
+
+```console
 # ignite ssh my-vm
 Welcome to Ubuntu 18.04.2 LTS (GNU/Linux 4.19.47 x86_64)
 ...
@@ -182,14 +192,14 @@ via `attach` is **shared**, every attached user operates the same terminal.
 Ignite has a shorthand for peforming `image import`, `create`, `start` and possibly also `attach`
 all in one command:
 
-```
+```console
 # ignite run weaveworks/ignite-ubuntu \
-	--name another-vm \
-	--cpus 2 \
-	--memory 1GB \
-	--size 6GB \
-	--ssh \
-	--interactive
+  --name another-vm \
+  --cpus 2 \
+  --memory 1GB \
+  --size 6GB \
+  --ssh \
+  --interactive
 ```
 
 This imports the given `image`, creates a new `VM` from it, starts the `VM` and attaches to the `VM's` TTY.
@@ -200,6 +210,7 @@ flag of `start`, an `attach` is performed right after the `VM` has been started.
 ## Stopping a VM
 
 Ignite `VMs` can be stopped three ways:
+
 1. By running: `# ignite stop my-vm`
 2. By running: `# ignite kill my-vm`
 3. By issuing the `reboot` command inside the VM
@@ -220,6 +231,7 @@ Firecracker hanging.
 ## Removing a VM
 
 To remove `VMs` in Ignite, use the following command:
+
 ```
 # ignite rm my-vm
 ```
@@ -230,11 +242,13 @@ a running `VM` can also be removed, it will be killed before removal.
 ## Removing other resources
 
 To remove an `image`, run:
+
 ```
 # ignite rmi weaveworks/ignite-ubuntu
 ```
 
 And to remove a `kernel`, run:
+
 ```
 # ignite rmk weaveworks/ignite-kernel:4.19.47
 ```

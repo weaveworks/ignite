@@ -10,6 +10,17 @@ run containers as Virtual Machines in two modes, either using `docker` or `ignit
 public CI providers, Macs, etc.), and `ignite` isolation is good when you want to run real
 VMs.
 
+## Installation
+
+Install [Footloose 0.6.0](https://github.com/weaveworks/footloose/releases/tag/0.6.0) or higher like this:
+
+```shell
+export VERSION=0.6.0
+curl -sLo footloose https://github.com/weaveworks/footloose/releases/download/${VERSION}/footloose-${VERSION}-linux-x86_64
+chmod +x footloose
+sudo mv footloose /usr/local/bin/
+```
+
 ## Get Started
 
 This how you can have Footloose invoke Ignite in a _declaratively_ manner, using a file containing
@@ -77,6 +88,7 @@ root@a07c6f1782c70136:~#
 ```
 
 Run the following to stop the VMs:
+
 ```console
 $ footloose stop
 INFO[0000] Stopping machine: cluster-vm0 ...

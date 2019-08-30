@@ -10,7 +10,7 @@ See the full CPU support table in [dependencies.md](dependencies.md) for more in
 See [cloudprovider.md](cloudprovider.md) for guidance on running Ignite on various cloud providers and suitable instances that you could use.
 
 **NOTE:** You do **not** need to install any "traditional" QEMU/KVM packages, as long as
-there is virtualization support in the CPU and kernel it works. 
+there is virtualization support in the CPU and kernel it works.
 
 See [dependencies.md](dependencies.md) for needed dependencies.
 
@@ -49,13 +49,24 @@ Install them on Ubuntu/CentOS like this:
 Ubuntu:
 
 ```bash
-apt-get update && apt-get install -y --no-install-recommends docker.io dmsetup openssh-client git binutils
+apt-get update && apt-get install -y --no-install-recommends containerd dmsetup openssh-client git binutils
 ```
 
 CentOS:
 
 ```bash
-yum install -y docker e2fsprogs openssh-clients git
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+yum install -y containerd.io e2fsprogs openssh-clients git
+```
+
+### CNI Plugins
+
+Install the CNI binaries like this:
+
+```shell
+export CNI_VERSION=v0.8.2
+export ARCH=$([ $(uname -m) = "x86_64" ] && echo amd64 || echo arm64)
+curl -sSL https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz | tar -xz -C /opt/cni/bin
 ```
 
 Note that the SSH and Git packages are optional; they are only needed if you use
@@ -70,7 +81,7 @@ save it as `/usr/local/bin/ignite` and make it executable.
 To install Ignite from the command line, follow these steps:
 
 ```bash
-export VERSION=v0.5.2
+export VERSION=v0.6.0
 export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
 
 for binary in ignite ignited; do
@@ -88,9 +99,9 @@ by changing the `VERSION` environment variable.
 
 If the installation was successful, the `ignite` command should now be available:
 
-```
-# ignite version
-Ignite version: version.Info{Major:"0", Minor:"5", GitVersion:"v0.5.2", GitCommit:"be96924f7860992f348cd15ed46ee2c064313153", GitTreeState:"clean", BuildDate:"2019-08-26T14:36:21Z", GoVersion:"go1.12.6", Compiler:"gc", Platform:"linux/amd64"}
+```console
+$ ignite version
+Ignite version: version.Info{Major:"0", Minor:"6", GitVersion:"v0.6.0", GitCommit:"be96924f7860992f348cd15ed46ee2c064313153", GitTreeState:"clean", BuildDate:"2019-08-26T14:36:21Z", GoVersion:"go1.12.7", Compiler:"gc", Platform:"linux/amd64"}
 Firecracker version: v0.17.0
 ```
 
