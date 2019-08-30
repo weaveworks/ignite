@@ -4,11 +4,16 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"path"
+	"strings"
 	"sync"
 
 	gocni "github.com/containerd/go-cni"
+	"github.com/containernetworking/plugins/pkg/ip"
+	"github.com/containernetworking/plugins/pkg/utils"
+	"github.com/coreos/go-iptables/iptables"
 	log "github.com/sirupsen/logrus"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -28,12 +33,14 @@ const (
 	netNSPathFmt = "/proc/%d/ns/net"
 	// igniteCNIConfName is the filename of Ignite's CNI configuration file
 	igniteCNIConfName = "10-ignite.conf"
+	// igniteBridgeName specifies the default "docker-bridge"-like plugin for containerd to use if no other CNI plugin is available
+	igniteBridgeName = "ignite-containerd-bridge"
 )
 
 // igniteCNIConf is a base CNI configuration that will enable VMs to access the internet connection (docker-bridge style)
-var igniteCNIConf = `{
+var igniteCNIConf = fmt.Sprintf(`{
 	"cniVersion": "0.4.0",
-	"name": "ignite-containerd-bridge",
+	"name": "%s",
 	"plugins": [
 		{
 			"type": "bridge",
@@ -55,7 +62,7 @@ var igniteCNIConf = `{
 		}
 	]
 }
-`
+`, igniteBridgeName)
 
 type cniNetworkPlugin struct {
 	cni     gocni.CNI
@@ -177,5 +184,50 @@ func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerID string) error
 		return nil
 	}
 
+	// get the amount of combinations between an IP mask, and an iptables chain, with the specified container ID
+	// this makes the igniteBridgeName CNI network plugin not leak iptables rules
+	result, err := getIPChains(c.ID)
+	if err != nil {
+		return err
+	}
+	comment := utils.FormatComment(igniteBridgeName, c.ID)
+
+	for _, t := range result {
+		if err = ip.TeardownIPMasq(t.ip, t.chain, comment); err != nil {
+			return err
+		}
+	}
+
 	return plugin.cni.Remove(context.Background(), containerID, netnsPath)
+}
+
+type ipChain struct {
+	ip    *net.IPNet
+	chain string
+}
+
+func getIPChains(containerID string) (result []*ipChain, err error) {
+	ipt, err := iptables.NewWithProtocol(iptables.ProtocolIPv4)
+	if err != nil {
+		return
+	}
+
+	stats, err := ipt.StructuredStats("nat", "POSTROUTING")
+	if err != nil {
+		return
+	}
+
+	for _, stat := range stats {
+		/* name: "ignite-containerd-default" id: "ignite-9a10b07d7c0d4ce9" */
+		for _, field := range strings.Split(stat.Options, " ") {
+			if fmt.Sprintf("%q", containerID) == field {
+				result = append(result, &ipChain{
+					ip:    stat.Source,
+					chain: stat.Target,
+				})
+				break
+			}
+		}
+	}
+	return
 }
