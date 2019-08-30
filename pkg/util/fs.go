@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 
@@ -45,6 +46,25 @@ func DirExists(dirname string) bool {
 	}
 
 	return info.IsDir()
+}
+
+func DirEmpty(dirname string) (b bool) {
+	if !DirExists(dirname) {
+		return
+	}
+
+	f, err := os.Open(dirname)
+	if err != nil {
+		return
+	}
+	defer func() { _ = f.Close() }()
+
+	// If the first file is EOF, the directory is empty
+	if _, err = f.Readdir(1); err == io.EOF {
+		b = true
+	}
+
+	return
 }
 
 func IsDeviceFile(filename string) (err error) {

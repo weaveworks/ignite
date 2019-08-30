@@ -3,12 +3,17 @@ package cni
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
 	"sync"
 
 	gocni "github.com/containerd/go-cni"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/network"
 	"github.com/weaveworks/ignite/pkg/runtime"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 const (
@@ -20,7 +25,26 @@ const (
 	CNIConfDir = "/etc/cni/net.d"
 	// netNSPathFmt gives the path to the a process network namespace, given the pid
 	netNSPathFmt = "/proc/%d/ns/net"
+	// igniteCNIConfName is the filename of Ignite's CNI configuration file
+	igniteCNIConfName = "10-ignite.conf"
 )
+
+// igniteCNIConf is a base CNI configuration that will enable VMs to access the internet connection (docker-bridge style)
+var igniteCNIConf = `{
+		"cniVersion": "0.4.0",
+		"name": "ignite-containerd-default",
+		"type": "bridge",
+		"bridge": "cni0",
+		"isGateway": true,
+		"isDefaultGateway": true,
+		"promiscMode": true,
+		"ipMasq": true,
+		"ipam": {
+				"type": "host-local",
+				"subnet": "172.18.0.0/16"
+	}
+}
+`
 
 type cniNetworkPlugin struct {
 	cni     gocni.CNI
@@ -29,6 +53,13 @@ type cniNetworkPlugin struct {
 }
 
 func GetCNINetworkPlugin(runtime runtime.Interface) (network.Plugin, error) {
+	// If the CNI configuration directory doesn't exist, create it
+	if !util.DirExists(CNIConfDir) {
+		if err := os.MkdirAll(CNIConfDir, constants.DATA_DIR_PERM); err != nil {
+			return nil, err
+		}
+	}
+
 	binDirs := []string{CNIBinDir}
 	cniInstance, err := gocni.New(gocni.WithMinNetworkCount(2),
 		gocni.WithPluginConfDir(CNIConfDir),
@@ -75,6 +106,13 @@ func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string) (*netw
 }
 
 func (plugin *cniNetworkPlugin) initialize() (err error) {
+	// If there's no existing CNI configuration, write ignite's example config to the CNI directory
+	if util.DirEmpty(CNIConfDir) {
+		if err = ioutil.WriteFile(path.Join(CNIConfDir, igniteCNIConfName), []byte(igniteCNIConf), constants.DATA_DIR_FILE_PERM); err != nil {
+			return
+		}
+	}
+
 	plugin.once.Do(func() {
 		if err = plugin.cni.Load(gocni.WithLoNetwork, gocni.WithDefaultConf); err != nil {
 			log.Errorf("failed to load cni configuration: %v", err)
