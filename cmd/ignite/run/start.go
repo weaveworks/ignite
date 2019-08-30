@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/weaveworks/ignite/pkg/operations"
-	"github.com/weaveworks/ignite/pkg/preflight"
+	"github.com/weaveworks/ignite/pkg/preflight/checkers"
 	"github.com/weaveworks/ignite/pkg/util"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
@@ -39,7 +39,7 @@ func Start(so *startOptions) error {
 	}
 
 	ignoredPreflightErrors := sets.NewString(util.ToLower(so.StartFlags.IgnoredPreflightErrors)...)
-	if err := preflight.StartCmdChecks(so.vm, ignoredPreflightErrors); err != nil {
+	if err := checkers.StartCmdChecks(so.vm, ignoredPreflightErrors); err != nil {
 		return err
 	}
 
