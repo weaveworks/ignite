@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/operations"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -84,16 +85,17 @@ func runHandle(fn func() error) {
 	}
 }
 
-func handleChange(vm *api.VM) error {
-	var err error
-
-	if vm.Status.Running {
+func handleChange(vm *api.VM) (err error) {
+	// Only apply the new state if it
+	// differs from the current state
+	running := currentState(vm)
+	if vm.Status.Running && !running {
 		err = start(vm)
-	} else {
+	} else if !vm.Status.Running && running {
 		err = stop(vm)
 	}
 
-	return err
+	return
 }
 
 func handleDelete(vm *api.VM) error {
@@ -158,4 +160,11 @@ func remove(vm *api.VM) error {
 	// Object deletion is performed by the SyncStorage, so we just
 	// need to clean up any remaining resources of the VM here
 	return operations.CleanupVM(vm)
+}
+
+// TODO: Quick hack to get the current state of the VM,
+// as the update via the storage overwrites the previous state
+func currentState(vm *api.VM) bool {
+	_, err := providers.Runtime.InspectContainer(util.NewPrefixer().Prefix(vm.GetUID()))
+	return err == nil
 }
