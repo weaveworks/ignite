@@ -113,8 +113,10 @@ func StartVM(vm *api.VM, debug bool) error {
 		return err
 	}
 
-	log.Infof("Networking is handled by %q", providers.NetworkPlugin.Name())
-	log.Infof("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
+	if !logs.Quiet {
+		log.Infof("Networking is handled by %q", providers.NetworkPlugin.Name())
+		log.Infof("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
+	}
 
 	// TODO: Follow-up the container here with a defer, or dedicated goroutine. We should output
 	// if it started successfully or not
