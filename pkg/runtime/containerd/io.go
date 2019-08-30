@@ -144,11 +144,14 @@ func (c *detachCapturer) Read(p []byte) (n int, err error) {
 	return
 }
 
-type dummyReader struct{}
+// nullReader is an io.Reader implementation that never
+// reads anything. This is required for containerd's
+// cio.WithStreams, that can't otherwise close an os.Pipe.
+type nullReader struct{}
 
-var _ io.Reader = &dummyReader{}
+var _ io.Reader = &nullReader{}
 
-func (r *dummyReader) Read(_ []byte) (int, error) {
+func (r *nullReader) Read(_ []byte) (int, error) {
 	return 0, nil
 }
 
@@ -186,11 +189,15 @@ func newlogRetriever(logFile string) (l *logRetriever, err error) {
 var _ io.ReadCloser = &logRetriever{}
 
 func (l *logRetriever) Opt() cio.Opt {
-	return cio.WithStreams(&dummyReader{}, l.output, l.output)
+	return cio.WithStreams(&nullReader{}, l.output, l.output)
 }
 
 func (l *logRetriever) Read(p []byte) (n int, err error) {
 	return l.reader.Read(p)
+}
+
+func (l *logRetriever) CloseWriter() (err error) {
+	return l.writer.Close()
 }
 
 func (l *logRetriever) Close() error {

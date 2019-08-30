@@ -36,7 +36,7 @@ const (
 	ctdSocket        = "/run/containerd/containerd.sock"
 	ctdNamespace     = "firecracker"
 	stopTimeoutLabel = "IgniteStopTimeout"
-	logPathTemplate  = "/tmp/%s-log"
+	logPathTemplate  = "/tmp/%s.log"
 )
 
 // ctdClient is a runtime.Interface
@@ -50,8 +50,6 @@ var _ runtime.Interface = &ctdClient{}
 
 // GetContainerdClient builds a client for talking to containerd
 func GetContainerdClient() (*ctdClient, error) {
-	log.Warn("The containerd runtime is unstable/incomplete, here be dragons")
-
 	cli, err := containerd.New(ctdSocket)
 	if err != nil {
 		return nil, err
@@ -369,10 +367,26 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 		return
 	}
 
-	// TODO: Set up dummy I/O to not output the initial VM log to stdout, nil makes containerd panic!
-	ioCreator := cio.NewCreator(cio.WithTerminal, cio.WithStdio)
+	// This is a dummy PTY to silence output
+	// when starting without attach breaking
+	con, _, err := console.NewPty()
+	if err != nil {
+		return
+	}
+	defer util.DeferErr(&err, con.Close)
 
-	// TODO: Set up TTY and stdio streams
+	// We need a temporary dummy stdin reader that
+	// actually works, can't use nullReader here
+	dummyReader, _, err := os.Pipe()
+	if err != nil {
+		return
+	}
+	defer util.DeferErr(&err, dummyReader.Close)
+
+	// Spawn the Creator with the dummy streams
+	ioCreator := cio.NewCreator(cio.WithTerminal, cio.WithStreams(dummyReader, con,  con))
+	//ioCreator := cio.NewCreator(cio.WithTerminal, cio.WithStdio)
+
 	task, err := cont.NewTask(cc.ctx, ioCreator)
 	if err != nil {
 		return
@@ -612,6 +626,11 @@ func (cc *ctdClient) ContainerLogs(container string) (r io.ReadCloser, err error
 	// TODO: Get rid of this, implement asynchronous I/O and read until the streams have been exhausted
 	time.Sleep(time.Second)
 
+	// Close the writer to signal EOF
+	if err = retriever.CloseWriter(); err != nil {
+		return
+	}
+
 	return retriever, nil
 }
 
@@ -645,10 +664,6 @@ func (cc *ctdClient) imageUsage(image containerd.Image) (usage snapshots.Usage, 
 	}
 
 	return
-}
-
-func unsupported(feature string) error {
-	return fmt.Errorf("containerd: %q is currently unsupported", feature)
 }
 
 func deviceType(device string, devType *string) (err error) {
