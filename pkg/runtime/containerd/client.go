@@ -7,12 +7,15 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/containerd/console"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/containers"
+	"github.com/containerd/containerd/errdefs"
 	"github.com/containerd/containerd/mount"
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/oci"
@@ -30,8 +33,10 @@ import (
 )
 
 const (
-	ctdSocket    = "/run/containerd/containerd.sock"
-	ctdNamespace = "firecracker"
+	ctdSocket        = "/run/containerd/containerd.sock"
+	ctdNamespace     = "firecracker"
+	stopTimeoutLabel = "IgniteStopTimeout"
+	logPathTemplate  = "/tmp/%s.log"
 )
 
 // ctdClient is a runtime.Interface
@@ -45,8 +50,6 @@ var _ runtime.Interface = &ctdClient{}
 
 // GetContainerdClient builds a client for talking to containerd
 func GetContainerdClient() (*ctdClient, error) {
-	log.Warn("The containerd runtime is unstable/incomplete, here be dragons")
-
 	cli, err := containerd.New(ctdSocket)
 	if err != nil {
 		return nil, err
@@ -224,6 +227,12 @@ func (cc *ctdClient) InspectContainer(container string) (*runtime.ContainerInspe
 	}, nil
 }
 
+/*
+FIFO handling with attach and logs:
+- Attach will read the stdout FIFO and in addition to writing to screen, copy the output to a file
+- Logs will first read and print the file, then read the FIFO and write it's output to the file and the screen
+*/
+
 func (cc *ctdClient) AttachContainer(container string) (err error) {
 	var (
 		cont containerd.Container
@@ -252,14 +261,19 @@ func (cc *ctdClient) AttachContainer(container string) (err error) {
 	}
 
 	var (
-		task    containerd.Task
-		statusC <-chan containerd.ExitStatus
+		task     containerd.Task
+		statusC  <-chan containerd.ExitStatus
+		igniteIO *igniteIO
 	)
 
-	if task, err = cont.Task(cc.ctx, cio.NewAttach(cio.WithStdio)); err != nil {
+	if igniteIO, err = newIgniteIO(fmt.Sprintf(logPathTemplate, container)); err != nil {
 		return
 	}
-	defer util.DeferErr(&err, func() error { _, err := task.Delete(cc.ctx); return err })
+	defer util.DeferErr(&err, igniteIO.Close)
+
+	if task, err = cont.Task(cc.ctx, cio.NewAttach(igniteIO.Opt())); err != nil {
+		return
+	}
 
 	if statusC, err = task.Wait(cc.ctx); err != nil {
 		return
@@ -274,13 +288,16 @@ func (cc *ctdClient) AttachContainer(container string) (err error) {
 		defer StopCatch(sigc)
 	}
 
-	ec := <-statusC
-	code, _, err := ec.Result()
-	if err != nil {
-		return
+	var code uint32
+	select {
+	case ec := <-statusC:
+		code, _, err = ec.Result()
+	case <-igniteIO.Detach():
+		fmt.Println() // Use a new line for the log entry
+		log.Println("Detached")
 	}
 
-	if code != 0 {
+	if code != 0 && err == nil {
 		err = fmt.Errorf("attach exited with code %d", code)
 	}
 
@@ -293,45 +310,52 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 		return
 	}
 
-	// TODO: Fix this, simulates the Docker "entrypoint"
-	config.Cmd = append([]string{"ignite-spawn"}, config.Cmd...)
+	// Remove the container if it exists
+	if err = cc.RemoveContainer(name); err != nil {
+		return
+	}
+
+	// Load the default snapshotter
+	snapshotter := cc.client.SnapshotService(containerd.DefaultSnapshotter)
 
 	// Add the /etc/resolv.conf mount, this isn't done automatically by containerd
 	config.Binds = append(config.Binds, runtime.BindBoth("/etc/resolv.conf"))
 
+	// Add the stop timeout as a label, as containerd doesn't natively support it
+	config.Labels[stopTimeoutLabel] = strconv.FormatUint(uint64(config.StopTimeout), 10)
+
 	// Build the OCI specification
-	// TODO: Refine this, add missing options
 	opts := []oci.SpecOpts{
 		oci.WithDefaultSpec(),
 		oci.WithDefaultUnixDevices,
-		oci.WithImageConfig(img),
-		oci.WithProcessArgs(config.Cmd...),
+		oci.WithTTY,
+		oci.WithImageConfigArgs(img, config.Cmd),
 		withAddedCaps(config.CapAdds),
 		withHostname(config.Hostname),
 		withMounts(config.Binds),
 		withDevices(config.Devices),
 	}
 
-	tty := true
-	if tty {
-		opts = append(opts, oci.WithTTY)
-	}
+	// Known limitations, containerd doesn't support the following config fields:
+	// - StopTimeout
+	// - AutoRemove
+	// - NetworkMode (only CNI supported)
+	// - PortBindings
 
-	// TODO: Handle CapAdd & Hostname
-	// Known limitations, containerd doesn't support the following config fields
-	// StopTimeout
-	// AutoRemove
-	// NetworkMode (only CNI supported)
-	// PortBindings
+	snapshotOpt := containerd.WithSnapshot(name)
+	if _, err = snapshotter.Stat(cc.ctx, name); errdefs.IsNotFound(err) {
+		// Even if "read only" is set, we don't use a KindView snapshot here (#1495).
+		// We pass the writable snapshot to the OCI runtime, and the runtime remounts
+		// it as read-only after creating some mount points on-demand.
+		snapshotOpt = containerd.WithNewSnapshot(name, img)
+	} else if err != nil {
+		return
+	}
 
 	cOpts := []containerd.NewContainerOpts{
 		containerd.WithImage(img),
-		// Even when "readonly" is set, we don't use KindView snapshot here. (#1495)
-		// We pass writable snapshot to the OCI runtime, and the runtime remounts it as read-only,
-		// after creating some mount points on demand.
-		//containerd.WithSnapshot(name),
-		containerd.WithNewSnapshot(name, img),
-		containerd.WithImageStopSignal(img, "SIGTERM"),
+		snapshotOpt,
+		//containerd.WithImageStopSignal(img, "SIGTERM"),
 		containerd.WithNewSpec(opts...),
 		// TODO: Upgrade to v2
 		containerd.WithRuntime(plugin.RuntimeRuncV1, nil),
@@ -343,28 +367,25 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 		return
 	}
 
-	var con console.Console
-	if tty {
-		con = console.Current()
-		defer con.Reset()
-		if err = con.SetRaw(); err != nil {
-			return
-		}
-	}
-
-	/*stdinC := &stdinCloser{
-		stdin: os.Stdin,
-	}*/
-	ioOpts := []cio.Opt{cio.WithFIFODir("/run/containerd/fifo")}
-	//stdio := cio.NewCreator(append([]cio.Opt{cio.WithStreams(stdinC, os.Stdout, os.Stderr)}, ioOpts...)...)
-	ioCreator := cio.NewCreator(append([]cio.Opt{cio.WithStreams(con, con, nil), cio.WithTerminal}, ioOpts...)...)
-
-	/*task, err := tasks.NewTask(ctx, client, container, context.String("checkpoint"), con, context.Bool("null-io"), context.String("log-uri"), ioOpts, opts...)
+	// This is a dummy PTY to silence output
+	// when starting without attach breaking
+	con, _, err := console.NewPty()
 	if err != nil {
-		return err
-	}*/
+		return
+	}
+	defer util.DeferErr(&err, con.Close)
 
-	// TODO: Set up TTY and stdio streams
+	// We need a temporary dummy stdin reader that
+	// actually works, can't use nullReader here
+	dummyReader, _, err := os.Pipe()
+	if err != nil {
+		return
+	}
+	defer util.DeferErr(&err, dummyReader.Close)
+
+	// Spawn the Creator with the dummy streams
+	ioCreator := cio.NewCreator(cio.WithTerminal, cio.WithStreams(dummyReader, con, con))
+
 	task, err := cont.NewTask(cc.ctx, ioCreator)
 	if err != nil {
 		return
@@ -398,7 +419,7 @@ func withHostname(hostname string) oci.SpecOpts {
 }
 
 func withMounts(binds []*runtime.Bind) oci.SpecOpts {
-	mounts := make([]specs.Mount, 0)
+	mounts := make([]specs.Mount, 0, len(binds))
 	for _, bind := range binds {
 		mounts = append(mounts, specs.Mount{
 			Source:      bind.HostPath,
@@ -466,31 +487,150 @@ func (cc *ctdClient) StopContainer(container string, timeout *time.Duration) (er
 		return
 	}
 
+	// Use the container-specific timeout if no timeout is given
+	if timeout == nil {
+		var labels map[string]string
+		var duration uint64
+
+		if labels, err = cont.Labels(cc.ctx); err != nil {
+			return
+		}
+
+		if duration, err = strconv.ParseUint(labels[stopTimeoutLabel], 10, 32); err != nil {
+			return
+		}
+
+		to := time.Duration(duration) * time.Second
+		timeout = &to
+	}
+
 	task, err := cont.Task(cc.ctx, cio.Load)
 	if err != nil {
 		return
 	}
 
-	_, err = task.Delete(cc.ctx) // TODO: This probably force-kills, also handle the exit status
+	// Initiate a wait
+	waitC, err := task.Wait(cc.ctx)
+	if err != nil {
+		return
+	}
+
+	// Send a SIGTERM signal to request a clean shutdown
+	if err = task.Kill(cc.ctx, syscall.SIGTERM); err != nil {
+		return
+	}
+
+	// After sending the signal, start the timer to force-kill the task
+	timeoutC := make(chan error)
+	timer := time.AfterFunc(*timeout, func() {
+		timeoutC <- task.Kill(cc.ctx, syscall.SIGQUIT)
+	})
+
+	// Wait for the task to stop or the timer to fire
+	select {
+	case exitStatus := <-waitC:
+		timer.Stop()             // Cancel the force-kill timer
+		err = exitStatus.Error() // TODO: Handle exit code
+	case err = <-timeoutC: // The kill timer has fired
+	}
+
+	// Delete the task
+	if _, e := task.Delete(cc.ctx); e != nil {
+		if err != nil {
+			err = fmt.Errorf("%v, task deletion failed: %v", err, e) // TODO: Multierror
+		} else {
+			err = e
+		}
+	}
+
 	return
 }
 
-func (cc *ctdClient) KillContainer(container, signal string) error {
-	return cc.StopContainer(container, nil) // TODO: Handle this separately
-}
-
-func (cc *ctdClient) RemoveContainer(container string) error {
+func (cc *ctdClient) KillContainer(container, signal string) (err error) {
 	cont, err := cc.client.LoadContainer(cc.ctx, container)
 	if err != nil {
-		return err
+		return
 	}
 
-	return cont.Delete(cc.ctx)
+	task, err := cont.Task(cc.ctx, cio.Load)
+	if err != nil {
+		return
+	}
+
+	// Initiate a wait
+	waitC, err := task.Wait(cc.ctx)
+	if err != nil {
+		return
+	}
+
+	// Send a SIGQUIT signal to force stop
+	if err = task.Kill(cc.ctx, syscall.SIGQUIT); err != nil {
+		return
+	}
+
+	// Wait for the container to stop
+	<-waitC
+
+	// Delete the task
+	_, err = task.Delete(cc.ctx)
+	return
 }
 
-func (cc *ctdClient) ContainerLogs(container string) (io.ReadCloser, error) {
-	// TODO: Implement logs for containerd
-	return nil, unsupported("logs")
+func (cc *ctdClient) RemoveContainer(container string) (err error) {
+	// Remove the container if it exists
+	var cont containerd.Container
+	var task containerd.Task
+	if cont, err = cc.client.LoadContainer(cc.ctx, container); ifFound(&err) {
+		// Load the container's task without attaching
+		if task, err = cont.Task(cc.ctx, nil); ifFound(&err) {
+			_, err = task.Delete(cc.ctx)
+		}
+
+		// Delete the container
+		if err == nil {
+			err = cont.Delete(cc.ctx, containerd.WithSnapshotCleanup)
+		}
+
+		// Remove the log file if it exists
+		logFile := fmt.Sprintf(logPathTemplate, container)
+		if util.FileExists(logFile) && err == nil {
+			err = os.RemoveAll(logFile)
+		}
+	}
+
+	return
+}
+
+func (cc *ctdClient) ContainerLogs(container string) (r io.ReadCloser, err error) {
+	var (
+		cont containerd.Container
+	)
+
+	if cont, err = cc.client.LoadContainer(cc.ctx, container); err != nil {
+		return
+	}
+
+	var retriever *logRetriever
+	if retriever, err = newlogRetriever(fmt.Sprintf(logPathTemplate, container)); err != nil {
+		return
+	}
+
+	if _, err = cont.Task(cc.ctx, cio.NewAttach(retriever.Opt())); err != nil {
+		return
+	}
+
+	// Currently we have no way of detecting if the task's attach has filled the stdout and stderr
+	// buffers without asynchronous I/O (syscall.Conn and syscall.Splice). If the read reaches
+	// the end, the application hangs indefinitely waiting for new output from the container.
+	// TODO: Get rid of this, implement asynchronous I/O and read until the streams have been exhausted
+	time.Sleep(time.Second)
+
+	// Close the writer to signal EOF
+	if err = retriever.CloseWriter(); err != nil {
+		return
+	}
+
+	return retriever, nil
 }
 
 func (cc *ctdClient) Name() runtime.Name {
@@ -525,10 +665,6 @@ func (cc *ctdClient) imageUsage(image containerd.Image) (usage snapshots.Usage, 
 	return
 }
 
-func unsupported(feature string) error {
-	return fmt.Errorf("containerd: %q is currently unsupported", feature)
-}
-
 func deviceType(device string, devType *string) (err error) {
 	if exists, info := util.PathExists(device); exists {
 		if info.Mode()&os.ModeCharDevice != 0 {
@@ -543,4 +679,22 @@ func deviceType(device string, devType *string) (err error) {
 	}
 
 	return
+}
+
+// ifFound is a helper for functions returning errdefs.ErrNotFound in if-statements.
+// If in points to that error, the value is changed to nil and false is returned.
+// If in points to any other error, no change is performed and false is returned.
+// If in points to nil, no change is performed and true is returned.
+func ifFound(in *error) bool {
+	if in == nil {
+		panic("nil pointer given to ifFound")
+	}
+
+	// If the given error is an errdefs.ErrNotFound, clear it
+	if errdefs.IsNotFound(*in) {
+		*in = nil
+		return false
+	}
+
+	return *in == nil
 }
