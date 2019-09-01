@@ -23,7 +23,6 @@ Automatically installed to `/etc/cni/net.d/10-ignite.conflist` unless you have p
 
 **Pros:**
 
-- **Multi-node support**: CNI implementations can often route packets between multiple physical hosts. External computers can access the VM's IP.
 - **Kubernetes-compatible**: You can use the same overlay networks as you use with Kubernetes, and hence get your VMs on the same network as your containers.
 - **Port mapping support**: This mode supports port mappings from the VM to the host
 
