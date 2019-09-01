@@ -8,11 +8,11 @@ import (
 	"os/exec"
 	"strings"
 
-	"k8s.io/apimachinery/pkg/util/sets"
-
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/preflight"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 const (
@@ -20,12 +20,6 @@ const (
 	newPathString  = "-"
 	noReplaceLimit = -1
 )
-
-type Checker interface {
-	Check() error
-	Name() string
-	Type() string
-}
 
 type PortOpenChecker struct {
 	port uint64
@@ -100,7 +94,9 @@ type AvailablePathChecker struct {
 }
 
 func StartCmdChecks(vm *api.VM, ignoredPreflightErrors sets.String) error {
-	checks := []Checker{}
+	// the number "4" is chosen for the static preflight checkers see below
+	nCheckers := 4 + len(vm.Spec.Network.Ports) + len(constants.Dependencies)
+	checks := make([]preflight.Checker, 0, nCheckers)
 	checks = append(checks, ExistingFileChecker{filePath: "/dev/mapper/control"})
 	checks = append(checks, ExistingFileChecker{filePath: "/dev/net/tun"})
 	checks = append(checks, ExistingFileChecker{filePath: "/dev/kvm"})
@@ -114,7 +110,7 @@ func StartCmdChecks(vm *api.VM, ignoredPreflightErrors sets.String) error {
 	return runChecks(checks, ignoredPreflightErrors)
 }
 
-func runChecks(checks []Checker, ignoredPreflightErrors sets.String) error {
+func runChecks(checks []preflight.Checker, ignoredPreflightErrors sets.String) error {
 	var errBuffer bytes.Buffer
 
 	for _, check := range checks {
