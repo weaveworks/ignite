@@ -27,7 +27,7 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 			specified to immediately attach to the started VM after creation.
 
 			Example usage:
-				$ ignite run centos:7 \
+				$ ignite run weaveworks/ignite-ubuntu \
 					--interactive \
 					--name my-vm \
 					--cpus 2 \
