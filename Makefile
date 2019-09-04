@@ -1,3 +1,8 @@
+MIN_MAKE_VERSION = 3.82
+ifneq ($(MIN_MAKE_VERSION), $(firstword $(sort $(MAKE_VERSION) $(MIN_MAKE_VERSION))))
+$(error this project requires make version $(MIN_MAKE_VERSION) or higher)
+endif
+
 SHELL:=/bin/bash
 UID_GID?=$(shell id -u):$(shell id -g)
 FIRECRACKER_VERSION:=$(shell cat hack/FIRECRACKER_VERSION)
