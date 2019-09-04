@@ -9,16 +9,16 @@ import (
 )
 
 // NetworkPluginName binds to the global flag to select the network plugin
-// The default network plugin is "cni"
-var NetworkPluginName = network.PluginCNI
+// The default network plugin is "docker-bridge"
+var NetworkPluginName = network.PluginDockerBridge
 
 // NetworkPlugin provides the chosen network plugin that should be used
 // This should be set after parsing user input on what network plugin to use
 var NetworkPlugin network.Plugin
 
 // RuntimeName binds to the global flag to select the container runtime
-// The default runtime is "containerd"
-var RuntimeName = runtime.RuntimeContainerd
+// The default runtime is "docker"
+var RuntimeName = runtime.RuntimeDocker
 
 // Runtime provides the chosen container runtime for retrieving OCI images and running VM containers
 // This should be set after parsing user input on what runtime to use
