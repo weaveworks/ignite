@@ -244,8 +244,8 @@ Your feedback is always welcome!
 
 ## Maintainers
 
-- Lucas Käldström, [@luxas](https://github.com/luxas)
-- Dennis Marttinen, [@twelho](https://github.com/twelho)
+- Leigh Capili, [@stealthybox](https://github.com/stealthybox)
+- Chanwit Kaewkasi, [@chanwit](https://github.com/chanwit)
 
 ## License
 
