@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
+
+	"github.com/weaveworks/ignite/pkg/providers"
+	igniteruntime "github.com/weaveworks/ignite/pkg/runtime"
 )
 
 var (
@@ -66,4 +69,8 @@ func GetFirecracker() Info {
 	return Info{
 		GitVersion: firecrackerVersion,
 	}
+}
+
+func GetCurrentRuntime() igniteruntime.Name {
+	return providers.RuntimeName
 }
