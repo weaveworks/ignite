@@ -25,9 +25,9 @@ ignite rmi <image> [flags]
 
 ```
       --log-level loglevel      Specify the loglevel for the program (default info)
-      --network-plugin plugin   Network plugin to use. Available options are: [cni docker-bridge] (default cni)
+      --network-plugin plugin   Network plugin to use. Available options are: [cni docker-bridge] (default docker-bridge)
   -q, --quiet                   The quiet mode allows for machine-parsable output by printing only IDs
-      --runtime runtime         Container runtime to use. Available options are: [docker containerd] (default containerd)
+      --runtime runtime         Container runtime to use. Available options are: [docker containerd] (default docker)
 ```
 
 ### SEE ALSO

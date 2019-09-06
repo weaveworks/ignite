@@ -30,8 +30,8 @@ ignited gitops <repo-url> [flags]
 
 ```
       --log-level loglevel      Specify the loglevel for the program (default info)
-      --network-plugin plugin   Network plugin to use. Available options are: [cni docker-bridge] (default cni)
-      --runtime runtime         Container runtime to use. Available options are: [docker containerd] (default containerd)
+      --network-plugin plugin   Network plugin to use. Available options are: [cni docker-bridge] (default docker-bridge)
+      --runtime runtime         Container runtime to use. Available options are: [docker containerd] (default docker)
 ```
 
 ### SEE ALSO
