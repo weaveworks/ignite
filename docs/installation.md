@@ -44,7 +44,8 @@ With this kind of output, you're ready to go!
 ## Installing dependencies
 
 Ignite has a few dependencies (read more in this [doc](dependencies.md)).
-Install them on Ubuntu/CentOS like this:
+Install them on Ubuntu/CentOS like this:  
+(Ignite does not depend on docker package version. If you already installed docker-ce, you don't need to replace it to docker.io.)
 
 Ubuntu:
 
