@@ -223,3 +223,7 @@ test-docs: build-docs
 serve-docs: build-docs
 	@echo Stating docs website on http://localhost:${DOCS_PORT}/_build/html/index.html
 	@docker run -i --rm -p ${DOCS_PORT}:8000 -e USER_ID=$$UID ignite-docs
+
+containerd:
+	@echo Build static containerd binaries ...
+	@docker buildx build -f Dockerfile.containerd --output type=local,dest=$(shell pwd)/bin/amd64 .

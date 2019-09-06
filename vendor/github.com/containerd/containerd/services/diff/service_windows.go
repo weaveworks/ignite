@@ -1,3 +1,5 @@
+// +build windows
+
 /*
    Copyright The containerd Authors.
 
@@ -14,23 +16,8 @@
    limitations under the License.
 */
 
-package containerd
+package diff
 
-import (
-	"context"
-
-	"github.com/containerd/cgroups"
-	"github.com/containerd/containerd/namespaces"
-)
-
-// WithNamespaceCgroupDeletion removes the cgroup directory that was created for the namespace
-func WithNamespaceCgroupDeletion(ctx context.Context, i *namespaces.DeleteInfo) error {
-	cg, err := cgroups.Load(cgroups.V1, cgroups.StaticPath(i.Name))
-	if err != nil {
-		if err == cgroups.ErrCgroupDeleted {
-			return nil
-		}
-		return err
-	}
-	return cg.Delete()
+var defaultDifferConfig = &config{
+	Order: []string{"windows", "windows-lcow"},
 }

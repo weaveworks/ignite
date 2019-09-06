@@ -1,0 +1,29 @@
+FROM golang:1.12.9 as build
+
+RUN apt-get update && \
+    apt-get install -y btrfs-tools libseccomp-dev
+RUN  mkdir /output
+
+# Build static containerd with preload plugins
+COPY . /go/src/github.com/weaveworks/ignite
+WORKDIR /go/src/github.com/weaveworks/ignite
+RUN GO111MODULE=on go build -mod=vendor -buildmode=pie -tags "netgo osusergo static_build" -ldflags '-extldflags "-fno-PIC -static"' -o /output/containerd ./cmd/containerd
+
+# Build static shim
+RUN go get -u github.com/containerd/containerd
+RUN (cd /go/src/github.com/containerd/containerd && git checkout v1.3.0-rc.0)
+WORKDIR /go/src/github.com/containerd/containerd
+RUN GO111MODULE=off CGO_ENABLED=0 go build -ldflags '-extldflags "-static"' -o /output/containerd-shim ./cmd/containerd-shim
+RUN GO111MODULE=off CGO_ENABLED=0 go build -ldflags '-extldflags "-static"' -o /output/containerd-shim-runc-v1 ./cmd/containerd-shim-runc-v1
+
+# Build static runc
+RUN go get -u github.com/opencontainers/runc
+RUN (cd /go/src/github.com/opencontainers/runc && git checkout v1.0.0-rc8)
+RUN make EXTRA_LDFLAGS="-w -s" BUILDTAGS="apparmor seccomp" -C /go/src/github.com/opencontainers/runc static
+RUN cp /go/src/github.com/opencontainers/runc/runc /output/runc
+
+FROM scratch as artifact
+COPY --from=build /output/containerd /containerd
+COPY --from=build /output/containerd-shim /containerd-shim
+COPY --from=build /output/containerd-shim-runc-v1 /containerd-shim-runc-v1
+COPY --from=build /output/runc /runc
