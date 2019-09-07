@@ -20,6 +20,7 @@ import (
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/oci"
 	"github.com/containerd/containerd/plugin"
+	v2shim "github.com/containerd/containerd/runtime/v2/shim"
 	"github.com/containerd/containerd/snapshots"
 	"github.com/opencontainers/go-digest"
 	"github.com/opencontainers/image-spec/identity"
@@ -41,6 +42,16 @@ const (
 	logPathTemplate  = "/tmp/%s.log"
 )
 
+var (
+	// v2ShimRuntimes is a list of containerd runtimes we support.
+	// Note that we only list `runc` runtimes -- containerd plugin runtimes are omitted.
+	// This package also supports a fallback to the legacy runtime: `plugin.RuntimeLinuxV1`.
+	v2ShimRuntimes = []string{
+		plugin.RuntimeRuncV2,
+		plugin.RuntimeRuncV1,
+	}
+)
+
 // ctdClient is a runtime.Interface
 // implementation serving the containerd client
 type ctdClient struct {
@@ -50,9 +61,43 @@ type ctdClient struct {
 
 var _ runtime.Interface = &ctdClient{}
 
+// getNewestAvailableContainerdRuntime returns the newest possible runtime for the shims available in the PATH.
+// If no shim is found, the legacy Linux V1 runtime is returned along with an error.
+// Use of this function couples ignite to the PATH and mount namespace of containerd which is undesireable.
+//
+// TODO(stealthybox): PR CheckRuntime() to containerd libraries instead of using exec.LookPath()
+func getNewestAvailableContainerdRuntime() (string, error) {
+	for _, rt := range v2ShimRuntimes {
+		binary := v2shim.BinaryName(rt)
+		if binary == "" {
+			// this shouldn't happen if the matching test is passing, but it's not fatal -- just log and continue
+			log.Errorf("shim binary could not be found -- %q is an invalid runtime/v2/shim", rt)
+		} else if _, err := exec.LookPath(binary); err == nil {
+			return rt, nil
+		}
+	}
+
+	// legacy fallback needs hard-coded binary name -- it's not exported by containerd/runtime/v1/shim
+	if _, err := exec.LookPath("containerd-shim"); err == nil {
+		return plugin.RuntimeLinuxV1, nil
+	}
+
+	// default to the legacy runtime and return an error so the caller can decide what to do
+	return plugin.RuntimeLinuxV1, fmt.Errorf("a containerd-shim could not be found for runtimes %v, %s", v2ShimRuntimes, plugin.RuntimeLinuxV1)
+}
+
 // GetContainerdClient builds a client for talking to containerd
 func GetContainerdClient() (*ctdClient, error) {
-	cli, err := containerd.New(ctdSocket)
+	runtime, err := getNewestAvailableContainerdRuntime()
+	if err != nil {
+		// proceed with the default runtime -- our PATH can't see a shim binary, but containerd might be able to
+		log.Warningf("Proceeding with default runtime %q: %v", runtime, err)
+	}
+
+	cli, err := containerd.New(
+		ctdSocket,
+		containerd.WithDefaultRuntime(runtime),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -350,8 +395,6 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 		snapshotOpt,
 		//containerd.WithImageStopSignal(img, "SIGTERM"),
 		containerd.WithNewSpec(opts...),
-		// TODO: Upgrade to v2
-		containerd.WithRuntime(plugin.RuntimeRuncV1, nil),
 		containerd.WithContainerLabels(config.Labels),
 	}
 
