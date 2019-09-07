@@ -17,6 +17,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/network"
 	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/providers/ignite"
+	"github.com/weaveworks/ignite/pkg/util"
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
 )
 
@@ -37,6 +39,25 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 			logs.Logger.SetLevel(logLevel)
 			// Set the desired network plugin
 			providers.NetworkPlugin = providers.NetworkPlugins[network.ActivePlugin]
+
+			// TODO Some commands do not need to check root
+			// Currently it seems to be only ignite version that does not require root
+			if cmd.Name() == "version" && cmd.Parent().Name() == "ignite" {
+				return
+			}
+
+			// Ignite needs to run as root for now, see
+			// https://github.com/weaveworks/ignite/issues/46
+			// TODO: Remove this when ready
+			util.GenericCheckErr(util.TestRoot())
+
+			// Create the directories needed for running
+			util.GenericCheckErr(util.CreateDirectories())
+
+			// Populate the providers after flags have been parsed
+			if err := providers.Populate(ignite.Providers); err != nil {
+				logrus.Fatal(err)
+			}
 		},
 		Long: dedent.Dedent(fmt.Sprintf(`
 			Ignite is a containerized Firecracker microVM administration tool.
