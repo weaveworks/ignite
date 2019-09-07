@@ -19,6 +19,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/providers/ignite"
 	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
+	"github.com/weaveworks/ignite/pkg/util"
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
 )
 
@@ -36,6 +37,20 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// Set the desired logging level, now that the flags are parsed
 			logs.Logger.SetLevel(logLevel)
+
+			// TODO Some commands do not need to check root
+			// Currently it seems to be only ignite version that does not require root
+			if cmd.Name() == "version" && cmd.Parent().Name() == "ignite" {
+				return
+			}
+
+			// Ignite needs to run as root for now, see
+			// https://github.com/weaveworks/ignite/issues/46
+			// TODO: Remove this when ready
+			util.GenericCheckErr(util.TestRoot())
+
+			// Create the directories needed for running
+			util.GenericCheckErr(util.CreateDirectories())
 
 			// Populate the providers after flags have been parsed
 			if err := providers.Populate(ignite.Providers); err != nil {
