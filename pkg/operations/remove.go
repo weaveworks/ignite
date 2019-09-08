@@ -2,6 +2,7 @@ package operations
 
 import (
 	"fmt"
+	"os"
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
@@ -42,9 +43,12 @@ func CleanupVM(vm *api.VM) error {
 	// TODO should this function return a proper error?
 	RemoveVMContainer(inspectResult)
 
-	// After removal is successful, remove the dm snapshots
-	if err := cleanup.DeactivateSnapshot(vm); err != nil {
-		return err
+	// After remove the VM container, and the SnapshotDev still there
+	if _, err := os.Stat(vm.SnapshotDev()); err == nil {
+		// try remove it again with DeactivateSnapshot
+		if err := cleanup.DeactivateSnapshot(vm); err != nil {
+			return err
+		}
 	}
 
 	if logs.Quiet {
