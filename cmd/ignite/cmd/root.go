@@ -71,7 +71,7 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 
 			Example usage:
 
-				$ ignite run centos:7 \
+				$ ignite run weaveworks/ignite-ubuntu \
 					--cpus 2 \
 					--memory 2GB \
 					--ssh \

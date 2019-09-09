@@ -19,7 +19,7 @@ can be added to the VM during creation with the syntax
 /host/path:/vm/path.
 
 Example usage:
-	$ ignite create centos:7 \
+	$ ignite create weaveworks/ignite-ubuntu \
 		--name my-vm \
 		--cpus 2 \
 		--ssh \

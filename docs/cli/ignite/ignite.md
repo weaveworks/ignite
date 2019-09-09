@@ -18,7 +18,7 @@ Combining an Image and a Kernel gives you a runnable VM.
 
 Example usage:
 
-	$ ignite run centos:7 \
+	$ ignite run weaveworks/ignite-ubuntu \
 		--cpus 2 \
 		--memory 2GB \
 		--ssh \
