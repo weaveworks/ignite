@@ -39,6 +39,7 @@ github.com/containerd/containerd/mount
 github.com/containerd/containerd/namespaces
 github.com/containerd/containerd/oci
 github.com/containerd/containerd/plugin
+github.com/containerd/containerd/runtime/v2/shim
 github.com/containerd/containerd/snapshots
 github.com/containerd/containerd/api/services/containers/v1
 github.com/containerd/containerd/api/services/content/v1
@@ -75,6 +76,10 @@ github.com/containerd/containerd/snapshots/proxy
 github.com/containerd/containerd/log
 github.com/containerd/containerd/sys
 github.com/containerd/containerd/events/exchange
+github.com/containerd/containerd/api/services/ttrpc/events/v1
+github.com/containerd/containerd/pkg/ttrpcutil
+github.com/containerd/containerd/runtime/v2/task
+github.com/containerd/containerd/sys/reaper
 github.com/containerd/containerd/api/types/task
 github.com/containerd/containerd/reference
 github.com/containerd/containerd/labels
@@ -89,6 +94,8 @@ github.com/containerd/continuity/syscallx
 github.com/containerd/fifo
 # github.com/containerd/go-cni v0.0.0-20190813230227-49fbd9b210f3
 github.com/containerd/go-cni
+# github.com/containerd/go-runc v0.0.0-20190603165425-9007c2405372
+github.com/containerd/go-runc
 # github.com/containerd/ttrpc v0.0.0-20190613183316-1fb3814edf44
 github.com/containerd/ttrpc
 # github.com/containerd/typeurl v0.0.0-20190515163108-7312978f2987
