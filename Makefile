@@ -228,3 +228,6 @@ test-docs: build-docs
 serve-docs: build-docs
 	@echo Stating docs website on http://localhost:${DOCS_PORT}/_build/html/index.html
 	@docker run -i --rm -p ${DOCS_PORT}:8000 -e USER_ID=$$UID ignite-docs
+
+e2e: build-all
+	sudo IGNITE_E2E_HOME=$(shell pwd) $(shell which go) test ./e2e/. -count 1

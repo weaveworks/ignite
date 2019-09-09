@@ -4,7 +4,7 @@
 // we have to wait until the CI setup to allow Ignite to run with sudo and in a KVM environment.
 //
 // How to run tests:
-// sudo IGNITE_E2E_HOME=$PWD $(which go) test ./e2e/.
+// sudo IGNITE_E2E_HOME=$PWD $(which go) test ./e2e/. -count 1
 //
 
 package e2e
