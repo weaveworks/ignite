@@ -34,6 +34,7 @@ github.com/containerd/console
 github.com/containerd/containerd
 github.com/containerd/containerd/cio
 github.com/containerd/containerd/containers
+github.com/containerd/containerd/defaults
 github.com/containerd/containerd/errdefs
 github.com/containerd/containerd/mount
 github.com/containerd/containerd/namespaces
@@ -57,7 +58,6 @@ github.com/containerd/containerd/archive
 github.com/containerd/containerd/archive/compression
 github.com/containerd/containerd/content
 github.com/containerd/containerd/content/proxy
-github.com/containerd/containerd/defaults
 github.com/containerd/containerd/diff
 github.com/containerd/containerd/events
 github.com/containerd/containerd/images
