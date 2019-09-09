@@ -7,6 +7,7 @@ import (
 	"time"
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/preflight"
 )
 
 type ImageInspectResult struct {
@@ -63,6 +64,8 @@ type Interface interface {
 
 	Name() Name
 	RawClient() interface{}
+
+	PreflightChecker() preflight.Checker
 }
 
 // Name defines a name for a runtime

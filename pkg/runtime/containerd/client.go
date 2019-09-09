@@ -27,6 +27,8 @@ import (
 	"github.com/opencontainers/runtime-spec/specs-go"
 	log "github.com/sirupsen/logrus"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/preflight"
+	"github.com/weaveworks/ignite/pkg/preflight/checkers"
 	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/util"
 	"golang.org/x/sys/unix"
@@ -630,6 +632,10 @@ func (cc *ctdClient) Name() runtime.Name {
 
 func (cc *ctdClient) RawClient() interface{} {
 	return cc.client
+}
+
+func (cc *ctdClient) PreflightChecker() preflight.Checker {
+	return checkers.NewExistingFileChecker(ctdSocket)
 }
 
 // imageUsage returns the size/inode usage of the given image by

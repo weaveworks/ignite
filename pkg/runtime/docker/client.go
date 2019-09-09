@@ -13,8 +13,14 @@ import (
 	cont "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/preflight"
+	"github.com/weaveworks/ignite/pkg/preflight/checkers"
 	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/util"
+)
+
+const (
+	dcSocket = "/var/run/docker.sock"
 )
 
 // dockerClient is a runtime.Interface
@@ -217,6 +223,10 @@ func (cc *dockerClient) Name() runtime.Name {
 
 func (dc *dockerClient) RawClient() interface{} {
 	return dc.client
+}
+
+func (dc *dockerClient) PreflightChecker() preflight.Checker {
+	return checkers.NewExistingFileChecker(dcSocket)
 }
 
 func (dc *dockerClient) waitForContainer(container string, condition cont.WaitCondition, readyC *chan struct{}) error {
