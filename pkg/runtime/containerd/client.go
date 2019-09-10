@@ -15,11 +15,13 @@ import (
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/containers"
+	"github.com/containerd/containerd/defaults"
 	"github.com/containerd/containerd/errdefs"
 	"github.com/containerd/containerd/mount"
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/oci"
 	"github.com/containerd/containerd/plugin"
+	v2shim "github.com/containerd/containerd/runtime/v2/shim"
 	"github.com/containerd/containerd/snapshots"
 	"github.com/opencontainers/go-digest"
 	"github.com/opencontainers/image-spec/identity"
@@ -28,17 +30,30 @@ import (
 	log "github.com/sirupsen/logrus"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/preflight"
-	"github.com/weaveworks/ignite/pkg/preflight/checkers"
 	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/util"
 	"golang.org/x/sys/unix"
 )
 
 const (
-	ctdSocket        = "/run/containerd/containerd.sock"
 	ctdNamespace     = "firecracker"
 	stopTimeoutLabel = "IgniteStopTimeout"
 	logPathTemplate  = "/tmp/%s.log"
+)
+
+var (
+	// containerdSocketLocations is a list of socket locations to stat for
+	containerdSocketLocations = []string{
+		defaults.DefaultAddress, // "/run/containerd/containerd.sock"
+		"/run/docker/containerd/containerd.sock",
+	}
+	// v2ShimRuntimes is a list of containerd runtimes we support.
+	// Note that we only list `runc` runtimes -- containerd plugin runtimes are omitted.
+	// This package also supports a fallback to the legacy runtime: `plugin.RuntimeLinuxV1`.
+	v2ShimRuntimes = []string{
+		plugin.RuntimeRuncV2,
+		plugin.RuntimeRuncV1,
+	}
 )
 
 // ctdClient is a runtime.Interface
@@ -50,9 +65,58 @@ type ctdClient struct {
 
 var _ runtime.Interface = &ctdClient{}
 
+// statContainerdSocket returns the first existing file in the containerdSocketLocations list
+func statContainerdSocket() (string, error) {
+	for _, socket := range containerdSocketLocations {
+		if _, err := os.Stat(socket); err == nil {
+			return socket, nil
+		}
+	}
+	return "", fmt.Errorf("Could not stat a containerd socket: %v", containerdSocketLocations)
+}
+
+// getNewestAvailableContainerdRuntime returns the newest possible runtime for the shims available in the PATH.
+// If no shim is found, the legacy Linux V1 runtime is returned along with an error.
+// Use of this function couples ignite to the PATH and mount namespace of containerd which is undesireable.
+//
+// TODO(stealthybox): PR CheckRuntime() to containerd libraries instead of using exec.LookPath()
+func getNewestAvailableContainerdRuntime() (string, error) {
+	for _, rt := range v2ShimRuntimes {
+		binary := v2shim.BinaryName(rt)
+		if binary == "" {
+			// this shouldn't happen if the matching test is passing, but it's not fatal -- just log and continue
+			log.Errorf("shim binary could not be found -- %q is an invalid runtime/v2/shim", rt)
+		} else if _, err := exec.LookPath(binary); err == nil {
+			return rt, nil
+		}
+	}
+
+	// legacy fallback needs hard-coded binary name -- it's not exported by containerd/runtime/v1/shim
+	if _, err := exec.LookPath("containerd-shim"); err == nil {
+		return plugin.RuntimeLinuxV1, nil
+	}
+
+	// default to the legacy runtime and return an error so the caller can decide what to do
+	return plugin.RuntimeLinuxV1, fmt.Errorf("a containerd-shim could not be found for runtimes %v, %s", v2ShimRuntimes, plugin.RuntimeLinuxV1)
+}
+
 // GetContainerdClient builds a client for talking to containerd
 func GetContainerdClient() (*ctdClient, error) {
-	cli, err := containerd.New(ctdSocket)
+	ctdSocket, err := statContainerdSocket()
+	if err != nil {
+		return nil, err
+	}
+
+	runtime, err := getNewestAvailableContainerdRuntime()
+	if err != nil {
+		// proceed with the default runtime -- our PATH can't see a shim binary, but containerd might be able to
+		log.Warningf("Proceeding with default runtime %q: %v", runtime, err)
+	}
+
+	cli, err := containerd.New(
+		ctdSocket,
+		containerd.WithDefaultRuntime(runtime),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -350,8 +414,6 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 		snapshotOpt,
 		//containerd.WithImageStopSignal(img, "SIGTERM"),
 		containerd.WithNewSpec(opts...),
-		// TODO: Upgrade to v2
-		containerd.WithRuntime(plugin.RuntimeRuncV1, nil),
 		containerd.WithContainerLabels(config.Labels),
 	}
 
@@ -634,8 +696,20 @@ func (cc *ctdClient) RawClient() interface{} {
 	return cc.client
 }
 
+type containerdSocketChecker struct{}
+
+func (ctdsc containerdSocketChecker) Check() error {
+	_, err := statContainerdSocket()
+	return err
+}
+func (ctdsc containerdSocketChecker) Name() string {
+	return "containerdSocketChecker"
+}
+func (ctdsc containerdSocketChecker) Type() string {
+	return "containerdSocketChecker"
+}
 func (cc *ctdClient) PreflightChecker() preflight.Checker {
-	return checkers.NewExistingFileChecker(ctdSocket)
+	return containerdSocketChecker{}
 }
 
 // imageUsage returns the size/inode usage of the given image by

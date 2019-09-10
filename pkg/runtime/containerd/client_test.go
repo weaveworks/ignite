@@ -5,6 +5,8 @@ import (
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/runtime"
+
+	v2shim "github.com/containerd/containerd/runtime/v2/shim"
 )
 
 var client runtime.Interface
@@ -71,4 +73,12 @@ func TestRun(t *testing.T) {
 		},
 	}
 	t.Error(client.RunContainer(imageName, cfg, "foo2"))
+}
+
+func TestV2ShimRuntimesHaveBinaryNames(t *testing.T) {
+	for _, runtime := range v2ShimRuntimes {
+		if v2shim.BinaryName(runtime) == "" {
+			t.Errorf("shim binary could not be found -- %q is an invalid runtime/v2/shim", runtime)
+		}
+	}
 }
