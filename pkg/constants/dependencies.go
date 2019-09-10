@@ -2,7 +2,7 @@ package constants
 
 var Dependencies = [...]string{
 	"mount",
-	"unmount",
+	"umount",
 	"tar",
 	"mkfs.ext4",
 	"e2fsck",
