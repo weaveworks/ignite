@@ -1,6 +1,6 @@
 package constants
 
-var Dependencies = [...]string{
+var BinaryDependencies = [...]string{
 	"mount",
 	"umount",
 	"tar",
@@ -12,4 +12,15 @@ var Dependencies = [...]string{
 	"dmsetup",
 	"ssh",
 	"git",
+}
+
+var PathDependencies = [...]string{
+	"/dev/mapper/control",
+	"/dev/net/tun",
+	"/dev/kvm",
+}
+
+var CNIDependencies = [...]string{
+	"/opt/cni/bin/loopback",
+	"/opt/cni/bin/bridge",
 }

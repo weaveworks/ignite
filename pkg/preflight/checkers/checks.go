@@ -10,6 +10,7 @@ import (
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/network"
 	"github.com/weaveworks/ignite/pkg/preflight"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -94,17 +95,20 @@ type AvailablePathChecker struct {
 }
 
 func StartCmdChecks(vm *api.VM, ignoredPreflightErrors sets.String) error {
-	// the number "4" is chosen for the static preflight checkers see below
-	nCheckers := 4 + len(vm.Spec.Network.Ports) + len(constants.Dependencies)
-	checks := make([]preflight.Checker, 0, nCheckers)
-	checks = append(checks, ExistingFileChecker{filePath: "/dev/mapper/control"})
-	checks = append(checks, ExistingFileChecker{filePath: "/dev/net/tun"})
-	checks = append(checks, ExistingFileChecker{filePath: "/dev/kvm"})
+	checks := []preflight.Checker{}
+	for _, dependency := range constants.PathDependencies {
+		checks = append(checks, ExistingFileChecker{filePath: dependency})
+	}
+	if providers.NetworkPluginName == network.PluginCNI {
+		for _, dependency := range constants.CNIDependencies {
+			checks = append(checks, ExistingFileChecker{filePath: dependency})
+		}
+	}
 	checks = append(checks, providers.Runtime.PreflightChecker())
 	for _, port := range vm.Spec.Network.Ports {
 		checks = append(checks, PortOpenChecker{port: port.HostPort})
 	}
-	for _, dependency := range constants.Dependencies {
+	for _, dependency := range constants.BinaryDependencies {
 		checks = append(checks, BinInPathChecker{bin: dependency})
 	}
 	return runChecks(checks, ignoredPreflightErrors)
