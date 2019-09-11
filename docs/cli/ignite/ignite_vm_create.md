@@ -37,6 +37,7 @@ ignite vm create <OCI image> [flags]
       --config string            Specify a path to a file with the API resources you want to pass
   -f, --copy-files strings       Copy files/directories from the host to the created VM
       --cpus uint                VM vCPU count, 1 or even numbers between 1 and 32 (default 1)
+      --dns strings              Set name servers to the VM /etc/resolv.conf
   -h, --help                     help for create
       --kernel-args string       Set the command line for the kernel (default "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp")
   -k, --kernel-image oci-image   Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules (default weaveworks/ignite-kernel:4.19.47)

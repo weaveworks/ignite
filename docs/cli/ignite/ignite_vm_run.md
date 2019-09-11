@@ -15,6 +15,7 @@ Example usage:
 		--interactive \
 		--name my-vm \
 		--cpus 2 \
+		--dns 8.8.8.8 \
 		--ssh \
 		--memory 2GB \
 		--size 10G
@@ -31,6 +32,7 @@ ignite vm run <OCI image> [flags]
   -f, --copy-files strings       Copy files/directories from the host to the created VM
       --cpus uint                VM vCPU count, 1 or even numbers between 1 and 32 (default 1)
   -d, --debug                    Debug mode, keep container after VM shutdown
+      --dns strings              Set name servers to the VM /etc/resolv.conf
   -h, --help                     help for run
   -i, --interactive              Attach to the VM after starting
       --kernel-args string       Set the command line for the kernel (default "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp")

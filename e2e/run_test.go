@@ -98,6 +98,7 @@ func runCurl(t *testing.T, vmName, runtime, networkPlugin string, sleepDuration 
 		"--runtime="+runtime,
 		"--network-plugin="+networkPlugin,
 		"run", "--name="+vmName,
+		"--dns=8.8.8.8", "--dns=8.8.4.4", // override name servers
 		"weaveworks/ignite-ubuntu",
 		"--ssh",
 	)

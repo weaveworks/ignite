@@ -31,6 +31,7 @@ func NewCmdRun(out io.Writer) *cobra.Command {
 					--interactive \
 					--name my-vm \
 					--cpus 2 \
+					--dns 8.8.8.8 \
 					--ssh \
 					--memory 2GB \
 					--size 10G

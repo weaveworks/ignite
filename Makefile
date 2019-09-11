@@ -9,7 +9,7 @@ SHELL:=/bin/bash
 DOCKER := docker
 # Set the first containerd.sock that successfully stats -- fallback to the docker4mac default
 CONTAINERD_SOCK := $(shell \
-	ls 2>/dev/null \
+	sudo ls 2>/dev/null \
 		/run/containerd/containerd.sock \
 		/run/docker/containerd/containerd.sock \
 		/var/run/containerd/containerd.sock \
@@ -110,6 +110,8 @@ ifeq ($(GOARCH),$(GOHOSTARCH))
 	# For dev builds for a clean (non-dirty) environment; "simulate" that
 	# a manifest list has been built by tagging the docker image
 	$(DOCKER) tag $(IMAGE):${IMAGE_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}
+	$(DOCKER) image save $(IMAGE):${IMAGE_TAG} \
+		| $(CTR) -n firecracker image import -
 endif
 endif
 ifeq ($(IS_CI_BUILD),1)

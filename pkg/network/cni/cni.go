@@ -38,7 +38,7 @@ const (
 )
 
 // the default CIDR for ignite bridge network
-var defaultCIDR = "172.18.0.0/16"
+var defaultCIDR = "10.42.0.0/16"
 
 // igniteCNIConf is a base CNI configuration that will enable VMs to access the internet connection (docker-bridge style)
 var igniteCNIConf = fmt.Sprintf(`{
