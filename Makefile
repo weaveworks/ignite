@@ -4,6 +4,27 @@ $(error this project requires make version $(MIN_MAKE_VERSION) or higher)
 endif
 
 SHELL:=/bin/bash
+# Set the command for running `docker`
+# -- allows user to override for things like sudo usage or container images 
+DOCKER := docker
+# Set the first containerd.sock that successfully stats -- fallback to the docker4mac default
+CONTAINERD_SOCK := $(shell \
+	ls 2>/dev/null \
+		/run/containerd/containerd.sock \
+		/run/docker/containerd/containerd.sock \
+		/var/run/containerd/containerd.sock \
+		/var/run/docker/containerd/containerd.sock \
+		| head -n1 \
+		|| echo \
+			/var/run/docker/containerd/containerd.sock \
+	)
+# Set the command for running `ctr`
+# Use root inside a container with the host containerd socket
+# This is a form of privilege escalation that avoids interactive sudo during make
+CTR := $(DOCKER) run -i --rm \
+		-v $(CONTAINERD_SOCK):/run/containerd/containerd.sock \
+		linuxkit/containerd:751de142273e1b5d2d247d2832d654ab92e907bc \
+		ctr
 UID_GID?=$(shell id -u):$(shell id -g)
 FIRECRACKER_VERSION:=$(shell cat hack/FIRECRACKER_VERSION)
 GO_VERSION=1.12.9
@@ -71,25 +92,28 @@ ifeq ($(GOARCH),amd64)
 	sed -i "/qemu/d" bin/$(GOARCH)/Dockerfile
 else
 	# Register /usr/bin/qemu-ARCH-static as the handler for non-x86 binaries in the kernel
-	docker run --rm --privileged multiarch/qemu-user-static:register --reset
+	$(DOCKER) run --rm --privileged multiarch/qemu-user-static:register --reset
 endif
-	docker build -t $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) \
+	$(DOCKER) build -t $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) \
 		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} \
 		--build-arg ARCH_SUFFIX=${ARCH_SUFFIX} bin/$(GOARCH)
 ifeq ($(GOARCH),$(GOHOSTARCH))
 	# Only tag the development image if its architecture matches the host
-	docker tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_DEV_TAG}
+	$(DOCKER) tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_DEV_TAG}
+	# Load the dev image into the host's containerd content store
+	$(DOCKER) image save $(IMAGE):${IMAGE_DEV_TAG} \
+		| $(CTR) -n firecracker image import -
 endif
 ifeq ($(IS_DIRTY),0)
-	docker tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}-$(GOARCH)
+	$(DOCKER) tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}-$(GOARCH)
 ifeq ($(GOARCH),$(GOHOSTARCH))
 	# For dev builds for a clean (non-dirty) environment; "simulate" that
 	# a manifest list has been built by tagging the docker image
-	docker tag $(IMAGE):${IMAGE_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}
+	$(DOCKER) tag $(IMAGE):${IMAGE_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}
 endif
 endif
 ifeq ($(IS_CI_BUILD),1)
-	docker save $(IMAGE):${IMAGE_TAG}-$(GOARCH) -o bin/$(GOARCH)/image.tar
+	$(DOCKER) save $(IMAGE):${IMAGE_TAG}-$(GOARCH) -o bin/$(GOARCH)/image.tar
 endif
 
 build-all: $(addprefix build-all-,$(GOARCH_LIST))
@@ -99,7 +123,7 @@ build-all-%:
 push-all: $(addprefix push-all-,$(GOARCH_LIST))
 push-all-%:
 	$(MAKE) build-all-$*
-	docker push $(IMAGE):${IMAGE_TAG}-$*
+	$(DOCKER) push $(IMAGE):${IMAGE_TAG}-$*
 
 release: push-all
 ifneq ($(IS_DIRTY),0)
@@ -107,9 +131,9 @@ ifneq ($(IS_DIRTY),0)
 endif
 	mkdir -p bin/releases/${GIT_VERSION}
 	cp -r bin/{amd64,arm64} bin/releases/${GIT_VERSION}
-	docker manifest create --amend $(IMAGE):$(IMAGE_TAG) $(shell echo $(GOARCH_LIST) | sed -e "s~[^ ]*~$(IMAGE):$(IMAGE_TAG)\-&~g")
-	@for arch in $(GOARCH_LIST); do docker manifest annotate --arch=$${arch} $(IMAGE):$(IMAGE_TAG) $(IMAGE):$(IMAGE_TAG)-$${arch}; done
-	docker manifest push --purge $(IMAGE):$(IMAGE_TAG)
+	$(DOCKER) manifest create --amend $(IMAGE):$(IMAGE_TAG) $(shell echo $(GOARCH_LIST) | sed -e "s~[^ ]*~$(IMAGE):$(IMAGE_TAG)\-&~g")
+	@for arch in $(GOARCH_LIST); do $(DOCKER) manifest annotate --arch=$${arch} $(IMAGE):$(IMAGE_TAG) $(IMAGE):$(IMAGE_TAG)-$${arch}; done
+	$(DOCKER) manifest push --purge $(IMAGE):$(IMAGE_TAG)
 
 tidy: /go/bin/goimports
 	go mod tidy
@@ -139,7 +163,7 @@ api-doc:
 	mv bin/tmp/${GROUPVERSION}/*.go $(shell pwd)/pkg/apis/${GROUPVERSION}/
 	rm -r bin/tmp/${GROUPVERSION}
 	# Format the docs with pandoc
-	docker run -it --rm \
+	$(DOCKER) run -it --rm \
 		-v $(shell pwd):/data \
 		-u $(shell id -u):$(shell id -g) \
 		pandoc/core \
@@ -149,7 +173,7 @@ api-doc:
 
 shell:
 	mkdir -p $(CACHE_DIR)/go $(CACHE_DIR)/cache
-	docker run -it --rm \
+	$(DOCKER) run -it --rm \
 		-v $(CACHE_DIR)/go:/go \
 		-v $(CACHE_DIR)/cache:/.cache/go-build \
 		-v $(shell pwd):/go/src/${PROJECT} \
@@ -215,19 +239,19 @@ endif
 # Read the docs stuff
 bin/docs/builder-image.tar:
 	mkdir -p bin/docs
-	docker build -t ignite-docs-builder -f docs/Dockerfile.build docs
-	docker save ignite-docs-builder -o $@
+	$(DOCKER) build -t ignite-docs-builder -f docs/Dockerfile.build docs
+	$(DOCKER) save ignite-docs-builder -o $@
 
 build-docs: bin/docs/builder-image.tar
-	docker load -i bin/docs/builder-image.tar
-	docker build -t ignite-docs docs
+	$(DOCKER) load -i bin/docs/builder-image.tar
+	$(DOCKER) build -t ignite-docs docs
 
 test-docs: build-docs
-	docker run -it --rm ignite-docs /usr/bin/linkchecker _build/html/index.html
+	$(DOCKER) run -it --rm ignite-docs /usr/bin/linkchecker _build/html/index.html
 
 serve-docs: build-docs
 	@echo Stating docs website on http://localhost:${DOCS_PORT}/_build/html/index.html
-	@docker run -i --rm -p ${DOCS_PORT}:8000 -e USER_ID=$$UID ignite-docs
+	@$(DOCKER) run -i --rm -p ${DOCS_PORT}:8000 -e USER_ID=$$UID ignite-docs
 
 e2e: build-all
 	sudo IGNITE_E2E_HOME=$(shell pwd) $(shell which go) test ./e2e/. -count 1
