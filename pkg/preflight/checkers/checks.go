@@ -3,7 +3,6 @@ package checkers
 import (
 	"bytes"
 	"fmt"
-	"github.com/weaveworks/ignite/pkg/network"
 	"net"
 	"os"
 	"os/exec"
@@ -11,6 +10,7 @@ import (
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/network"
 	"github.com/weaveworks/ignite/pkg/preflight"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"k8s.io/apimachinery/pkg/util/sets"
