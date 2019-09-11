@@ -37,6 +37,9 @@ const (
 	igniteBridgeName = "ignite-containerd-bridge"
 )
 
+// the default CIDR for ignite bridge network
+var defaultCIDR = "172.18.0.0/16"
+
 // igniteCNIConf is a base CNI configuration that will enable VMs to access the internet connection (docker-bridge style)
 var igniteCNIConf = fmt.Sprintf(`{
 	"cniVersion": "0.4.0",
@@ -51,7 +54,7 @@ var igniteCNIConf = fmt.Sprintf(`{
 			"ipMasq": true,
 			"ipam": {
 				"type": "host-local",
-				"subnet": "172.18.0.0/16"
+				"subnet": "%s"
 			}
 		},
 		{
@@ -62,7 +65,7 @@ var igniteCNIConf = fmt.Sprintf(`{
 		}
 	]
 }
-`, igniteBridgeName)
+`, igniteBridgeName, defaultCIDR)
 
 type cniNetworkPlugin struct {
 	cni     gocni.CNI
@@ -103,12 +106,12 @@ func (plugin *cniNetworkPlugin) PrepareContainerSpec(container *runtime.Containe
 	return nil
 }
 
-func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string, portMappings ...meta.PortMapping) (*network.Result, error) {
+func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerId string, portMappings ...meta.PortMapping) (*network.Result, error) {
 	if err := plugin.initialize(); err != nil {
 		return nil, err
 	}
 
-	c, err := plugin.runtime.InspectContainer(containerid)
+	c, err := plugin.runtime.InspectContainer(containerId)
 	if err != nil {
 		return nil, fmt.Errorf("CNI failed to retrieve network namespace path: %v", err)
 	}
@@ -127,10 +130,10 @@ func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string, portMa
 		})
 	}
 
-	netnsPath := fmt.Sprintf(netNSPathFmt, c.PID)
-	result, err := plugin.cni.Setup(context.Background(), containerid, netnsPath, gocni.WithCapabilityPortMap(pms))
+	netNsPath := fmt.Sprintf(netNSPathFmt, c.PID)
+	result, err := plugin.cni.Setup(context.Background(), containerId, netNsPath, gocni.WithCapabilityPortMap(pms))
 	if err != nil {
-		log.Errorf("failed to setup network for namespace %q: %v", containerid, err)
+		log.Errorf("failed to setup network for namespace %q: %v", containerId, err)
 		return nil, err
 	}
 
@@ -145,11 +148,24 @@ func (plugin *cniNetworkPlugin) initialize() (err error) {
 		}
 	}
 
+	// setup forward rules once for the defaultCIDR
+	ipt, err := iptables.NewWithProtocol(iptables.ProtocolIPv4)
+	if err != nil {
+		return
+	}
+	if err = ipt.AppendUnique("filter", "FORWARD", "-s", defaultCIDR, "-j", "ACCEPT"); err != nil {
+		return
+	}
+	if err = ipt.AppendUnique("filter", "FORWARD", "-d", defaultCIDR, "-j", "ACCEPT"); err != nil {
+		return
+	}
+
 	plugin.once.Do(func() {
 		if err = plugin.cni.Load(gocni.WithLoNetwork, gocni.WithDefaultConf); err != nil {
 			log.Errorf("failed to load cni configuration: %v", err)
 		}
 	})
+
 	return
 }
 
