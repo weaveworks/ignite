@@ -15,6 +15,7 @@ import (
 	"os/exec"
 	"path"
 	"testing"
+	"time"
 
 	"gotest.tools/assert"
 )
@@ -84,5 +85,98 @@ func TestIgniteRunWithContainerdAndCNI(t *testing.T) {
 		"e2e_test_ignite_run_containerd_and_cni",
 		"containerd",
 		"cni",
+	)
+}
+
+// runCurl is a helper for testing network connectivity
+// vmName should be unique for each test
+func runCurl(t *testing.T, vmName, runtime, networkPlugin string, sleepDuration time.Duration) {
+	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
+
+	runCmd := stdCmd(
+		igniteBin,
+		"--runtime="+runtime,
+		"--network-plugin="+networkPlugin,
+		"run", "--name="+vmName,
+		"weaveworks/ignite-ubuntu",
+		"--ssh",
+	)
+	runErr := runCmd.Run()
+
+	defer func() {
+		rmvCmd := stdCmd(
+			igniteBin,
+			"--runtime="+runtime,
+			"--network-plugin="+networkPlugin,
+			"rm", "-f", vmName,
+		)
+		rmvErr := rmvCmd.Run()
+		assert.Check(t, rmvErr, fmt.Sprintf("vm removal should not fail: %q", rmvCmd.Args))
+	}()
+
+	assert.Check(t, runErr, fmt.Sprintf("%q should not fail to run", runCmd.Args))
+	if runErr != nil {
+		return
+	}
+
+	time.Sleep(sleepDuration)
+	curlCmd := stdCmd(
+		igniteBin,
+		"--runtime="+runtime,
+		"--network-plugin="+networkPlugin,
+		"exec", vmName,
+		"curl", "google.com",
+	)
+	curlErr := curlCmd.Run()
+	assert.Check(t, curlErr, fmt.Sprintf("curl should not fail: %q", curlCmd.Args))
+}
+
+func TestCurlWithDockerAndDockerBridge(t *testing.T) {
+	runCurl(
+		t,
+		"e2e_test_curl_docker_and_docker_bridge",
+		"docker",
+		"docker-bridge",
+		0,
+	)
+}
+
+func TestCurlWithDockerAndCNI(t *testing.T) {
+	runCurl(
+		t,
+		"e2e_test_curl_docker_and_cni",
+		"docker",
+		"cni",
+		0,
+	)
+}
+
+func TestCurlWithContainerdAndCNI(t *testing.T) {
+	runCurl(
+		t,
+		"e2e_test_curl_containerd_and_cni",
+		"containerd",
+		"cni",
+		0,
+	)
+}
+
+func TestCurlWithDockerAndCNISleep2(t *testing.T) {
+	runCurl(
+		t,
+		"e2e_test_curl_docker_and_cni_sleep2",
+		"docker",
+		"cni",
+		2 * time.Second, // TODO: why is this necessary? Can we work to eliminate this?
+	)
+}
+
+func TestCurlWithContainerdAndCNISleep2(t *testing.T) {
+	runCurl(
+		t,
+		"e2e_test_curl_containerd_and_cni_sleep2",
+		"containerd",
+		"cni",
+		2 * time.Second,
 	)
 }
