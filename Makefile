@@ -7,6 +7,24 @@ SHELL:=/bin/bash
 # Set the command for running `docker`
 # -- allows user to override for things like sudo usage or container images 
 DOCKER := docker
+# Set the first containerd.sock that successfully stats -- fallback to the docker4mac default
+CONTAINERD_SOCK := $(shell \
+	ls 2>/dev/null \
+		/run/containerd/containerd.sock \
+		/run/docker/containerd/containerd.sock \
+		/var/run/containerd/containerd.sock \
+		/var/run/docker/containerd/containerd.sock \
+		| head -n1 \
+		|| echo \
+			/var/run/docker/containerd/containerd.sock \
+	)
+# Set the command for running `ctr`
+# Use root inside a container with the host containerd socket
+# This is a form of privilege escalation that avoids interactive sudo during make
+CTR := $(DOCKER) run -i --rm \
+		-v $(CONTAINERD_SOCK):/run/containerd/containerd.sock \
+		linuxkit/containerd:751de142273e1b5d2d247d2832d654ab92e907bc \
+		ctr
 UID_GID?=$(shell id -u):$(shell id -g)
 FIRECRACKER_VERSION:=$(shell cat hack/FIRECRACKER_VERSION)
 GO_VERSION=1.12.9
@@ -82,6 +100,9 @@ endif
 ifeq ($(GOARCH),$(GOHOSTARCH))
 	# Only tag the development image if its architecture matches the host
 	$(DOCKER) tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_DEV_TAG}
+	# Load the dev image into the host's containerd content store
+	$(DOCKER) image save $(IMAGE):${IMAGE_DEV_TAG} \
+		| $(CTR) -n firecracker image import -
 endif
 ifeq ($(IS_DIRTY),0)
 	$(DOCKER) tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}-$(GOARCH)
