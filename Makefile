@@ -65,6 +65,9 @@ BASEIMAGE=arm64v8/alpine:3.9
 ARCH_SUFFIX=-aarch64
 endif
 
+E2E_REGEX := Test
+E2E_COUNT := 1
+
 all: ignite
 install: ignite
 	sudo cp bin/$(GOARCH)/ignite /usr/local/bin
@@ -253,5 +256,11 @@ serve-docs: build-docs
 	@echo Stating docs website on http://localhost:${DOCS_PORT}/_build/html/index.html
 	@$(DOCKER) run -i --rm -p ${DOCS_PORT}:8000 -e USER_ID=$$UID ignite-docs
 
-e2e: build-all
-	sudo IGNITE_E2E_HOME=$(shell pwd) $(shell which go) test ./e2e/. -count 1
+e2e: build-all e2e-nobuild
+
+e2e-nobuild:
+	sudo IGNITE_E2E_HOME=$(shell pwd) \
+		$(shell which go) test \
+		./e2e/. -v \
+		-count $(E2E_COUNT) \
+		-run $(E2E_REGEX)
