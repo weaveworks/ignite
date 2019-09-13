@@ -213,21 +213,29 @@ func getIPChains(containerID string) (result []*ipChain, err error) {
 		return
 	}
 
-	stats, err := ipt.StructuredStats("nat", "POSTROUTING")
+	rawStats, err := ipt.Stats("nat", "POSTROUTING")
 	if err != nil {
 		return
 	}
 
-	for _, stat := range stats {
-		/* name: "ignite-containerd-default" id: "ignite-9a10b07d7c0d4ce9" */
-		for _, field := range strings.Split(stat.Options, " ") {
-			if fmt.Sprintf("%q", containerID) == field {
-				result = append(result, &ipChain{
-					ip:    stat.Source,
-					chain: stat.Target,
-				})
-				break
+	quotedContainerID := fmt.Sprintf("id: %q", containerID)
+	const statOptionsIndex = 9
+	for _, rawStat := range rawStats {
+		// stat.Options has a comment that looks like:
+		//   /* name: "ignite-containerd-default" id: "ignite-9a10b07d7c0d4ce9" */
+		if strings.Contains(rawStat[statOptionsIndex], quotedContainerID) {
+			// only parse the IP's for the rules we need
+			// ( avoids https://github.com/coreos/go-iptables/issues/70 )
+			var stat iptables.Stat
+			stat, err = ipt.ParseStat(rawStat)
+			if err != nil {
+				return
 			}
+
+			result = append(result, &ipChain{
+				ip:    stat.Source,
+				chain: stat.Target,
+			})
 		}
 	}
 
