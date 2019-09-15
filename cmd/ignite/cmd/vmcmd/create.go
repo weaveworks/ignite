@@ -38,6 +38,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 					--name my-vm \
 					--cpus 2 \
 					--ssh \
+					--dns 8.8.8.8 \
 					--memory 2GB \
 					--size 6GB
 		`, constants.DEFAULT_KERNEL_IMAGE)),
@@ -66,6 +67,7 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	// Register flags bound to temporary holder values
 	fs.StringSliceVarP(&cf.PortMappings, "ports", "p", cf.PortMappings, "Map host ports to VM ports")
 	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", cf.CopyFiles, "Copy files/directories from the host to the created VM")
+	fs.StringSliceVarP(&cf.DNS, "dns", "", cf.DNS, "Override the default name servers in VM /etc/resolv.conf")
 
 	// Register flags for simple types (int, string, etc.)
 	fs.Uint64Var(&cf.VM.Spec.CPUs, "cpus", cf.VM.Spec.CPUs, "VM vCPU count, 1 or even numbers between 1 and 32")
