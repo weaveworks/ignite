@@ -35,16 +35,25 @@ const (
 	igniteCNIConfName = "10-ignite.conflist"
 	// igniteBridgeName specifies the default "docker-bridge"-like plugin for containerd to use if no other CNI plugin is available
 	igniteBridgeName = "ignite-containerd-bridge"
+	// igniteBridgeDeviceName is the name of the bridge device used by Ignite, default to cni0
+	igniteBridgeDeviceName = "cni0"
 )
 
-// igniteCNIConf is a base CNI configuration that will enable VMs to access the internet connection (docker-bridge style)
-var igniteCNIConf = fmt.Sprintf(`{
+type cniNetworkPlugin struct {
+	cni     gocni.CNI
+	runtime runtime.Interface
+	once    *sync.Once
+}
+
+// getIgniteCNIConf is a base CNI configuration that will enable VMs to access the internet connection (docker-bridge style)
+func getIgniteCNIConf() string {
+	var igniteCNIConf = fmt.Sprintf(`{
 	"cniVersion": "0.4.0",
 	"name": "%s",
 	"plugins": [
 		{
 			"type": "bridge",
-			"bridge": "cni0",
+			"bridge": "%s",
 			"isGateway": true,
 			"isDefaultGateway": true,
 			"promiscMode": true,
@@ -62,12 +71,8 @@ var igniteCNIConf = fmt.Sprintf(`{
 		}
 	]
 }
-`, igniteBridgeName)
-
-type cniNetworkPlugin struct {
-	cni     gocni.CNI
-	runtime runtime.Interface
-	once    *sync.Once
+`, igniteBridgeName, igniteBridgeDeviceName)
+	return igniteCNIConf
 }
 
 func GetCNINetworkPlugin(runtime runtime.Interface) (network.Plugin, error) {
@@ -140,9 +145,34 @@ func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string, portMa
 func (plugin *cniNetworkPlugin) initialize() (err error) {
 	// If there's no existing CNI configuration, write ignite's example config to the CNI directory
 	if util.DirEmpty(CNIConfDir) {
-		if err = ioutil.WriteFile(path.Join(CNIConfDir, igniteCNIConfName), []byte(igniteCNIConf), constants.DATA_DIR_FILE_PERM); err != nil {
+		if err = ioutil.WriteFile(path.Join(CNIConfDir, igniteCNIConfName), []byte(getIgniteCNIConf()), constants.DATA_DIR_FILE_PERM); err != nil {
 			return
 		}
+	}
+
+	// Setup forward rules once for the igniteBridgeDeviceName
+	ipt, err := iptables.NewWithProtocol(iptables.ProtocolIPv4)
+	if err != nil {
+		return
+	}
+	if err = ipt.AppendUnique(
+		"filter",
+		"FORWARD",
+		"-o", igniteBridgeDeviceName, "-m", "conntrack", "--ctstate", "RELATED,ESTABLISHED", "-j", "ACCEPT"); err != nil {
+		return
+	}
+	if err = ipt.AppendUnique(
+		"filter",
+		"FORWARD",
+		"-i", igniteBridgeDeviceName, "-o", igniteBridgeDeviceName, "-j", "ACCEPT"); err != nil {
+		return
+	}
+	// Forward rule to allow name resolution
+	if err = ipt.AppendUnique(
+		"filter",
+		"FORWARD",
+		"-i", igniteBridgeDeviceName, "!", "-o", igniteBridgeDeviceName, "-j", "ACCEPT"); err != nil {
+		return
 	}
 
 	plugin.once.Do(func() {
