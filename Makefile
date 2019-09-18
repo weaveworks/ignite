@@ -100,6 +100,9 @@ endif
 	$(DOCKER) build -t $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) \
 		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} \
 		--build-arg ARCH_SUFFIX=${ARCH_SUFFIX} bin/$(GOARCH)
+	# Load the dev image into the host's containerd content store
+	$(DOCKER) image save $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) \
+		| $(CTR) -n firecracker image import -
 ifeq ($(GOARCH),$(GOHOSTARCH))
 	# Only tag the development image if its architecture matches the host
 	$(DOCKER) tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_DEV_TAG}
@@ -109,10 +112,16 @@ ifeq ($(GOARCH),$(GOHOSTARCH))
 endif
 ifeq ($(IS_DIRTY),0)
 	$(DOCKER) tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}-$(GOARCH)
+	# Load the dev image into the host's containerd content store
+	$(DOCKER) image save $(IMAGE):${IMAGE_TAG}-$(GOARCH) \
+		| $(CTR) -n firecracker image import -
 ifeq ($(GOARCH),$(GOHOSTARCH))
 	# For dev builds for a clean (non-dirty) environment; "simulate" that
 	# a manifest list has been built by tagging the docker image
 	$(DOCKER) tag $(IMAGE):${IMAGE_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}
+	# Load the dev image into the host's containerd content store
+	$(DOCKER) image save $(IMAGE):${IMAGE_TAG} \
+		| $(CTR) -n firecracker image import -
 endif
 endif
 ifeq ($(IS_CI_BUILD),1)
