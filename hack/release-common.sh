@@ -16,7 +16,7 @@ run_gren() {
 }
 
 make_tidy_autogen() {
-    make autogen tidy graph
+    make autogen tidy-in-docker graph
     if [[ $(git status --short) != "" ]]; then
         git add -A
         git commit -m "Ran 'make autogen tidy graph'"
