@@ -7,9 +7,17 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"syscall"
 	"time"
+
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/preflight"
+	"github.com/weaveworks/ignite/pkg/resolvconf"
+	"github.com/weaveworks/ignite/pkg/runtime"
+	"github.com/weaveworks/ignite/pkg/util"
 
 	"github.com/containerd/console"
 	"github.com/containerd/containerd"
@@ -28,10 +36,6 @@ import (
 	imagespec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/opencontainers/runtime-spec/specs-go"
 	log "github.com/sirupsen/logrus"
-	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
-	"github.com/weaveworks/ignite/pkg/preflight"
-	"github.com/weaveworks/ignite/pkg/runtime"
-	"github.com/weaveworks/ignite/pkg/util"
 	"golang.org/x/sys/unix"
 )
 
@@ -39,6 +43,7 @@ const (
 	ctdNamespace     = "firecracker"
 	stopTimeoutLabel = "IgniteStopTimeout"
 	logPathTemplate  = "/tmp/%s.log"
+	resolvConfName   = "runtime.containerd.resolv.conf"
 )
 
 var (
@@ -361,7 +366,7 @@ func (cc *ctdClient) AttachContainer(container string) (err error) {
 	return
 }
 
-func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.ContainerConfig, name string) (s string, err error) {
+func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.ContainerConfig, name, id string) (s string, err error) {
 	img, err := cc.client.GetImage(cc.ctx, image.Normalized())
 	if err != nil {
 		return
@@ -376,7 +381,26 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 	snapshotter := cc.client.SnapshotService(containerd.DefaultSnapshotter)
 
 	// Add the /etc/resolv.conf mount, this isn't done automatically by containerd
-	config.Binds = append(config.Binds, runtime.BindBoth("/etc/resolv.conf"))
+	// Ensure a resolv.conf exists in the vmDir. Calculate path using the vm id
+	// TODO(stealthybox):
+	//  - create snapshot ahead of time?
+	//    - is there a performance penalty for creating snapshot ahead of time?
+	//    - maybe we can use containerd.NewContainerOpts{} to do it just-in-time
+	//  - write this file to snapshot mount instead of vmDir
+	//  - commit snapshot?
+	//  - deprecate vm id from this function's signature
+	resolvConfPath := filepath.Join(constants.VM_DIR, id, resolvConfName)
+	err = resolvconf.EnsureResolvConf(resolvConfPath, constants.DATA_DIR_FILE_PERM)
+	if err != nil {
+		return
+	}
+	config.Binds = append(
+		config.Binds,
+		&runtime.Bind{
+			HostPath:      resolvConfPath,
+			ContainerPath: "/etc/resolv.conf",
+		},
+	)
 
 	// Add the stop timeout as a label, as containerd doesn't natively support it
 	config.Labels[stopTimeoutLabel] = strconv.FormatUint(uint64(config.StopTimeout), 10)

@@ -102,7 +102,7 @@ func StartVM(vm *api.VM, debug bool) error {
 	}
 
 	// Run the VM container in Docker
-	containerID, err := providers.Runtime.RunContainer(igniteImage, config, util.NewPrefixer().Prefix(vm.GetUID()))
+	containerID, err := providers.Runtime.RunContainer(igniteImage, config, util.NewPrefixer().Prefix(vm.GetUID()), vm.GetUID().String())
 	if err != nil {
 		return fmt.Errorf("failed to start container for VM %q: %v", vm.GetUID(), err)
 	}

@@ -130,7 +130,7 @@ func (dc *dockerClient) AttachContainer(container string) (err error) {
 	return
 }
 
-func (dc *dockerClient) RunContainer(image meta.OCIImageRef, config *runtime.ContainerConfig, name string) (string, error) {
+func (dc *dockerClient) RunContainer(image meta.OCIImageRef, config *runtime.ContainerConfig, name, id string) (string, error) {
 	binds := make([]string, 0, len(config.Binds))
 	for _, bind := range config.Binds {
 		binds = append(binds, fmt.Sprintf("%s:%s", bind.HostPath, bind.ContainerPath))
