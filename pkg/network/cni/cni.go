@@ -59,6 +59,9 @@ var igniteCNIConf = fmt.Sprintf(`{
 			"capabilities": {
 				"portMappings": true
 			}
+		},
+		{
+			"type": "firewall"
 		}
 	]
 }
