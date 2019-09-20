@@ -190,7 +190,7 @@ via `attach` is **shared**, every attached user operates the same terminal.
 
 ## All in one
 
-Ignite has a shorthand for peforming `image import`, `create`, `start` and possibly also `attach`
+Ignite has a shorthand for performing `image import`, `create`, `start` and possibly also `attach`
 all in one command:
 
 ```console
@@ -237,8 +237,13 @@ To remove `VMs` in Ignite, use the following command:
 # ignite rm my-vm
 ```
 
-The `VM` needs to not be running for this to succeed. Using the `--force` flag
-a running `VM` can also be removed, it will be killed before removal.
+The `VM` needs to not be running for this to succeed. Using the `--force` flag (`-f` for short)
+a running `VM` can also be removed, it will be killed before removal. 
+This force option is also able to stop and remove zombie VMs. 
+
+```
+# ignite rm -f my-vm
+```
 
 ## Removing other resources
 
