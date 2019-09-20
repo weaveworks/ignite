@@ -17,6 +17,7 @@
 package oci
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -118,7 +119,7 @@ func WithDefaultSpecForPlatform(platform string) SpecOpts {
 	}
 }
 
-// WithSpecFromBytes loads the the spec from the provided byte slice.
+// WithSpecFromBytes loads the spec from the provided byte slice.
 func WithSpecFromBytes(p []byte) SpecOpts {
 	return func(_ context.Context, _ Client, _ *containers.Container, s *Spec) error {
 		*s = Spec{} // make sure spec is cleared.
@@ -333,7 +334,11 @@ func WithImageConfigArgs(image Image, args []string) SpecOpts {
 
 		setProcess(s)
 		if s.Linux != nil {
-			s.Process.Env = replaceOrAppendEnvValues(config.Env, s.Process.Env)
+			defaults := config.Env
+			if len(defaults) == 0 {
+				defaults = defaultUnixEnv
+			}
+			s.Process.Env = replaceOrAppendEnvValues(defaults, s.Process.Env)
 			cmd := config.Cmd
 			if len(args) > 0 {
 				cmd = args
@@ -628,7 +633,7 @@ func WithUserID(uid uint32) SpecOpts {
 }
 
 // WithUsername sets the correct UID and GID for the container
-// based on the the image's /etc/passwd contents. If /etc/passwd
+// based on the image's /etc/passwd contents. If /etc/passwd
 // does not exist, or the username is not found in /etc/passwd,
 // it returns error.
 func WithUsername(username string) SpecOpts {
@@ -1194,5 +1199,51 @@ func WithLinuxDevice(path, permissions string) SpecOpts {
 		})
 
 		return nil
+	}
+}
+
+// WithEnvFile adds environment variables from a file to the container's spec
+func WithEnvFile(path string) SpecOpts {
+	return func(_ context.Context, _ Client, _ *containers.Container, s *Spec) error {
+		var vars []string
+		f, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		sc := bufio.NewScanner(f)
+		for sc.Scan() {
+			if sc.Err() != nil {
+				return sc.Err()
+			}
+			vars = append(vars, sc.Text())
+		}
+		return WithEnv(vars)(nil, nil, nil, s)
+	}
+}
+
+// ErrNoShmMount is returned when there is no /dev/shm mount specified in the config
+// and an Opts was trying to set a configuration value on the mount.
+var ErrNoShmMount = errors.New("no /dev/shm mount specified")
+
+// WithDevShmSize sets the size of the /dev/shm mount for the container.
+//
+// The size value is specified in kb, kilobytes.
+func WithDevShmSize(kb int64) SpecOpts {
+	return func(ctx context.Context, _ Client, c *containers.Container, s *Spec) error {
+		for _, m := range s.Mounts {
+			if m.Source == "shm" && m.Type == "tmpfs" {
+				for i, o := range m.Options {
+					if strings.HasPrefix(o, "size=") {
+						m.Options[i] = fmt.Sprintf("size=%dk", kb)
+						return nil
+					}
+				}
+				m.Options = append(m.Options, fmt.Sprintf("size=%dk", kb))
+				return nil
+			}
+		}
+		return ErrNoShmMount
 	}
 }
