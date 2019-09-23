@@ -58,7 +58,7 @@ func TestInspect(t *testing.T) {
 	t.Error("done", tempDir)
 }*/
 
-func TestRun(t *testing.T) {
+func TestRunRemove(t *testing.T) {
 	cfg := &runtime.ContainerConfig{
 		Cmd: []string{
 			"/bin/sh",
@@ -72,7 +72,8 @@ func TestRun(t *testing.T) {
 			runtime.BindBoth("/dev/kvm"),
 		},
 	}
-	t.Error(client.RunContainer(imageName, cfg, "foo2"))
+	t.Error(client.RunContainer(imageName, cfg, "ignite-test-foo2", "test-foo2"))
+	t.Error(client.RemoveContainer("ignite-test-foo2"))
 }
 
 func TestV2ShimRuntimesHaveBinaryNames(t *testing.T) {
