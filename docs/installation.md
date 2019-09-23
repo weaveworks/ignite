@@ -50,14 +50,17 @@ Install them on Ubuntu/CentOS like this:
 Ubuntu:
 
 ```bash
-apt-get update && apt-get install -y --no-install-recommends containerd dmsetup openssh-client git binutils
+apt-get update && apt-get install -y --no-install-recommends dmsetup openssh-client git binutils
+which containerd || apt-get install -y --no-install-recommends containerd
+    # Install containerd if it's not present -- prevents breaking docker-ce installations
 ```
 
 CentOS:
 
 ```bash
-yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-yum install -y containerd.io e2fsprogs openssh-clients git
+yum install -y e2fsprogs openssh-clients git
+which containerd || ( yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo && yum install -y containerd.io )
+    # Install containerd if it's not present
 ```
 
 ### CNI Plugins
