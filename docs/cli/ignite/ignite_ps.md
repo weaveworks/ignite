@@ -16,8 +16,9 @@ ignite ps [flags]
 ### Options
 
 ```
-  -a, --all    Show all VMs, not just running ones
-  -h, --help   help for ps
+  -a, --all             Show all VMs, not just running ones
+  -f, --filter string   Filter the VMs
+  -h, --help            help for ps
 ```
 
 ### Options inherited from parent commands

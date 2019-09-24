@@ -206,11 +206,11 @@ func TestExtractMultipleKeyValueFiltering(t *testing.T) {
 			name: "Success",
 			str:  "{{.Name}}=target1,{{.Age}}=38",
 			res: []map[string]string{
-				map[string]string{
+				{
 					"key":   "{{.Name}}",
 					"value": "target1",
 				},
-				map[string]string{
+				{
 					"key":   "{{.Age}}",
 					"value": "38",
 				},
