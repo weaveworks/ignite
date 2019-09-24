@@ -2,15 +2,53 @@
 
 # Changelog
 
+## v0.5.4
+
+**Released:** 24/09/2019
+
+This is the fourth patch release in the `v0.5.X` series, containing one enhancement that implements the blocking SSH wait for vm's run with `--ssh`.
+
+### Enhancements
+
+- implement ssh wait for a VM ([#429](https://github.com/weaveworks/ignite/pull/429), [@chanwit](https://github.com/chanwit))
+
+### Release Machinery
+
+- 0.5.x -- On release, use tidy-in-docker to prevent module differences from differing versions of go ([#434](https://github.com/weaveworks/ignite/pull/434), [@stealthybox](https://github.com/stealthybox))
 ## v0.5.3
 
 **Released:** 16/09/2019
 
 This is the third patch release in the `v0.5.X` series, containing one enhancement that helps projects using the ignite binary parse version information without root.
 
+Note: dependent modules were calculated with a newer version of go;  see #433
+
 ### Enhancements
 
 - backport: skip root requirement for ignite version ([#430](https://github.com/weaveworks/ignite/pull/430), [@chanwit](https://github.com/chanwit))
+
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.5.3
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+__________
+**[OCI images for this release](
+https://hub.docker.com/r/weaveworks/ignite/tags?page=1&name=v0.5.3
+)**
 
 ---
 
