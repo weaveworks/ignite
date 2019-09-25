@@ -105,6 +105,8 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	root.AddCommand(NewCmdExec(os.Stdout, os.Stderr, os.Stdin))
 	root.AddCommand(NewCmdStart(os.Stdout))
 	root.AddCommand(NewCmdStop(os.Stdout))
+	root.AddCommand(NewCmdPreflight(os.Stdout))
+
 	root.AddCommand(versioncmd.NewCmdVersion(os.Stdout))
 	return root
 }
