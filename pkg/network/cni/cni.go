@@ -31,27 +31,42 @@ const (
 	CNIConfDir = "/etc/cni/net.d"
 	// netNSPathFmt gives the path to the a process network namespace, given the pid
 	netNSPathFmt = "/proc/%d/ns/net"
-	// igniteCNIConfName is the filename of Ignite's CNI configuration file
-	igniteCNIConfName = "10-ignite.conflist"
-	// igniteBridgeName specifies the default "docker-bridge"-like plugin for containerd to use if no other CNI plugin is available
-	igniteBridgeName = "ignite-containerd-bridge"
+
+	// defaultCNIConfFilename is the vanity filename of Ignite's default CNI configuration file
+	defaultCNIConfFilename = "10-ignite.conflist"
+	// defaultNetworkName names the "docker-bridge"-like CNI plugin-chain installed when no other CNI configuration is present.
+	// This value appears in iptables comments created by CNI.
+	defaultNetworkName = "ignite-cni-bridge"
+	// defaultBridgeName is the default bridge device name used in the defaultCNIConf
+	defaultBridgeName = "ignite0"
+	// defaultSubnet is the default subnet used in the defaultCNIConf -- this value is set to not collide with common container networking subnets:
+	// - 172.{17..31}.0.0/16 and 192.168.({1..15}*16).0/20 are defaults used by `docker network create`.
+	// - 10.32.0.0/12 is used with some weavenet CNI installs. (https://github.com/weaveworks/weave/blob/master/site/kubernetes/kube-addon.md)
+	// - 10.{42,43}.0.0/16 are used in Rancher CNI installs. (https://rancher.com/docs/rancher/v1.6/en/faqs/troubleshooting/#the-default-subnet-10420016-used-by-rancher-is-already-used-in-my-network-and-prohibiting-the-managed-network-how-do-i-change-the-subnet)
+	// - 10.96.0.0/12 is the default kubeadm CNI pod network. (https://godoc.org/k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta1#pkg-constants)
+	// - 10.244.0.0/16 is the default Flannel CNI pod network. (https://coreos.com/flannel/docs/latest/kubernetes.html, https://github.com/coreos/flannel/blob/b30e689/Documentation/kube-flannel.yml#L125-L131)
+	// Avoiding collisions with docker is necessary so ignite CNI networking can function on the same machine as dockerd without routing conflicts.
+	// Using the same subnet as another CNI implementation is less consequential. If the other CNI implementation is configured as the default, ignite vm's will just use that network.
+	// It's still best to pick a unique, right-sized subnet to avoid confusion and make documentation and issue threads easier to search for.
+	// Since a large host could potentially start thousands to tens-of-thousands of firecracker vm's, perhaps a /18, /17, or /16 is appropriate.
+	defaultSubnet = "10.61.0.0/16"
 )
 
-// igniteCNIConf is a base CNI configuration that will enable VMs to access the internet connection (docker-bridge style)
-var igniteCNIConf = fmt.Sprintf(`{
+// defaultCNIConf is a CNI configuration chain that enables VMs to access the internet (docker-bridge style)
+var defaultCNIConf = fmt.Sprintf(`{
 	"cniVersion": "0.4.0",
 	"name": "%s",
 	"plugins": [
 		{
 			"type": "bridge",
-			"bridge": "cni0",
+			"bridge": "%s",
 			"isGateway": true,
 			"isDefaultGateway": true,
 			"promiscMode": true,
 			"ipMasq": true,
 			"ipam": {
 				"type": "host-local",
-				"subnet": "172.18.0.0/16"
+				"subnet": "%s"
 			}
 		},
 		{
@@ -65,7 +80,7 @@ var igniteCNIConf = fmt.Sprintf(`{
 		}
 	]
 }
-`, igniteBridgeName)
+`, defaultNetworkName, defaultBridgeName, defaultSubnet)
 
 type cniNetworkPlugin struct {
 	cni     gocni.CNI
@@ -143,7 +158,7 @@ func (plugin *cniNetworkPlugin) SetupContainerNetwork(containerid string, portMa
 func (plugin *cniNetworkPlugin) initialize() (err error) {
 	// If there's no existing CNI configuration, write ignite's example config to the CNI directory
 	if util.DirEmpty(CNIConfDir) {
-		if err = ioutil.WriteFile(path.Join(CNIConfDir, igniteCNIConfName), []byte(igniteCNIConf), constants.DATA_DIR_FILE_PERM); err != nil {
+		if err = ioutil.WriteFile(path.Join(CNIConfDir, defaultCNIConfFilename), []byte(defaultCNIConf), constants.DATA_DIR_FILE_PERM); err != nil {
 			return
 		}
 	}
@@ -189,12 +204,12 @@ func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerID string) error
 	}
 
 	// get the amount of combinations between an IP mask, and an iptables chain, with the specified container ID
-	// this makes the igniteBridgeName CNI network plugin not leak iptables rules
+	// this makes the defaultNetworkName CNI network config not leak iptables rules
 	result, err := getIPChains(c.ID)
 	if err != nil {
 		return err
 	}
-	comment := utils.FormatComment(igniteBridgeName, c.ID)
+	comment := utils.FormatComment(defaultNetworkName, c.ID)
 
 	for _, t := range result {
 		if err = ip.TeardownIPMasq(t.ip, t.chain, comment); err != nil {
@@ -225,7 +240,7 @@ func getIPChains(containerID string) (result []*ipChain, err error) {
 	const statOptionsIndex = 9
 	for _, rawStat := range rawStats {
 		// stat.Options has a comment that looks like:
-		//   /* name: "ignite-containerd-default" id: "ignite-9a10b07d7c0d4ce9" */
+		//   /* name: "ignite-cni-bridge" id: "ignite-9a10b07d7c0d4ce9" */
 		if strings.Contains(rawStat[statOptionsIndex], quotedContainerID) {
 			// only parse the IP's for the rules we need
 			// ( avoids https://github.com/coreos/go-iptables/issues/70 )
