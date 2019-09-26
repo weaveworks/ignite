@@ -83,9 +83,10 @@ var defaultCNIConf = fmt.Sprintf(`{
 `, defaultNetworkName, defaultBridgeName, defaultSubnet)
 
 type cniNetworkPlugin struct {
-	cni     gocni.CNI
-	runtime runtime.Interface
-	once    *sync.Once
+	cni       gocni.CNI
+	cniConfig *gocni.ConfigResult
+	runtime   runtime.Interface
+	once      *sync.Once
 }
 
 func GetCNINetworkPlugin(runtime runtime.Interface) (network.Plugin, error) {
@@ -168,6 +169,9 @@ func (plugin *cniNetworkPlugin) initialize() (err error) {
 			log.Errorf("failed to load cni configuration: %v", err)
 		}
 	})
+
+	plugin.cniConfig = plugin.cni.GetConfig()
+
 	return
 }
 
@@ -185,9 +189,16 @@ func cniToIgniteResult(r *gocni.CNIResult) *network.Result {
 	return result
 }
 
-func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerID string) error {
-	if err := plugin.initialize(); err != nil {
+func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerID string) (err error) {
+	if err = plugin.initialize(); err != nil {
 		return err
+	}
+
+	cleanupErr := plugin.cleanupBridges(containerID)
+	if cleanupErr != nil {
+		defer util.DeferErr(&err, func() error {
+			return cleanupErr
+		})
 	}
 
 	// Lack of namespace should not be fatal on teardown
@@ -203,21 +214,46 @@ func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerID string) error
 		return nil
 	}
 
-	// get the amount of combinations between an IP mask, and an iptables chain, with the specified container ID
-	// this makes the defaultNetworkName CNI network config not leak iptables rules
-	result, err := getIPChains(c.ID)
+	return plugin.cni.Remove(context.Background(), containerID, netnsPath)
+}
+
+// cleanupBridges makes the defaultNetworkName CNI network config not leak iptables rules
+// It could possibly help with rule cleanup for other CNI network configs as well
+func (plugin *cniNetworkPlugin) cleanupBridges(containerID string) error {
+	// Get the amount of combinations between an IP mask, and an iptables chain, with the specified container ID
+	result, err := getIPChains(containerID)
 	if err != nil {
 		return err
 	}
-	comment := utils.FormatComment(defaultNetworkName, c.ID)
 
-	for _, t := range result {
-		if err = ip.TeardownIPMasq(t.ip, t.chain, comment); err != nil {
-			return err
+	var teardownErrs []error
+	for _, net := range plugin.cniConfig.Networks {
+		var hasBridge bool
+		for _, plugin := range net.Config.Plugins {
+			if plugin.Network.Type == "bridge" {
+				hasBridge = true
+			}
+		}
+
+		if hasBridge {
+			log.Debugf("TeardownIPMasq for container %q on CNI network %q which contains a bridge", containerID, net.Config.Name)
+			comment := utils.FormatComment(net.Config.Name, containerID)
+			for _, t := range result {
+				if err = ip.TeardownIPMasq(t.ip, t.chain, comment); err != nil {
+					teardownErrs = append(teardownErrs, err)
+				}
+			}
 		}
 	}
 
-	return plugin.cni.Remove(context.Background(), containerID, netnsPath)
+	if len(teardownErrs) == 1 {
+		return teardownErrs[0]
+	}
+	if len(teardownErrs) > 0 {
+		return fmt.Errorf("Errors occured cleaning up bridges: %v", teardownErrs)
+	}
+
+	return nil
 }
 
 type ipChain struct {
