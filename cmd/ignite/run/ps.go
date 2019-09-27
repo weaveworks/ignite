@@ -43,7 +43,7 @@ func Ps(po *psOptions) error {
 	for _, vm := range po.allVMs {
 		isExpectedVM := true
 		if filtering {
-			isExpectedVM, err = filters.AreExpected(vm.GetObjectMeta())
+			isExpectedVM, err = filters.AreExpected(vm)
 			if err != nil {
 				return err
 			}
