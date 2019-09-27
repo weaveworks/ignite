@@ -7,37 +7,178 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 )
 
 func TestMetaFiltering(t *testing.T) {
-	t.Run("SuccessName", func(t *testing.T) {
-		oMeta := &runtime.ObjectMeta{
-			Name:    "success_object",
-			UID:     runtime.UID("myuid"),
-			Created: runtime.Time{},
-			Labels: map[string]string{
-				"first":  "f_value",
-				"second": "s_value",
+	t.Run("SuccessCPUsEqual", func(t *testing.T) {
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				UID:     runtime.UID("myuid"),
+				Created: runtime.Time{},
+				Labels: map[string]string{
+					"first":  "f_value",
+					"second": "s_value",
+				},
+			},
+			Spec: api.VMSpec{
+				CPUs: uint64(2),
 			},
 		}
 
 		f := metaFilter{
-			identifier:    "{{.Name}}",
+			identifier:    "{{.Spec.CPUs}}",
+			expectedValue: "2",
+			operator:      "=",
+		}
+
+		res, err := f.isExpected(oMeta)
+		assert.Nil(t, err)
+		assert.True(t, res)
+
+	})
+	t.Run("SuccessNameEqual", func(t *testing.T) {
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				Name:    "success_object",
+				UID:     runtime.UID("myuid"),
+				Created: runtime.Time{},
+				Labels: map[string]string{
+					"first":  "f_value",
+					"second": "s_value",
+				},
+			},
+		}
+
+		f := metaFilter{
+			identifier:    "{{.ObjectMeta.Name}}",
 			expectedValue: "success_object",
+			operator:      "=",
 		}
 
 		res, err := f.isExpected(oMeta)
 		assert.Nil(t, err)
 		assert.True(t, res)
 	})
-	t.Run("FailName", func(t *testing.T) {
-		oMeta := &runtime.ObjectMeta{
-			Name: "fail_object",
+	t.Run("SuccessNameDiff", func(t *testing.T) {
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				Name:    "success_object",
+				UID:     runtime.UID("myuid"),
+				Created: runtime.Time{},
+				Labels: map[string]string{
+					"first":  "f_value",
+					"second": "s_value",
+				},
+			},
+		}
+
+		f := metaFilter{
+			identifier:    "{{.Name}}",
+			expectedValue: "success_object_diff",
+			operator:      "!=",
+		}
+
+		res, err := f.isExpected(oMeta)
+		assert.Nil(t, err)
+		assert.True(t, res)
+	})
+	t.Run("FailNameEqual", func(t *testing.T) {
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				Name: "fail_object",
+			},
 		}
 
 		f := metaFilter{
 			identifier:    "{{.Name}}",
 			expectedValue: "success_object",
+			operator:      "=",
+		}
+
+		res, err := f.isExpected(oMeta)
+		assert.Nil(t, err)
+		assert.False(t, res)
+	})
+	t.Run("FailNameDiff", func(t *testing.T) {
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				Name: "fail_object",
+			},
+		}
+
+		f := metaFilter{
+			identifier:    "{{.Name}}",
+			expectedValue: "fail_object",
+			operator:      "!=",
+		}
+
+		res, err := f.isExpected(oMeta)
+		assert.Nil(t, err)
+		assert.False(t, res)
+	})
+	t.Run("SuccessNameContains", func(t *testing.T) {
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				Name: "fail_object",
+			},
+		}
+
+		f := metaFilter{
+			identifier:    "{{.Name}}",
+			expectedValue: "object",
+			operator:      "=~",
+		}
+
+		res, err := f.isExpected(oMeta)
+		assert.Nil(t, err)
+		assert.True(t, res)
+	})
+	t.Run("SuccessNameNotContains", func(t *testing.T) {
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				Name: "fail_object",
+			},
+		}
+
+		f := metaFilter{
+			identifier:    "{{.Name}}",
+			expectedValue: "object2",
+			operator:      "!~",
+		}
+
+		res, err := f.isExpected(oMeta)
+		assert.Nil(t, err)
+		assert.True(t, res)
+	})
+	t.Run("FailNameContains", func(t *testing.T) {
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				Name: "fail_object",
+			},
+		}
+
+		f := metaFilter{
+			identifier:    "{{.Name}}",
+			expectedValue: "object2",
+			operator:      "=~",
+		}
+
+		res, err := f.isExpected(oMeta)
+		assert.Nil(t, err)
+		assert.False(t, res)
+	})
+	t.Run("FailNameNotContains", func(t *testing.T) {
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				Name: "fail_object",
+			},
+		}
+
+		f := metaFilter{
+			identifier:    "{{.Name}}",
+			expectedValue: "object",
+			operator:      "!~",
 		}
 
 		res, err := f.isExpected(oMeta)
@@ -45,13 +186,16 @@ func TestMetaFiltering(t *testing.T) {
 		assert.False(t, res)
 	})
 	t.Run("SuccessUID", func(t *testing.T) {
-		oMeta := &runtime.ObjectMeta{
-			UID: runtime.UID("myuid"),
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				UID: runtime.UID("myuid"),
+			},
 		}
 
 		f := metaFilter{
 			identifier:    "{{.UID}}",
 			expectedValue: "myuid",
+			operator:      "=",
 		}
 
 		res, err := f.isExpected(oMeta)
@@ -59,13 +203,16 @@ func TestMetaFiltering(t *testing.T) {
 		assert.True(t, res)
 	})
 	t.Run("FailUID", func(t *testing.T) {
-		oMeta := &runtime.ObjectMeta{
-			UID: "failuid",
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				UID: "failuid",
+			},
 		}
 
 		f := metaFilter{
 			identifier:    "{{.UID}}",
 			expectedValue: "myuid",
+			operator:      "=",
 		}
 
 		res, err := f.isExpected(oMeta)
@@ -74,13 +221,16 @@ func TestMetaFiltering(t *testing.T) {
 	})
 	t.Run("SuccessCreated", func(t *testing.T) {
 		nowtime := runtime.Timestamp()
-		oMeta := &runtime.ObjectMeta{
-			Created: nowtime,
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				Created: nowtime,
+			},
 		}
 
 		f := metaFilter{
 			identifier:    "{{.Created}}",
 			expectedValue: nowtime.String(),
+			operator:      "=",
 		}
 
 		res, err := f.isExpected(oMeta)
@@ -89,14 +239,17 @@ func TestMetaFiltering(t *testing.T) {
 	})
 	t.Run("FailCreated", func(t *testing.T) {
 		nowtime := runtime.Timestamp()
-		oMeta := &runtime.ObjectMeta{
-			Created: nowtime,
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				Created: nowtime,
+			},
 		}
 
 		othertime := nowtime.Add(time.Duration(5))
 		f := metaFilter{
 			identifier:    "{{.Created}}",
 			expectedValue: othertime.String(),
+			operator:      "=",
 		}
 
 		res, err := f.isExpected(oMeta)
@@ -104,15 +257,18 @@ func TestMetaFiltering(t *testing.T) {
 		assert.False(t, res)
 	})
 	t.Run("SuccessLabels", func(t *testing.T) {
-		oMeta := &runtime.ObjectMeta{
-			Labels: map[string]string{
-				"foo": "bar",
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				Labels: map[string]string{
+					"foo": "bar",
+				},
 			},
 		}
 
 		f := metaFilter{
 			identifier:    "{{.Labels.foo}}",
 			expectedValue: "bar",
+			operator:      "=",
 		}
 
 		res, err := f.isExpected(oMeta)
@@ -120,15 +276,18 @@ func TestMetaFiltering(t *testing.T) {
 		assert.True(t, res)
 	})
 	t.Run("FailLabels", func(t *testing.T) {
-		oMeta := &runtime.ObjectMeta{
-			Labels: map[string]string{
-				"foo": "bar2",
+		oMeta := &api.VM{
+			ObjectMeta: runtime.ObjectMeta{
+				Labels: map[string]string{
+					"foo": "bar2",
+				},
 			},
 		}
 
 		f := metaFilter{
 			identifier:    "{{.Labels.foo}}",
 			expectedValue: "bar",
+			operator:      "=",
 		}
 
 		res, err := f.isExpected(oMeta)
@@ -143,20 +302,55 @@ func TestExtractKeyValueFiltering(t *testing.T) {
 		str  string
 		key  string
 		val  string
+		op   string
 		err  error
 	}{
 		{
 			name: "Success1",
-			str:  "{{.Name}}=ta-rg_et",
+			str:  "{{.Name}}=t/a-r:g_et",
 			key:  "{{.Name}}",
-			val:  "ta-rg_et",
+			val:  "t/a-r:g_et",
+			op:   "=",
 			err:  nil,
 		},
 		{
 			name: "Success2",
+			str:  "{{.Name}}!=ta-rg_et",
+			key:  "{{.Name}}",
+			val:  "ta-rg_et",
+			op:   "!=",
+			err:  nil,
+		},
+		{
+			name: "Success3",
+			str:  "{{.Name}}==ta-rg_et",
+			key:  "{{.Name}}",
+			val:  "ta-rg_et",
+			op:   "==",
+			err:  nil,
+		},
+		{
+			name: "Success4",
+			str:  "{{.Name}}=~ta-rg_et",
+			key:  "{{.Name}}",
+			val:  "ta-rg_et",
+			op:   "=~",
+			err:  nil,
+		},
+		{
+			name: "Success5",
+			str:  "{{.Name}}!~ta-rg_et",
+			key:  "{{.Name}}",
+			val:  "ta-rg_et",
+			op:   "!~",
+			err:  nil,
+		},
+		{
+			name: "Success6",
 			str:  "{{.Name}}=8",
 			key:  "{{.Name}}",
 			val:  "8",
+			op:   "=",
 			err:  nil,
 		},
 		{
@@ -164,6 +358,7 @@ func TestExtractKeyValueFiltering(t *testing.T) {
 			str:  "{{.Name=}}target",
 			key:  "",
 			val:  "",
+			op:   "",
 			err:  fmt.Errorf("expected error"),
 		},
 		{
@@ -171,6 +366,7 @@ func TestExtractKeyValueFiltering(t *testing.T) {
 			str:  "={{.Name}}target",
 			key:  "",
 			val:  "",
+			op:   "",
 			err:  fmt.Errorf("expected error"),
 		},
 		{
@@ -178,12 +374,13 @@ func TestExtractKeyValueFiltering(t *testing.T) {
 			str:  "{{.Name}}tar=get",
 			key:  "",
 			val:  "",
+			op:   "",
 			err:  fmt.Errorf("expected error"),
 		},
 	}
 	for _, utest := range tests {
 		t.Run(utest.name, func(t *testing.T) {
-			key, val, err := extractKeyValueFiltering(utest.str)
+			key, val, op, err := extractKeyValueFiltering(utest.str)
 			if utest.err == nil {
 				assert.Nil(t, err)
 			} else {
@@ -191,6 +388,7 @@ func TestExtractKeyValueFiltering(t *testing.T) {
 			}
 			assert.Equal(t, utest.key, key)
 			assert.Equal(t, utest.val, val)
+			assert.Equal(t, utest.op, op)
 		})
 	}
 }
@@ -199,20 +397,23 @@ func TestExtractMultipleKeyValueFiltering(t *testing.T) {
 	tests := []struct {
 		name string
 		str  string
-		res  []map[string]string
+		res  []metaFilter
 		err  error
 	}{
 		{
 			name: "Success",
 			str:  "{{.Name}}=target1,{{.Age}}=38",
-			res: []map[string]string{
-				{
-					"key":   "{{.Name}}",
-					"value": "target1",
+			res: []metaFilter{
+
+				metaFilter{
+					identifier:    "{{.Name}}",
+					expectedValue: "target1",
+					operator:      "=",
 				},
-				{
-					"key":   "{{.Age}}",
-					"value": "38",
+				metaFilter{
+					identifier:    "{{.Age}}",
+					expectedValue: "38",
+					operator:      "=",
 				},
 			},
 			err: nil,
@@ -247,16 +448,18 @@ func TestMultipleMetaFilter(t *testing.T) {
 	tests := []struct {
 		name     string
 		str      string
-		object   *runtime.ObjectMeta
+		object   *api.VM
 		expected bool
 		err      error
 	}{
 		{
 			name: "SuccessOneFilter",
 			str:  "{{.Name}}=hello",
-			object: &runtime.ObjectMeta{
-				Name: "hello",
-				UID:  "123",
+			object: &api.VM{
+				ObjectMeta: runtime.ObjectMeta{
+					Name: "hello",
+					UID:  "123",
+				},
 			},
 			expected: true,
 			err:      nil,
@@ -264,9 +467,11 @@ func TestMultipleMetaFilter(t *testing.T) {
 		{
 			name: "SuccessTwoFilter",
 			str:  "{{.Name}}=hello,{{.UID}}=123",
-			object: &runtime.ObjectMeta{
-				Name: "hello",
-				UID:  "123",
+			object: &api.VM{
+				ObjectMeta: runtime.ObjectMeta{
+					Name: "hello",
+					UID:  "123",
+				},
 			},
 			expected: true,
 			err:      nil,
@@ -274,9 +479,11 @@ func TestMultipleMetaFilter(t *testing.T) {
 		{
 			name: "SuccessOneValueDiffer",
 			str:  "{{.Name}}=hello,{{.UID}}=1234",
-			object: &runtime.ObjectMeta{
-				Name: "hello",
-				UID:  "123",
+			object: &api.VM{
+				ObjectMeta: runtime.ObjectMeta{
+					Name: "hello",
+					UID:  "123",
+				},
 			},
 			expected: false,
 			err:      nil,
@@ -284,9 +491,11 @@ func TestMultipleMetaFilter(t *testing.T) {
 		{
 			name: "FailBadFormat",
 			str:  "{{.Name}}=hello,{{.Unexisting}}=1234",
-			object: &runtime.ObjectMeta{
-				Name: "hello",
-				UID:  "123",
+			object: &api.VM{
+				ObjectMeta: runtime.ObjectMeta{
+					Name: "hello",
+					UID:  "123",
+				},
 			},
 			expected: false,
 			err:      fmt.Errorf("expected error"),
