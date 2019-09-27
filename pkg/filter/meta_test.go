@@ -405,12 +405,12 @@ func TestExtractMultipleKeyValueFiltering(t *testing.T) {
 			str:  "{{.Name}}=target1,{{.Age}}=38",
 			res: []metaFilter{
 
-				metaFilter{
+				{
 					identifier:    "{{.Name}}",
 					expectedValue: "target1",
 					operator:      "=",
 				},
-				metaFilter{
+				{
 					identifier:    "{{.Age}}",
 					expectedValue: "38",
 					operator:      "=",
