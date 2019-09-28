@@ -52,8 +52,8 @@ github.com/containerd/cgroups v0.0.0-20190717030353-c4b9ac5c7601 h1:6xW3ogNpFIly
 github.com/containerd/cgroups v0.0.0-20190717030353-c4b9ac5c7601/go.mod h1:X9rLEHIqSf/wfK8NsPqxJmeZgW4pcfzdXITDrUSJ6uI=
 github.com/containerd/console v0.0.0-20181022165439-0650fd9eeb50 h1:WMpHmC6AxwWb9hMqhudkqG7A/p14KiMnl6d3r1iUMjU=
 github.com/containerd/console v0.0.0-20181022165439-0650fd9eeb50/go.mod h1:Tj/on1eG8kiEhd0+fhSDzsPAFESxzBBvdyEgyryXffw=
-github.com/containerd/containerd v1.3.0-rc.2 h1:gQzUVr7bJHFUnqNfSPDkqiuQKTHZxHsJ9jf53ol+tHA=
-github.com/containerd/containerd v1.3.0-rc.2/go.mod h1:bC6axHOhabU15QhwfG7w5PipXdVtMXFTttgp+kVtyUA=
+github.com/containerd/containerd v1.3.0 h1:xjvXQWABwS2uiv3TWgQt5Uth60Gu86LTGZXMJkjc7rY=
+github.com/containerd/containerd v1.3.0/go.mod h1:bC6axHOhabU15QhwfG7w5PipXdVtMXFTttgp+kVtyUA=
 github.com/containerd/continuity v0.0.0-20190815185530-f2a389ac0a02 h1:tN9D97v5A5QuKdcKHKt+UMKrkQ5YXUnD8iM7IAAjEfI=
 github.com/containerd/continuity v0.0.0-20190815185530-f2a389ac0a02/go.mod h1:GL3xCUCBDV3CZiTSEKksMWbLE66hEyuu9qyDOOqM47Y=
 github.com/containerd/fifo v0.0.0-20190816180239-bda0ff6ed73c h1:KFbqHhDeaHM7IfFtXHfUHMDaUStpM2YwBR+iJCIOsKk=

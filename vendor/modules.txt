@@ -28,7 +28,7 @@ github.com/beorn7/perks/quantile
 github.com/c2h5oh/datasize
 # github.com/containerd/console v0.0.0-20181022165439-0650fd9eeb50
 github.com/containerd/console
-# github.com/containerd/containerd v1.3.0-beta.1 => github.com/containerd/containerd v1.3.0-rc.2
+# github.com/containerd/containerd v1.3.0-beta.1 => github.com/containerd/containerd v1.3.0
 github.com/containerd/containerd
 github.com/containerd/containerd/cio
 github.com/containerd/containerd/containers
