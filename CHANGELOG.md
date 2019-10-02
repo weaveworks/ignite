@@ -2,6 +2,189 @@
 
 # Changelog
 
+## v0.6.1
+
+**Released:** 02/10/2019
+
+We're excited to release `v0.6.1` with usability improvements and lots of bug fixes :)
+
+This release consists of **32** noteworthy PRs from 6 contributors over the past month.  
+We had **7** contributions from 4 external contributors. Thanks so much!
+
+Ignite should now work with most installations of containerd -- even those that are installed underneath upstream docker.  
+Care has been taken with our installation instructions to ensure we are not breaking users docker installations.  
+We've also implemented a graceful fallback to older containerd-shim versions and now support containerd-shim-runc-v2.  
+
+This release also contains numerous fixes that make the CNI network plugin work much more reliably.  
+Connections to the internet from vm's using CNI should now work on most machines by default.  
+Please see the following user-facing change.  
+
+### Default CNI Network Change
+
+The default `cni0` bridge has changed to a new `ignite0` bridge introduced by the [#460](https://github.com/weaveworks/ignite/pull/460) bugfix. This comes with a new subnet as well.  
+We did this because the default CNI config shipped in `v0.6.0` was a non-working configuration for most users.  
+You may continue to use the default CNI configuration. Nothing will change automatically.  
+
+If you are using your own CNI configuration, this does not affect you.
+
+To migrate your running CNI networked vm's to the new default subnet, you can:
+1. install this new ignite version
+2. stop the relevant vm's
+3. delete the CNI network
+4. restart them
+
+Example:
+```bash
+# first, upgrade to ignite v0.6.1
+
+# list all vm's on the default 172.18.0.0/16 CNI network
+sudo bin/ignite vm ls | grep '\b172.18.[0-9][0-9]*.[0-9][0-9]*\b'
+# stop the listed vm's with the appropriate runtime
+sudo bin/ignite my-containerd-vm
+sudo bin/ignite my-docker-vm --runtime docker
+
+# remove the old CNI network config
+sudo rm -rf rm /etc/cni/net.d/
+# optional: remove the old bridge
+sudo ifconfig cni0 down
+sudo ip link delete cni0
+
+# restart your vm's
+sudo bin/ignite my-containerd-vm
+sudo bin/ignite my-docker-vm --runtime docker
+# Your vm's will now have addresses configured in the 10.61.0.0/16 subnet.
+# If they did not have internet connectivity before, they now should.
+```
+
+### Enhancements
+
+- wait for SSH when starting a VM ([#429](https://github.com/weaveworks/ignite/pull/429), [@chanwit](https://github.com/chanwit))
+- skip root requirement for ignite version ([#409](https://github.com/weaveworks/ignite/pull/409), [@chanwit](https://github.com/chanwit))
+- show runtime name when ignite version ([#405](https://github.com/weaveworks/ignite/pull/405), [@chanwit](https://github.com/chanwit))
+- improve preflight check and add a containerd test case for ignite run ([#416](https://github.com/weaveworks/ignite/pull/416), [@chanwit](https://github.com/chanwit))
+- Detect available containerd-shim versions defaulting to legacy linux runtime ([#411](https://github.com/weaveworks/ignite/pull/411), [@stealthybox](https://github.com/stealthybox))
+- log runtime during ignite run ([#388](https://github.com/weaveworks/ignite/pull/388), [@silenceshell](https://github.com/silenceshell))
+- preflight before start operation ([#360](https://github.com/weaveworks/ignite/pull/360), [@najeal](https://github.com/najeal))
+
+### Bug Fixes
+
+- Change default CNI network name, bridge name, and subnet [#460](https://github.com/weaveworks/ignite/pull/460), [@stealthybox](https://github.com/stealthybox)
+- Chain firewall plugin to fix routing for default CNI bridge [#442](https://github.com/weaveworks/ignite/pull/442), [@stealthybox](https://github.com/stealthybox)
+- Teardown IPMasq rules for all actual configured bridges instead of using the hardcoded default string ([#461](https://github.com/weaveworks/ignite/pull/461), [@stealthybox](https://github.com/stealthybox))
+- Fix containerd resolv.conf + DHCP behavior ([#441](https://github.com/weaveworks/ignite/pull/441), [@stealthybox](https://github.com/stealthybox))
+- Make getIPChains more precise and less failure-prone ([#426](https://github.com/weaveworks/ignite/pull/426), [@stealthybox](https://github.com/stealthybox))
+- quick fix typo umount as unmount in preflight check ([#415](https://github.com/weaveworks/ignite/pull/415), [@chanwit](https://github.com/chanwit))
+- fix possible dm snapshot leaks ([#381](https://github.com/weaveworks/ignite/pull/381), [@chanwit](https://github.com/chanwit))
+- make rm command more robust with addition check ([#413](https://github.com/weaveworks/ignite/pull/413), [@chanwit](https://github.com/chanwit))
+
+### Documentation
+
+- Make documented install safer for docker-ce users ([#454](https://github.com/weaveworks/ignite/pull/454), [@stealthybox](https://github.com/stealthybox))
+- improve rm docs ([#444](https://github.com/weaveworks/ignite/pull/444), [@chanwit](https://github.com/chanwit))
+- add installation notes about docker ([#397](https://github.com/weaveworks/ignite/pull/397), [@kobayashi](https://github.com/kobayashi))
+- use image weaveworks/ubuntu instead of centos:7 in command examples ([#387](https://github.com/weaveworks/ignite/pull/387), [@silenceshell](https://github.com/silenceshell))
+- default cni network does not support multi-node ([#385](https://github.com/weaveworks/ignite/pull/385), [@silenceshell](https://github.com/silenceshell))
+
+### Dependencies
+
+- update containerd to 1.3.0 and golang to 1.12.10 ([#464](https://github.com/weaveworks/ignite/pull/464), [@chanwit](https://github.com/chanwit))
+- update firecracker to v0.18.0 ([#414](https://github.com/weaveworks/ignite/pull/414), [@chanwit](https://github.com/chanwit))
+- Bump indirect dependency on klog [#453](https://github.com/weaveworks/ignite/pull/453), [@stealthybox](https://github.com/stealthybox)
+- On release, use tidy-in-docker to prevent module differences from differing versions of go ([#433](https://github.com/weaveworks/ignite/pull/433), [@stealthybox](https://github.com/stealthybox))
+
+### Development
+
+- Add an e2e for ignite run [#412](https://github.com/weaveworks/ignite/pull/412), [@chanwit](https://github.com/chanwit)
+- Store e2e command output /w errors + remove variable sleep [#425](https://github.com/weaveworks/ignite/pull/425), [@stealthybox](https://github.com/stealthybox)
+- e2e docker+cni and curl google.com [#422](https://github.com/weaveworks/ignite/pull/422), [@stealthybox](https://github.com/stealthybox)
+- Load all images into containerd ([#435](https://github.com/weaveworks/ignite/pull/435), [@stealthybox](https://github.com/stealthybox))
+- specify the minimum version of make ([#389](https://github.com/weaveworks/ignite/pull/389), [@silenceshell](https://github.com/silenceshell))
+- Update Makefile for containerd with overridable commands ([#417](https://github.com/weaveworks/ignite/pull/417), [@stealthybox](https://github.com/stealthybox))
+
+### Governance
+
+- Update CODEOWNERS ([#420](https://github.com/weaveworks/ignite/pull/420), [@stealthybox](https://github.com/stealthybox))
+- Switch maintainers ([#398](https://github.com/weaveworks/ignite/pull/398), [@luxas](https://github.com/luxas))
+
+---
+
+## v0.5.4
+
+**Released:** 24/09/2019
+
+This is the fourth patch release in the `v0.5.X` series, containing one enhancement that implements the blocking SSH wait for vm's run with `--ssh`.
+
+### Enhancements
+
+- implement ssh wait for a VM ([#429](https://github.com/weaveworks/ignite/pull/429), [@chanwit](https://github.com/chanwit))
+
+### Release Machinery
+
+- 0.5.x -- On release, use tidy-in-docker to prevent module differences from differing versions of go ([#434](https://github.com/weaveworks/ignite/pull/434), [@stealthybox](https://github.com/stealthybox))
+
+
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.5.4
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+__________
+**[OCI images for this release](
+https://hub.docker.com/r/weaveworks/ignite/tags?page=1&name=v0.5.4
+)**
+
+---
+
+## v0.5.3
+
+**Released:** 16/09/2019
+
+This is the third patch release in the `v0.5.X` series, containing one enhancement that helps projects using the ignite binary parse version information without root.
+
+Note: dependent modules were calculated with a newer version of go;  see #433
+
+### Enhancements
+
+- backport: skip root requirement for ignite version ([#430](https://github.com/weaveworks/ignite/pull/430), [@chanwit](https://github.com/chanwit))
+
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.5.3
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+__________
+**[OCI images for this release](
+https://hub.docker.com/r/weaveworks/ignite/tags?page=1&name=v0.5.3
+)**
+
+---
+
 ## v0.6.0
 
 **Released:** 30/08/2019
@@ -9,7 +192,7 @@
 Welcome to the `v0.6.0` release, consisting of major underlying improvements, and a more efficient runtime.
 
 This release consists of **25** noteworthy PRs from 4 contributors; although v0.5.0 was released just two weeks ago!
-We had **5** contributions from 2 external contributors, thanks!
+We had **5** contributions from 2 external contributors, thanks :tada:!
 
 The main themes of this release has been:
 
@@ -24,11 +207,11 @@ The main themes of this release has been:
 Also, our documentation is now available at **https://ignite.readthedocs.org**.
 Check that site out whenever you need some information, or open an issue :)
 
-### Deprecations
+## Deprecations
 
 - As per v0.5.0, the `v1alpha2` API version is the default. Going forward, the `v1alpha1` API version is deprecated, and will be removed in a future release.
 
-### New Features
+## New Features
 
 - Make containerd the default runtime and CNI the default network plugin ([#371](https://github.com/weaveworks/ignite/pull/371), [@twelho](https://github.com/twelho))
 - Implement the containerd runtime for Ignite ([#337](https://github.com/weaveworks/ignite/pull/337), [@twelho](https://github.com/twelho))
@@ -36,7 +219,7 @@ Check that site out whenever you need some information, or open an issue :)
 - Implement hostPort support with CNI ([#375](https://github.com/weaveworks/ignite/pull/375), [@luxas](https://github.com/luxas))
 - Add openSUSE images ([#357](https://github.com/weaveworks/ignite/pull/357), [@aojea](https://github.com/aojea))
 
-### Enhancements
+## Enhancements
 
 - Implement cleanup of CNI networks using the default bridge ([#376](https://github.com/weaveworks/ignite/pull/376), [@luxas](https://github.com/luxas))
 - containerd backend improvements ([#368](https://github.com/weaveworks/ignite/pull/368), [@twelho](https://github.com/twelho))
@@ -51,7 +234,7 @@ Check that site out whenever you need some information, or open an issue :)
 - Automatically optimize the size of an imported image ([#335](https://github.com/weaveworks/ignite/pull/335), [@twelho](https://github.com/twelho))
 - Add shell autocompletion for `ignited` ([#363](https://github.com/weaveworks/ignite/pull/363), [@silenceshell](https://github.com/silenceshell))
 
-### Bug Fixes
+## Bug Fixes
 
 - Add `err` as a param for `log.Errorf` ([#367](https://github.com/weaveworks/ignite/pull/367), [@silenceshell](https://github.com/silenceshell))
 - Fix an issue in the GitDirectory loop when trying to commit without any actual changes ([#369](https://github.com/weaveworks/ignite/pull/369), [@silenceshell](https://github.com/silenceshell))
@@ -59,11 +242,36 @@ Check that site out whenever you need some information, or open an issue :)
 - Move VM network removal to logically correct place ([#373](https://github.com/weaveworks/ignite/pull/373), [@twelho](https://github.com/twelho))
 - Fix Docker client port mappings by actually exposing them after binding ([#350](https://github.com/weaveworks/ignite/pull/350), [@twelho](https://github.com/twelho))
 
-### Documentation
+## Documentation
 
 - Update the docs for v0.6.0 ([#378](https://github.com/weaveworks/ignite/pull/378), [@luxas](https://github.com/luxas))
 - Docs: Bump latest Ignite version to v0.5.1 ([#362](https://github.com/weaveworks/ignite/pull/362), [@silenceshell](https://github.com/silenceshell))
 - Change Read the Docs links to point to the stable branch in main README ([#338](https://github.com/weaveworks/ignite/pull/338), [@twelho](https://github.com/twelho))
+
+## Trying it out / Next Steps!
+
+**NOTE:** Stop your VMs before performing the upgrade, as the underlying container runtime has changed!
+In short:
+
+```bash
+export VERSION=v0.6.0
+export ARCH=$([ $(uname -m) = "x86_64" ] && echo amd64 || echo arm64)
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${ARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+
+# Install the CNI plugins if you don't already have them
+export CNI_VERSION=v0.8.2
+curl -sSL https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz | tar -xz -C /opt/cni/bin
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+---
 
 ## v0.5.2
 
