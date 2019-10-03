@@ -1,9 +1,13 @@
 package containerd
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
+	"time"
 
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/runtime"
 
 	v2shim "github.com/containerd/containerd/runtime/v2/shim"
@@ -22,11 +26,18 @@ func init() {
 var imageName, _ = meta.NewOCIImageRef("docker.io/library/busybox:latest")
 
 func TestPull(t *testing.T) {
-	t.Error(client.PullImage(imageName))
+	err := client.PullImage(imageName)
+	if err != nil {
+		t.Errorf("Error Pulling image: %s", err)
+	}
 }
 
 func TestInspect(t *testing.T) {
-	t.Error(client.InspectImage(imageName))
+	result, err := client.InspectImage(imageName)
+	t.Log(result)
+	if err != nil {
+		t.Errorf("Error Inspecting image: %s", err)
+	}
 }
 
 /*func TestExport(t *testing.T) {
@@ -55,25 +66,54 @@ func TestInspect(t *testing.T) {
 	if err := reader.Close(); err != nil {
 		t.Fatal(err)
 	}
-	t.Error("done", tempDir)
+	t.Log("done", tempDir)
 }*/
 
 func TestRunRemove(t *testing.T) {
+	cName := "ignite-test-foo2"
+	cID := "test-foo2"
+	vmDir := filepath.Join(constants.VM_DIR, cID)
+
+	// TODO: refactor client RunContainer() to take in generic stateDir
+	//       remove dependency on VM constants for runtime client
+	//       this specific dir is currently required to support resolvconf
+	//       ideally, we could pass any tempdir with any permissions here
+	os.MkdirAll(vmDir, constants.DATA_DIR_PERM)
+
 	cfg := &runtime.ContainerConfig{
 		Cmd: []string{
 			"/bin/sh",
 			"-c",
-			"echo hello && sleep 3600",
+			"echo hello",
 		},
 		Binds: []*runtime.Bind{
-			runtime.BindBoth("/tmp/foo"),
+			runtime.BindBoth(vmDir),
 		},
 		Devices: []*runtime.Bind{
 			runtime.BindBoth("/dev/kvm"),
 		},
+		Labels: map[string]string{},
 	}
-	t.Error(client.RunContainer(imageName, cfg, "ignite-test-foo2", "test-foo2"))
-	t.Error(client.RemoveContainer("ignite-test-foo2"))
+
+	taskID, err := client.RunContainer(imageName, cfg, cName, cID)
+	if err != nil {
+		t.Errorf("Error Running Container /w TaskID %q: %s", taskID, err)
+	} else {
+		t.Logf("TaskID: %q", taskID)
+	}
+
+	// TODO: this works around a race where the task is not yet stopped
+	//       do this better -- wait on taskID returned above?
+	time.Sleep(time.Second / 4)
+
+	err = client.RemoveContainer(cName)
+	if err != nil {
+		t.Errorf("Error Removing Container: %s", err)
+	}
+
+	// just in case the process is hung -- cleanup
+	client.KillContainer(cName, "SIGQUIT") // TODO: common constant for SIGQUIT
+	client.RemoveContainer(cName)
 }
 
 func TestV2ShimRuntimesHaveBinaryNames(t *testing.T) {
