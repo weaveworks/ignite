@@ -3,13 +3,14 @@ package run
 import (
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/weaveworks/ignite/pkg/apis/ignite"
-
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/preflight/checkers"
 	"github.com/weaveworks/ignite/pkg/util"
+	"golang.org/x/crypto/ssh"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
@@ -62,7 +63,7 @@ func Start(so *startOptions) error {
 	return nil
 }
 
-func waitForSSH(vm *ignite.VM, seconds int) error {
+func dialSuccess(vm *ignite.VM, seconds int) error {
 	// When --ssh is enabled, wait until SSH service started on port 22 at most N seconds
 	ssh := vm.Spec.SSH
 	if ssh != nil && ssh.Generate && len(vm.Status.IPAddresses) > 0 {
@@ -89,4 +90,45 @@ func waitForSSH(vm *ignite.VM, seconds int) error {
 	}
 
 	return nil
+}
+
+func waitForSSH(vm *ignite.VM, seconds int) error {
+	if err := dialSuccess(vm, seconds); err != nil {
+		return err
+	}
+
+	certCheck := &ssh.CertChecker{
+		IsHostAuthority: func(auth ssh.PublicKey, address string) bool {
+			return true
+		},
+		IsRevoked: func(cert *ssh.Certificate) bool {
+			return false
+		},
+		HostKeyFallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
+			return nil
+		},
+	}
+
+	config := &ssh.ClientConfig{
+		User: "user",
+		Auth: []ssh.AuthMethod{
+			ssh.Password("password"),
+		},
+		HostKeyCallback: certCheck.CheckHostKey,
+		Timeout:         5 * time.Second,
+	}
+
+	addr := vm.Status.IPAddresses[0].String() + ":22"
+	sshConn, err := ssh.Dial("tcp", addr, config)
+	if err != nil {
+		// If error contains "unable to authenticate", it seems able to connect the server
+		errString := err.Error()
+		if strings.Contains(errString, "unable to authenticate") {
+			return nil
+		}
+		return err
+	}
+
+	sshConn.Close()
+	return fmt.Errorf("timed out checking SSH server")
 }
