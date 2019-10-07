@@ -136,6 +136,11 @@ func resizeToMinimum(img *api.Image) (err error) {
 // getMinSize retrieves the minimum size for a block device file
 // containing a filesystem and shrinks the filesystem to that size
 func getMinSize(p string) (minSize int64, err error) {
+	const (
+		Colon          = ":"
+		FullWidthColon = "："
+	)
+
 	// Loop mount the image for resize2fs
 	imageLoop, err := newLoopDev(p, false)
 	if err != nil {
@@ -158,8 +163,18 @@ func getMinSize(p string) (minSize int64, err error) {
 
 	// resize2fs 1.45.3 (14-Jul-2019)
 	// Estimated minimum size of the filesystem: 5813528
-	split := strings.Fields(out)
-	if minSize, err = strconv.ParseInt(split[len(split)-1], 10, 64); err != nil {
+	// Try split with colon
+	split := strings.SplitN(out, Colon, 2)
+	if len(split) != 2 {
+		// Seems to fail, try split again with full width colon
+		split = strings.SplitN(out, FullWidthColon, 2)
+		if len(split) != 2 {
+			err = errors.Errorf("cannot parse minimum size from resize2fs: %s", out)
+			return
+		}
+	}
+	minSizeToParse := strings.TrimSpace(split[len(split)-1])
+	if minSize, err = strconv.ParseInt(minSizeToParse, 10, 64); err != nil {
 		return
 	}
 
