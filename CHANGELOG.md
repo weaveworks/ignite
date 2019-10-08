@@ -2,6 +2,70 @@
 
 # Changelog
 
+## v0.6.2
+
+**Released:** 08/10/2019
+
+This is the second patch release in the `v0.6.X` series, containing bugfixes:
+It moves the blocking SSH wait for vm's run with `--ssh` to using the actual protocol.
+It also fixes a locale bug with `resize2fs` parsing that used to occur when using `zh_CN.utf8`.
+
+### Bug Fixes
+
+- Breakout and test `resize2fs` parsing with localized strings + fix for `zh_CN.utf8` ([#473](https://github.com/weaveworks/ignite/pull/473), [@stealthybox](https://github.com/stealthybox))
+- Refactor SSH wait ([#474](https://github.com/weaveworks/ignite/pull/474), [@stealthybox](https://github.com/stealthybox))
+- Use SSH Dial to check if SSH service is really running ([#469](https://github.com/weaveworks/ignite/pull/469), [@chanwit](https://github.com/chanwit))
+
+### Documentation
+
+- Ensure CNI bin dir exists before installing ([#471](https://github.com/weaveworks/ignite/pull/471), [@stealthybox](https://github.com/stealthybox))
+- Bump docs install version to v0.6.2 ([#475](https://github.com/weaveworks/ignite/pull/475), [@stealthybox](https://github.com/stealthybox))
+
+## v0.5.5
+
+**Released:** 08/10/2019
+
+This is the fifth patch release in the `v0.5.X` series, containing bugfixes:
+It moves the blocking SSH wait for vm's run with `--ssh` to using the actual protocol.
+It also fixes a locale bug with `resize2fs` parsing that used to occur when using `zh_CN.utf8`.
+
+### Bug Fixes
+
+- Breakout and test resize2fs parsing with localized strings + fix for zh_CN.utf8 ([#473](https://github.com/weaveworks/ignite/pull/473), [@stealthybox](https://github.com/stealthybox))
+- Refactor SSH wait ([#474](https://github.com/weaveworks/ignite/pull/474), [@stealthybox](https://github.com/stealthybox))
+- Use SSH Dial to check if SSH service is really running ([#469](https://github.com/weaveworks/ignite/pull/469), [@chanwit](https://github.com/chanwit))
+
+### Documentation
+
+- Ensure CNI bin dir exists before installing ([#471](https://github.com/weaveworks/ignite/pull/471), [@stealthybox](https://github.com/stealthybox))
+- Bump docs install version to v0.5.5 ([@stealthybox](https://github.com/stealthybox))
+
+
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.5.5
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+__________
+**[OCI images for this release](
+https://hub.docker.com/r/weaveworks/ignite/tags?page=1&name=v0.5.5
+)**
+
+---
+
 ## v0.6.1
 
 **Released:** 02/10/2019
@@ -40,8 +104,8 @@ Example:
 # list all vm's on the default 172.18.0.0/16 CNI network
 sudo bin/ignite vm ls | grep '\b172.18.[0-9][0-9]*.[0-9][0-9]*\b'
 # stop the listed vm's with the appropriate runtime
-sudo bin/ignite my-containerd-vm
-sudo bin/ignite my-docker-vm --runtime docker
+sudo bin/ignite stop my-containerd-vm
+sudo bin/ignite stop my-docker-vm --runtime docker
 
 # remove the old CNI network config
 sudo rm -rf rm /etc/cni/net.d/
@@ -50,12 +114,12 @@ sudo ifconfig cni0 down
 sudo ip link delete cni0
 
 # restart your vm's
-sudo bin/ignite my-containerd-vm
-sudo bin/ignite my-docker-vm --runtime docker
+sudo bin/ignite start my-containerd-vm
+sudo bin/ignite start my-docker-vm --runtime docker
 # Your vm's will now have addresses configured in the 10.61.0.0/16 subnet.
 # If they did not have internet connectivity before, they now should.
 ```
-
+__________________
 ### Enhancements
 
 - wait for SSH when starting a VM ([#429](https://github.com/weaveworks/ignite/pull/429), [@chanwit](https://github.com/chanwit))
@@ -105,6 +169,29 @@ sudo bin/ignite my-docker-vm --runtime docker
 
 - Update CODEOWNERS ([#420](https://github.com/weaveworks/ignite/pull/420), [@stealthybox](https://github.com/stealthybox))
 - Switch maintainers ([#398](https://github.com/weaveworks/ignite/pull/398), [@luxas](https://github.com/luxas))
+
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.6.1
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+__________
+**[OCI images for this release](
+https://hub.docker.com/r/weaveworks/ignite/tags?page=1&name=v0.6.1
+)**
 
 ---
 
