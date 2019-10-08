@@ -15,7 +15,6 @@ import (
 	"os/exec"
 	"path"
 	"testing"
-	"time"
 
 	"gotest.tools/assert"
 )
@@ -111,7 +110,6 @@ func runCurl(t *testing.T, vmName, runtime, networkPlugin string) {
 		return
 	}
 
-	time.Sleep(2 * time.Second) // TODO(https://github.com/weaveworks/ignite/issues/423): why is this necessary? Can we work to eliminate this?
 	curlCmd := exec.Command(
 		igniteBin,
 		"--runtime="+runtime,
