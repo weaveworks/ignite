@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -156,10 +157,7 @@ func getMinSize(p string) (minSize int64, err error) {
 		return
 	}
 
-	// resize2fs 1.45.3 (14-Jul-2019)
-	// Estimated minimum size of the filesystem: 5813528
-	split := strings.Fields(out)
-	if minSize, err = strconv.ParseInt(split[len(split)-1], 10, 64); err != nil {
+	if minSize, err = parseResize2fsOutputForMinSize(out); err != nil {
 		return
 	}
 
@@ -168,4 +166,18 @@ func getMinSize(p string) (minSize int64, err error) {
 	// Perform the filesystem resize
 	_, err = util.ExecuteCommand("resize2fs", imageLoop.Path(), strconv.FormatInt(minSize, 10))
 	return
+}
+
+// parseResize2fsOutputForMinSize extracts the trailing number from `resize2fs -P`
+func parseResize2fsOutputForMinSize(out string) (int64, error) {
+	// LANG=en_US.utf8
+	//   resize2fs 1.45.3 (14-Jul-2019)
+	//   Estimated minimum size of the filesystem: 5813528
+	// LANG=zh_CN.utf8  https://github.com/tytso/e2fsprogs/blob/v1.45.4/po/zh_CN.po#L7240-L7241
+	//   resize2fs 1.44.1 (24-Mar-2018)
+	//   预计文件系统的最小尺寸：61817
+	split := strings.FieldsFunc(out, func(r rune) bool {
+		return unicode.IsPunct(r) || unicode.IsSpace(r)
+	})
+	return strconv.ParseInt(split[len(split)-1], 10, 64)
 }
