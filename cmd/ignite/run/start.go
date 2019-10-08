@@ -43,8 +43,11 @@ func Start(so *startOptions) error {
 		return err
 	}
 
-	if err := waitForSSH(so.vm, 10); err != nil {
-		return err
+	// When --ssh is enabled, wait until SSH service started on port 22 at most N seconds
+	if ssh := so.vm.Spec.SSH; ssh != nil && ssh.Generate && len(so.vm.Status.IPAddresses) > 0 {
+		if err := waitForSSH(so.vm, 10, 5); err != nil {
+			return err
+		}
 	}
 
 	// If starting interactively, attach after starting
@@ -55,36 +58,32 @@ func Start(so *startOptions) error {
 }
 
 func dialSuccess(vm *ignite.VM, seconds int) error {
-	// When --ssh is enabled, wait until SSH service started on port 22 at most N seconds
-	ssh := vm.Spec.SSH
-	if ssh != nil && ssh.Generate && len(vm.Status.IPAddresses) > 0 {
-		addr := vm.Status.IPAddresses[0].String() + ":22"
-		perSecond := 10
-		delay := time.Second / time.Duration(perSecond)
-		var err error
-		for i := 0; i < seconds*perSecond; i++ {
-			conn, dialErr := net.DialTimeout("tcp", addr, delay)
-			if conn != nil {
-				defer conn.Close()
-				err = nil
-				break
-			}
-			err = dialErr
-			time.Sleep(delay)
+	addr := vm.Status.IPAddresses[0].String() + ":22"
+	perSecond := 10
+	delay := time.Second / time.Duration(perSecond)
+	var err error
+	for i := 0; i < seconds*perSecond; i++ {
+		conn, dialErr := net.DialTimeout("tcp", addr, delay)
+		if conn != nil {
+			defer conn.Close()
+			err = nil
+			break
 		}
-		if err != nil {
-			if err, ok := err.(*net.OpError); ok && err.Timeout() {
-				return fmt.Errorf("Tried connecting to SSH but timed out %s", err)
-			}
-			return err
+		err = dialErr
+		time.Sleep(delay)
+	}
+	if err != nil {
+		if err, ok := err.(*net.OpError); ok && err.Timeout() {
+			return fmt.Errorf("Tried connecting to SSH but timed out %s", err)
 		}
+		return err
 	}
 
 	return nil
 }
 
-func waitForSSH(vm *ignite.VM, seconds int) error {
-	if err := dialSuccess(vm, seconds); err != nil {
+func waitForSSH(vm *ignite.VM, dialSeconds, sshTimeout int) error {
+	if err := dialSuccess(vm, dialSeconds); err != nil {
 		return err
 	}
 
@@ -101,25 +100,20 @@ func waitForSSH(vm *ignite.VM, seconds int) error {
 	}
 
 	config := &ssh.ClientConfig{
-		User: "user",
-		Auth: []ssh.AuthMethod{
-			ssh.Password("password"),
-		},
 		HostKeyCallback: certCheck.CheckHostKey,
-		Timeout:         5 * time.Second,
+		Timeout:         time.Duration(sshTimeout) * time.Second,
 	}
 
 	addr := vm.Status.IPAddresses[0].String() + ":22"
 	sshConn, err := ssh.Dial("tcp", addr, config)
 	if err != nil {
-		// If error contains "unable to authenticate", it seems able to connect the server
-		errString := err.Error()
-		if strings.Contains(errString, "unable to authenticate") {
+		if strings.Contains(err.Error(), "unable to authenticate") {
+			// we connected to the ssh server and recieved the expected failure
 			return nil
 		}
 		return err
 	}
 
-	sshConn.Close()
-	return fmt.Errorf("timed out checking SSH server")
+	defer sshConn.Close()
+	return fmt.Errorf("waitForSSH: connected successfully with no authentication -- failure was expected")
 }
