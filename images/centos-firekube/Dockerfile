@@ -22,25 +22,31 @@ COPY preloaded_images /tmp/images/preloaded_images
 COPY tmp/*.tar /tmp/images/
 
 RUN yum -y install \
-    yum-plugin-downloadonly \
-	yum-plugin-versionlock
+	yum-plugin-downloadonly \
+	yum-plugin-versionlock \
+	containerd.io \
+	libseccomp
 
-RUN yum install --downloadonly device-mapper-persistent-data lvm2
-RUN yum install --downloadonly docker-ce-18.09.7
-RUN yum install --downloadonly kubelet-1.14.1 --disableexcludes kubernetes
-RUN yum install --downloadonly kubeadm-1.14.1 --disableexcludes kubernetes
+RUN yum install --downloadonly \
+	device-mapper-persistent-data \
+	lvm2 \
+	docker-ce-18.09.7
 
-RUN yum -y install containerd.io libseccomp
+RUN yum install --downloadonly \
+	kubelet-1.14.1 \
+	kubeadm-1.14.1 \
+	--disableexcludes kubernetes
 
 WORKDIR /tmp/images
 RUN /usr/bin/containerd & \
-    sleep 2 && \
-    ctr129 version && \
-    bash -x preload_images.sh
+	sleep 2 && \
+	ctr129 version && \
+	bash -x preload_images.sh && \
+	rm -f /etc/docker/daemon.json && \
+	rm -rf /tmp/images/ && \
+	rm -f /usr/bin/ctr129
 
-RUN rm -f /etc/docker/daemon.json
-RUN rm -rf /tmp/images/
-RUN rm -f /usr/bin/ctr129
+##### Prepare Ignite Image
 
 FROM centos:${RELEASE}
 
@@ -55,10 +61,8 @@ RUN yum -y install \
         wget && \
     yum clean all
 
-# Set the root password to root when logging in through the VM's ttyS0 console
-RUN echo root | passwd --stdin root
-
 COPY --from=0 /var/cache/yum /var/cache/yum
 COPY --from=0 /var/lib/containerd /var/lib/containerd
 # Set the root password to root when logging in through the VM's ttyS0 console
 RUN echo root | passwd --stdin root
+
