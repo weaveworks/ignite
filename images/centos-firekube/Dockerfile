@@ -15,7 +15,7 @@ RUN yum -y install \
 ADD  https://github.com/chanwit/containerd/releases/download/v1.2.9-p1/ctr /usr/bin/ctr129
 RUN  chmod +x /usr/bin/ctr129
 COPY kubernetes.repo /etc/yum.repos.d/kubernetes.repo
-COPY docker-ce.repo /etc/yum.repos.d/docker-ce.repo
+ADD  https://download.docker.com/linux/centos/docker-ce.repo /etc/yum.repos.d/docker-ce.repo
 COPY preload_images.sh /tmp/images/preload_images.sh
 RUN  chmod +x /tmp/images/preload_images.sh
 COPY preloaded_images /tmp/images/preloaded_images

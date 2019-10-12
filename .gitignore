@@ -5,4 +5,5 @@ bin
 *.ext4
 images/kubeadm/run
 images/alpine/alpine.*
+images/centos-firekube/tmp
 site
