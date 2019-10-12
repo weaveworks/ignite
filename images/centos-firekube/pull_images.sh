@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 mkdir tmp
 for image in $(cat preloaded_images)
 do

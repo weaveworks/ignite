@@ -55,6 +55,17 @@ ifeq ($(IS_LATEST),true)
 	docker tag $(FULL_IMAGE_NAME)$(ARCH_TAG) $(LATEST_IMAGE_NAME)$(ARCH_TAG)
 endif
 
+build-for-firekube:
+ifeq ($(WHAT),)
+	$(error WHAT is a required argument)
+endif
+	@ls ${WHAT} >/dev/null
+	(cd ${WHAT} && bash -c ./pull_images.sh)
+	docker build --build-arg RELEASE -t ${DOCKER_USER}/ignite-centos:${RELEASE}-${SUB_TAG} ${WHAT}
+
+build-image-firekube:
+	$(MAKE) build-for-firekube WHAT=centos-firekube RELEASE=7 SUB_TAG=wksctl-v0.8.1
+
 push:
 ifeq ($(IS_MANIFEST_LIST),0)
 	docker push $(FULL_IMAGE_NAME)
@@ -75,6 +86,8 @@ endif
 push-all: build-all
 	$(MAKE) OP=push build-all
 
+
+
 build-all:
 	$(MAKE) ${OP} WHAT=amazon-kernel
 	$(MAKE) ${OP} WHAT=amazonlinux   RELEASE=2          IS_LATEST=true
@@ -87,3 +100,4 @@ build-all:
 	$(MAKE) ${OP} WHAT=ubuntu        RELEASE=19.04						IS_MANIFEST_LIST=0
 	$(MAKE) ${OP} WHAT=centos        RELEASE=7          IS_LATEST=true
 	$(MAKE) ${OP} WHAT=kubeadm
+	$(MAKE) build-image-firekube
