@@ -104,10 +104,18 @@ func StartCmdChecks(vm *api.VM, ignoredPreflightErrors sets.String) error {
 			checks = append(checks, ExistingFileChecker{filePath: dependency})
 		}
 	}
+
 	checks = append(checks, providers.Runtime.PreflightChecker())
 	for _, port := range vm.Spec.Network.Ports {
 		checks = append(checks, PortOpenChecker{port: port.HostPort})
 	}
+
+	// Binary name of the runtime is just the runtime name in string, "docker" or "containerd"
+	// So it is OK for us to check only one of them, as people may installing only containerd but not docker
+	runtimeBinaryName := providers.RuntimeName.String()
+	checks = append(checks, BinInPathChecker{bin: runtimeBinaryName})
+
+	// Check common binaries
 	for _, dependency := range constants.BinaryDependencies {
 		checks = append(checks, BinInPathChecker{bin: dependency})
 	}
