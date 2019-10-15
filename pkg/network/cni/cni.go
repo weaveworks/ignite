@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -97,7 +98,18 @@ func GetCNINetworkPlugin(runtime runtime.Interface) (network.Plugin, error) {
 		}
 	}
 
-	binDirs := []string{CNIBinDir}
+	var binDirs []string
+
+	// Check if we have an embedded CNI along side the ignite binary
+	exeDir := filepath.Dir(os.Args[0])
+	embeddedCNIBinDir := path.Join(exeDir, "opt", "cni", "bin")
+	// If we found the local CNI binary dir, we use it
+	if _, err := os.Stat(embeddedCNIBinDir); err == nil {
+		binDirs = append(binDirs, embeddedCNIBinDir)
+	}
+
+	// and we always have the default value from CNIBinDir
+	binDirs = append(binDirs, CNIBinDir)
 	cniInstance, err := gocni.New(gocni.WithMinNetworkCount(2),
 		gocni.WithPluginConfDir(CNIConfDir),
 		gocni.WithPluginDir(binDirs))
