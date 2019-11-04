@@ -95,6 +95,19 @@ type AvailablePathChecker struct {
 }
 
 func StartCmdChecks(vm *api.VM, ignoredPreflightErrors sets.String) error {
+	checks := defaultCheckers()
+	for _, port := range vm.Spec.Network.Ports {
+		checks = append(checks, PortOpenChecker{port: port.HostPort})
+	}
+	return runChecks(checks, ignoredPreflightErrors)
+}
+
+func PreflightCmdChecks(ignoredPreflightErrors sets.String) error {
+	checks := defaultCheckers()
+	return runChecks(checks, ignoredPreflightErrors)
+}
+
+func defaultCheckers() []preflight.Checker {
 	checks := []preflight.Checker{}
 	for _, dependency := range constants.PathDependencies {
 		checks = append(checks, ExistingFileChecker{filePath: dependency})
@@ -105,13 +118,10 @@ func StartCmdChecks(vm *api.VM, ignoredPreflightErrors sets.String) error {
 		}
 	}
 	checks = append(checks, providers.Runtime.PreflightChecker())
-	for _, port := range vm.Spec.Network.Ports {
-		checks = append(checks, PortOpenChecker{port: port.HostPort})
-	}
 	for _, dependency := range constants.BinaryDependencies {
 		checks = append(checks, BinInPathChecker{bin: dependency})
 	}
-	return runChecks(checks, ignoredPreflightErrors)
+	return checks
 }
 
 func runChecks(checks []preflight.Checker, ignoredPreflightErrors sets.String) error {

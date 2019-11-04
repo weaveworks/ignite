@@ -51,6 +51,7 @@ Example usage:
 * [ignite kernel](ignite_kernel.md)	 - Manage VM kernels
 * [ignite kill](ignite_kill.md)	 - Kill running VMs
 * [ignite logs](ignite_logs.md)	 - Get the logs for a running VM
+* [ignite preflight](ignite_preflight.md)	 - Checks dependencies are fullfilled
 * [ignite ps](ignite_ps.md)	 - List running VMs
 * [ignite rm](ignite_rm.md)	 - Remove VMs
 * [ignite rmi](ignite_rmi.md)	 - Remove VM base images
