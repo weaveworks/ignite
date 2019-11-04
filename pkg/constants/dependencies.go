@@ -8,7 +8,6 @@ var BinaryDependencies = [...]string{
 	"e2fsck",
 	"resize2fs",
 	"strings",
-	"docker",
 	"dmsetup",
 	"ssh",
 	"git",
