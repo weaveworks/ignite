@@ -72,6 +72,9 @@ all: ignite
 install: ignite
 	sudo cp bin/$(GOARCH)/ignite /usr/local/bin
 
+install-all: install ignited
+	sudo cp bin/$(GOARCH)/ignited /usr/local/bin
+
 BINARIES = ignite ignited ignite-spawn
 $(BINARIES):
 	$(MAKE) shell COMMAND="make bin/$(GOARCH)/$@"
@@ -217,7 +220,7 @@ dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversio
 		--input-dirs ${API_DIRS} \
 		-O zz_generated.conversion \
 		-h /tmp/boilerplate
-	
+
 	/go/bin/openapi-gen \
 		--input-dirs ${API_DIRS} \
 		--output-package ${PROJECT}/pkg/openapi \
