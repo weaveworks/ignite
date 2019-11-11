@@ -10,7 +10,8 @@ import (
 )
 
 type PsFlags struct {
-	All bool
+	All    bool
+	Filter string
 }
 
 type psOptions struct {
@@ -25,16 +26,37 @@ func (pf *PsFlags) NewPsOptions() (po *psOptions, err error) {
 }
 
 func Ps(po *psOptions) error {
+	var filters *filter.MultipleMetaFilter
+	var err error
+	var filtering bool
+	if po.PsFlags.Filter != "" {
+		filtering = true
+		filters, err = filter.GenerateMultipleMetadataFiltering(po.PsFlags.Filter)
+		if err != nil {
+			return err
+		}
+	}
 	o := util.NewOutput()
 	defer o.Flush()
 
 	o.Write("VM ID", "IMAGE", "KERNEL", "SIZE", "CPUS", "MEMORY", "CREATED", "STATUS", "IPS", "PORTS", "NAME")
 	for _, vm := range po.allVMs {
-		o.Write(vm.GetUID(), vm.Spec.Image.OCI, vm.Spec.Kernel.OCI,
-			vm.Spec.DiskSize, vm.Spec.CPUs, vm.Spec.Memory, formatCreated(vm), formatStatus(vm), vm.Status.IPAddresses,
-			vm.Spec.Network.Ports, vm.GetName())
+		isExpectedVM := true
+		if filtering {
+			isExpectedVM, err = filters.AreExpected(vm)
+			if err != nil {
+				return err
+			}
+		}
+		if err != nil {
+			return err
+		}
+		if isExpectedVM {
+			o.Write(vm.GetUID(), vm.Spec.Image.OCI, vm.Spec.Kernel.OCI,
+				vm.Spec.DiskSize, vm.Spec.CPUs, vm.Spec.Memory, formatCreated(vm), formatStatus(vm), vm.Status.IPAddresses,
+				vm.Spec.Network.Ports, vm.GetName())
+		}
 	}
-
 	return nil
 }
 
