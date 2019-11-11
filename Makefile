@@ -9,7 +9,7 @@ SHELL:=/bin/bash
 DOCKER := docker
 # Set the first containerd.sock that successfully stats -- fallback to the docker4mac default
 CONTAINERD_SOCK := $(shell \
-	ls 2>/dev/null \
+	sudo ls 2>/dev/null \
 		/run/containerd/containerd.sock \
 		/run/docker/containerd/containerd.sock \
 		/var/run/containerd/containerd.sock \
