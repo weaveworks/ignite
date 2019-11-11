@@ -9,7 +9,11 @@ SHELL:=/bin/bash
 DOCKER := docker
 # Set the first containerd.sock that successfully stats -- fallback to the docker4mac default
 CONTAINERD_SOCK := $(shell \
-	ls 2>/dev/null \
+	$(DOCKER) run -i --rm \
+		-v /run:/run:ro \
+		-v /var/run:/var/run:ro \
+		busybox:latest \
+		ls 2>/dev/null \
 		/run/containerd/containerd.sock \
 		/run/docker/containerd/containerd.sock \
 		/var/run/containerd/containerd.sock \
@@ -68,9 +72,14 @@ endif
 E2E_REGEX := Test
 E2E_COUNT := 1
 
-all: ignite
+# Default is to build all the binaries for this architecture
+all: build-all-$(GOARCH)
+
 install: ignite
 	sudo cp bin/$(GOARCH)/ignite /usr/local/bin
+
+install-all: install ignited
+	sudo cp bin/$(GOARCH)/ignited /usr/local/bin
 
 BINARIES = ignite ignited ignite-spawn
 $(BINARIES):
@@ -217,7 +226,7 @@ dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversio
 		--input-dirs ${API_DIRS} \
 		-O zz_generated.conversion \
 		-h /tmp/boilerplate
-	
+
 	/go/bin/openapi-gen \
 		--input-dirs ${API_DIRS} \
 		--output-package ${PROJECT}/pkg/openapi \
