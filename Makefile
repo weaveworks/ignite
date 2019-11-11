@@ -68,7 +68,9 @@ endif
 E2E_REGEX := Test
 E2E_COUNT := 1
 
-all: ignite
+# Default is to build all the binaries for this architecture
+all: build-all-$(GOARCH)
+
 install: ignite
 	sudo cp bin/$(GOARCH)/ignite /usr/local/bin
 
