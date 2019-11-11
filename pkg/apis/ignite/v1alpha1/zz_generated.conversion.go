@@ -40,16 +40,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*ImageSpec)(nil), (*ignite.ImageSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_ImageSpec_To_ignite_ImageSpec(a.(*ImageSpec), b.(*ignite.ImageSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*ignite.ImageSpec)(nil), (*ImageSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_ignite_ImageSpec_To_v1alpha1_ImageSpec(a.(*ignite.ImageSpec), b.(*ImageSpec), scope)
-	}); err != nil {
-		return err
-	}
 	if err := s.AddGeneratedConversionFunc((*ImageStatus)(nil), (*ignite.ImageStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1alpha1_ImageStatus_To_ignite_ImageStatus(a.(*ImageStatus), b.(*ignite.ImageStatus), scope)
 	}); err != nil {
@@ -70,16 +60,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*KernelSpec)(nil), (*ignite.KernelSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_KernelSpec_To_ignite_KernelSpec(a.(*KernelSpec), b.(*ignite.KernelSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*ignite.KernelSpec)(nil), (*KernelSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_ignite_KernelSpec_To_v1alpha1_KernelSpec(a.(*ignite.KernelSpec), b.(*KernelSpec), scope)
-	}); err != nil {
-		return err
-	}
 	if err := s.AddGeneratedConversionFunc((*KernelStatus)(nil), (*ignite.KernelStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_v1alpha1_KernelStatus_To_ignite_KernelStatus(a.(*KernelStatus), b.(*ignite.KernelStatus), scope)
 	}); err != nil {
@@ -87,16 +67,6 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}
 	if err := s.AddGeneratedConversionFunc((*ignite.KernelStatus)(nil), (*KernelStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_ignite_KernelStatus_To_v1alpha1_KernelStatus(a.(*ignite.KernelStatus), b.(*KernelStatus), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*OCIImageSource)(nil), (*ignite.OCIImageSource)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_OCIImageSource_To_ignite_OCIImageSource(a.(*OCIImageSource), b.(*ignite.OCIImageSource), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*ignite.OCIImageSource)(nil), (*OCIImageSource)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_ignite_OCIImageSource_To_v1alpha1_OCIImageSource(a.(*ignite.OCIImageSource), b.(*OCIImageSource), scope)
 	}); err != nil {
 		return err
 	}
@@ -160,53 +130,8 @@ func RegisterConversions(s *runtime.Scheme) error {
 	}); err != nil {
 		return err
 	}
-	if err := s.AddGeneratedConversionFunc((*VMImageSpec)(nil), (*ignite.VMImageSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_VMImageSpec_To_ignite_VMImageSpec(a.(*VMImageSpec), b.(*ignite.VMImageSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*ignite.VMImageSpec)(nil), (*VMImageSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_ignite_VMImageSpec_To_v1alpha1_VMImageSpec(a.(*ignite.VMImageSpec), b.(*VMImageSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*VMKernelSpec)(nil), (*ignite.VMKernelSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_VMKernelSpec_To_ignite_VMKernelSpec(a.(*VMKernelSpec), b.(*ignite.VMKernelSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*ignite.VMKernelSpec)(nil), (*VMKernelSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_ignite_VMKernelSpec_To_v1alpha1_VMKernelSpec(a.(*ignite.VMKernelSpec), b.(*VMKernelSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*VMNetworkSpec)(nil), (*ignite.VMNetworkSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_VMNetworkSpec_To_ignite_VMNetworkSpec(a.(*VMNetworkSpec), b.(*ignite.VMNetworkSpec), scope)
-	}); err != nil {
-		return err
-	}
 	if err := s.AddGeneratedConversionFunc((*ignite.VMNetworkSpec)(nil), (*VMNetworkSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
 		return Convert_ignite_VMNetworkSpec_To_v1alpha1_VMNetworkSpec(a.(*ignite.VMNetworkSpec), b.(*VMNetworkSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*VMSpec)(nil), (*ignite.VMSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_VMSpec_To_ignite_VMSpec(a.(*VMSpec), b.(*ignite.VMSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*ignite.VMSpec)(nil), (*VMSpec)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_ignite_VMSpec_To_v1alpha1_VMSpec(a.(*ignite.VMSpec), b.(*VMSpec), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*VMStatus)(nil), (*ignite.VMStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_v1alpha1_VMStatus_To_ignite_VMStatus(a.(*VMStatus), b.(*ignite.VMStatus), scope)
-	}); err != nil {
-		return err
-	}
-	if err := s.AddGeneratedConversionFunc((*ignite.VMStatus)(nil), (*VMStatus)(nil), func(a, b interface{}, scope conversion.Scope) error {
-		return Convert_ignite_VMStatus_To_v1alpha1_VMStatus(a.(*ignite.VMStatus), b.(*VMStatus), scope)
 	}); err != nil {
 		return err
 	}
