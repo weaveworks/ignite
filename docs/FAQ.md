@@ -108,3 +108,8 @@ As per the announcement blog post: https://www.weave.works/blog/fire-up-your-vms
 > Lucas Käldström (@luxas) is a Kubernetes SIG Lead and Top CNCF Ambassador 2017, and is a longstanding member of the Weaveworks family since graduating from High School (story here). As a young Finnish citizen, Lucas had to do his mandatory Military Service for around a year.
 
 > Naturally for Lucas, he started evangelising Kubernetes within the military, and got assigned programming tasks. Security and resource consumption are critical army concerns, so Lucas and a colleague, Dennis Marttinen (@twelho), decided to experiment with Firecracker, creating an elementary version of Ignite. On leaving the army they were granted permission to work on an open source rewrite, working with Weaveworks.
+
+
+## Q: I'm using containerd as my runtime, how do I see the running containers and images?
+
+Containerd has the concept of namespaces which is different than Docker.  In order to view containers and images used by ignite you need to pass the namespace parameter to `ctr` using either `--namespace firecracker` or `-n firecracker`.  
