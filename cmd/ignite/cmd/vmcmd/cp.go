@@ -23,6 +23,7 @@ func NewCmdCP(out io.Writer) *cobra.Command {
 			If no private key was created or wanting to use a different identity file,
 			use the identity file flag (-i, --identity) to override the used identity file.
 			The given VM is matched by prefix based on its ID and name.
+			Use (-r, --recursive) to recursively copy a directory.
 		`),
 		Args: cobra.ExactArgs(3),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -44,4 +45,5 @@ func NewCmdCP(out io.Writer) *cobra.Command {
 func addCPFlags(fs *pflag.FlagSet, cf *run.CPFlags) {
 	fs.StringVarP(&cf.IdentityFile, "identity", "i", "", "Override the vm's default identity file")
 	fs.Uint32VarP(&cf.Timeout, "timeout", "t", 10, "Timeout waiting for connection in seconds")
+	fs.BoolVarP(&cf.Recursive, "recursive", "r", false, "Recursively copy entire directories.")
 }

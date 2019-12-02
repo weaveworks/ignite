@@ -13,6 +13,7 @@ import (
 type CPFlags struct {
 	Timeout      uint32
 	IdentityFile string
+	Recursive    bool
 }
 
 type cpOptions struct {
@@ -70,6 +71,10 @@ func CP(co *cpOptions) error {
 		}
 
 		scpArgs = append(scpArgs, privKeyFile)
+	}
+
+	if co.Recursive {
+		scpArgs = append(scpArgs, "-r")
 	}
 
 	// Add source, dest args
