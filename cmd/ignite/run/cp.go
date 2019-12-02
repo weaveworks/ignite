@@ -18,9 +18,9 @@ type CPFlags struct {
 
 type cpOptions struct {
 	*CPFlags
-	vm *api.VM
+	vm     *api.VM
 	source string
-	dest string
+	dest   string
 }
 
 func (cf *CPFlags) NewCPOptions(vmMatch string, source string, dest string) (co *cpOptions, err error) {
@@ -53,7 +53,7 @@ func CP(co *cpOptions) error {
 	}
 
 	scpArgs := make([]string, 0, len(scpOpts)*2+3)
-		//fmt.Sprintf("root@%s", ipAddrs[0]))
+	//fmt.Sprintf("root@%s", ipAddrs[0]))
 
 	for _, opt := range scpOpts {
 		scpArgs = append(scpArgs, "-o", opt)

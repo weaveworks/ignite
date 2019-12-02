@@ -44,6 +44,7 @@ Example usage:
 
 * [ignite attach](ignite_attach.md)	 - Attach to a running VM
 * [ignite completion](ignite_completion.md)	 - Output bash completion for ignite to stdout
+* [ignite cp](ignite_cp.md)	 - Copy a file into a running vm
 * [ignite create](ignite_create.md)	 - Create a new VM without starting it
 * [ignite exec](ignite_exec.md)	 - execute a command in a running VM
 * [ignite image](ignite_image.md)	 - Manage base images for VMs
