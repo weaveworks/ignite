@@ -7,7 +7,7 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
 )
 
-// NewCmdSSH is an alias for vmcmd.NewCmdSSH
+// NewCmdCP is an alias for vmcmd.NewCmdCP
 func NewCmdCP(out io.Writer) *cobra.Command {
 	return vmcmd.NewCmdCP(out)
 }

@@ -42,6 +42,7 @@ func CP(co *cpOptions) error {
 		return fmt.Errorf("VM %q has no usable IP addresses", co.vm.GetUID())
 	}
 
+	// From run/ssh.go:
 	// We're dealing with local VMs in a trusted (internal) subnet, disable some warnings for convenience
 	// TODO: For security, track the known_hosts internally, do something about the IP collisions (if needed)
 	scpOpts := []string{
@@ -53,7 +54,6 @@ func CP(co *cpOptions) error {
 	}
 
 	scpArgs := make([]string, 0, len(scpOpts)*2+3)
-	//fmt.Sprintf("root@%s", ipAddrs[0]))
 
 	for _, opt := range scpOpts {
 		scpArgs = append(scpArgs, "-o", opt)
@@ -84,7 +84,7 @@ func CP(co *cpOptions) error {
 	// SSH into the VM
 	if code, err := util.ExecForeground("scp", scpArgs...); err != nil {
 		if code != 2 {
-			return fmt.Errorf("SSH into VM %q failed: %v", co.vm.GetUID(), err)
+			return fmt.Errorf("SCP into VM %q failed: %v", co.vm.GetUID(), err)
 		}
 
 		// Code 255 is used for signaling a connection error, be it caused by
