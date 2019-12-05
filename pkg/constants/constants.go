@@ -41,9 +41,18 @@ const (
 	// In-container file name for the firecracker metrics FIFO
 	METRICS_FIFO = "firecracker_metrics.fifo"
 
+	// Persistent file to stream to from firecracker log FIFO
+	LOG_FIFO_PERSISTENT = "firecracker_log.log"
+
+	// Persistent file to stream to from firecracker metrics FIFO
+	METRICS_FIFO_PERSISTENT = "firecracker_metrics.log"
+
 	// Socket with a web server (with metrics for now) for the daemon
 	DAEMON_SOCKET = "daemon.sock"
 
 	// How many characters Ignite UIDs should have
 	IGNITE_UID_LENGTH = 16
+
+	// Max concurrent writers to LOG_FIFO and METRICS_FIFO
+	MAX_CONCURRENT_WRITERS = 5
 )

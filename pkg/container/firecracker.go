@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"runtime"
 	"strconv"
 	"syscall"
 	"time"
@@ -135,6 +136,16 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	defer m.StopVMM()
 
 	installSignalHandlers(ctx, m)
+
+	// Create file names for persistent files to save FIFO stream to
+	logSocketPathPersistent := path.Join(vm.ObjectPath(), constants.LOG_FIFO_PERSISTENT)
+	metricsSocketPathPersistent := path.Join(vm.ObjectPath(), constants.METRICS_FIFO_PERSISTENT)
+
+	runtime.GOMAXPROCS(3)
+
+	// start goroutines to watch NamedPipe and cp any writes to persistent logs
+	go util.NamedPipeWatcher(logSocketPath, logSocketPathPersistent)
+	go util.NamedPipeWatcher(metricsSocketPath, metricsSocketPathPersistent)
 
 	// wait for the VMM to exit
 	if err := m.Wait(ctx); err != nil {
