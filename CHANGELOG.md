@@ -2,6 +2,15 @@
 
 # Changelog
 
+## v0.6.3
+
+**Released:** 10/12/2019
+
+This is the third patch release in the `v0.6.x` series, containing 1 security bug fix.
+
+### Security Bug Fixes
+
+- Patch CVE-2019-18960 -- Use Firecracker v0.18.1 for ignite 0.6.x ([#499](https://github.com/weaveworks/ignite/pull/499), [@stealthybox](https://github.com/stealthybox))
 ## v0.6.2
 
 **Released:** 08/10/2019
@@ -20,6 +29,31 @@ It also fixes a locale bug with `resize2fs` parsing that used to occur when usin
 
 - Ensure CNI bin dir exists before installing ([#471](https://github.com/weaveworks/ignite/pull/471), [@stealthybox](https://github.com/stealthybox))
 - Bump docs install version to v0.6.2 ([#475](https://github.com/weaveworks/ignite/pull/475), [@stealthybox](https://github.com/stealthybox))
+
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.6.2
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+__________
+**[OCI images for this release](
+https://hub.docker.com/r/weaveworks/ignite/tags?page=1&name=v0.6.2
+)**
+
+---
 
 ## v0.5.5
 
