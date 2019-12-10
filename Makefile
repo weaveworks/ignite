@@ -57,12 +57,12 @@ export DOCKER_CLI_EXPERIMENTAL := enabled
 ifeq ($(GOARCH),amd64)
 QEMUARCH=amd64
 BASEIMAGE=alpine:3.9
-ARCH_SUFFIX=
+FIRECRACKER_ARCH_SUFFIX=-x86_64
 endif
 ifeq ($(GOARCH),arm64)
 QEMUARCH=aarch64
 BASEIMAGE=arm64v8/alpine:3.9
-ARCH_SUFFIX=-aarch64
+FIRECRACKER_ARCH_SUFFIX=-aarch64
 endif
 
 E2E_REGEX := Test
@@ -99,7 +99,7 @@ else
 endif
 	$(DOCKER) build -t $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) \
 		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} \
-		--build-arg ARCH_SUFFIX=${ARCH_SUFFIX} bin/$(GOARCH)
+		--build-arg FIRECRACKER_ARCH_SUFFIX=${FIRECRACKER_ARCH_SUFFIX} bin/$(GOARCH)
 	# Load the dev image into the host's containerd content store
 	$(DOCKER) image save $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) \
 		| $(CTR) -n firecracker image import -
