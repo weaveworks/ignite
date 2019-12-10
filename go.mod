@@ -27,8 +27,8 @@ require (
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
 	github.com/firecracker-microvm/firecracker-go-sdk v0.15.2-0.20190627223500-b2e8284e890c
 	github.com/freddierice/go-losetup v0.0.0-20170407175016-fc9adea44124
-	github.com/go-openapi/jsonpointer v0.19.3 // indirect
-	github.com/go-openapi/spec v0.19.2
+	github.com/go-openapi/jsonreference v0.19.3 // indirect
+	github.com/go-openapi/spec v0.19.3
 	github.com/godbus/dbus v4.1.0+incompatible // indirect
 	github.com/gogo/googleapis v1.2.0 // indirect
 	github.com/google/uuid v1.1.1 // indirect
@@ -37,6 +37,7 @@ require (
 	github.com/json-iterator/go v1.1.8 // indirect
 	github.com/krolaw/dhcp4 v0.0.0-20190531080455-7b64900047ae
 	github.com/lithammer/dedent v1.1.0
+	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/miekg/dns v1.1.14
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
 	github.com/opencontainers/go-digest v1.0.0-rc1
@@ -50,7 +51,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.4.0
 	github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2 // indirect
 	github.com/vishvananda/netlink v1.0.0
 	github.com/vishvananda/netns v0.0.0-20190625233234-7109fa855b0f // indirect
