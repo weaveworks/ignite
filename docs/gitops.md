@@ -49,7 +49,7 @@ status:
 
 For a more complete example repository configuration, see [luxas/ignite-gitops](https://github.com/luxas/ignite-gitops)
 
-After you have [installed Ignite](../docs/installation.md), you can do the following:
+After you have [installed Ignite](installation.md), you can do the following:
 
 ```console
 ignited gitops git@github.com:<user>/<repository>.git
@@ -61,4 +61,4 @@ you need to set up SSH authentication and use the SSH clone URL for now.
 Ignite will now search that repo for suitable JSON/YAML files, and apply their state locally.
 You should see `my-vm` starting up in `ignite ps`. To enter the VM, run `ignite ssh my-vm`.
 
-Please refer to [docs/declarative-config.md](../docs/declarative-config.md) for the full API reference.
+Please refer to [docs/declarative-config.md](declarative-config.md) for the full API reference.
