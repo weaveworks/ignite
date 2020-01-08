@@ -5,6 +5,8 @@ import (
 	"path"
 	"strings"
 
+	"github.com/weaveworks/ignite/pkg/constants"
+
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
@@ -24,6 +26,7 @@ func NewCreateFlags() *CreateFlags {
 type CreateFlags struct {
 	PortMappings []string
 	CopyFiles    []string
+	DNS          []string
 	// This is a placeholder value here for now.
 	// If it was set using flags, it will be copied over to
 	// the API type. TODO: When we later have internal types
@@ -58,6 +61,14 @@ func (cf *CreateFlags) constructVMFromCLI(args []string) error {
 	// Parse the given port mappings
 	if cf.VM.Spec.Network.Ports, err = meta.ParsePortMappings(cf.PortMappings); err != nil {
 		return err
+	}
+
+	if len(cf.DNS) > 0 {
+		// Assign DNS server to VM spec
+		if cf.VM.Annotations == nil {
+			cf.VM.Annotations = make(map[string]string)
+		}
+		cf.VM.Annotations[constants.DNS_ANNOTATION] = strings.Join(cf.DNS, ",")
 	}
 
 	// If the SSH flag was set, copy it over to the API type

@@ -46,4 +46,7 @@ const (
 
 	// How many characters Ignite UIDs should have
 	IGNITE_UID_LENGTH = 16
+
+	// An extension in v1alpha2. TODO(chanwit): It would be implemented as a part of v1alpha3 in v0.7.0
+	DNS_ANNOTATION = "ignite.weave.works/dns"
 )

@@ -3,6 +3,7 @@ package container
 import (
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	dhcp "github.com/krolaw/dhcp4"
@@ -29,6 +30,12 @@ func StartDHCPServers(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	clientConfig, err := dns.ClientConfigFromFile("/etc/resolv.conf")
 	if err != nil {
 		return fmt.Errorf("failed to get DNS configuration: %v", err)
+	}
+
+	// If there's the dns annotation, override dns
+	if dns, exist := vm.Annotations[constants.DNS_ANNOTATION]; exist {
+		log.Infof("Overriding DNS with value %q", dns)
+		clientConfig.Servers = strings.Split(dns, ",")
 	}
 
 	for i := range dhcpIfaces {
