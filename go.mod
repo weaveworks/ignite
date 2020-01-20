@@ -11,12 +11,10 @@ require (
 	github.com/containerd/console v0.0.0-20181022165439-0650fd9eeb50
 	github.com/containerd/containerd v1.3.0-beta.1
 	github.com/containerd/continuity v0.0.0-20190815185530-f2a389ac0a02 // indirect
-	github.com/containerd/fifo v0.0.0-20190816180239-bda0ff6ed73c // indirect
 	github.com/containerd/go-cni v0.0.0-20190813230227-49fbd9b210f3
 	github.com/containerd/go-runc v0.0.0-20190603165425-9007c2405372 // indirect
 	github.com/containerd/ttrpc v0.0.0-20190613183316-1fb3814edf44 // indirect
 	github.com/containerd/typeurl v0.0.0-20190515163108-7312978f2987 // indirect
-	github.com/containernetworking/cni v0.7.1 // indirect
 	github.com/containernetworking/plugins v0.8.2
 	github.com/containers/image v2.0.0+incompatible
 	github.com/coreos/go-iptables v0.4.2
@@ -25,7 +23,7 @@ require (
 	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
-	github.com/firecracker-microvm/firecracker-go-sdk v0.15.2-0.20190627223500-b2e8284e890c
+	github.com/firecracker-microvm/firecracker-go-sdk v0.19.1-0.20200110212531-741fc8cb0f2e
 	github.com/freddierice/go-losetup v0.0.0-20170407175016-fc9adea44124
 	github.com/go-openapi/jsonreference v0.19.3 // indirect
 	github.com/go-openapi/spec v0.19.3
@@ -57,7 +55,7 @@ require (
 	github.com/vishvananda/netns v0.0.0-20190625233234-7109fa855b0f // indirect
 	github.com/weaveworks/gitops-toolkit v0.0.0-20190830163251-b6682e98e2fa
 	go.etcd.io/bbolt v1.3.3 // indirect
-	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	golang.org/x/net v0.0.0-20191004110552-13f9640d40b9 // indirect
 	golang.org/x/sys v0.0.0-20190801041406-cbf593c0f2f3
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
