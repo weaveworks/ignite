@@ -26,7 +26,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	client_models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
 // DescribeInstanceReader is a Reader for the DescribeInstance structure.
@@ -37,14 +37,12 @@ type DescribeInstanceReader struct {
 // ReadResponse reads a server response into the received o.
 func (o *DescribeInstanceReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
 	switch response.Code() {
-
 	case 200:
 		result := NewDescribeInstanceOK()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
 		return result, nil
-
 	default:
 		result := NewDescribeInstanceDefault(response.Code())
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -67,16 +65,20 @@ func NewDescribeInstanceOK() *DescribeInstanceOK {
 The instance information
 */
 type DescribeInstanceOK struct {
-	Payload *client_models.InstanceInfo
+	Payload *models.InstanceInfo
 }
 
 func (o *DescribeInstanceOK) Error() string {
 	return fmt.Sprintf("[GET /][%d] describeInstanceOK  %+v", 200, o.Payload)
 }
 
+func (o *DescribeInstanceOK) GetPayload() *models.InstanceInfo {
+	return o.Payload
+}
+
 func (o *DescribeInstanceOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.InstanceInfo)
+	o.Payload = new(models.InstanceInfo)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -100,7 +102,7 @@ Internal Server Error
 type DescribeInstanceDefault struct {
 	_statusCode int
 
-	Payload *client_models.Error
+	Payload *models.Error
 }
 
 // Code gets the status code for the describe instance default response
@@ -112,9 +114,13 @@ func (o *DescribeInstanceDefault) Error() string {
 	return fmt.Sprintf("[GET /][%d] describeInstance default  %+v", o._statusCode, o.Payload)
 }
 
+func (o *DescribeInstanceDefault) GetPayload() *models.Error {
+	return o.Payload
+}
+
 func (o *DescribeInstanceDefault) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.Error)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

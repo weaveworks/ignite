@@ -19,10 +19,9 @@ package operations
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"net/http"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
@@ -30,7 +29,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	client_models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
 // NewPatchGuestNetworkInterfaceByIDParams creates a new PatchGuestNetworkInterfaceByIDParams object
@@ -81,7 +80,7 @@ type PatchGuestNetworkInterfaceByIDParams struct {
 	  A subset of the guest network interface properties
 
 	*/
-	Body *client_models.PartialNetworkInterface
+	Body *models.PartialNetworkInterface
 	/*IfaceID
 	  The id of the guest network interface
 
@@ -127,13 +126,13 @@ func (o *PatchGuestNetworkInterfaceByIDParams) SetHTTPClient(client *http.Client
 }
 
 // WithBody adds the body to the patch guest network interface by ID params
-func (o *PatchGuestNetworkInterfaceByIDParams) WithBody(body *client_models.PartialNetworkInterface) *PatchGuestNetworkInterfaceByIDParams {
+func (o *PatchGuestNetworkInterfaceByIDParams) WithBody(body *models.PartialNetworkInterface) *PatchGuestNetworkInterfaceByIDParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the patch guest network interface by ID params
-func (o *PatchGuestNetworkInterfaceByIDParams) SetBody(body *client_models.PartialNetworkInterface) {
+func (o *PatchGuestNetworkInterfaceByIDParams) SetBody(body *models.PartialNetworkInterface) {
 	o.Body = body
 }
 

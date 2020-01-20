@@ -26,7 +26,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	client_models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
 // GetMachineConfigurationReader is a Reader for the GetMachineConfiguration structure.
@@ -37,14 +37,12 @@ type GetMachineConfigurationReader struct {
 // ReadResponse reads a server response into the received o.
 func (o *GetMachineConfigurationReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
 	switch response.Code() {
-
 	case 200:
 		result := NewGetMachineConfigurationOK()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
 		return result, nil
-
 	default:
 		result := NewGetMachineConfigurationDefault(response.Code())
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -67,16 +65,20 @@ func NewGetMachineConfigurationOK() *GetMachineConfigurationOK {
 OK
 */
 type GetMachineConfigurationOK struct {
-	Payload *client_models.MachineConfiguration
+	Payload *models.MachineConfiguration
 }
 
 func (o *GetMachineConfigurationOK) Error() string {
 	return fmt.Sprintf("[GET /machine-config][%d] getMachineConfigurationOK  %+v", 200, o.Payload)
 }
 
+func (o *GetMachineConfigurationOK) GetPayload() *models.MachineConfiguration {
+	return o.Payload
+}
+
 func (o *GetMachineConfigurationOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.MachineConfiguration)
+	o.Payload = new(models.MachineConfiguration)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -100,7 +102,7 @@ Internal server error
 type GetMachineConfigurationDefault struct {
 	_statusCode int
 
-	Payload *client_models.Error
+	Payload *models.Error
 }
 
 // Code gets the status code for the get machine configuration default response
@@ -112,9 +114,13 @@ func (o *GetMachineConfigurationDefault) Error() string {
 	return fmt.Sprintf("[GET /machine-config][%d] getMachineConfiguration default  %+v", o._statusCode, o.Payload)
 }
 
+func (o *GetMachineConfigurationDefault) GetPayload() *models.Error {
+	return o.Payload
+}
+
 func (o *GetMachineConfigurationDefault) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.Error)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

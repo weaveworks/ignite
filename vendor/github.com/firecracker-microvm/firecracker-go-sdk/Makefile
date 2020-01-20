@@ -13,18 +13,42 @@
 
 # Set this to pass additional commandline flags to the go compiler, e.g. "make test EXTRAGOARGS=-v"
 EXTRAGOARGS:=
+DISABLE_ROOT_TESTS?=1
+
+# The below files are needed and can be downloaded from the internet
+testdata_objects = testdata/vmlinux testdata/root-drive.img testdata/firecracker
+
+# --location is needed to follow redirects on github.com
+curl = curl --location
 
 all: build
 
 test: all-tests
 
-unit-tests:
-	go test -short ./... $(EXTRAGOARGS)
+unit-tests: $(testdata_objects) check-kvm
+	DISABLE_ROOT_TESTS=$(DISABLE_ROOT_TESTS) go test -short ./... $(EXTRAGOARGS)
 
-all-tests:
-	go test ./... $(EXTRAGOARGS)
+all-tests: $(testdata_objects) check-kvm
+	DISABLE_ROOT_TESTS=$(DISABLE_ROOT_TESTS) go test ./... $(EXTRAGOARGS)
+
+check-kvm:
+	@test -w /dev/kvm || \
+		(echo "In order to run firecracker, $(shell whoami) must have write permission to /dev/kvm"; false)
 
 generate build clean:
 	go $@ $(EXTRAGOARGS)
 
-.PHONY: all generate clean build test unit-tests all-tests
+distclean: clean
+	rm -rf $(testdata_objects)
+
+testdata/vmlinux:
+	$(curl) -o $@ https://s3.amazonaws.com/spec.ccfc.min/img/hello/kernel/hello-vmlinux.bin
+
+testdata/firecracker:
+	$(curl) -o $@ https://github.com/firecracker-microvm/firecracker/releases/download/v0.18.0/firecracker-v0.18.0
+	chmod +x $@
+
+testdata/root-drive.img:
+	$(curl) -o $@ https://s3.amazonaws.com/spec.ccfc.min/img/hello/fsfiles/hello-rootfs.ext4
+
+.PHONY: all generate clean distclean build test unit-tests all-tests check-kvm

@@ -26,7 +26,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	client_models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
 // PutGuestDriveByIDReader is a Reader for the PutGuestDriveByID structure.
@@ -37,21 +37,18 @@ type PutGuestDriveByIDReader struct {
 // ReadResponse reads a server response into the received o.
 func (o *PutGuestDriveByIDReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
 	switch response.Code() {
-
 	case 204:
 		result := NewPutGuestDriveByIDNoContent()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
 		return result, nil
-
 	case 400:
 		result := NewPutGuestDriveByIDBadRequest()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
 		return nil, result
-
 	default:
 		result := NewPutGuestDriveByIDDefault(response.Code())
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -95,16 +92,20 @@ func NewPutGuestDriveByIDBadRequest() *PutGuestDriveByIDBadRequest {
 Drive cannot be created/updated due to bad input
 */
 type PutGuestDriveByIDBadRequest struct {
-	Payload *client_models.Error
+	Payload *models.Error
 }
 
 func (o *PutGuestDriveByIDBadRequest) Error() string {
 	return fmt.Sprintf("[PUT /drives/{drive_id}][%d] putGuestDriveByIdBadRequest  %+v", 400, o.Payload)
 }
 
+func (o *PutGuestDriveByIDBadRequest) GetPayload() *models.Error {
+	return o.Payload
+}
+
 func (o *PutGuestDriveByIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.Error)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -128,7 +129,7 @@ Internal server error.
 type PutGuestDriveByIDDefault struct {
 	_statusCode int
 
-	Payload *client_models.Error
+	Payload *models.Error
 }
 
 // Code gets the status code for the put guest drive by ID default response
@@ -140,9 +141,13 @@ func (o *PutGuestDriveByIDDefault) Error() string {
 	return fmt.Sprintf("[PUT /drives/{drive_id}][%d] putGuestDriveByID default  %+v", o._statusCode, o.Payload)
 }
 
+func (o *PutGuestDriveByIDDefault) GetPayload() *models.Error {
+	return o.Payload
+}
+
 func (o *PutGuestDriveByIDDefault) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.Error)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
