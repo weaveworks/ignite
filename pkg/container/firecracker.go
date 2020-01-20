@@ -26,8 +26,10 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(dhcpIfaces))
 	for _, dhcpIface := range dhcpIfaces {
 		networkInterfaces = append(networkInterfaces, firecracker.NetworkInterface{
-			MacAddress:  dhcpIface.MACFilter,
-			HostDevName: dhcpIface.VMTAP,
+			StaticConfiguration: &firecracker.StaticNetworkConfiguration{
+				MacAddress:  dhcpIface.MACFilter,
+				HostDevName: dhcpIface.VMTAP,
+			},
 		})
 	}
 
