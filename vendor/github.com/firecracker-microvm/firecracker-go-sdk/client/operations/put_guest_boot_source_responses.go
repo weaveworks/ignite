@@ -26,7 +26,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	client_models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
 // PutGuestBootSourceReader is a Reader for the PutGuestBootSource structure.
@@ -37,21 +37,18 @@ type PutGuestBootSourceReader struct {
 // ReadResponse reads a server response into the received o.
 func (o *PutGuestBootSourceReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
 	switch response.Code() {
-
 	case 204:
 		result := NewPutGuestBootSourceNoContent()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
 		return result, nil
-
 	case 400:
 		result := NewPutGuestBootSourceBadRequest()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
 		return nil, result
-
 	default:
 		result := NewPutGuestBootSourceDefault(response.Code())
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -95,16 +92,20 @@ func NewPutGuestBootSourceBadRequest() *PutGuestBootSourceBadRequest {
 Boot source cannot be created due to bad input
 */
 type PutGuestBootSourceBadRequest struct {
-	Payload *client_models.Error
+	Payload *models.Error
 }
 
 func (o *PutGuestBootSourceBadRequest) Error() string {
 	return fmt.Sprintf("[PUT /boot-source][%d] putGuestBootSourceBadRequest  %+v", 400, o.Payload)
 }
 
+func (o *PutGuestBootSourceBadRequest) GetPayload() *models.Error {
+	return o.Payload
+}
+
 func (o *PutGuestBootSourceBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.Error)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -128,7 +129,7 @@ Internal server error
 type PutGuestBootSourceDefault struct {
 	_statusCode int
 
-	Payload *client_models.Error
+	Payload *models.Error
 }
 
 // Code gets the status code for the put guest boot source default response
@@ -140,9 +141,13 @@ func (o *PutGuestBootSourceDefault) Error() string {
 	return fmt.Sprintf("[PUT /boot-source][%d] putGuestBootSource default  %+v", o._statusCode, o.Payload)
 }
 
+func (o *PutGuestBootSourceDefault) GetPayload() *models.Error {
+	return o.Payload
+}
+
 func (o *PutGuestBootSourceDefault) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.Error)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

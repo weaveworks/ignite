@@ -26,7 +26,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	client_models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
 // PutLoggerReader is a Reader for the PutLogger structure.
@@ -37,21 +37,18 @@ type PutLoggerReader struct {
 // ReadResponse reads a server response into the received o.
 func (o *PutLoggerReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
 	switch response.Code() {
-
 	case 204:
 		result := NewPutLoggerNoContent()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
 		return result, nil
-
 	case 400:
 		result := NewPutLoggerBadRequest()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
 		return nil, result
-
 	default:
 		result := NewPutLoggerDefault(response.Code())
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -95,16 +92,20 @@ func NewPutLoggerBadRequest() *PutLoggerBadRequest {
 Logger cannot be initialized due to bad input.
 */
 type PutLoggerBadRequest struct {
-	Payload *client_models.Error
+	Payload *models.Error
 }
 
 func (o *PutLoggerBadRequest) Error() string {
 	return fmt.Sprintf("[PUT /logger][%d] putLoggerBadRequest  %+v", 400, o.Payload)
 }
 
+func (o *PutLoggerBadRequest) GetPayload() *models.Error {
+	return o.Payload
+}
+
 func (o *PutLoggerBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.Error)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -128,7 +129,7 @@ Internal server error.
 type PutLoggerDefault struct {
 	_statusCode int
 
-	Payload *client_models.Error
+	Payload *models.Error
 }
 
 // Code gets the status code for the put logger default response
@@ -140,9 +141,13 @@ func (o *PutLoggerDefault) Error() string {
 	return fmt.Sprintf("[PUT /logger][%d] putLogger default  %+v", o._statusCode, o.Payload)
 }
 
+func (o *PutLoggerDefault) GetPayload() *models.Error {
+	return o.Payload
+}
+
 func (o *PutLoggerDefault) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.Error)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

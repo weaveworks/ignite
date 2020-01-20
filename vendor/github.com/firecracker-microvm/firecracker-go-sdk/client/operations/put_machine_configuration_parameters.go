@@ -19,10 +19,9 @@ package operations
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"net/http"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
@@ -30,7 +29,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	client_models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
 // NewPutMachineConfigurationParams creates a new PutMachineConfigurationParams object
@@ -81,7 +80,7 @@ type PutMachineConfigurationParams struct {
 	  Machine Configuration Parameters
 
 	*/
-	Body *client_models.MachineConfiguration
+	Body *models.MachineConfiguration
 
 	timeout    time.Duration
 	Context    context.Context
@@ -122,13 +121,13 @@ func (o *PutMachineConfigurationParams) SetHTTPClient(client *http.Client) {
 }
 
 // WithBody adds the body to the put machine configuration params
-func (o *PutMachineConfigurationParams) WithBody(body *client_models.MachineConfiguration) *PutMachineConfigurationParams {
+func (o *PutMachineConfigurationParams) WithBody(body *models.MachineConfiguration) *PutMachineConfigurationParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the put machine configuration params
-func (o *PutMachineConfigurationParams) SetBody(body *client_models.MachineConfiguration) {
+func (o *PutMachineConfigurationParams) SetBody(body *models.MachineConfiguration) {
 	o.Body = body
 }
 

@@ -2,9 +2,10 @@ swagger: "2.0"
 info:
   title: Firecracker API
   description: RESTful public-facing API.
-               The API is accessible through HTTP calls on specific URLs carrying JSON modeled data.
-               The transport medium is a Unix Domain Socket.
-  version: 0.17.0
+    The API is accessible through HTTP calls on specific URLs
+    carrying JSON modeled data.
+    The transport medium is a Unix Domain Socket.
+  version: 0.19.0
   termsOfService: ""
   contact:
     email: "compute-capsule@amazon.com"
@@ -42,11 +43,11 @@ paths:
       summary: Creates a synchronous action.
       operationId: createSyncAction
       parameters:
-      - name: info
-        in: body
-        required: true
-        schema:
-          $ref: "#/definitions/InstanceActionInfo"
+        - name: info
+          in: body
+          required: true
+          schema:
+            $ref: "#/definitions/InstanceActionInfo"
       responses:
         204:
           description: The update was successful
@@ -68,50 +69,17 @@ paths:
         Note that the only currently supported boot source is LocalImage.
       operationId: putGuestBootSource
       parameters:
-      - name: body
-        in: body
-        description: Guest boot source properties
-        required: true
-        schema:
-          $ref: "#/definitions/BootSource"
+        - name: body
+          in: body
+          description: Guest boot source properties
+          required: true
+          schema:
+            $ref: "#/definitions/BootSource"
       responses:
         204:
           description: Boot source created/updated
         400:
           description: Boot source cannot be created due to bad input
-          schema:
-            $ref: "#/definitions/Error"
-        default:
-          description: Internal server error
-          schema:
-            $ref: "#/definitions/Error"
-
-  /vsocks/{id}:
-    put:
-      summary: Creates new vsock with ID specified by the id parameter.
-      description:
-        If the vsock device with the specified ID already exists, its body will
-        be updated based on the new input. May fail if update is not possible.
-      operationId: putGuestVsockByID
-      parameters:
-      - name: id
-        in: path
-        description: The id of the vsock device
-        required: true
-        type: string
-      - name: body
-        in: body
-        description: Guest vsock properties
-        required: true
-        schema:
-          $ref: "#/definitions/Vsock"
-      responses:
-        201:
-          description: Vsock created
-        204:
-          description: Vsock updated
-        400:
-          description: Vsock cannot be created due to bad input
           schema:
             $ref: "#/definitions/Error"
         default:
@@ -128,17 +96,17 @@ paths:
         Will fail if update is not possible.
       operationId: putGuestDriveByID
       parameters:
-      - name: drive_id
-        in: path
-        description: The id of the guest drive
-        required: true
-        type: string
-      - name: body
-        in: body
-        description: Guest drive properties
-        required: true
-        schema:
-          $ref: "#/definitions/Drive"
+        - name: drive_id
+          in: path
+          description: The id of the guest drive
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: Guest drive properties
+          required: true
+          schema:
+            $ref: "#/definitions/Drive"
       responses:
         204:
           description: Drive created/updated
@@ -157,17 +125,17 @@ paths:
         Will fail if update is not possible.
       operationId: patchGuestDriveByID
       parameters:
-      - name: drive_id
-        in: path
-        description: The id of the guest drive
-        required: true
-        type: string
-      - name: body
-        in: body
-        description: Guest drive properties
-        required: true
-        schema:
-          $ref: "#/definitions/PartialDrive"
+        - name: drive_id
+          in: path
+          description: The id of the guest drive
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: Guest drive properties
+          required: true
+          schema:
+            $ref: "#/definitions/PartialDrive"
       responses:
         204:
           description: Drive updated
@@ -181,27 +149,27 @@ paths:
             $ref: "#/definitions/Error"
 
   /logger:
-      put:
-        summary: Initializes the logger by specifying two named pipes (i.e. for the logs and metrics output).
-        operationId: putLogger
-        parameters:
+    put:
+      summary: Initializes the logger by specifying two named pipes (i.e. for the logs and metrics output).
+      operationId: putLogger
+      parameters:
         - name: body
           in: body
           description: Logging system description
           required: true
           schema:
             $ref: "#/definitions/Logger"
-        responses:
-          204:
-            description: Logger created.
-          400:
-            description: Logger cannot be initialized due to bad input.
-            schema:
-              $ref: "#/definitions/Error"
-          default:
-            description: Internal server error.
-            schema:
-              $ref: "#/definitions/Error"
+      responses:
+        204:
+          description: Logger created.
+        400:
+          description: Logger cannot be initialized due to bad input.
+          schema:
+            $ref: "#/definitions/Error"
+        default:
+          description: Internal server error.
+          schema:
+            $ref: "#/definitions/Error"
 
   /machine-config:
     get:
@@ -231,11 +199,11 @@ paths:
         If any of the parameters has an incorrect value, the whole update fails.
       operationId: putMachineConfiguration
       parameters:
-      - name: body
-        in: body
-        description: Machine Configuration Parameters
-        schema:
-          $ref: "#/definitions/MachineConfiguration"
+        - name: body
+          in: body
+          description: Machine Configuration Parameters
+          schema:
+            $ref: "#/definitions/MachineConfiguration"
       responses:
         204:
           description: Machine Configuration created/updated
@@ -255,11 +223,11 @@ paths:
         If any of the parameters has an incorrect value, the whole update fails.
       operationId: patchMachineConfiguration
       parameters:
-      - name: body
-        in: body
-        description: A subset of Machine Configuration Parameters
-        schema:
-          $ref: "#/definitions/MachineConfiguration"
+        - name: body
+          in: body
+          description: A subset of Machine Configuration Parameters
+          schema:
+            $ref: "#/definitions/MachineConfiguration"
       responses:
         204:
           description: Machine Configuration created/updated
@@ -334,17 +302,17 @@ paths:
         Creates new network interface with ID specified by iface_id path parameter.
       operationId: putGuestNetworkInterfaceByID
       parameters:
-      - name: iface_id
-        in: path
-        description: The id of the guest network interface
-        required: true
-        type: string
-      - name: body
-        in: body
-        description: Guest network interface properties
-        required: true
-        schema:
-          $ref: "#/definitions/NetworkInterface"
+        - name: iface_id
+          in: path
+          description: The id of the guest network interface
+          required: true
+          type: string
+        - name: body
+          in: body
+          description: Guest network interface properties
+          required: true
+          schema:
+            $ref: "#/definitions/NetworkInterface"
       responses:
         204:
           description: Network interface created/updated
@@ -378,6 +346,33 @@ paths:
           description: Network interface updated
         400:
           description: Network interface cannot be updated due to bad input
+          schema:
+            $ref: "#/definitions/Error"
+        default:
+          description: Internal server error
+          schema:
+            $ref: "#/definitions/Error"
+
+  /vsock:
+    put:
+      summary: Creates/updates a vsock device.
+      description:
+        The first call creates the device with the configuration specified
+        in body. Subsequent calls will update the device configuration.
+        May fail if update is not possible.
+      operationId: putGuestVsock
+      parameters:
+        - name: body
+          in: body
+          description: Guest vsock properties
+          required: true
+          schema:
+            $ref: "#/definitions/Vsock"
+      responses:
+        204:
+          description: Vsock created/updated
+        400:
+          description: Vsock cannot be created due to bad input
           schema:
             $ref: "#/definitions/Error"
         default:
@@ -454,10 +449,10 @@ definitions:
         description: Enumeration indicating what type of action is contained in the payload
         type: string
         enum:
-        - BlockDeviceRescan
-        - FlushMetrics
-        - InstanceStart
-        - SendCtrlAltDel
+          - BlockDeviceRescan
+          - FlushMetrics
+          - InstanceStart
+          - SendCtrlAltDel
       payload:
         type: string
 
@@ -482,8 +477,6 @@ definitions:
           - Uninitialized
           - Starting
           - Running
-          - Halting
-          - Halted
       vmm_version:
         description: MicroVM hypervisor build version.
         type: string
@@ -644,14 +637,30 @@ definitions:
         format: int64
         description: The amount of milliseconds it takes for the bucket to refill.
         minimum: 0
+
   Vsock:
     type: object
+    description:
+      Defines a vsock device, backed by a set of Unix Domain Sockets, on the host side.
+      For host-initiated connections, Firecracker will be listening on the Unix socket
+      identified by the path `uds_path`. Firecracker will create this socket, bind and
+      listen on it. Host-initiated connections will be performed by connection to this
+      socket and issuing a connection forwarding request to the desired guest-side vsock
+      port (i.e. `CONNECT 52\n`, to connect to port 52).
+      For guest-initiated connections, Firecracker will expect host software to be
+      bound and listening on Unix sockets at `uds_path_<PORT>`.
+      E.g. "/path/to/host_vsock.sock_52" for port number 52.
     required:
-      - id
+      - vsock_id
+      - guest_cid
+      - uds_path
     properties:
-      id:
+      vsock_id:
         type: string
       guest_cid:
         type: integer
         minimum: 3
         description: Guest Vsock CID
+      uds_path:
+        type: string
+        description: Path to UNIX domain socket, used to proxy vsock connections.

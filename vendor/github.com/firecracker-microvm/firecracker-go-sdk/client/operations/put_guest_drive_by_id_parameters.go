@@ -19,10 +19,9 @@ package operations
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"net/http"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
@@ -30,7 +29,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	client_models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
 // NewPutGuestDriveByIDParams creates a new PutGuestDriveByIDParams object
@@ -81,7 +80,7 @@ type PutGuestDriveByIDParams struct {
 	  Guest drive properties
 
 	*/
-	Body *client_models.Drive
+	Body *models.Drive
 	/*DriveID
 	  The id of the guest drive
 
@@ -127,13 +126,13 @@ func (o *PutGuestDriveByIDParams) SetHTTPClient(client *http.Client) {
 }
 
 // WithBody adds the body to the put guest drive by ID params
-func (o *PutGuestDriveByIDParams) WithBody(body *client_models.Drive) *PutGuestDriveByIDParams {
+func (o *PutGuestDriveByIDParams) WithBody(body *models.Drive) *PutGuestDriveByIDParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the put guest drive by ID params
-func (o *PutGuestDriveByIDParams) SetBody(body *client_models.Drive) {
+func (o *PutGuestDriveByIDParams) SetBody(body *models.Drive) {
 	o.Body = body
 }
 
