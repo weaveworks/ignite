@@ -1,4 +1,4 @@
-// Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// Copyright 2018-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License"). You may
 // not use this file except in compliance with the License. A copy of the
@@ -30,6 +30,12 @@ const (
 	defaultJailerBin  = "jailer"
 
 	rootfsFolderName = "root"
+)
+
+var (
+	// ErrMissingJailerConfig will occur when entering jailer logic but the
+	// jailer config had not been specified.
+	ErrMissingJailerConfig = fmt.Errorf("jailer config was not set for use")
 )
 
 // SeccompLevelValue represents a secure computing level type.
@@ -66,13 +72,19 @@ type JailerConfig struct {
 	// with the jailer is mostly Firecracker specific.
 	ExecFile string
 
+	// JailerBinary specifies the jailer binary to be used for setting up the
+	// Firecracker VM jail. If the value contains no path separators, it will
+	// use the PATH environment variable to get the absolute path of the binary.
+	// If the value contains path separators, the value will be used directly
+	// to exec the jailer. This follows the same conventions as Golang's
+	// os/exec.Command.
+	//
+	// If not specified it defaults to "jailer".
+	JailerBinary string
+
 	// ChrootBaseDir represents the base folder where chroot jails are built. The
 	// default is /srv/jailer
 	ChrootBaseDir string
-
-	// NetNS represents the path to a network namespace handle. If present, the
-	// jailer will use this to join the associated network namespace
-	NetNS string
 
 	//  Daemonize is set to true, call setsid() and redirect STDIN, STDOUT, and
 	//  STDERR to /dev/null
@@ -321,6 +333,14 @@ func jail(ctx context.Context, m *Machine, cfg *Config) error {
 		WithStdout(stdout).
 		WithStderr(stderr)
 
+	if jailerBinary := cfg.JailerCfg.JailerBinary; jailerBinary != "" {
+		builder = builder.WithBin(jailerBinary)
+	}
+
+	if cfg.NetNS != "" {
+		builder = builder.WithNetNS(cfg.NetNS)
+	}
+
 	if stdin := cfg.JailerCfg.Stdin; stdin != nil {
 		builder = builder.WithStdin(stdin)
 	}
@@ -334,7 +354,7 @@ func jail(ctx context.Context, m *Machine, cfg *Config) error {
 	return nil
 }
 
-func linkFileToRootFS(cfg JailerConfig, dst, src string) error {
+func linkFileToRootFS(cfg *JailerConfig, dst, src string) error {
 	if err := os.Link(src, dst); err != nil {
 		return err
 	}
@@ -348,48 +368,52 @@ func LinkFilesHandler(rootfs, kernelImageFileName string) Handler {
 	return Handler{
 		Name: LinkFilesToRootFSHandlerName,
 		Fn: func(ctx context.Context, m *Machine) error {
+			if m.Cfg.JailerCfg == nil {
+				return ErrMissingJailerConfig
+			}
+
 			// copy kernel image to root fs
 			if err := linkFileToRootFS(
-				m.cfg.JailerCfg,
+				m.Cfg.JailerCfg,
 				filepath.Join(rootfs, kernelImageFileName),
-				m.cfg.KernelImagePath,
+				m.Cfg.KernelImagePath,
 			); err != nil {
 				return err
 			}
 
 			// copy all drives to the root fs
-			for i, drive := range m.cfg.Drives {
+			for i, drive := range m.Cfg.Drives {
 				hostPath := StringValue(drive.PathOnHost)
 				driveFileName := filepath.Base(hostPath)
 
 				if err := linkFileToRootFS(
-					m.cfg.JailerCfg,
+					m.Cfg.JailerCfg,
 					filepath.Join(rootfs, driveFileName),
 					hostPath,
 				); err != nil {
 					return err
 				}
 
-				m.cfg.Drives[i].PathOnHost = String(driveFileName)
+				m.Cfg.Drives[i].PathOnHost = String(driveFileName)
 			}
 
-			m.cfg.KernelImagePath = kernelImageFileName
+			m.Cfg.KernelImagePath = kernelImageFileName
 
-			for _, fifoPath := range []*string{&m.cfg.LogFifo, &m.cfg.MetricsFifo} {
+			for _, fifoPath := range []*string{&m.Cfg.LogFifo, &m.Cfg.MetricsFifo} {
 				if fifoPath == nil || *fifoPath == "" {
 					continue
 				}
 
 				fileName := filepath.Base(*fifoPath)
 				if err := linkFileToRootFS(
-					m.cfg.JailerCfg,
+					m.Cfg.JailerCfg,
 					filepath.Join(rootfs, fileName),
 					*fifoPath,
 				); err != nil {
 					return err
 				}
 
-				if err := os.Chown(filepath.Join(rootfs, fileName), *m.cfg.JailerCfg.UID, *m.cfg.JailerCfg.GID); err != nil {
+				if err := os.Chown(filepath.Join(rootfs, fileName), *m.Cfg.JailerCfg.UID, *m.Cfg.JailerCfg.GID); err != nil {
 					return err
 				}
 

@@ -16,6 +16,7 @@ package firecracker
 import (
 	"context"
 	"fmt"
+	"os"
 )
 
 // Handler name constants
@@ -30,9 +31,12 @@ const (
 	AddVsocksHandlerName               = "fcinit.AddVsocks"
 	SetMetadataHandlerName             = "fcinit.SetMetadata"
 	LinkFilesToRootFSHandlerName       = "fcinit.LinkFilesToRootFS"
+	SetupNetworkHandlerName            = "fcinit.SetupNetwork"
+	SetupKernelArgsHandlerName         = "fcinit.SetupKernelArgs"
 
-	ValidateCfgHandlerName       = "validate.Cfg"
-	ValidateJailerCfgHandlerName = "validate.JailerCfg"
+	ValidateCfgHandlerName        = "validate.Cfg"
+	ValidateJailerCfgHandlerName  = "validate.JailerCfg"
+	ValidateNetworkCfgHandlerName = "validate.NetworkCfg"
 )
 
 // HandlersAdapter is an interface used to modify a given set of handlers.
@@ -46,7 +50,7 @@ var ConfigValidationHandler = Handler{
 	Name: ValidateCfgHandlerName,
 	Fn: func(ctx context.Context, m *Machine) error {
 		// ensure that the configuration is valid for the FcInit handlers.
-		return m.cfg.Validate()
+		return m.Cfg.Validate()
 	},
 }
 
@@ -55,12 +59,12 @@ var ConfigValidationHandler = Handler{
 var JailerConfigValidationHandler = Handler{
 	Name: ValidateJailerCfgHandlerName,
 	Fn: func(ctx context.Context, m *Machine) error {
-		if !m.cfg.EnableJailer {
+		if m.Cfg.JailerCfg == nil {
 			return nil
 		}
 
 		hasRoot := false
-		for _, drive := range m.cfg.Drives {
+		for _, drive := range m.Cfg.Drives {
 			if BoolValue(drive.IsRootDevice) {
 				hasRoot = true
 				break
@@ -71,31 +75,38 @@ var JailerConfigValidationHandler = Handler{
 			return fmt.Errorf("A root drive must be present in the drive list")
 		}
 
-		if m.cfg.JailerCfg.ChrootStrategy == nil {
+		if m.Cfg.JailerCfg.ChrootStrategy == nil {
 			return fmt.Errorf("ChrootStrategy cannot be nil")
 		}
 
-		if len(m.cfg.JailerCfg.ExecFile) == 0 {
+		if len(m.Cfg.JailerCfg.ExecFile) == 0 {
 			return fmt.Errorf("exec file must be specified when using jailer mode")
 		}
 
-		if len(m.cfg.JailerCfg.ID) == 0 {
+		if len(m.Cfg.JailerCfg.ID) == 0 {
 			return fmt.Errorf("id must be specified when using jailer mode")
 		}
 
-		if m.cfg.JailerCfg.GID == nil {
+		if m.Cfg.JailerCfg.GID == nil {
 			return fmt.Errorf("GID must be specified when using jailer mode")
 		}
 
-		if m.cfg.JailerCfg.UID == nil {
+		if m.Cfg.JailerCfg.UID == nil {
 			return fmt.Errorf("UID must be specified when using jailer mode")
 		}
 
-		if m.cfg.JailerCfg.NumaNode == nil {
+		if m.Cfg.JailerCfg.NumaNode == nil {
 			return fmt.Errorf("ID must be specified when using jailer mode")
 		}
 
 		return nil
+	},
+}
+
+var NetworkConfigValidationHandler = Handler{
+	Name: ValidateNetworkCfgHandlerName,
+	Fn: func(ctx context.Context, m *Machine) error {
+		return m.Cfg.ValidateNetwork()
 	},
 }
 
@@ -112,8 +123,8 @@ var StartVMMHandler = Handler{
 var CreateLogFilesHandler = Handler{
 	Name: CreateLogFilesHandlerName,
 	Fn: func(ctx context.Context, m *Machine) error {
-		logFifoPath := m.cfg.LogFifo
-		metricsFifoPath := m.cfg.MetricsFifo
+		logFifoPath := m.Cfg.LogFifo
+		metricsFifoPath := m.Cfg.MetricsFifo
 
 		if len(logFifoPath) == 0 || len(metricsFifoPath) == 0 {
 			// logging is disabled
@@ -123,6 +134,27 @@ var CreateLogFilesHandler = Handler{
 		if err := createFifos(logFifoPath, metricsFifoPath); err != nil {
 			m.logger.Errorf("Unable to set up logging: %s", err)
 			return err
+		}
+
+		m.cleanupFuncs = append(m.cleanupFuncs,
+			func() error {
+				if err := os.Remove(logFifoPath); !os.IsNotExist(err) {
+					return err
+				}
+				return nil
+			},
+			func() error {
+				if err := os.Remove(metricsFifoPath); !os.IsNotExist(err) {
+					return err
+				}
+				return nil
+			},
+		)
+
+		if m.Cfg.FifoLogWriter != nil {
+			if err := m.captureFifoToFile(ctx, m.logger, logFifoPath, m.Cfg.FifoLogWriter); err != nil {
+				m.logger.Warnf("captureFifoToFile() returned %s. Continuing anyway.", err)
+			}
 		}
 
 		m.logger.Debug("Created metrics and logging fifos.")
@@ -160,7 +192,7 @@ var CreateMachineHandler = Handler{
 var CreateBootSourceHandler = Handler{
 	Name: CreateBootSourceHandlerName,
 	Fn: func(ctx context.Context, m *Machine) error {
-		return m.createBootSource(ctx, m.cfg.KernelImagePath, m.cfg.KernelArgs)
+		return m.createBootSource(ctx, m.Cfg.KernelImagePath, m.Cfg.KernelArgs)
 	},
 }
 
@@ -169,16 +201,35 @@ var CreateBootSourceHandler = Handler{
 var AttachDrivesHandler = Handler{
 	Name: AttachDrivesHandlerName,
 	Fn: func(ctx context.Context, m *Machine) error {
-		return m.attachDrives(ctx, m.cfg.Drives...)
+		return m.attachDrives(ctx, m.Cfg.Drives...)
 	},
 }
 
-// CreateNetworkInterfacesHandler is a named handler that sets up network
-// interfaces to the firecracker process.
+// CreateNetworkInterfacesHandler is a named handler that registers network
+// interfaces with the Firecracker VMM.
 var CreateNetworkInterfacesHandler = Handler{
 	Name: CreateNetworkInterfacesHandlerName,
 	Fn: func(ctx context.Context, m *Machine) error {
-		return m.createNetworkInterfaces(ctx, m.cfg.NetworkInterfaces...)
+		return m.createNetworkInterfaces(ctx, m.Cfg.NetworkInterfaces...)
+	},
+}
+
+// SetupNetworkHandler is a named handler that will setup the network namespace
+// and network interface configuration prior to the Firecracker VMM starting.
+var SetupNetworkHandler = Handler{
+	Name: SetupNetworkHandlerName,
+	Fn: func(ctx context.Context, m *Machine) error {
+		return m.setupNetwork(ctx)
+	},
+}
+
+// SetupKernelArgsHandler is a named handler that will update any kernel boot
+// args being provided to the VM based on the other configuration provided, if
+// needed.
+var SetupKernelArgsHandler = Handler{
+	Name: SetupKernelArgsHandlerName,
+	Fn: func(ctx context.Context, m *Machine) error {
+		return m.setupKernelArgs(ctx)
 	},
 }
 
@@ -187,7 +238,7 @@ var CreateNetworkInterfacesHandler = Handler{
 var AddVsocksHandler = Handler{
 	Name: AddVsocksHandlerName,
 	Fn: func(ctx context.Context, m *Machine) error {
-		return m.addVsocks(ctx, m.cfg.VsockDevices...)
+		return m.addVsocks(ctx, m.Cfg.VsockDevices...)
 	},
 }
 
@@ -203,6 +254,8 @@ func NewSetMetadataHandler(metadata interface{}) Handler {
 }
 
 var defaultFcInitHandlerList = HandlerList{}.Append(
+	SetupNetworkHandler,
+	SetupKernelArgsHandler,
 	StartVMMHandler,
 	CreateLogFilesHandler,
 	BootstrapLoggingHandler,
@@ -213,8 +266,13 @@ var defaultFcInitHandlerList = HandlerList{}.Append(
 	AddVsocksHandler,
 )
 
+var defaultValidationHandlerList = HandlerList{}.Append(
+	NetworkConfigValidationHandler,
+)
+
 var defaultHandlers = Handlers{
-	FcInit: defaultFcInitHandlerList,
+	Validation: defaultValidationHandlerList,
+	FcInit:     defaultFcInitHandlerList,
 }
 
 // Handler represents a named handler that contains a name and a function which
@@ -234,7 +292,7 @@ type Handlers struct {
 // into a single list and running.
 func (h Handlers) Run(ctx context.Context, m *Machine) error {
 	l := HandlerList{}
-	if !m.cfg.DisableValidation {
+	if !m.Cfg.DisableValidation {
 		l = l.Append(h.Validation.list...)
 	}
 
@@ -249,6 +307,13 @@ func (h Handlers) Run(ctx context.Context, m *Machine) error {
 // flow of instructions for a given machine.
 type HandlerList struct {
 	list []Handler
+}
+
+// Prepend will prepend a new set of handlers to the handler list
+func (l HandlerList) Prepend(handlers ...Handler) HandlerList {
+	l.list = append(handlers, l.list...)
+
+	return l
 }
 
 // Append will append a new handler to the handler list.

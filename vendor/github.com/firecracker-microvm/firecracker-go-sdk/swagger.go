@@ -16,8 +16,8 @@
 // --skip-validation is used in the command-lines below to remove the network dependency that the swagger generator has
 // in attempting to validate that the email address specified in the yaml file is valid.
 
-//go:generate docker run --add-host github.com:127.1.1.1 --rm --net=none -v $PWD:/work -w /work quay.io/goswagger/swagger generate model -f ./client/swagger.yaml -T ./templates --model-package=client/models --client-package=client --copyright-file=COPYRIGHT_HEADER --skip-validation
-//go:generate docker run --add-host github.com:127.1.1.1 --rm --net=none -v $PWD:/work -w /work quay.io/goswagger/swagger generate client -f ./client/swagger.yaml -T ./templates --model-package=client/models --client-package=client --copyright-file=COPYRIGHT_HEADER --skip-validation
-//go:generate docker run --add-host github.com:127.1.1.1 --rm --net=none -v $PWD:/work -w /work quay.io/goswagger/swagger generate client -f ./client/swagger.yaml -C ./go_swagger_layout.yaml -T ./templates --model-package=client/models --client-package=fctesting --copyright-file=COPYRIGHT_HEADER --skip-validation
+//go:generate docker run --add-host github.com:127.1.1.1 --rm --net=none -v $PWD:/work -w /work quay.io/goswagger/swagger:v0.20.1 generate model -f ./client/swagger.yaml -T ./templates --model-package=client/models --client-package=client --copyright-file=COPYRIGHT_HEADER --skip-validation
+//go:generate docker run --add-host github.com:127.1.1.1 --rm --net=none -v $PWD:/work -w /work quay.io/goswagger/swagger:v0.20.1 generate client -f ./client/swagger.yaml -T ./templates --model-package=client/models --client-package=client --copyright-file=COPYRIGHT_HEADER --skip-validation
+//go:generate docker run --add-host github.com:127.1.1.1 --rm --net=none -v $PWD:/work -w /work quay.io/goswagger/swagger:v0.20.1 generate client -f ./client/swagger.yaml -C ./go_swagger_layout.yaml -T ./templates --model-package=client/models --client-package=fctesting --copyright-file=COPYRIGHT_HEADER --skip-validation
 
 package firecracker

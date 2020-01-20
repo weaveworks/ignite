@@ -19,10 +19,9 @@ package operations
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"net/http"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
@@ -30,7 +29,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	client_models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
 // NewCreateSyncActionParams creates a new CreateSyncActionParams object
@@ -78,7 +77,7 @@ for the create sync action operation typically these are written to a http.Reque
 type CreateSyncActionParams struct {
 
 	/*Info*/
-	Info *client_models.InstanceActionInfo
+	Info *models.InstanceActionInfo
 
 	timeout    time.Duration
 	Context    context.Context
@@ -119,13 +118,13 @@ func (o *CreateSyncActionParams) SetHTTPClient(client *http.Client) {
 }
 
 // WithInfo adds the info to the create sync action params
-func (o *CreateSyncActionParams) WithInfo(info *client_models.InstanceActionInfo) *CreateSyncActionParams {
+func (o *CreateSyncActionParams) WithInfo(info *models.InstanceActionInfo) *CreateSyncActionParams {
 	o.SetInfo(info)
 	return o
 }
 
 // SetInfo adds the info to the create sync action params
-func (o *CreateSyncActionParams) SetInfo(info *client_models.InstanceActionInfo) {
+func (o *CreateSyncActionParams) SetInfo(info *models.InstanceActionInfo) {
 	o.Info = info
 }
 

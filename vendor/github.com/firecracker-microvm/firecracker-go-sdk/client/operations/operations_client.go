@@ -396,38 +396,32 @@ func (a *Client) PutGuestNetworkInterfaceByID(params *PutGuestNetworkInterfaceBy
 }
 
 /*
-PutGuestVsockByID creates new vsock with ID specified by the id parameter
+PutGuestVsock creates updates a vsock device
 
-If the vsock device with the specified ID already exists, its body will be updated based on the new input. May fail if update is not possible.
+The first call creates the device with the configuration specified in body. Subsequent calls will update the device configuration. May fail if update is not possible.
 */
-func (a *Client) PutGuestVsockByID(params *PutGuestVsockByIDParams) (*PutGuestVsockByIDCreated, *PutGuestVsockByIDNoContent, error) {
+func (a *Client) PutGuestVsock(params *PutGuestVsockParams) (*PutGuestVsockNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewPutGuestVsockByIDParams()
+		params = NewPutGuestVsockParams()
 	}
 
 	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "putGuestVsockByID",
+		ID:                 "putGuestVsock",
 		Method:             "PUT",
-		PathPattern:        "/vsocks/{id}",
+		PathPattern:        "/vsock",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &PutGuestVsockByIDReader{formats: a.formats},
+		Reader:             &PutGuestVsockReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	switch value := result.(type) {
-	case *PutGuestVsockByIDCreated:
-		return value, nil, nil
-	case *PutGuestVsockByIDNoContent:
-		return nil, value, nil
-	}
-	return nil, nil, nil
+	return result.(*PutGuestVsockNoContent), nil
 
 }
 
@@ -509,7 +503,7 @@ type ClientIface interface {
 	PutGuestBootSource(params *PutGuestBootSourceParams) (*PutGuestBootSourceNoContent, error)
 	PutGuestDriveByID(params *PutGuestDriveByIDParams) (*PutGuestDriveByIDNoContent, error)
 	PutGuestNetworkInterfaceByID(params *PutGuestNetworkInterfaceByIDParams) (*PutGuestNetworkInterfaceByIDNoContent, error)
-	PutGuestVsockByID(params *PutGuestVsockByIDParams) (*PutGuestVsockByIDCreated, *PutGuestVsockByIDNoContent, error)
+	PutGuestVsock(params *PutGuestVsockParams) (*PutGuestVsockNoContent, error)
 	PutLogger(params *PutLoggerParams) (*PutLoggerNoContent, error)
 	PutMachineConfiguration(params *PutMachineConfigurationParams) (*PutMachineConfigurationNoContent, error)
 }
