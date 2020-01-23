@@ -55,8 +55,6 @@ GOHOSTARCH := $(shell GOARCH= go env GOARCH 2>/dev/null || echo "amd64")
 GOARCH ?= amd64
 GOARCH_LIST = amd64 arm64
 QEMUVERSION=v2.9.1
-# This option is for running docker manifest command
-export DOCKER_CLI_EXPERIMENTAL := enabled
 
 ifeq ($(GOARCH),amd64)
 QEMUARCH=amd64
@@ -141,20 +139,13 @@ build-all: $(addprefix build-all-,$(GOARCH_LIST))
 build-all-%:
 	$(MAKE) GOARCH=$* $(BINARIES)
 
-push-all: $(addprefix push-all-,$(GOARCH_LIST))
-push-all-%:
-	$(MAKE) build-all-$*
-	$(DOCKER) push $(IMAGE):${IMAGE_TAG}-$*
-
-release: push-all
+release: build-all
 ifneq ($(IS_DIRTY),0)
 	$(error "cannot release dirty tree")
 endif
 	mkdir -p bin/releases/${GIT_VERSION}
 	cp -r bin/{amd64,arm64} bin/releases/${GIT_VERSION}
-	$(DOCKER) manifest create --amend $(IMAGE):$(IMAGE_TAG) $(shell echo $(GOARCH_LIST) | sed -e "s~[^ ]*~$(IMAGE):$(IMAGE_TAG)\-&~g")
-	@for arch in $(GOARCH_LIST); do $(DOCKER) manifest annotate --arch=$${arch} $(IMAGE):$(IMAGE_TAG) $(IMAGE):$(IMAGE_TAG)-$${arch}; done
-	$(DOCKER) manifest push --purge $(IMAGE):$(IMAGE_TAG)
+	DOCKER=$(DOCKER) hack/push-manifest-list.sh $(IMAGE):$(IMAGE_TAG) $(GOARCH_LIST)
 
 tidy: /go/bin/goimports
 	go mod tidy
