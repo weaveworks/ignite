@@ -1,5 +1,5 @@
 # Check https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/refs/ for updates
-REGISTRY?=weaveworks
+REGISTRY?=luxas
 IMAGE_NAME?=${REGISTRY}/ignite-kernel
 KERNEL_VERSIONS ?= 4.14.166 4.19.97 5.4.13
 GOARCH?=amd64

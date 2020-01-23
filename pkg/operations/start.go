@@ -38,7 +38,7 @@ func StartVM(vm *api.VM, debug bool) error {
 	vmDir := filepath.Join(constants.VM_DIR, vm.GetUID().String())
 	kernelDir := filepath.Join(constants.KERNEL_DIR, kernelUID.String())
 	// Were parsing already validated data, ignore the error
-	igniteImage, _ := meta.NewOCIImageRef(fmt.Sprintf("weaveworks/ignite:%s", version.GetIgnite().ImageTag()))
+	igniteImage, _ := meta.NewOCIImageRef(fmt.Sprintf("luxas/ignite:%s", version.GetIgnite().ImageTag()))
 
 	// Verify that the image containing ignite-spawn is pulled
 	// TODO: Integrate automatic pulling into pkg/runtime

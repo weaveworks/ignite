@@ -1,7 +1,7 @@
 # WHAT specifies the OS image to build
 WHAT?=
 IS_LATEST?=
-DOCKER_USER?=weaveworks
+DOCKER_USER?=luxas
 VERSION?=$(shell git describe HEAD --tags)
 RELEASE?=latest
 FULL_IMAGE_NAME=${DOCKER_USER}/ignite-${WHAT}:${TAG}

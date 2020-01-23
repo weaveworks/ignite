@@ -11,5 +11,5 @@ const (
 	KERNEL_TAR = "kernel.tar"
 
 	// The kernel image to be used as the default
-	DEFAULT_KERNEL_IMAGE = "weaveworks/ignite-kernel:4.19.47"
+	DEFAULT_KERNEL_IMAGE = "luxas/ignite-kernel:4.19.97"
 )
