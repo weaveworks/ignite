@@ -17,9 +17,10 @@ ignite start <vm> [flags]
 ### Options
 
 ```
-  -d, --debug         Debug mode, keep container after VM shutdown
-  -h, --help          help for start
-  -i, --interactive   Attach to the VM after starting
+  -d, --debug                             Debug mode, keep container after VM shutdown
+  -h, --help                              help for start
+      --ignore-preflight-checks strings   A list of checks whose errors will be shown as warnings. Example: 'BinaryInPath,Port,ExistingFile'. Value 'all' ignores errors from all checks.
+  -i, --interactive                       Attach to the VM after starting
 ```
 
 ### Options inherited from parent commands
