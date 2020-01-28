@@ -8,10 +8,13 @@ const (
 	MANIFEST_DIR = "/etc/firecracker/manifests"
 
 	// Default values for VM options
-	VM_DEFAULT_CPUS        = 1
-	VM_DEFAULT_MEMORY      = 512 * MB
-	VM_DEFAULT_SIZE        = 4 * GB
-	VM_DEFAULT_KERNEL_ARGS = "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp"
+	VM_DEFAULT_CPUS   = 1
+	VM_DEFAULT_MEMORY = 512 * MB
+	VM_DEFAULT_SIZE   = 4 * GB
+	// Refer to https://github.com/firecracker-microvm/firecracker/blob/master/src/vmm/src/vmm_config/boot_source.rs
+	// TODO: The Firecracker team don't use console=ttyS0 anymore, but 8250.nr_uarts=0 instead
+	// See https://github.com/firecracker-microvm/firecracker/pull/313 for more info
+	VM_DEFAULT_KERNEL_ARGS = "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp i8042.noaux i8042.nomux i8042.nopnp i8042.dumbkbd"
 
 	// SSH key template for VMs
 	VM_SSH_KEY_TEMPLATE = "id_%s"
