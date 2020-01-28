@@ -1,6 +1,5 @@
 module github.com/otiai10/copy
 
-require (
-	bou.ke/monkey v1.0.1 // indirect
-	github.com/otiai10/mint v1.2.3
-)
+go 1.12
+
+require github.com/otiai10/mint v1.3.0

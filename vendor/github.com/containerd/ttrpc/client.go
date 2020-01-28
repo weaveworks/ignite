@@ -29,6 +29,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
@@ -134,11 +135,10 @@ func (c *Client) Call(ctx context.Context, service, method string, req, resp int
 		return err
 	}
 
-	if cresp.Status == nil {
-		return errors.New("no status provided on response")
+	if cresp.Status != nil && cresp.Status.Code != int32(codes.OK) {
+		return status.ErrorProto(cresp.Status)
 	}
-
-	return status.ErrorProto(cresp.Status)
+	return nil
 }
 
 func (c *Client) dispatch(ctx context.Context, req *Request, resp *Response) error {
@@ -338,9 +338,12 @@ func filterCloseErr(err error) error {
 	case strings.Contains(err.Error(), "use of closed network connection"):
 		return ErrClosed
 	default:
-		// if we have an epipe on a write, we cast to errclosed
-		if oerr, ok := err.(*net.OpError); ok && oerr.Op == "write" {
-			if serr, ok := oerr.Err.(*os.SyscallError); ok && serr.Err == syscall.EPIPE {
+		// if we have an epipe on a write or econnreset on a read , we cast to errclosed
+		if oerr, ok := err.(*net.OpError); ok && (oerr.Op == "write" || oerr.Op == "read") {
+			serr, sok := oerr.Err.(*os.SyscallError)
+			if sok && ((serr.Err == syscall.EPIPE && oerr.Op == "write") ||
+				(serr.Err == syscall.ECONNRESET && oerr.Op == "read")) {
+
 				return ErrClosed
 			}
 		}
