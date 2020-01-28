@@ -42,4 +42,5 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 func addStartFlags(fs *pflag.FlagSet, sf *run.StartFlags) {
 	cmdutil.AddInteractiveFlag(fs, &sf.Interactive)
 	fs.BoolVarP(&sf.Debug, "debug", "d", false, "Debug mode, keep container after VM shutdown")
+	fs.StringSliceVar(&sf.IgnoredPreflightErrors, "ignore-preflight-checks", []string{}, "A list of checks whose errors will be shown as warnings. Example: 'BinaryInPath,Port,ExistingFile'. Value 'all' ignores errors from all checks.")
 }
