@@ -7,7 +7,7 @@ Create a new VM without starting it
 
 Create a new VM by combining the given image with a kernel. If no
 kernel is given using the kernel flag (-k, --kernel-image), use the
-default kernel (weaveworks/ignite-kernel:4.19.47).
+default kernel (luxas/ignite-kernel:4.19.97).
 
 Various configuration options can be set during creation by using
 the flags for this command.
@@ -38,8 +38,8 @@ ignite create <OCI image> [flags]
   -f, --copy-files strings       Copy files/directories from the host to the created VM
       --cpus uint                VM vCPU count, 1 or even numbers between 1 and 32 (default 1)
   -h, --help                     help for create
-      --kernel-args string       Set the command line for the kernel (default "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp")
-  -k, --kernel-image oci-image   Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules (default weaveworks/ignite-kernel:4.19.47)
+      --kernel-args string       Set the command line for the kernel (default "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp i8042.noaux i8042.nomux i8042.nopnp i8042.dumbkbd")
+  -k, --kernel-image oci-image   Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules (default luxas/ignite-kernel:4.19.97)
       --memory size              Amount of RAM to allocate for the VM (default 512.0 MB)
   -n, --name string              Specify the name
   -p, --ports strings            Map host ports to VM ports
