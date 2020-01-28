@@ -33,7 +33,7 @@ ignite vm run <OCI image> [flags]
   -d, --debug                    Debug mode, keep container after VM shutdown
   -h, --help                     help for run
   -i, --interactive              Attach to the VM after starting
-      --kernel-args string       Set the command line for the kernel (default "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp")
+      --kernel-args string       Set the command line for the kernel (default "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp i8042.noaux i8042.nomux i8042.nopnp i8042.dumbkbd")
   -k, --kernel-image oci-image   Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules (default weaveworks/ignite-kernel:4.19.47)
       --memory size              Amount of RAM to allocate for the VM (default 512.0 MB)
   -n, --name string              Specify the name
