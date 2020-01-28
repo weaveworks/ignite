@@ -71,27 +71,28 @@ func (efc ExistingFileChecker) Type() string {
 }
 
 type BinInPathChecker struct {
-	bin string
+	// By default, this slice only contains one item. If it does contain more than one;
+	// at least one of them needs to be present in $PATH
+	binaryNames []string
 }
 
 func (bipc BinInPathChecker) Check() error {
-	_, err := exec.LookPath(bipc.bin)
-	if err != nil {
-		return fmt.Errorf("Bin %s is not in your PATH", bipc.bin)
+	for _, binary := range bipc.binaryNames {
+		_, err := exec.LookPath(binary)
+		if err == nil {
+			return nil
+		}
 	}
-	return nil
+
+	return fmt.Errorf("None of the following binaries %v seem to be in your PATH. Please install this tool before continuing.", bipc.binaryNames)
 }
 
 func (bipc BinInPathChecker) Name() string {
-	return ""
+	return fmt.Sprintf("BinaryInPath-%s", bipc.binaryNames[0])
 }
 
 func (bipc BinInPathChecker) Type() string {
-	return ""
-}
-
-type AvailablePathChecker struct {
-	path string
+	return "BinaryInPath"
 }
 
 func StartCmdChecks(vm *api.VM, ignoredPreflightErrors sets.String) error {
@@ -112,12 +113,17 @@ func StartCmdChecks(vm *api.VM, ignoredPreflightErrors sets.String) error {
 
 	// Binary name of the runtime is just the runtime name in string, "docker" or "containerd"
 	// So it is OK for us to check only one of them, as people may installing only containerd but not docker
-	runtimeBinaryName := providers.RuntimeName.String()
-	checks = append(checks, BinInPathChecker{bin: runtimeBinaryName})
+	runtimeBinaryNames := []string{providers.RuntimeName.String()}
+	if runtimeBinaryNames[0] == "containerd" {
+		// Also look for docker-containerd in case we're set to use containerd.
+		// In Debian 10 (at least), the docker.io package only installs containerd under the prefixed name
+		runtimeBinaryNames = append(runtimeBinaryNames, "docker-containerd")
+	}
+	checks = append(checks, BinInPathChecker{binaryNames: runtimeBinaryNames})
 
 	// Check common binaries
 	for _, dependency := range constants.BinaryDependencies {
-		checks = append(checks, BinInPathChecker{bin: dependency})
+		checks = append(checks, BinInPathChecker{binaryNames: []string{dependency}})
 	}
 	return runChecks(checks, ignoredPreflightErrors)
 }
