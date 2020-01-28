@@ -28,7 +28,10 @@ RUN make ${ARCH_MAKE_PARAMS} EXTRAVERSION=${KERNEL_EXTRA} LOCALVERSION= olddefco
 RUN	make ${ARCH_MAKE_PARAMS} EXTRAVERSION=${KERNEL_EXTRA} LOCALVERSION= -j32
 RUN make ${ARCH_MAKE_PARAMS} EXTRAVERSION=${KERNEL_EXTRA} LOCALVERSION= modules_install
 
-RUN cp vmlinux /boot/vmlinux-${KERNEL_VERSION}${KERNEL_EXTRA} && \
+# VMLINUX_PATH is configurable, as the arm64 kernel to be booted by Firecracker is present
+# in arch/arm64/boot/Image.
+ARG VMLINUX_PATH="vmlinux"
+RUN cp ${VMLINUX_PATH} /boot/vmlinux-${KERNEL_VERSION}${KERNEL_EXTRA} && \
 	ln -s /boot/vmlinux-${KERNEL_VERSION}${KERNEL_EXTRA} /boot/vmlinux && \
 	cp .config /boot/config-${KERNEL_VERSION}${KERNEL_EXTRA}
 
