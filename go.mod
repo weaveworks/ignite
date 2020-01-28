@@ -15,9 +15,9 @@ require (
 	github.com/containerd/go-runc v0.0.0-20190603165425-9007c2405372 // indirect
 	github.com/containerd/ttrpc v0.0.0-20190613183316-1fb3814edf44 // indirect
 	github.com/containerd/typeurl v0.0.0-20190515163108-7312978f2987 // indirect
-	github.com/containernetworking/plugins v0.8.2
+	github.com/containernetworking/plugins v0.8.5
 	github.com/containers/image v2.0.0+incompatible
-	github.com/coreos/go-iptables v0.4.2
+	github.com/coreos/go-iptables v0.4.5
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0
