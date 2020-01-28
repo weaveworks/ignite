@@ -6,7 +6,9 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"runtime"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -38,6 +40,12 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	if len(cmdLine) == 0 {
 		// if for some reason cmdline would be unpopulated, set it to the default
 		cmdLine = constants.VM_DEFAULT_KERNEL_ARGS
+	}
+
+	// On ARM64, keep_bootcon needs to be applied to the kernel arguments
+	if runtime.GOARCH == "arm64" && !strings.Contains(cmdLine, "keep_bootcon") {
+		// Prepend keep_bootcon as per https://github.com/firecracker-microvm/firecracker/blob/master/docs/getting-started.md
+		cmdLine = fmt.Sprintf("keep_bootcon %s", cmdLine)
 	}
 
 	// Convert the logrus error level to a Firecracker compatible error level.
