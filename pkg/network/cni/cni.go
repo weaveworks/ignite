@@ -189,7 +189,7 @@ func cniToIgniteResult(r *gocni.CNIResult) *network.Result {
 	return result
 }
 
-func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerID string) (err error) {
+func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerID string, isRunning bool) (err error) {
 	if err = plugin.initialize(); err != nil {
 		return err
 	}
@@ -208,10 +208,13 @@ func (plugin *cniNetworkPlugin) RemoveContainerNetwork(containerID string) (err 
 		return nil
 	}
 
-	netnsPath := fmt.Sprintf(netNSPathFmt, c.PID)
-	if c.PID == 0 {
-		log.Info("CNI failed to retrieve network namespace path, PID was 0")
-		return nil
+	netnsPath := ""
+	if isRunning {
+		netnsPath = fmt.Sprintf(netNSPathFmt, c.PID)
+		if c.PID == 0 {
+			log.Info("CNI failed to retrieve network namespace path, PID was 0")
+			return nil
+		}
 	}
 
 	return plugin.cni.Remove(context.Background(), containerID, netnsPath)
