@@ -69,4 +69,5 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 func addPsFlags(fs *pflag.FlagSet, pf *run.PsFlags) {
 	fs.BoolVarP(&pf.All, "all", "a", false, "Show all VMs, not just running ones")
 	fs.StringVarP(&pf.Filter, "filter", "f", "", "Filter the VMs")
+	fs.StringVarP(&pf.TemplateFormat, "template", "t", "", "Format the output using the given Go template")
 }

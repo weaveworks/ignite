@@ -1,0 +1,2 @@
+Name: vm1 Image: foo/bar:latest
+Name: vm3 Image: foo/bar:latest

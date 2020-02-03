@@ -1,7 +1,9 @@
 package run
 
 import (
+	"bytes"
 	"fmt"
+	"text/template"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/filter"
@@ -9,9 +11,11 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
+// PsFlags contains the flags supported by ps.
 type PsFlags struct {
-	All    bool
-	Filter string
+	All            bool
+	Filter         string
+	TemplateFormat string
 }
 
 type psOptions struct {
@@ -19,12 +23,14 @@ type psOptions struct {
 	allVMs []*api.VM
 }
 
+// NewPsOptions constructs and returns psOptions.
 func (pf *PsFlags) NewPsOptions() (po *psOptions, err error) {
 	po = &psOptions{PsFlags: pf}
 	po.allVMs, err = providers.Client.VMs().FindAll(filter.NewVMFilterAll("", po.All))
 	return
 }
 
+// Ps filters and renders the VMs based on the psOptions.
 func Ps(po *psOptions) error {
 	var filters *filter.MultipleMetaFilter
 	var err error
@@ -36,10 +42,9 @@ func Ps(po *psOptions) error {
 			return err
 		}
 	}
-	o := util.NewOutput()
-	defer o.Flush()
 
-	o.Write("VM ID", "IMAGE", "KERNEL", "SIZE", "CPUS", "MEMORY", "CREATED", "STATUS", "IPS", "PORTS", "NAME")
+	filteredVMs := []*api.VM{}
+
 	for _, vm := range po.allVMs {
 		isExpectedVM := true
 		if filtering {
@@ -52,11 +57,39 @@ func Ps(po *psOptions) error {
 			return err
 		}
 		if isExpectedVM {
-			o.Write(vm.GetUID(), vm.Spec.Image.OCI, vm.Spec.Kernel.OCI,
-				vm.Spec.DiskSize, vm.Spec.CPUs, vm.Spec.Memory, formatCreated(vm), formatStatus(vm), vm.Status.IPAddresses,
-				vm.Spec.Network.Ports, vm.GetName())
+			filteredVMs = append(filteredVMs, vm)
 		}
 	}
+
+	// If template format is specified, render the template.
+	if po.PsFlags.TemplateFormat != "" {
+		// Parse the template format.
+		tmpl, err := template.New("").Parse(po.PsFlags.TemplateFormat)
+		if err != nil {
+			return fmt.Errorf("failed to parse template: %v", err)
+		}
+
+		// Render the template with the filtered VMs.
+		for _, vm := range filteredVMs {
+			o := &bytes.Buffer{}
+			if err := tmpl.Execute(o, vm); err != nil {
+				return fmt.Errorf("failed rendering template: %v", err)
+			}
+			fmt.Println(o.String())
+		}
+		return nil
+	}
+
+	o := util.NewOutput()
+	defer o.Flush()
+
+	o.Write("VM ID", "IMAGE", "KERNEL", "SIZE", "CPUS", "MEMORY", "CREATED", "STATUS", "IPS", "PORTS", "NAME")
+	for _, vm := range filteredVMs {
+		o.Write(vm.GetUID(), vm.Spec.Image.OCI, vm.Spec.Kernel.OCI,
+			vm.Spec.DiskSize, vm.Spec.CPUs, vm.Spec.Memory, formatCreated(vm), formatStatus(vm), vm.Status.IPAddresses,
+			vm.Spec.Network.Ports, vm.GetName())
+	}
+
 	return nil
 }
 
