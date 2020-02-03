@@ -1,0 +1,1 @@
+someVM foo/bar:latest
