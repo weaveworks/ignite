@@ -42,4 +42,5 @@ func NewCmdInspect(out io.Writer) *cobra.Command {
 
 func addInspectFlags(fs *pflag.FlagSet, i *run.InspectFlags) {
 	fs.StringVarP(&i.OutputFormat, "output", "o", "json", "Output the object in the specified format")
+	fs.StringVarP(&i.TemplateFormat, "template", "t", "", "Format the output using the given Go template")
 }

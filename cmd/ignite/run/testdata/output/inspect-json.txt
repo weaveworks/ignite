@@ -1,0 +1,37 @@
+{
+  "kind": "VM",
+  "apiVersion": "ignite.weave.works/v1alpha2",
+  "metadata": {
+    "name": "someVM",
+    "uid": "1699b6ba255cde7f",
+    "created": "2000-01-01T01:00:00Z"
+  },
+  "spec": {
+    "image": {
+      "oci": "foo/bar:latest"
+    },
+    "kernel": {
+      "oci": "foo/bar:latest"
+    },
+    "cpus": 0,
+    "memory": "0B",
+    "diskSize": "0B",
+    "network": {
+      
+    },
+    "storage": {
+      
+    }
+  },
+  "status": {
+    "running": false,
+    "image": {
+      "id": null,
+      "size": "0B"
+    },
+    "kernel": {
+      "id": null,
+      "size": "0B"
+    }
+  }
+}

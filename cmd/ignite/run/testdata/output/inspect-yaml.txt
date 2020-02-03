@@ -1,0 +1,24 @@
+apiVersion: ignite.weave.works/v1alpha2
+kind: VM
+metadata:
+  created: "2000-01-01T01:00:00Z"
+  name: someVM
+  uid: 1699b6ba255cde7f
+spec:
+  cpus: 0
+  diskSize: 0B
+  image:
+    oci: foo/bar:latest
+  kernel:
+    oci: foo/bar:latest
+  memory: 0B
+  network: {}
+  storage: {}
+status:
+  image:
+    id: null
+    size: 0B
+  kernel:
+    id: null
+    size: 0B
+  running: false

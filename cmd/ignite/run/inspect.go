@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"text/template"
 
 	"github.com/weaveworks/gitops-toolkit/pkg/filter"
 	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
@@ -12,8 +13,10 @@ import (
 	"github.com/weaveworks/ignite/pkg/providers"
 )
 
+// InspectFlags contains the flags supported by inspect.
 type InspectFlags struct {
-	OutputFormat string
+	OutputFormat   string
+	TemplateFormat string
 }
 
 type inspectOptions struct {
@@ -21,6 +24,8 @@ type inspectOptions struct {
 	object runtime.Object
 }
 
+// NewInspectOptions constructs and returns inspectOptions with the given kind
+// and object ID.
 func (i *InspectFlags) NewInspectOptions(k, objectMatch string) (*inspectOptions, error) {
 	var err error
 	var kind runtime.Kind
@@ -44,9 +49,25 @@ func (i *InspectFlags) NewInspectOptions(k, objectMatch string) (*inspectOptions
 	return io, nil
 }
 
+// Inspect renders the result of inspect in different formats based on the
+// inspectOptions.
 func Inspect(io *inspectOptions) error {
 	var b []byte
 	var err error
+
+	// If a template format is specified, render the template.
+	if io.TemplateFormat != "" {
+		output := &bytes.Buffer{}
+		tmpl, err := template.New("").Parse(io.TemplateFormat)
+		if err != nil {
+			return fmt.Errorf("failed to parse template: %v", err)
+		}
+		if err := tmpl.Execute(output, io.object); err != nil {
+			return fmt.Errorf("failed rendering template: %v", err)
+		}
+		fmt.Println(output.String())
+		return nil
+	}
 
 	// Select the encoder and encode the object with it
 	switch io.OutputFormat {
