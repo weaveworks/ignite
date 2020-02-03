@@ -31,6 +31,7 @@ type CreateFlags struct {
 	SSH        api.SSH
 	ConfigFile string
 	VM         *api.VM
+	Labels     []string
 }
 
 type createOptions struct {
@@ -113,6 +114,10 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 func Create(co *createOptions) error {
 	// Generate a random UID and Name
 	if err := metadata.SetNameAndUID(co.VM, providers.Client); err != nil {
+		return err
+	}
+	// Set VM labels.
+	if err := metadata.SetLabels(co.VM, co.Labels); err != nil {
 		return err
 	}
 	defer metadata.Cleanup(co.VM, false) // TODO: Handle silent
