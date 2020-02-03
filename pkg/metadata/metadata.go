@@ -143,7 +143,7 @@ func processName(obj runtime.Object, c *client.Client) error {
 }
 
 func verifyUIDOrName(c *client.Client, match string, kind runtime.Kind) error {
-	_, err := c.Dynamic(kind).Find(filter.NewIDNameFilter(match))
+	_, err := c.Dynamic(kind).Find(filter.NewNameFilter(match))
 	switch err.(type) {
 	case *filterer.NonexistentError:
 		// The id/name is unique, no error
