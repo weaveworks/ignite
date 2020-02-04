@@ -18,8 +18,9 @@ ignite inspect <kind> <object> [flags]
 ### Options
 
 ```
-  -h, --help            help for inspect
-  -o, --output string   Output the object in the specified format (default "json")
+  -h, --help              help for inspect
+  -o, --output string     Output the object in the specified format (default "json")
+  -t, --template string   Format the output using the given Go template
 ```
 
 ### Options inherited from parent commands
