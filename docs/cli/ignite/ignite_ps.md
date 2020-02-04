@@ -38,9 +38,10 @@ ignite ps [flags]
 ### Options
 
 ```
-  -a, --all             Show all VMs, not just running ones
-  -f, --filter string   Filter the VMs
-  -h, --help            help for ps
+  -a, --all               Show all VMs, not just running ones
+  -f, --filter string     Filter the VMs
+  -h, --help              help for ps
+  -t, --template string   Format the output using the given Go template
 ```
 
 ### Options inherited from parent commands
