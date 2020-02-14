@@ -1,6 +1,6 @@
 #!/bin/bash
 
-KERNEL_BUILDER_IMAGE=luxas/kernel-builder:gcc-7-2
+KERNEL_BUILDER_IMAGE=luxas/kernel-builder:gcc-7
 
 if [[ $# != 2 ]]; then
     echo "Usage: $0 [FROM] [TO]"
