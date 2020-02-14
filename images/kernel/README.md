@@ -23,7 +23,13 @@ The available versions exist in the [stable kernel git tree](https://git.kernel.
 
 ## Upgrading to a new kernel version
 
-It should be as easy as:
+The kernel Makefile has an `upgrade` command that will generate patched kernel configs for each specific version in `KERNEL_VERSIONS`.
+
+The linux kernel source code is checked out in a build container for each target version, and a resulting "olddefconfig" based on each Firecracker recommended base-config in the `upstream/` directory is then output to the `versioned/` directory.
+
+Once `make upgrade-%` has produced a firecracker base-config for all `KERNEL_VERSIONS`, the resulting versioned configs are copied to the `generated/` dir and are patched with ignite specific `./config-patches`. These configs under `generated/` are used for the matching kernel builds.
+
+Run:
 
 ```console
 $ make upgrade
