@@ -53,9 +53,9 @@ for file in ./versioned/*; do
     # Copy the old config file to the new (overwrite if present), and patch the new one in-place
     cp ${old_file} ${new_file}
     # Add an extra newline to the upstream file if it hasn't got it
-    echo "" >> ${new_file}
+    # From https://backreference.org/2010/05/23/sanitizing-files-with-no-trailing-newline/
+    tail -c1 "${new_file}" | read -r _ || echo >> "${new_file}"
     # Apply patches to the new file
     patch_file ${new_file}
 done
-
 
