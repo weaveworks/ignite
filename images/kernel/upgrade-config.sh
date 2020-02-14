@@ -9,7 +9,7 @@ fi
 
 FROM=$1
 TO=$2
-VERSION=$(echo ${TO} | rev | cut -d- -f1 | rev)
+VERSION="$(echo ${TO} | rev | cut -d- -f1 | rev)"  # Extracts the trailing hyphenated field -- this is dependent on naming the resulting file properly (ex: ./versioned/config-amd64-5.4.13)
 
 if [[ ${FROM} != ${TO} ]]; then
     cp ${FROM} ${TO}
