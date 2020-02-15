@@ -25,19 +25,17 @@ require (
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
 	github.com/firecracker-microvm/firecracker-go-sdk v0.19.1-0.20200110212531-741fc8cb0f2e
 	github.com/freddierice/go-losetup v0.0.0-20170407175016-fc9adea44124
-	github.com/go-openapi/jsonreference v0.19.3 // indirect
 	github.com/go-openapi/spec v0.19.3
 	github.com/godbus/dbus v4.1.0+incompatible // indirect
 	github.com/gogo/googleapis v1.2.0 // indirect
 	github.com/google/uuid v1.1.1 // indirect
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/imdario/mergo v0.3.7 // indirect
-	github.com/json-iterator/go v1.1.8 // indirect
 	github.com/krolaw/dhcp4 v0.0.0-20190531080455-7b64900047ae
 	github.com/lithammer/dedent v1.1.0
-	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/miekg/dns v1.1.14
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
+	github.com/nightlyone/lockfile v0.0.0-20200124072040-edb130adc195
 	github.com/opencontainers/go-digest v1.0.0-rc1
 	github.com/opencontainers/image-spec v1.0.1
 	github.com/opencontainers/runc v0.1.1 // indirect
@@ -56,16 +54,14 @@ require (
 	github.com/weaveworks/gitops-toolkit v0.0.0-20190830163251-b6682e98e2fa
 	go.etcd.io/bbolt v1.3.3 // indirect
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
-	golang.org/x/net v0.0.0-20191004110552-13f9640d40b9 // indirect
 	golang.org/x/sys v0.0.0-20190801041406-cbf593c0f2f3
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/genproto v0.0.0-20190404172233-64821d5d2107 // indirect
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/alessio/shellescape.v1 v1.0.0-20170105083845-52074bc9df61
-	gopkg.in/yaml.v2 v2.2.4 // indirect
 	gotest.tools v2.2.0+incompatible
 	k8s.io/apimachinery v0.0.0-20190612205821-1799e75a0719
-	k8s.io/klog v1.0.0 // indirect
+	k8s.io/code-generator v0.17.3 // indirect
 	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
 	sigs.k8s.io/yaml v1.1.0
 )
