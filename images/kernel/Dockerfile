@@ -5,10 +5,9 @@ RUN git fetch --tags
 RUN git checkout v${KERNEL_VERSION} && \
     make clean && make mrproper
 
-COPY config-${KERNEL_VERSION}${KERNEL_EXTRA} .config
+COPY generated/config-amd64-${KERNEL_VERSION}${KERNEL_EXTRA} .config
 
-RUN make EXTRAVERSION=${KERNEL_EXTRA} LOCALVERSION= olddefconfig && \
-	make EXTRAVERSION=${KERNEL_EXTRA} LOCALVERSION= olddefconfig
+RUN make EXTRAVERSION=${KERNEL_EXTRA} LOCALVERSION= olddefconfig
 
 RUN	make EXTRAVERSION=${KERNEL_EXTRA} LOCALVERSION= -j32
 RUN make EXTRAVERSION=${KERNEL_EXTRA} LOCALVERSION= modules_install
