@@ -53,16 +53,19 @@ func StartVM(vm *api.VM, debug bool) error {
 			{
 				HostPath:      vmDir,
 				ContainerPath: vmDir,
+				MountOptions:  []string{"ro"},
 			},
 			{
 				// Mount the metadata.json file specifically into the container, to a well-known place for ignite-spawn to access
 				HostPath:      path.Join(vmDir, constants.METADATA),
 				ContainerPath: constants.IGNITE_SPAWN_VM_FILE_PATH,
+				MountOptions:  []string{"ro"},
 			},
 			{
 				// Mount the vmlinux file specifically into the container, to a well-known place for ignite-spawn to access
 				HostPath:      path.Join(kernelDir, constants.KERNEL_FILE),
 				ContainerPath: constants.IGNITE_SPAWN_VMLINUX_FILE_PATH,
+				MountOptions:  []string{"ro"},
 			},
 		},
 		CapAdds: []string{
@@ -88,6 +91,7 @@ func StartVM(vm *api.VM, debug bool) error {
 		config.Devices = append(config.Devices, &runtime.Bind{
 			HostPath:      volume.BlockDevice.Path,
 			ContainerPath: path.Join(constants.IGNITE_SPAWN_VOLUME_DIR, volume.Name),
+			MountOptions:  []string{"ro"},
 		})
 	}
 

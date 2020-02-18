@@ -62,7 +62,7 @@ require (
 	google.golang.org/genproto v0.0.0-20190404172233-64821d5d2107 // indirect
 	google.golang.org/grpc v1.21.1 // indirect
 	gopkg.in/alessio/shellescape.v1 v1.0.0-20170105083845-52074bc9df61
-	gopkg.in/yaml.v2 v2.2.4 // indirect
+	gopkg.in/yaml.v2 v2.2.8 // indirect
 	gotest.tools v2.2.0+incompatible
 	k8s.io/apimachinery v0.0.0-20190612205821-1799e75a0719
 	k8s.io/klog v1.0.0 // indirect

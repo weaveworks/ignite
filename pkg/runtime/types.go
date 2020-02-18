@@ -26,6 +26,7 @@ type ContainerInspectResult struct {
 type Bind struct {
 	HostPath      string
 	ContainerPath string
+	MountOptions  []string
 }
 
 // Convenience generator for Binds which have the same host and container path
@@ -33,6 +34,7 @@ func BindBoth(path string) *Bind {
 	return &Bind{
 		HostPath:      path,
 		ContainerPath: path,
+		MountOptions:  []string{},
 	}
 }
 

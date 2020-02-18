@@ -405,6 +405,7 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 		&runtime.Bind{
 			HostPath:      resolvConfPath,
 			ContainerPath: "/etc/resolv.conf",
+			MountOptions:  []string{"ro", "rbind"},
 		},
 	)
 
@@ -510,10 +511,7 @@ func withMounts(binds []*runtime.Bind) oci.SpecOpts {
 			Source:      bind.HostPath,
 			Destination: bind.ContainerPath,
 			Type:        "bind",
-			Options: []string{
-				"rbind",
-				"rw",
-			},
+			Options:     bind.MountOptions,
 		})
 	}
 

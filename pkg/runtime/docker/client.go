@@ -6,11 +6,13 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	cont "github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/preflight"
@@ -131,10 +133,23 @@ func (dc *dockerClient) AttachContainer(container string) (err error) {
 }
 
 func (dc *dockerClient) RunContainer(image meta.OCIImageRef, config *runtime.ContainerConfig, name, id string) (string, error) {
-	binds := make([]string, 0, len(config.Binds))
+	mounts := make([]string, 0, len([]mount.Mount{}))
+	m := mount.Mount{}
 	for _, bind := range config.Binds {
-		binds = append(binds, fmt.Sprintf("%s:%s", bind.HostPath, bind.ContainerPath))
+		m = mount.Mount{
+			Source:   bind.HostPath,
+			Target:   bind.ContainerPath,
+			ReadOnly: false,
+		}
+		for _, mo := range bind.MountOptions {
+			if strings.Compare(mo, "ro") == 0 {
+				m.ReadOnly = true
+				break
+			}
+		}
 	}
+
+	mounts = append(mounts, m.Source, m.Target)
 
 	devices := make([]container.DeviceMapping, 0, len(config.Devices))
 	for _, device := range config.Devices {
@@ -158,7 +173,7 @@ func (dc *dockerClient) RunContainer(image meta.OCIImageRef, config *runtime.Con
 		Labels:       config.Labels,
 		StopTimeout:  &stopTimeout,
 	}, &container.HostConfig{
-		Binds:        binds,
+		Mounts:       []mount.Mount{},
 		NetworkMode:  container.NetworkMode(config.NetworkMode),
 		PortBindings: bindings,
 		AutoRemove:   config.AutoRemove,
