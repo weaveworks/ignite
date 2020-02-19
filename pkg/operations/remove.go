@@ -37,6 +37,11 @@ func CleanupVM(vm *api.VM) error {
 		if err := StopVM(vm, true, true); err != nil {
 			return err
 		}
+	} else {
+		// Try to cleanup VM networking
+		if err := removeNetworking(util.NewPrefixer().Prefix(vm.GetUID()), false); err != nil {
+			log.Warnf("Failed to cleanup networking for stopped container %s %q: %v", vm.GetKind(), vm.GetUID(), err)
+		}
 	}
 
 	// Remove the VM container if it exists
@@ -79,7 +84,7 @@ func StopVM(vm *api.VM, kill, silent bool) error {
 	action := "stop"
 
 	// Remove VM networking
-	if err = removeNetworking(util.NewPrefixer().Prefix(vm.GetUID())); err != nil {
+	if err = removeNetworking(util.NewPrefixer().Prefix(vm.GetUID()), true); err != nil {
 		return err
 	}
 
@@ -108,7 +113,7 @@ func StopVM(vm *api.VM, kill, silent bool) error {
 	return nil
 }
 
-func removeNetworking(containerID string) error {
+func removeNetworking(containerID string, isRunning bool) error {
 	log.Infof("Removing the container with ID %q from the %q network", containerID, providers.NetworkPlugin.Name())
-	return providers.NetworkPlugin.RemoveContainerNetwork(containerID)
+	return providers.NetworkPlugin.RemoveContainerNetwork(containerID, isRunning)
 }

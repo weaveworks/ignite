@@ -1,10 +1,12 @@
 package metadata
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
 	"regexp"
+	"strings"
 
 	"github.com/weaveworks/gitops-toolkit/pkg/filter"
 	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
@@ -21,6 +23,9 @@ var (
 	uidRegex  = regexp.MustCompile(`^[a-z0-9]{16}$`)
 )
 
+// ErrNilObject is returned when the runtime object being initialized is nil.
+var ErrNilObject = errors.New("object cannot be nil when initializing runtime data")
+
 type Metadata interface {
 	runtime.Object
 }
@@ -28,7 +33,7 @@ type Metadata interface {
 // SetNameAndUID sets the name and UID for an object if that isn't set automatically
 func SetNameAndUID(obj runtime.Object, c *client.Client) error {
 	if obj == nil {
-		return fmt.Errorf("object cannot be nil when initializing runtime data")
+		return ErrNilObject
 	}
 
 	if c == nil {
@@ -42,6 +47,27 @@ func SetNameAndUID(obj runtime.Object, c *client.Client) error {
 
 	// Generate or validate the given name, if any
 	return processName(obj, c)
+}
+
+// SetLabels metadata labels for a given object.
+func SetLabels(obj runtime.Object, labels []string) error {
+	if obj == nil {
+		return ErrNilObject
+	}
+
+	for _, label := range labels {
+		kv := strings.SplitN(label, "=", 2)
+		// Check the length of key/val. Must be exactly 2.
+		if len(kv) != 2 {
+			return fmt.Errorf("invalid label value %q: supported syntax: --label <key>=<value>", label)
+		}
+		// Label name must not be empty.
+		if kv[0] == "" {
+			return fmt.Errorf("invalid label %q, name empty", label)
+		}
+		obj.SetLabel(kv[0], kv[1])
+	}
+	return nil
 }
 
 // processUID a new 8-byte ID and handles directory creation/deletion
@@ -117,7 +143,7 @@ func processName(obj runtime.Object, c *client.Client) error {
 }
 
 func verifyUIDOrName(c *client.Client, match string, kind runtime.Kind) error {
-	_, err := c.Dynamic(kind).Find(filter.NewIDNameFilter(match))
+	_, err := c.Dynamic(kind).Find(filter.NewNameFilter(match))
 	switch err.(type) {
 	case *filterer.NonexistentError:
 		// The id/name is unique, no error

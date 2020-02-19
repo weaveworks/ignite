@@ -101,6 +101,12 @@ func getNewestAvailableContainerdRuntime() (string, error) {
 		return plugin.RuntimeLinuxV1, nil
 	}
 
+	// legacy fallback needs hard-coded binary name -- it's not exported by containerd/runtime/v1/shim
+	// this is for debian's packaging of docker.io
+	if _, err := exec.LookPath("docker-containerd-shim"); err == nil {
+		return plugin.RuntimeLinuxV1, nil
+	}
+
 	// default to the legacy runtime and return an error so the caller can decide what to do
 	return plugin.RuntimeLinuxV1, fmt.Errorf("a containerd-shim could not be found for runtimes %v, %s", v2ShimRuntimes, plugin.RuntimeLinuxV1)
 }

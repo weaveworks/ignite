@@ -44,7 +44,7 @@ func (plugin *dockerNetworkPlugin) SetupContainerNetwork(containerID string, _ .
 	}, nil
 }
 
-func (*dockerNetworkPlugin) RemoveContainerNetwork(_ string) error {
+func (*dockerNetworkPlugin) RemoveContainerNetwork(_ string, _ bool) error {
 	// no-op for docker, this is handled automatically
 	return nil
 }

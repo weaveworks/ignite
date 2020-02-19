@@ -26,7 +26,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	client_models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
 // PatchGuestNetworkInterfaceByIDReader is a Reader for the PatchGuestNetworkInterfaceByID structure.
@@ -37,21 +37,18 @@ type PatchGuestNetworkInterfaceByIDReader struct {
 // ReadResponse reads a server response into the received o.
 func (o *PatchGuestNetworkInterfaceByIDReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
 	switch response.Code() {
-
 	case 204:
 		result := NewPatchGuestNetworkInterfaceByIDNoContent()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
 		return result, nil
-
 	case 400:
 		result := NewPatchGuestNetworkInterfaceByIDBadRequest()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
 		return nil, result
-
 	default:
 		result := NewPatchGuestNetworkInterfaceByIDDefault(response.Code())
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -95,16 +92,20 @@ func NewPatchGuestNetworkInterfaceByIDBadRequest() *PatchGuestNetworkInterfaceBy
 Network interface cannot be updated due to bad input
 */
 type PatchGuestNetworkInterfaceByIDBadRequest struct {
-	Payload *client_models.Error
+	Payload *models.Error
 }
 
 func (o *PatchGuestNetworkInterfaceByIDBadRequest) Error() string {
 	return fmt.Sprintf("[PATCH /network-interfaces/{iface_id}][%d] patchGuestNetworkInterfaceByIdBadRequest  %+v", 400, o.Payload)
 }
 
+func (o *PatchGuestNetworkInterfaceByIDBadRequest) GetPayload() *models.Error {
+	return o.Payload
+}
+
 func (o *PatchGuestNetworkInterfaceByIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.Error)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -128,7 +129,7 @@ Internal server error
 type PatchGuestNetworkInterfaceByIDDefault struct {
 	_statusCode int
 
-	Payload *client_models.Error
+	Payload *models.Error
 }
 
 // Code gets the status code for the patch guest network interface by ID default response
@@ -140,9 +141,13 @@ func (o *PatchGuestNetworkInterfaceByIDDefault) Error() string {
 	return fmt.Sprintf("[PATCH /network-interfaces/{iface_id}][%d] patchGuestNetworkInterfaceByID default  %+v", o._statusCode, o.Payload)
 }
 
+func (o *PatchGuestNetworkInterfaceByIDDefault) GetPayload() *models.Error {
+	return o.Payload
+}
+
 func (o *PatchGuestNetworkInterfaceByIDDefault) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.Error)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

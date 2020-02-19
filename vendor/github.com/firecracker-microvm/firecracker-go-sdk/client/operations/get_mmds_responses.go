@@ -26,7 +26,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	client_models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
 // GetMmdsReader is a Reader for the GetMmds structure.
@@ -37,21 +37,18 @@ type GetMmdsReader struct {
 // ReadResponse reads a server response into the received o.
 func (o *GetMmdsReader) ReadResponse(response runtime.ClientResponse, consumer runtime.Consumer) (interface{}, error) {
 	switch response.Code() {
-
 	case 200:
 		result := NewGetMmdsOK()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
 		return result, nil
-
 	case 400:
 		result := NewGetMmdsBadRequest()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
 			return nil, err
 		}
 		return nil, result
-
 	default:
 		result := NewGetMmdsDefault(response.Code())
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -81,6 +78,10 @@ func (o *GetMmdsOK) Error() string {
 	return fmt.Sprintf("[GET /mmds][%d] getMmdsOK  %+v", 200, o.Payload)
 }
 
+func (o *GetMmdsOK) GetPayload() interface{} {
+	return o.Payload
+}
+
 func (o *GetMmdsOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	// response payload
@@ -101,16 +102,20 @@ func NewGetMmdsBadRequest() *GetMmdsBadRequest {
 Cannot get the MMDS data store due to bad input.
 */
 type GetMmdsBadRequest struct {
-	Payload *client_models.Error
+	Payload *models.Error
 }
 
 func (o *GetMmdsBadRequest) Error() string {
 	return fmt.Sprintf("[GET /mmds][%d] getMmdsBadRequest  %+v", 400, o.Payload)
 }
 
+func (o *GetMmdsBadRequest) GetPayload() *models.Error {
+	return o.Payload
+}
+
 func (o *GetMmdsBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.Error)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -134,7 +139,7 @@ Internal server error
 type GetMmdsDefault struct {
 	_statusCode int
 
-	Payload *client_models.Error
+	Payload *models.Error
 }
 
 // Code gets the status code for the get mmds default response
@@ -146,9 +151,13 @@ func (o *GetMmdsDefault) Error() string {
 	return fmt.Sprintf("[GET /mmds][%d] GetMmds default  %+v", o._statusCode, o.Payload)
 }
 
+func (o *GetMmdsDefault) GetPayload() *models.Error {
+	return o.Payload
+}
+
 func (o *GetMmdsDefault) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(client_models.Error)
+	o.Payload = new(models.Error)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

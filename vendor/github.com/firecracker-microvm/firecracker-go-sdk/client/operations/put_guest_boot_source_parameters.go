@@ -19,10 +19,9 @@ package operations
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"net/http"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
@@ -30,7 +29,7 @@ import (
 
 	strfmt "github.com/go-openapi/strfmt"
 
-	client_models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
 // NewPutGuestBootSourceParams creates a new PutGuestBootSourceParams object
@@ -81,7 +80,7 @@ type PutGuestBootSourceParams struct {
 	  Guest boot source properties
 
 	*/
-	Body *client_models.BootSource
+	Body *models.BootSource
 
 	timeout    time.Duration
 	Context    context.Context
@@ -122,13 +121,13 @@ func (o *PutGuestBootSourceParams) SetHTTPClient(client *http.Client) {
 }
 
 // WithBody adds the body to the put guest boot source params
-func (o *PutGuestBootSourceParams) WithBody(body *client_models.BootSource) *PutGuestBootSourceParams {
+func (o *PutGuestBootSourceParams) WithBody(body *models.BootSource) *PutGuestBootSourceParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the put guest boot source params
-func (o *PutGuestBootSourceParams) SetBody(body *client_models.BootSource) {
+func (o *PutGuestBootSourceParams) SetBody(body *models.BootSource) {
 	o.Body = body
 }
 

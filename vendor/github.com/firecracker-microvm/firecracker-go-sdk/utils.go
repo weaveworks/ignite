@@ -2,6 +2,8 @@ package firecracker
 
 import (
 	"context"
+	"os"
+	"strconv"
 	"time"
 )
 
@@ -26,4 +28,14 @@ func waitForAliveVMM(ctx context.Context, client *Client) error {
 			}
 		}
 	}
+}
+
+// envValueOrDefaultInt check if env value exists and returns it or returns default value
+// provided as a second param to this function
+func envValueOrDefaultInt(envName string, def int) int {
+	envVal, err := strconv.Atoi(os.Getenv(envName))
+	if envVal == 0 || err != nil {
+		envVal = def
+	}
+	return envVal
 }
