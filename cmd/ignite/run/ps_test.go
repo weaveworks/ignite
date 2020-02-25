@@ -68,11 +68,13 @@ func createTestVM(name, id string) (*api.VM, error) {
 // Update the golden files with:
 //   go test -v github.com/weaveworks/ignite/cmd/ignite/run -run TestPs -update
 func TestPs(t *testing.T) {
-	// Existing VMs with ID for deterministic results.
-	existingVMs := map[string]string{
-		"vm1": "cddc37ba657766e3",
-		"vm2": "20e1d566ce318ada",
-		"vm3": "bfc80c948b1e2419",
+	// Existing VMs with UID for deterministic results.
+	// A sorted list of VMs. The VM list returned by the VM filter is sorted by
+	// VM UID.
+	existingVMs := []runtime.ObjectMeta{
+		{Name: "vm1", UID: "20e1d566ce318ada"},
+		{Name: "vm2", UID: "bfc80c948b1e2419"},
+		{Name: "vm3", UID: "cddc37ba657766e3"},
 	}
 
 	cases := []struct {
@@ -102,8 +104,8 @@ func TestPs(t *testing.T) {
 			vms := []*api.VM{}
 
 			// Create VMs.
-			for name, id := range existingVMs {
-				vm, err := createTestVM(name, id)
+			for _, eVM := range existingVMs {
+				vm, err := createTestVM(eVM.Name, eVM.UID.String())
 				if err != nil {
 					t.Errorf("failed to create VM: %v", err)
 				}
@@ -146,7 +148,7 @@ func TestPs(t *testing.T) {
 
 			// Check if the output contains expected result.
 			if !bytes.Equal(buf.Bytes(), wantOutput) {
-				t.Errorf("expected output to be:\n%v\ngot output:\n%v", wantOutput, buf.Bytes())
+				t.Errorf("expected output to be:\n%v\ngot output:\n%v", string(wantOutput), string(buf.Bytes()))
 			}
 		})
 	}
