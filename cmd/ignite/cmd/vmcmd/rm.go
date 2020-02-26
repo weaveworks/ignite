@@ -23,7 +23,6 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 			separated by spaces. The force flag (-f, --force) kills running
 			VMs before removal instead of throwing an error.
 		`),
-		Args: cobra.MinimumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			cmdutil.CheckErr(func() error {
 				ro, err := rf.NewRmOptions(args)
@@ -42,4 +41,5 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 
 func addRmFlags(fs *pflag.FlagSet, rf *run.RmFlags) {
 	cmdutil.AddForceFlag(fs, &rf.Force)
+	cmdutil.AddConfigFlag(fs, &rf.ConfigFile)
 }
