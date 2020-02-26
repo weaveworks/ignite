@@ -1,0 +1,5 @@
+apiVersion: ignite.weave.works/v1alpha2
+kind: VM
+metadata:
+  name: myvm2
+  uid: 599615df99804ae8
