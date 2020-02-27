@@ -1,4 +1,0 @@
-{
-    "go.formatTool": "goimports",
-    "restructuredtext.confPath": "${workspaceFolder}/docs"
-}
