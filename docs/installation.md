@@ -102,13 +102,118 @@ by changing the `VERSION` environment variable.
 
 ## Verifying the installation
 
-If the installation was successful, the `ignite` command should now be available:
+If the installation was successful, the `ignite` CLI and `ignited` daemon
+commands should now be available:
+
+### Ignite CLI
 
 ```console
 $ ignite version
 Ignite version: version.Info{Major:"0", Minor:"6", GitVersion:"v0.6.3", GitCommit:"...", GitTreeState:"clean", BuildDate:"...", GoVersion:"...", Compiler:"gc", Platform:"linux/amd64"}
 Firecracker version: v0.18.1
 Runtime: containerd
+```
+
+### Ignited Daemon
+
+Verify the ignited daemon is running and monitoring files in
+`/etc/firecracker/manifests/`.
+To do this you will need to install the `uuid-runtime` (Ubuntu) package.
+
+The example here comes from a DigitalOcean droplet Region: NCY1, Size: 2GB image:
+
+```bash
+# ignited daemon --log-level debug &
+# cd /etc/firecracker/manifests/
+# touch smoke-test.yml
+DEBU[0830] FileWatcher: Registered inotify events [notify.InCloseWrite: "/etc/firecracker/manifests/smoke-test.yml"] for path "/etc/fire cracker/manifests/smoke-test.yml" 
+root@serviceubuntu18-<redacted>-desktop-4ku7nqh:/etc/firecracker/manifests# DEBU[0831] FileWatcher: Sending update: MODIFY -> "/etc/firecracker/manifests/smoke-test.yml" 
+DEBU[0831] FileWatcher: Dispatched events batch and reset the events cache 
+WARN[0831] Ignoring "/etc/firecracker/manifests/smoke-test.yml": unknown API version "" and/or kind ""
+```
+
+Now add some VM details (see [Run Ignite VMs Declaratively](https://ignite.readthedocs.io/en/stable/declarative-config.html#run-ignite-vms-declaratively)
+for additional details):
+
+```bash
+VMFILE=/etc/firecracker/manifests/smoke-test.yml
+tee "$VMFILE" > /dev/null <<EOF
+apiVersion: ignite.weave.works/v1alpha2
+kind: VM
+metadata:
+  name: smoke-test
+  uid: $(uuidgen)
+spec:
+  image:
+    oci: weaveworks/ignite-ubuntu
+  cpus: 2
+  diskSize: 3GB
+  memory: 800MB
+EOF
+```
+
+The console output should resemble this:
+
+```bash
+DEBU[2551] FileWatcher: Registered inotify events [notify.InCloseWrite: "/etc/firecracker/manifests/smoke-test.yml"] for path "/etc/firecracker/manifests/smoke-test.yml"
+DEBU[2552] FileWatcher: Sending update: MODIFY -> "/etc/firecracker/manifests/smoke-test.yml"
+DEBU[2552] FileWatcher: Dispatched events batch and reset the events cache
+DEBU[2552] GenericMappedRawStorage: AddMapping: "vm/d039cbcd-3606-462d-839e-25ac745cd7c5" -> "/etc/firecracker/manifests/smoke-test.yml"
+DEBU[2552] SyncStorage: Received update {{CREATE &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}} 0xc0004c7aa0} true
+DEBU[2552] SyncStorage: Sent update: {CREATE &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}}
+DEBU[2552] FileWatcher: Skipping suspended event MODIFY for path: "/etc/firecracker/manifests/smoke-test.yml"
+DEBU[2552] FileWatcher: Registered inotify events [notify.InCloseWrite: "/etc/firecracker/manifests/smoke-test.yml"] for path "/etc/firecracker/manifests/smoke-test.yml"
+DEBU[2553] FileWatcher: Sending update: MODIFY -> "/etc/firecracker/manifests/smoke-test.yml"
+DEBU[2553] FileWatcher: Dispatched events batch and reset the events cache
+DEBU[2553] SyncStorage: Received update {{MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}} 0xc0004c7aa0} true
+DEBU[2553] FileWatcher: Skipping suspended event MODIFY for path: "/etc/firecracker/manifests/smoke-test.yml"
+DEBU[2553] SyncStorage: Sent update: {MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}}
+DEBU[2553] FileWatcher: Registered inotify events [notify.InCloseWrite: "/etc/firecracker/manifests/smoke-test.yml"] for path "/etc/firecracker/manifests/smoke-test.yml"
+DEBU[2554] FileWatcher: Sending update: MODIFY -> "/etc/firecracker/manifests/smoke-test.yml"
+DEBU[2554] FileWatcher: Dispatched events batch and reset the events cache
+DEBU[2554] SyncStorage: Received update {{MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}} 0xc0004c7aa0} true
+DEBU[2554] FileWatcher: Registered inotify events [notify.InCloseWrite: "/etc/firecracker/manifests/smoke-test.yml"] for path "/etc/firecracker/manifests/smoke-test.yml"
+DEBU[2554] SyncStorage: Sent update: {MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}}
+DEBU[2554] FileWatcher: Skipping suspended event MODIFY for path: "/etc/firecracker/manifests/smoke-test.yml"
+DEBU[2555] FileWatcher: Sending update: MODIFY -> "/etc/firecracker/manifests/smoke-test.yml"
+DEBU[2555] FileWatcher: Dispatched events batch and reset the events cache
+DEBU[2555] SyncStorage: Received update {{MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}} 0xc0004c7aa0} true
+DEBU[2555] SyncStorage: Sent update: {MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}}
+DEBU[2555] FileWatcher: Skipping suspended event MODIFY for path: "/etc/firecracker/manifests/smoke-test.yml"
+DEBU[2556] FileWatcher: Registered inotify events [notify.InCloseWrite: "/etc/firecracker/manifests/smoke-test.yml"] for path "/etc/firecracker/manifests/smoke-test.yml"
+etc.
+etc.
+```
+
+Now in a new terminal/console:
+
+1. Verify Ignite is tracking the running micro-VM
+
+```bash
+# ignite ps
+VM ID                   IMAGE                           KERNEL                                  SIZE    CPU
+S       MEMORY          CREATED STATUS  IPS             PORTS   NAME
+rpfrdqxmffadvn6t        weaveworks/ignite-ubuntu:latest weaveworks/ignite-kernel:4.19.47        1.2 GB  1 4
+56.0 MB 43m ago Up 39m  10.61.0.2               smoke-test
+```
+
+1. Verify the micro-VM is accessible (username: root, password: root).
+
+```bash
+# ignite attach smoke-test
+# cat /proc/cpuinfo
+```
+
+The `shutdown -h now` command will not return you to the host machine.
+Rather you may be 'stuck' between guest and host - this is expected.
+In case you do find yourself in this position:
+
+1. Start a new console/terminal and access the host machine.
+1. Clean up:
+
+```bash
+# ignite stop smoke-test
+# ignite rm smoke-test
 ```
 
 Now you can continue with the [Getting Started Walkthrough](usage.md).
