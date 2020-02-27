@@ -54,10 +54,10 @@ spec:
   # Optional, how many vCPUs should be allocated for the VM
   # Default: 1
   cpus: [uint64]
-  # Optional, how much RAM should be allocated for the VM
+  # Optional, how much RAM should be allocated for the VM. Integer only.
   # Default: 512MB
   memory: [size]
-  # Optional, how much free writable space the VM should have at runtime
+  # Optional, how much writable space the VM should have at runtime. Integer only.
   # Default: 4GB
   diskSize: [size]
 
