@@ -15,7 +15,9 @@ Everything apart from above, is not supported, and out of scope.
 
 - A host running Linux 4.14 or newer
 - `sysctl net.ipv4.ip_forward=1`
-- loaded kernel loop module: `modprobe -v loop`
+- loaded kernel loop module:
+  - If your kernel loads the loop module - `modprobe -v loop`
+  - If the loop module is built in - `grep 'loop' /lib/modules/`uname -r`/modules.builtin`
 - Optional: `sysctl net.bridge.bridge-nf-call-iptables=0`
 - One of the following CPUs:
 
