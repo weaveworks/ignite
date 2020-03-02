@@ -204,12 +204,7 @@ rpfrdqxmffadvn6t        weaveworks/ignite-ubuntu:latest weaveworks/ignite-kernel
 # cat /proc/cpuinfo
 ```
 
-The `shutdown -h now` command will not return you to the host machine.
-Rather you may be 'stuck' between guest and host - this is expected.
-In case you do find yourself in this position:
-
-1. Start a new console/terminal and access the host machine.
-1. Clean up:
+To detach from the VM's TTY, type ^P^Q (Ctrl + P + Q).
 
 ```bash
 # ignite stop smoke-test
