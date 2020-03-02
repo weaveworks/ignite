@@ -15,20 +15,23 @@ func NewCmdCP(out io.Writer) *cobra.Command {
 	cf := &run.CPFlags{}
 
 	cmd := &cobra.Command{
-		Use:   "cp <vm> <source> <dest>",
-		Short: "Copy a file into a running vm",
+		Use:   "cp <source> <dest>",
+		Short: "Copy files/folders between a running vm and the local filesystem",
 		Long: dedent.Dedent(`
-			Copy a file from host into running VM.
-			Uses SCP to SSH into the running VM using the private key created for it during generation.
-			If no private key was created or wanting to use a different identity file,
-			use the identity file flag (-i, --identity) to override the used identity file.
-			The given VM is matched by prefix based on its ID and name.
-			Use (-r, --recursive) to recursively copy a directory.
+			Copy a file between host and a running VM.
+			Creates an SFTP connection to the running VM using the private key created for
+			it during generation, and transfers files between the host and VM. If no
+			private key was created or wanting to use a different identity file, use the
+			identity file flag (-i, --identity) to override the used identity file.
+
+			Example usage:
+				$ ignite cp localfile.txt my-vm:remotefile.txt
+				$ ignite cp my-vm:remotefile.txt localfile.txt
 		`),
-		Args: cobra.ExactArgs(3),
+		Args: cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			cmdutil.CheckErr(func() error {
-				co, err := cf.NewCPOptions(args[0], args[1], args[2])
+				co, err := cf.NewCPOptions(args[0], args[1])
 				if err != nil {
 					return err
 				}
@@ -45,5 +48,4 @@ func NewCmdCP(out io.Writer) *cobra.Command {
 func addCPFlags(fs *pflag.FlagSet, cf *run.CPFlags) {
 	fs.StringVarP(&cf.IdentityFile, "identity", "i", "", "Override the vm's default identity file")
 	fs.Uint32VarP(&cf.Timeout, "timeout", "t", 10, "Timeout waiting for connection in seconds")
-	fs.BoolVarP(&cf.Recursive, "recursive", "r", false, "Recursively copy entire directories.")
 }

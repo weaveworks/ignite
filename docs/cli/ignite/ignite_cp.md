@@ -1,20 +1,23 @@
 ## ignite cp
 
-Copy a file into a running vm
+Copy files/folders between a running vm and the local filesystem
 
 ### Synopsis
 
 
-Copy a file from host into running VM.
-Uses SCP to SSH into the running VM using the private key created for it during generation.
-If no private key was created or wanting to use a different identity file,
-use the identity file flag (-i, --identity) to override the used identity file.
-The given VM is matched by prefix based on its ID and name.
-Use (-r, --recursive) to recursively copy a directory.
+Copy a file between host and a running VM.
+Creates an SFTP connection to the running VM using the private key created for
+it during generation, and transfers files between the host and VM. If no
+private key was created or wanting to use a different identity file, use the
+identity file flag (-i, --identity) to override the used identity file.
+
+Example usage:
+	$ ignite cp localfile.txt my-vm:remotefile.txt
+	$ ignite cp my-vm:remotefile.txt localfile.txt
 
 
 ```
-ignite cp <vm> <source> <dest> [flags]
+ignite cp <source> <dest> [flags]
 ```
 
 ### Options
@@ -22,7 +25,6 @@ ignite cp <vm> <source> <dest> [flags]
 ```
   -h, --help              help for cp
   -i, --identity string   Override the vm's default identity file
-  -r, --recursive         Recursively copy entire directories.
   -t, --timeout uint32    Timeout waiting for connection in seconds (default 10)
 ```
 
