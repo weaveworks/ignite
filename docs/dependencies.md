@@ -16,7 +16,11 @@ Everything apart from above, is not supported, and out of scope.
 - A host running Linux 4.14 or newer
 - `sysctl net.ipv4.ip_forward=1`
 - loaded kernel loop module: `modprobe -v loop`
-- Optional: `sysctl net.bridge.bridge-nf-call-iptables=0`, which requires kernel module `br_netfilter`
+- Optional: `sysctl net.bridge.bridge-nf-call-iptables=0`
+  - set to 0 to ignore Host iptables rules for bridges
+  - set to 1 to apply Host iptables rules to bridges (common with container network policies)
+  - requires kernel module `br_netfilter`
+  - [libvirt reference](https://wiki.libvirt.org/page/Net.bridge.bridge-nf-call_and_sysctl.conf)
 - One of the following CPUs:
 
 | CPU   | Architecture     | Support level | Notes                                                                                                                                                                         |
