@@ -19,9 +19,9 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-// vmFilePathSeparator separates VM name/ID from the path in the VM.
+// VMFilePathSeparator separates VM name/ID from the path in the VM.
 // Example: my-vm:/path/in/vm
-const vmFilePathSeparator = ":"
+const VMFilePathSeparator = ":"
 
 // CPFlags contains flags for the copy command.
 type CPFlags struct {
@@ -61,8 +61,8 @@ func (cf *CPFlags) NewCPOptions(source string, dest string) (co *cpOptions, err 
 
 	var vmMatch string
 
-	sourceComponents := strings.Split(source, vmFilePathSeparator)
-	destComponents := strings.Split(dest, vmFilePathSeparator)
+	sourceComponents := strings.Split(source, VMFilePathSeparator)
+	destComponents := strings.Split(dest, VMFilePathSeparator)
 
 	if len(sourceComponents) > 1 {
 		co.copyDirection = CopyDirectionVMToHost
