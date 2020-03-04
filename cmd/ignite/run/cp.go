@@ -154,6 +154,7 @@ func CP(co *cpOptions) error {
 
 // copyToVM copies from host to VM.
 func copyToVM(client *sftp.Client, localPath, remotePath string) error {
+	// Check if the source exists.
 	fi, err := os.Stat(localPath)
 	if err != nil {
 		return err
@@ -172,6 +173,25 @@ func copyFileToVM(client *sftp.Client, localPath, remotePath string) error {
 		return err
 	}
 	defer in.Close()
+
+	// Check if remote path already exists. If the destination is a directory,
+	// the source must be copied into the directory.
+	if existsInVM(client, remotePath) {
+		// Check if the remote path is a directory.
+		rfi, err := client.Stat(remotePath)
+		if err != nil {
+			return err
+		}
+
+		// If the remote destination is a directory, update the remotePath to be
+		// moved into the destination directory.
+		// For example: if /tmp/foo.txt is copied to /xyz/, the remote should be
+		// updated to /xyz/foo.txt, append the filepath base to remote path.
+		if rfi.IsDir() {
+			remotePath = filepath.Join(remotePath, filepath.Base(localPath))
+		}
+		// Else, any existing file will be overwritten with the new file.
+	}
 
 	out, err := client.Create(remotePath)
 	if err != nil {
@@ -208,11 +228,43 @@ func copyFileToVM(client *sftp.Client, localPath, remotePath string) error {
 
 // copyDirToVM copies directory from host to VM.
 func copyDirToVM(client *sftp.Client, localPath, remotePath string) error {
-	// Ensure parent dir exists.
+	// Check if remote destination path already exists. If the destination is a
+	// directory with a different name, the source must be copied into the
+	// directory. If the destination is a file, copying should fail.
+	if existsInVM(client, remotePath) && (filepath.Base(localPath) != filepath.Base(remotePath)) {
+		isDir, err := isDirInVM(client, remotePath)
+		if err != nil {
+			return err
+		}
+
+		// If the remote destination is a directory, update the remotePath to be
+		// moved into the destination directory.
+		if isDir {
+			remotePath = filepath.Join(remotePath, filepath.Base(localPath))
+		} else {
+			// Copying directory info file should fail.
+			return fmt.Errorf("cannot overwrite non-directory %q(VM) with directory %q(Host)", remotePath, localPath)
+		}
+
+		// If the new subdirectory path exists, ensure that it is a directory,
+		// and not a file. Copying directory to file should fail.
+		if existsInVM(client, remotePath) {
+			isDir, err = isDirInVM(client, remotePath)
+			if err != nil {
+				return err
+			}
+			if !isDir {
+				return fmt.Errorf("cannot overwrite non-directory %q(VM) with directory %q(Host)", remotePath, localPath)
+			}
+		}
+	}
+
+	// Get the source directory fileinfo.
 	dInfo, err := os.Stat(localPath)
 	if err != nil {
 		return err
 	}
+	// Ensure destination parent dir exists.
 	if err := createIfNotExistsInVM(client, remotePath, dInfo); err != nil {
 		return err
 	}
@@ -311,6 +363,7 @@ func copySymLinkToVM(client *sftp.Client, localPath, remotePath string) error {
 
 // copyFromVM copies from VM to host.
 func copyFromVM(client *sftp.Client, remotePath, localPath string) error {
+	// Check if the source exists.
 	fi, err := client.Stat(remotePath)
 	if err != nil {
 		return err
@@ -329,6 +382,25 @@ func copyFileFromVM(client *sftp.Client, remotePath, localPath string) error {
 		return err
 	}
 	defer in.Close()
+
+	// Check if local path already exists. If the destination is a directory,
+	// the source must be copied into the directory.
+	if existsInHost(localPath) {
+		// Check if the local path is a directory.
+		lfi, err := os.Stat(localPath)
+		if err != nil {
+			return err
+		}
+
+		// If the local destination is a directory, update the localPath to be
+		// moved into the destination directory.
+		// For example: if /tmp/foo.txt is copied to /xyz/, the local should be
+		// updated to /xyz/foo.txt, append the filepath base to local path.
+		if lfi.IsDir() {
+			localPath = filepath.Join(localPath, filepath.Base(remotePath))
+		}
+		// Else, any existing file will be overwritten with the new file.
+	}
 
 	out, err := os.Create(localPath)
 	if err != nil {
@@ -358,11 +430,43 @@ func copyFileFromVM(client *sftp.Client, remotePath, localPath string) error {
 
 // copyDirFromVM copies directory from VM to host.
 func copyDirFromVM(client *sftp.Client, remotePath, localPath string) error {
-	// Ensure parent dir exists.
+	// Check if local destination path already exists. If the destination is a
+	// directory with a different name, the source muse be copied into the
+	// directory. If the destination is a file, copying should fail.
+	if existsInHost(localPath) && (filepath.Base(remotePath) != filepath.Base(localPath)) {
+		isDir, err := isDirInHost(localPath)
+		if err != nil {
+			return err
+		}
+
+		// If the local destination is a directory, update the localPath to be
+		// moved into the destination directory.
+		if isDir {
+			localPath = filepath.Join(localPath, filepath.Base(remotePath))
+		} else {
+			// Copying directory info file should fail.
+			return fmt.Errorf("cannot overwrite non-directory %q(Host) with directory %q(VM)", localPath, remotePath)
+		}
+
+		// If the new subdirectory path exists, ensure that it is a directory,
+		// and not a file. Copying directory to file should fail.
+		if existsInHost(localPath) {
+			isDir, err = isDirInHost(localPath)
+			if err != nil {
+				return err
+			}
+			if !isDir {
+				return fmt.Errorf("cannot overwrite non-directory %q(Host) with directory %q(VM)", localPath, remotePath)
+			}
+		}
+	}
+
+	// Get the source directory fileinfo.
 	dInfo, err := client.Stat(remotePath)
 	if err != nil {
 		return err
 	}
+	// Ensure destination parent dir exists.
 	if err := createIfNotExistsInHost(localPath, dInfo); err != nil {
 		return err
 	}
@@ -442,4 +546,28 @@ func copySymLinkFromVM(client *sftp.Client, remotePath, localPath string) error 
 		return copyDirFromVM(client, link, localPath)
 	}
 	return copyFileFromVM(client, link, localPath)
+}
+
+// isDirInVM checks if a given path in VM is a directory.
+func isDirInVM(client *sftp.Client, path string) (bool, error) {
+	fi, err := client.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	if fi.IsDir() {
+		return true, nil
+	}
+	return false, nil
+}
+
+// isDirInHost checks if a given path in host is a directory.
+func isDirInHost(path string) (bool, error) {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	if fi.IsDir() {
+		return true, nil
+	}
+	return false, nil
 }
