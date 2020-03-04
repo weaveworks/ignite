@@ -279,6 +279,6 @@ e2e: build-all e2e-nobuild
 e2e-nobuild:
 	sudo IGNITE_E2E_HOME=$(shell pwd) \
 		$(shell which go) test \
-		./e2e/. -v \
+		./e2e/. -v -mod=vendor \
 		-count $(E2E_COUNT) \
 		-run $(E2E_REGEX)
