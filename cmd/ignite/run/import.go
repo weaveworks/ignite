@@ -8,6 +8,11 @@ import (
 	"github.com/weaveworks/ignite/pkg/providers"
 )
 
+// ImportTarFile imports an image from a tar file.
+func ImportTarFile(tarPath string) error {
+	return operations.ImportImageFromTar(providers.Client, tarPath)
+}
+
 func ImportImage(source string) (*api.Image, error) {
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {

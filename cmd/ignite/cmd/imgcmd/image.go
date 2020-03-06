@@ -33,6 +33,7 @@ func NewCmdImage(out io.Writer) *cobra.Command {
 	}
 
 	cmd.AddCommand(NewCmdImport(out))
+	cmd.AddCommand(NewCmdTarImport(out))
 	cmd.AddCommand(NewCmdLs(out))
 	cmd.AddCommand(NewCmdRm(out))
 	return cmd

@@ -111,6 +111,13 @@ var _ json.Marshaler = &OCIContentID{}
 var _ json.Unmarshaler = &OCIContentID{}
 
 func parseOCIString(s string) (*OCIContentID, error) {
+	// Check the OCI string ID prefix to determine if it's a local image without
+	// any repo name. Parsing local images that don't have repo name with
+	// url.Parse fails because there's no host in the string.
+	if strings.HasPrefix(s, ociSchemeLocal) {
+		return ParseOCIContentID(strings.TrimPrefix(s, ociSchemeLocal))
+	}
+
 	u, err := url.Parse(s)
 	if err != nil {
 		return nil, err

@@ -34,7 +34,15 @@ func CreateImageFilesystem(img *api.Image, src source.Source) error {
 	// To accommodate space for the tar file contents and the ext4 journal + other metadata,
 	// make the base image a sparse file three times the size of the source contents. This
 	// will be shrunk to fit by resizeToMinimum later.
-	if err := imageFile.Truncate(int64(img.Status.OCISource.Size.Bytes()) * 3); err != nil {
+
+	var imgSize int64
+	if (img.Status.OCISource.Size.Bytes() * 3) < 1000000 {
+		imgSize = int64(1000000)
+	} else {
+		imgSize = int64(img.Status.OCISource.Size.Bytes()) * 3
+	}
+	// if err := imageFile.Truncate(int64(img.Status.OCISource.Size.Bytes()) * 3); err != nil {
+	if err := imageFile.Truncate(imgSize); err != nil {
 		return errors.Wrapf(err, "failed to allocate space for image %s", img.GetUID())
 	}
 
@@ -104,6 +112,10 @@ func setupResolvConf(tempDir string) error {
 
 	if !empty {
 		return nil
+	}
+
+	if err := os.MkdirAll(filepath.Dir(resolvConf), 0755); err != nil {
+		return err
 	}
 
 	return os.Symlink("../proc/net/pnp", resolvConf)

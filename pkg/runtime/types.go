@@ -51,6 +51,7 @@ type ContainerConfig struct {
 
 type Interface interface {
 	PullImage(image meta.OCIImageRef) error
+	ImportImage(imageFilePath string) ([]meta.OCIImageRef, error)
 	InspectImage(image meta.OCIImageRef) (*ImageInspectResult, error)
 	ExportImage(image meta.OCIImageRef) (io.ReadCloser, func() error, error)
 

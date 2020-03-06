@@ -29,6 +29,10 @@ func (ds *DockerSource) Ref() meta.OCIImageRef {
 	return ds.imageRef
 }
 
+func (ds *DockerSource) SetRef(imageRef meta.OCIImageRef) {
+	ds.imageRef = imageRef
+}
+
 func (ds *DockerSource) Parse(ociRef meta.OCIImageRef) (*api.OCIImageSource, error) {
 	res, err := providers.Runtime.InspectImage(ociRef)
 	if err != nil {
@@ -52,6 +56,29 @@ func (ds *DockerSource) Parse(ociRef meta.OCIImageRef) (*api.OCIImageSource, err
 		ID:   res.ID,
 		Size: meta.NewSizeFromBytes(uint64(res.Size)),
 	}, nil
+}
+
+func (ds *DockerSource) Import(imagePath string) (map[meta.OCIImageRef]*api.OCIImageSource, error) {
+	imgRefs, err := providers.Runtime.ImportImage(imagePath)
+	if err != nil {
+		return nil, err
+	}
+
+	img := map[meta.OCIImageRef]*api.OCIImageSource{}
+	for _, imgRef := range imgRefs {
+		// Inspect image and get image ID from inspect result. Use ID to create
+		// image source. Image source can be used to create ignite image.
+		res, err := providers.Runtime.InspectImage(imgRef)
+		if err != nil {
+			return nil, err
+		}
+
+		img[imgRef] = &api.OCIImageSource{
+			ID:   res.ID,
+			Size: meta.NewSizeFromBytes(uint64(res.Size)),
+		}
+	}
+	return img, nil
 }
 
 func (ds *DockerSource) Reader() (rc io.ReadCloser, err error) {
