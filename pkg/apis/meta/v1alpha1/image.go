@@ -6,6 +6,10 @@ import (
 	"net/url"
 	"strings"
 
+	// "github.com/opencontainers/go-digest" requires us to load the algorithms
+	// that we want to use into the binary. (it calls algorithm.Available)
+	_ "crypto/sha256"
+
 	"github.com/containers/image/docker/reference"
 	"github.com/opencontainers/go-digest"
 )
@@ -111,12 +115,20 @@ var _ json.Marshaler = &OCIContentID{}
 var _ json.Unmarshaler = &OCIContentID{}
 
 func parseOCIString(s string) (*OCIContentID, error) {
-	u, err := url.Parse(s)
-	if err != nil {
-		return nil, err
+	// Check if it's a local docker image.
+	// Example: docker://sha256:fce289e99eb9bca977dae136fbe2a82b6b7d4c372474c9235adc1741675f587e
+	if strings.HasPrefix(s, ociSchemeLocal) {
+		return ParseOCIContentID(strings.TrimPrefix(s, ociSchemeLocal))
 	}
 
-	// Remove the "docker://" or "oci://" scheme by only caring about the host and path
+	// For full repo digest with repo name, url parse the string and obtain the
+	// url components.
+	u, err := url.Parse(s)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse oci string %q, err: %v", s, err)
+	}
+
+	// Remove the "oci://" scheme by only caring about the host and path.
 	return ParseOCIContentID(u.Host + u.Path)
 }
 
