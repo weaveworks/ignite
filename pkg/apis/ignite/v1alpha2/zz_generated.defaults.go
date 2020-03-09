@@ -12,9 +12,15 @@ import (
 // Public to allow building arbitrary schemes.
 // All generated defaulters are covering - they call all nested defaulters.
 func RegisterDefaults(scheme *runtime.Scheme) error {
+	scheme.AddTypeDefaultingFunc(&Configuration{}, func(obj interface{}) { SetObjectDefaults_Configuration(obj.(*Configuration)) })
 	scheme.AddTypeDefaultingFunc(&Pool{}, func(obj interface{}) { SetObjectDefaults_Pool(obj.(*Pool)) })
 	scheme.AddTypeDefaultingFunc(&VM{}, func(obj interface{}) { SetObjectDefaults_VM(obj.(*VM)) })
 	return nil
+}
+
+func SetObjectDefaults_Configuration(in *Configuration) {
+	SetDefaults_VMSpec(&in.Spec.VM)
+	SetDefaults_VMKernelSpec(&in.Spec.VM.Kernel)
 }
 
 func SetObjectDefaults_Pool(in *Pool) {

@@ -60,7 +60,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 
 func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	// Register common flags
-	cmdutil.AddNameFlag(fs, &cf.VM.ObjectMeta.Name)
+	cmdutil.AddNameFlag(fs, &cf.VMName)
 	cmdutil.AddConfigFlag(fs, &cf.ConfigFile)
 
 	// Register flags bound to temporary holder values
@@ -68,14 +68,14 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	fs.StringSliceVarP(&cf.CopyFiles, "copy-files", "f", cf.CopyFiles, "Copy files/directories from the host to the created VM")
 
 	// Register flags for simple types (int, string, etc.)
-	fs.Uint64Var(&cf.VM.Spec.CPUs, "cpus", cf.VM.Spec.CPUs, "VM vCPU count, 1 or even numbers between 1 and 32")
-	fs.StringVar(&cf.VM.Spec.Kernel.CmdLine, "kernel-args", cf.VM.Spec.Kernel.CmdLine, "Set the command line for the kernel")
+	fs.Uint64Var(&cf.VMCPUs, "cpus", cf.VMCPUs, "VM vCPU count, 1 or even numbers between 1 and 32")
+	fs.StringVar(&cf.KernelCmdLine, "kernel-args", "", "Set the command line for the kernel")
 	fs.StringArrayVarP(&cf.Labels, "label", "l", cf.Labels, "Set a label (foo=bar)")
+	fs.StringVarP(&cf.KernelOCI, "kernel-image", "k", "", "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
 
 	// Register more complex flags with their own flag types
-	cmdutil.SizeVar(fs, &cf.VM.Spec.Memory, "memory", "Amount of RAM to allocate for the VM")
-	cmdutil.SizeVarP(fs, &cf.VM.Spec.DiskSize, "size", "s", "VM filesystem size, for example 5GB or 2048MB")
-	cmdutil.OCIImageRefVarP(fs, &cf.VM.Spec.Kernel.OCI, "kernel-image", "k", "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
+	cmdutil.SizeVar(fs, &cf.VMMemory, "memory", "Amount of RAM to allocate for the VM")
+	cmdutil.SizeVarP(fs, &cf.VMDiskSize, "size", "s", "VM filesystem size, for example 5GB or 2048MB")
 	cmdutil.SSHVar(fs, &cf.SSH)
-	cmdutil.VolumeVarP(fs, &cf.VM.Spec.Storage, "volumes", "v", "Expose block devices from the host inside the VM")
+	cmdutil.VolumeVarP(fs, &cf.VMStorage, "volumes", "v", "Expose block devices from the host inside the VM")
 }

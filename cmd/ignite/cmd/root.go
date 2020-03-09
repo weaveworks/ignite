@@ -13,17 +13,25 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/imgcmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/kerncmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
+	"github.com/weaveworks/ignite/pkg/network"
 	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/providers/ignite"
+	"github.com/weaveworks/ignite/pkg/runtime"
 	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
 	"github.com/weaveworks/ignite/pkg/util"
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
 )
 
 var logLevel = logrus.InfoLevel
+
+// Ignite config file path flag variable.
+var configPath string
 
 // NewIgniteCommand returns the root command for ignite
 func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
@@ -51,6 +59,30 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 
 			// Create the directories needed for running
 			util.GenericCheckErr(util.CreateDirectories())
+
+			var configFilePath string
+
+			// If an ignite config flag is set, use it as the config file, else
+			// check if the global config file exists.
+			// If a config file path is passed, configure ignite from it.
+			if configPath != "" {
+				configFilePath = configPath
+			} else {
+				// Check the default config locations.
+				if _, err := os.Stat(constants.IGNITE_CONFIG_FILE); !os.IsNotExist(err) {
+					log.Infof("Found default ignite configuration file %s", constants.IGNITE_CONFIG_FILE)
+					configFilePath = constants.IGNITE_CONFIG_FILE
+				}
+			}
+
+			if configFilePath != "" {
+				log.Infof("Using ignite configuration file: %s", configFilePath)
+				var err error
+				providers.RuntimeName, providers.NetworkPluginName, providers.ComponentConfig, err = setProvidersFromConfigFile(configFilePath)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
 
 			// Populate the providers after flags have been parsed
 			if err := providers.Populate(ignite.Providers); err != nil {
@@ -114,9 +146,39 @@ func addGlobalFlags(fs *pflag.FlagSet) {
 	logflag.LogLevelFlagVar(fs, &logLevel)
 	runtimeflag.RuntimeVar(fs, &providers.RuntimeName)
 	networkflag.NetworkPluginVar(fs, &providers.NetworkPluginName)
+	fs.StringVar(&configPath, "ignite-config", "", "Ignite configuration path")
 }
 
 // AddQuietFlag adds the quiet flag to a flagset
 func AddQuietFlag(fs *pflag.FlagSet) {
 	fs.BoolVarP(&logs.Quiet, "quiet", "q", logs.Quiet, "The quiet mode allows for machine-parsable output by printing only IDs")
+}
+
+// setProvidersFromConfigFile reads a given config file and sets the providers
+// properties based on the config file.
+func setProvidersFromConfigFile(configPath string) (runtime.Name, network.PluginName, *api.Configuration, error) {
+	var runtimeName runtime.Name
+	var networkPluginName network.PluginName
+	componentConfig := &api.Configuration{}
+
+	// Read component configuration.
+	if err := scheme.Serializer.DecodeFileInto(configPath, componentConfig); err != nil {
+		return runtimeName, networkPluginName, componentConfig, err
+	}
+
+	switch componentConfig.Spec.Runtime {
+	case "docker":
+		runtimeName = runtime.RuntimeDocker
+	case "containerd":
+		runtimeName = runtime.RuntimeContainerd
+	}
+
+	switch componentConfig.Spec.NetworkPlugin {
+	case "docker-bridge":
+		networkPluginName = network.PluginDockerBridge
+	case "cni":
+		networkPluginName = network.PluginCNI
+	}
+
+	return runtimeName, networkPluginName, componentConfig, nil
 }

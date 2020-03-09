@@ -15,12 +15,12 @@ import (
 	"github.com/weaveworks/ignite/pkg/providers"
 )
 
+// NewCreateFlags returns an initialized CreateFlags instance.
 func NewCreateFlags() *CreateFlags {
-	return &CreateFlags{
-		VM: providers.Client.VMs().New(),
-	}
+	return &CreateFlags{}
 }
 
+// CreateFlags contains flag variables for create command.
 type CreateFlags struct {
 	PortMappings []string
 	CopyFiles    []string
@@ -28,86 +28,131 @@ type CreateFlags struct {
 	// If it was set using flags, it will be copied over to
 	// the API type. TODO: When we later have internal types
 	// this can go away
-	SSH        api.SSH
-	ConfigFile string
-	VM         *api.VM
-	Labels     []string
+	SSH           api.SSH
+	ConfigFile    string
+	Labels        []string
+	VMName        string
+	VMCPUs        uint64
+	KernelCmdLine string
+	VMMemory      meta.Size
+	VMDiskSize    meta.Size
+	// Use string for KernelOCI instead of OCIImageRef because OCIImageRef can't
+	// be created without setting a valid value. Need zero valued variable to
+	// know if the flag was set or not.
+	KernelOCI string
+	VMStorage api.VMStorageSpec
 }
 
 type createOptions struct {
 	*CreateFlags
-	image  *api.Image
-	kernel *api.Kernel
+	VM *api.VM
 }
 
-func (cf *CreateFlags) constructVMFromCLI(args []string) error {
+func (cf *CreateFlags) constructVMFromCLI(vm *api.VM, args []string) error {
 	if len(args) == 1 {
 		ociRef, err := meta.NewOCIImageRef(args[0])
 		if err != nil {
 			return err
 		}
 
-		cf.VM.Spec.Image.OCI = ociRef
+		// This overwrites any default VM image or from component config file.
+		vm.Spec.Image.OCI = ociRef
 	}
 
 	// Parse the --copy-files flag
 	var err error
-	if cf.VM.Spec.CopyFiles, err = parseFileMappings(cf.CopyFiles); err != nil {
+	if vm.Spec.CopyFiles, err = parseFileMappings(cf.CopyFiles); err != nil {
 		return err
 	}
 
 	// Parse the given port mappings
-	if cf.VM.Spec.Network.Ports, err = meta.ParsePortMappings(cf.PortMappings); err != nil {
+	if vm.Spec.Network.Ports, err = meta.ParsePortMappings(cf.PortMappings); err != nil {
 		return err
 	}
 
 	// If the SSH flag was set, copy it over to the API type
 	if cf.SSH.Generate || cf.SSH.PublicKey != "" {
-		cf.VM.Spec.SSH = &cf.SSH
+		vm.Spec.SSH = &cf.SSH
+	}
+
+	if cf.VMName != "" {
+		vm.SetName(cf.VMName)
+	}
+
+	if cf.VMCPUs > 0 {
+		vm.Spec.CPUs = cf.VMCPUs
+	}
+
+	if cf.KernelCmdLine != "" {
+		vm.Spec.Kernel.CmdLine = cf.KernelCmdLine
+	}
+
+	if cf.VMMemory != meta.EmptySize {
+		vm.Spec.Memory = cf.VMMemory
+	}
+
+	if cf.VMDiskSize != meta.EmptySize {
+		vm.Spec.DiskSize = cf.VMDiskSize
+	}
+
+	if cf.KernelOCI != "" {
+		if vm.Spec.Kernel.OCI, err = meta.NewOCIImageRef(cf.KernelOCI); err != nil {
+			return err
+		}
+	}
+
+	if len(cf.VMStorage.Volumes) > 0 || len(cf.VMStorage.VolumeMounts) > 0 {
+		vm.Spec.Storage = cf.VMStorage
 	}
 
 	return nil
 }
 
+// NewCreateOptions constructs a VM create option based on the create flags and
+// arguments.
 func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
+	co := &createOptions{CreateFlags: cf}
+	// Initialize a VM instance.
+	co.VM = providers.Client.VMs().New()
+	co.VM.SetName(cf.VMName)
+
+	// If component config is defined, populate VM spec with it.
+	if providers.ComponentConfig != nil {
+		// When no VM config is present in component config file, VM spec
+		// contains all the defaults of a VM object, which is the same as the
+		// new VM object created above. It's safe to overwrite the VM spec.
+		co.VM.Spec = providers.ComponentConfig.Spec.VM
+	}
+
 	// Decode the config file if given, or construct the VM based off flags and args
 	if len(cf.ConfigFile) != 0 {
 		// Marshal into a "clean" object, discard all flag input
-		cf.VM = &api.VM{}
-		if err := scheme.Serializer.DecodeFileInto(cf.ConfigFile, cf.VM); err != nil {
+		co.VM = &api.VM{}
+		if err := scheme.Serializer.DecodeFileInto(cf.ConfigFile, co.VM); err != nil {
 			return nil, err
 		}
 	} else {
-		if err := cf.constructVMFromCLI(args); err != nil {
+		if err := cf.constructVMFromCLI(co.VM, args); err != nil {
 			return nil, err
 		}
 	}
 
 	// Validate the VM object
-	if err := validation.ValidateVM(cf.VM).ToAggregate(); err != nil {
+	if err := validation.ValidateVM(co.VM).ToAggregate(); err != nil {
 		return nil, err
 	}
-
-	co := &createOptions{CreateFlags: cf}
 
 	// Get the image, or import it if it doesn't exist
 	var err error
-	co.image, err = operations.FindOrImportImage(providers.Client, cf.VM.Spec.Image.OCI)
-	if err != nil {
+	if _, err = operations.FindOrImportImage(providers.Client, co.VM.Spec.Image.OCI); err != nil {
 		return nil, err
 	}
-
-	// Populate relevant data from the Image on the VM object
-	cf.VM.SetImage(co.image)
 
 	// Get the kernel, or import it if it doesn't exist
-	co.kernel, err = operations.FindOrImportKernel(providers.Client, cf.VM.Spec.Kernel.OCI)
-	if err != nil {
+	if _, err = operations.FindOrImportKernel(providers.Client, co.VM.Spec.Kernel.OCI); err != nil {
 		return nil, err
 	}
 
-	// Populate relevant data from the Kernel on the VM object
-	cf.VM.SetKernel(co.kernel)
 	return co, nil
 }
 

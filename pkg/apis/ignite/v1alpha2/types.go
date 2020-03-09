@@ -231,3 +231,25 @@ type VMStatus struct {
 	Image       OCIImageSource   `json:"image"`
 	Kernel      OCIImageSource   `json:"kernel"`
 }
+
+// Configuration represents ignite runtime configuration.
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type Configuration struct {
+	runtime.TypeMeta   `json:",inline"`
+	runtime.ObjectMeta `json:"metadata"`
+
+	Spec ConfigurationSpec `json:"spec"`
+}
+
+// ConfigurationSpec defines the spec of the ignite configuration.
+type ConfigurationSpec struct {
+	Runtime       string           `json:"runtime"`
+	NetworkPlugin string           `json:"networkPlugin"`
+	Sandbox       SandboxImageSpec `json:"sandbox"`
+	VM            VMSpec           `json:"vm,omitempty"`
+}
+
+// SandboxImageSpec defines the OCI ignite sandbox image.
+type SandboxImageSpec struct {
+	OCI meta.OCIImageRef `json:"oci"`
+}

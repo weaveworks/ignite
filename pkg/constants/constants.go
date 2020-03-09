@@ -46,4 +46,7 @@ const (
 
 	// How many characters Ignite UIDs should have
 	IGNITE_UID_LENGTH = 16
+
+	// IGNITE_CONFIG_FILE is the default ignite configuration path.
+	IGNITE_CONFIG_FILE = "/etc/ignite/config.yaml"
 )
