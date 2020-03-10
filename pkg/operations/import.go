@@ -40,7 +40,42 @@ func FindOrImportImage(c *client.Client, ociRef meta.OCIImageRef) (*api.Image, e
 	}
 }
 
-// importKernel imports an image from an OCI image
+// ImportImageFromTar reads a tar file and imports all the images as VM images.
+func ImportImageFromTar(c *client.Client, imagePath string) error {
+	log.Debugf("Importing image from tar file %q", imagePath)
+	dockerSource := source.NewDockerSource()
+	img, err := dockerSource.Import(imagePath)
+	if err != nil {
+		return err
+	}
+
+	// Create ignite image for all the imports.
+	for imgRef, imgSrc := range img {
+		image := c.Images().New()
+		image.Name = imgRef.String()
+		image.Spec.OCI = imgRef
+		image.Status.OCISource = *imgSrc
+
+		// Generate UID automatically.
+		if err := metadata.SetNameAndUID(image, c); err != nil {
+			return err
+		}
+
+		dockerSource.SetRef(imgRef)
+		if err := dmlegacy.CreateImageFilesystem(image, dockerSource); err != nil {
+			return err
+		}
+
+		if err := c.Images().Set(image); err != nil {
+			return err
+		}
+
+		log.Infof("Imported OCI image %q (%s) to base image with UID %q", imgRef, image.Status.OCISource.Size, image.GetUID())
+	}
+	return nil
+}
+
+// importImage imports an image from an OCI image
 func importImage(c *client.Client, ociRef meta.OCIImageRef) (*api.Image, error) {
 	log.Debugf("Importing image with ociRef %q", ociRef)
 	// Parse the source

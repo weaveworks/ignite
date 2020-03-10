@@ -1,17 +1,22 @@
 package docker
 
 import (
+	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	cont "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	log "github.com/sirupsen/logrus"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/preflight"
 	"github.com/weaveworks/ignite/pkg/preflight/checkers"
@@ -21,12 +26,21 @@ import (
 
 const (
 	dcSocket = "/var/run/docker.sock"
+
+	// streamLoadedImage is a substring of the stream logs from docker server
+	// response when importing a local docker image from tar file.
+	streamLoadedImage = "Loaded image"
 )
 
 // dockerClient is a runtime.Interface
 // implementation serving the Docker client
 type dockerClient struct {
 	client *client.Client
+}
+
+// dockerStreamOutput is the structure of a docker stream output.
+type dockerStreamOutput struct {
+	Stream string `json:"stream"`
 }
 
 var _ runtime.Interface = &dockerClient{}
@@ -52,6 +66,57 @@ func (dc *dockerClient) PullImage(image meta.OCIImageRef) (err error) {
 	}
 
 	return
+}
+
+// ImportImage imports a local image from a given tar file and returns a list of
+// OCI image refs of all the imported images.
+func (dc *dockerClient) ImportImage(imageFilePath string) ([]meta.OCIImageRef, error) {
+	log.Debugf("docker: Importing image from %s", imageFilePath)
+	r, err := os.Open(imageFilePath)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	resp, err := dc.client.ImageLoad(context.Background(), r, true)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	imgRefs := []meta.OCIImageRef{}
+
+	// Maybe open the tar file and read manifest.json to get the image refs?
+
+	// Response body content looks like:
+	// {"stream":"Loaded image: hello-world:latest\n"}
+	// {"stream":"Loaded image: busybox:latest\n"}
+	//
+	// Parse the docker steam output and get the image refs.
+	rd := bufio.NewScanner(resp.Body)
+	for rd.Scan() {
+		log.Debugf("docker: %s", rd.Text())
+
+		// Parse the json output to get the stream message.
+		var stream dockerStreamOutput
+		if err := json.Unmarshal(rd.Bytes(), &stream); err != nil {
+			return imgRefs, err
+		}
+
+		// Split the message at ":" and check if the first part contains "Loaded
+		// image".
+		message := strings.SplitN(stream.Stream, ":", 2)
+		if strings.Contains(message[0], streamLoadedImage) {
+			// Trim the second part of the string and form an OCI image ref.
+			image, err := meta.NewOCIImageRef(strings.TrimSpace(message[1]))
+			if err != nil {
+				return imgRefs, err
+			}
+			imgRefs = append(imgRefs, image)
+		}
+	}
+
+	return imgRefs, nil
 }
 
 func (dc *dockerClient) InspectImage(image meta.OCIImageRef) (*runtime.ImageInspectResult, error) {

@@ -144,6 +144,40 @@ func (cc *ctdClient) PullImage(image meta.OCIImageRef) error {
 	return err
 }
 
+// ImportImage imports a local image from a given tar file and returns a list of
+// OCI image refs of all the imported images.
+func (cc *ctdClient) ImportImage(imageFilePath string) ([]meta.OCIImageRef, error) {
+	log.Debugf("containerd: Importing image from %s", imageFilePath)
+	r, err := os.Open(imageFilePath)
+	if err != nil {
+		return nil, err
+	}
+	imgs, err := cc.client.Import(cc.ctx, r)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.Close(); err != nil {
+		return nil, err
+	}
+
+	imgRefs := []meta.OCIImageRef{}
+	for _, img := range imgs {
+		image := containerd.NewImage(cc.client, img)
+
+		log.Debugf("unpacking %s (%s)...", img.Name, img.Target.Digest)
+		if err := image.Unpack(cc.ctx, ""); err != nil {
+			return nil, fmt.Errorf("failed to unpack image: %v", err)
+		}
+
+		imgRef, err := meta.NewOCIImageRef(img.Name)
+		if err != nil {
+			return nil, err
+		}
+		imgRefs = append(imgRefs, imgRef)
+	}
+	return imgRefs, nil
+}
+
 func (cc *ctdClient) InspectImage(image meta.OCIImageRef) (result *runtime.ImageInspectResult, err error) {
 	var img containerd.Image
 	var config imagespec.Descriptor
