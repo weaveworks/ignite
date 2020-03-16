@@ -1,3 +1,9 @@
+# 0.21.0
+* Fixes default jailer socket and seccomp filters to be compatible with firecracker-v0.21.0 (#176)
+* Fixes signal handling goroutine leak (#204)
+* Machine.Wait now will wait until firecracker has stopped before returning (#182)
+* Allowing passing of parsed CNI configs (#177)
+
 # 0.20.0
 * Moves the NetNS field to `Config` from `JailerConfig` (#155).
 * Supports forcing CNI network creation (#130).

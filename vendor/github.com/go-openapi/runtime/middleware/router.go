@@ -26,10 +26,11 @@ import (
 	"github.com/go-openapi/analysis"
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/loads"
-	"github.com/go-openapi/runtime"
-	"github.com/go-openapi/runtime/middleware/denco"
 	"github.com/go-openapi/spec"
 	"github.com/go-openapi/strfmt"
+
+	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/runtime/middleware/denco"
 )
 
 // RouteParam is a object to capture route params in a framework agnostic way.
@@ -188,7 +189,6 @@ func (ra *RouteAuthenticator) Authenticate(req *http.Request, route *MatchedRout
 			if !applies {
 				return false, nil, nil
 			}
-
 			if err != nil {
 				route.Authenticator = ra
 				return true, nil, err

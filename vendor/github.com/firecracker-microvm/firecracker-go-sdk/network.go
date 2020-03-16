@@ -1,4 +1,4 @@
-// Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License"). You may
 // not use this file except in compliance with the License. A copy of the
@@ -158,6 +158,7 @@ func (networkInterfaces NetworkInterfaces) setupNetwork(
 				IPAddr:      vmNetConf.VMIPConfig.Address,
 				Gateway:     vmNetConf.VMIPConfig.Gateway,
 				Nameservers: vmNetConf.VMNameservers,
+				IfName:      cniNetworkInterface.CNIConfiguration.VMIfName,
 			}
 		}
 	}
@@ -226,10 +227,17 @@ type NetworkInterface struct {
 // Currently, CNIConfiguration can only be specified for VMs that have a
 // single network interface.
 type CNIConfiguration struct {
-	// NetworkName (required) corresponds to the "name" parameter in the
-	// CNI spec's Network Configuration List structure. It selects the name
+	// NetworkName (either NetworkName or NetworkConfig are required)
+	// corresponds to the "name" parameter in the CNI spec's
+	// Network Configuration List structure. It selects the name
 	// of the network whose configuration will be used when invoking CNI.
 	NetworkName string
+
+	// NetworkConfig (either NetworkName or NetworkConfig are required)
+	// replaces the NetworkName with parsed CNI network configuration
+	// skipping the requirement to store network config file in CNI
+	// configuration directory.
+	NetworkConfig *libcni.NetworkConfigList
 
 	// IfName (optional) corresponds to the CNI_IFNAME parameter as specified
 	// in the CNI spec. It generally specifies the name of the interface to be
@@ -240,6 +248,11 @@ type CNIConfiguration struct {
 	// created by a chained plugin that adapts the tap to a pre-existing
 	// network device (which will by the one with "IfName").
 	IfName string
+
+	// VMIfName (optional) sets the interface name in the VM. It is used
+	// to correctly pass IP configuration obtained from the CNI to the VM kernel.
+	// It can be left blank for VMs with single network interface.
+	VMIfName string
 
 	// Args (optional) corresponds to the CNI_ARGS parameter as specified in
 	// the CNI spec. It allows custom args to be passed to CNI plugins during
@@ -276,8 +289,12 @@ type CNIConfiguration struct {
 }
 
 func (cniConf CNIConfiguration) validate() error {
-	if cniConf.NetworkName == "" {
-		return errors.Errorf("must specify NetworkName in CNIConfiguration: %+v", cniConf)
+	if cniConf.NetworkName == "" && cniConf.NetworkConfig == nil {
+		return errors.Errorf("must specify either NetworkName or NetworkConfig in CNIConfiguration: %+v", cniConf)
+	}
+
+	if cniConf.NetworkName != "" && cniConf.NetworkConfig != nil {
+		return errors.Errorf("must not specify both NetworkName and NetworkConfig in CNIConfiguration: %+v", cniConf)
 	}
 
 	return nil
@@ -311,10 +328,16 @@ func (cniConf CNIConfiguration) invokeCNI(ctx context.Context, logger *log.Entry
 
 	cniPlugin := libcni.NewCNIConfigWithCacheDir(cniConf.BinPath, cniConf.CacheDir, nil)
 
-	networkConf, err := libcni.LoadConfList(cniConf.ConfDir, cniConf.NetworkName)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load CNI configuration from dir %q for network %q",
-			cniConf.ConfDir, cniConf.NetworkName), cleanupFuncs
+	networkConf := cniConf.NetworkConfig
+
+	var err error
+
+	if networkConf == nil {
+		networkConf, err = libcni.LoadConfList(cniConf.ConfDir, cniConf.NetworkName)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to load CNI configuration from dir %q for network %q",
+				cniConf.ConfDir, cniConf.NetworkName), cleanupFuncs
+		}
 	}
 
 	runtimeConf := cniConf.asCNIRuntimeConf()
@@ -490,7 +513,8 @@ func (staticConf StaticNetworkConfiguration) validate() error {
 // IPConfiguration specifies an IP, a gateway and DNS Nameservers that should be configured
 // automatically within the VM upon boot. It currently only supports IPv4 addresses.
 //
-// IPConfiguration can currently only be specified for VM's with a single network interface.
+// IPConfiguration can specify interface name, in that case config will be applied to the
+// specified interface, if IfName is left blank, config applies to VM with a single network interface.
 // The IPAddr and Gateway will be used to assign an IP a a default route for the VM's internal
 // interface.
 //
@@ -502,6 +526,7 @@ type IPConfiguration struct {
 	IPAddr      net.IPNet
 	Gateway     net.IP
 	Nameservers []string
+	IfName      string
 }
 
 func (ipConf IPConfiguration) validate() error {
@@ -528,6 +553,7 @@ func (conf IPConfiguration) ipBootParam() string {
 			Address: conf.IPAddr,
 			Gateway: conf.Gateway,
 		},
+		VMIfName: conf.IfName,
 	}
 
 	return vmConf.IPBootParam()

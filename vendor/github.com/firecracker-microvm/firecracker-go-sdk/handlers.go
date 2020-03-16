@@ -1,4 +1,4 @@
-// Copyright 2018-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License"). You may
 // not use this file except in compliance with the License. A copy of the
@@ -192,7 +192,7 @@ var CreateMachineHandler = Handler{
 var CreateBootSourceHandler = Handler{
 	Name: CreateBootSourceHandlerName,
 	Fn: func(ctx context.Context, m *Machine) error {
-		return m.createBootSource(ctx, m.Cfg.KernelImagePath, m.Cfg.KernelArgs)
+		return m.createBootSource(ctx, m.Cfg.KernelImagePath, m.Cfg.InitrdPath, m.Cfg.KernelArgs)
 	},
 }
 

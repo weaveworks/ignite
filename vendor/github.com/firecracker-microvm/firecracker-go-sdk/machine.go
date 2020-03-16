@@ -1,4 +1,4 @@
-// Copyright 2018-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License"). You may
 // not use this file except in compliance with the License. A copy of the
@@ -23,6 +23,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -49,6 +50,24 @@ const (
 	defaultFirecrackerInitTimeoutSeconds = 3
 )
 
+// SeccompLevelValue represents a secure computing level type.
+type SeccompLevelValue int
+
+// secure computing levels
+const (
+	// SeccompLevelDisable is the default value.
+	SeccompLevelDisable SeccompLevelValue = iota
+	// SeccompLevelBasic prohibits syscalls not whitelisted by Firecracker.
+	SeccompLevelBasic
+	// SeccompLevelAdvanced adds further checks on some of the parameters of the
+	// allowed syscalls.
+	SeccompLevelAdvanced
+)
+
+func (level SeccompLevelValue) String() string {
+	return strconv.Itoa(int(level))
+}
+
 // ErrAlreadyStarted signifies that the Machine has already started and cannot
 // be started again.
 var ErrAlreadyStarted = errors.New("firecracker: machine already started")
@@ -74,6 +93,11 @@ type Config struct {
 	// KernelImagePath defines the file path where the kernel image is located.
 	// The kernel image must be an uncompressed ELF image.
 	KernelImagePath string
+
+	// InitrdPath defines the file path where initrd image is located.
+	//
+	// This parameter is optional.
+	InitrdPath string
 
 	// KernelArgs defines the command-line arguments that should be passed to
 	// the kernel.
@@ -121,6 +145,15 @@ type Config struct {
 	// ForwardSignals is an optional list of signals to catch and forward to
 	// firecracker. If not provided, the default signals will be used.
 	ForwardSignals []os.Signal
+
+	// SeccompLevel specifies whether seccomp filters should be installed and how
+	// restrictive they should be. Possible values are:
+	//
+	//	0 : (default): disabled.
+	//	1 : basic filtering. This prohibits syscalls not whitelisted by Firecracker.
+	//	2 : advanced filtering. This adds further checks on some of the
+	//			parameters of the allowed syscalls.
+	SeccompLevel SeccompLevelValue
 }
 
 // Validate will ensure that the required fields are set and that
@@ -132,6 +165,12 @@ func (cfg *Config) Validate() error {
 
 	if _, err := os.Stat(cfg.KernelImagePath); err != nil {
 		return fmt.Errorf("failed to stat kernel image path, %q: %v", cfg.KernelImagePath, err)
+	}
+
+	if cfg.InitrdPath != "" {
+		if _, err := os.Stat(cfg.InitrdPath); err != nil {
+			return fmt.Errorf("failed to stat initrd image path, %q: %v", cfg.InitrdPath, err)
+		}
 	}
 
 	for _, drive := range cfg.Drives {
@@ -278,6 +317,7 @@ func NewMachine(ctx context.Context, cfg Config, opts ...Opt) (*Machine, error) 
 		m.Handlers.Validation = m.Handlers.Validation.Append(ConfigValidationHandler)
 		m.cmd = defaultFirecrackerVMMCommandBuilder.
 			WithSocketPath(cfg.SocketPath).
+			AddArgs("--seccomp-level", cfg.SeccompLevel.String()).
 			Build(ctx)
 	}
 
@@ -327,7 +367,10 @@ func NewMachine(ctx context.Context, cfg Config, opts ...Opt) (*Machine, error) 
 	return m, nil
 }
 
-// Start will iterate through the handler list and call each handler. If an
+// Start actually start a Firecracker microVM.
+// The context must not be cancelled while the microVM is running.
+//
+// It will iterate through the handler list and call each handler. If an
 // error occurred during handler execution, that error will be returned. If the
 // handlers succeed, then this will start the VMM instance.
 // Start may only be called once per Machine.  Subsequent calls will return
@@ -505,14 +548,22 @@ func (m *Machine) startVMM(ctx context.Context) error {
 
 		return err
 	}
-	go func() {
-		select {
-		case <-ctx.Done():
-			m.fatalErr = ctx.Err()
-		case err := <-errCh:
-			m.fatalErr = err
-		}
 
+	// This goroutine is used to kill the process by context cancelletion,
+	// but doesn't tell anyone about that.
+	go func() {
+		<-ctx.Done()
+		err := m.stopVMM()
+		if err != nil {
+			m.logger.WithError(err).Errorf("failed to stop vm %q", m.Cfg.VMID)
+		}
+	}()
+
+	// This goroutine is used to tell clients that the process is stopped
+	// (gracefully or not).
+	go func() {
+		m.fatalErr = <-errCh
+		m.logger.Debugf("closing the exitCh %v", m.fatalErr)
 		close(m.exitCh)
 	}()
 
@@ -528,7 +579,11 @@ func (m *Machine) StopVMM() error {
 func (m *Machine) stopVMM() error {
 	if m.cmd != nil && m.cmd.Process != nil {
 		m.logger.Debug("stopVMM(): sending sigterm to firecracker")
-		return m.cmd.Process.Signal(syscall.SIGTERM)
+		err := m.cmd.Process.Signal(syscall.SIGTERM)
+		if err != nil && !strings.Contains(err.Error(), "os: process already finished") {
+			return err
+		}
+		return nil
 	}
 	m.logger.Debug("stopVMM(): no firecracker process running, not sending a signal")
 
@@ -563,7 +618,6 @@ func (m *Machine) setupLogging(ctx context.Context) error {
 		MetricsFifo:   String(m.Cfg.MetricsFifo),
 		ShowLevel:     Bool(true),
 		ShowLogOrigin: Bool(false),
-		Options:       []string{},
 	}
 
 	_, err := m.client.PutLogger(ctx, &l)
@@ -645,9 +699,10 @@ func (m *Machine) createMachine(ctx context.Context) error {
 	return err
 }
 
-func (m *Machine) createBootSource(ctx context.Context, imagePath, kernelArgs string) error {
+func (m *Machine) createBootSource(ctx context.Context, imagePath, initrdPath, kernelArgs string) error {
 	bsrc := models.BootSource{
 		KernelImagePath: &imagePath,
+		InitrdPath:      initrdPath,
 		BootArgs:        kernelArgs,
 	}
 
@@ -897,13 +952,16 @@ func (m *Machine) setupSignals() {
 	signal.Notify(sigchan, signals...)
 
 	go func() {
+	ForLoop:
 		for {
 			select {
 			case sig := <-sigchan:
-				m.logger.Printf("Caught signal %s", sig)
+				m.logger.Debugf("Caught signal %s", sig)
+				// Some signals kill the process, some of them are not.
 				m.cmd.Process.Signal(sig)
 			case <-m.exitCh:
-				break
+				// And if a signal kills the process, we can stop this for loop and remove sigchan.
+				break ForLoop
 			}
 		}
 
