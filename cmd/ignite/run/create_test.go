@@ -1,7 +1,9 @@
 package run
 
 import (
+	"fmt"
 	"net"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -162,6 +164,40 @@ func TestConstructVMFromCLI(t *testing.T) {
 				if reflect.DeepEqual(rt.createFlag.VM.Spec.SSH, rt.wantSSH) {
 					t.Errorf("expected VM.Spec.SSH to be %v, actual: %v", rt.wantSSH, rt.createFlag.VM.Spec.SSH)
 				}
+			}
+		})
+	}
+}
+
+func TestNewCreateOptions(t *testing.T) {
+	tests := []struct {
+		name       string
+		createFlag *CreateFlags
+		err        bool
+	}{
+		{
+			name: "require-name with no name",
+			createFlag: &CreateFlags{
+				VM:          &api.VM{},
+				RequireName: true,
+			},
+			err: true,
+		},
+		{
+			name: "require-name with VM config",
+			createFlag: &CreateFlags{
+				ConfigFile:  fmt.Sprintf("testdata%c%s", filepath.Separator, "input/create-config-no-name.yaml"),
+				RequireName: true,
+			},
+			err: true,
+		},
+	}
+
+	for _, rt := range tests {
+		t.Run(rt.name, func(t *testing.T) {
+			_, err := rt.createFlag.NewCreateOptions([]string{})
+			if (err != nil) != rt.err {
+				t.Errorf("expected error %t, actual: %v", rt.err, err)
 			}
 		})
 	}

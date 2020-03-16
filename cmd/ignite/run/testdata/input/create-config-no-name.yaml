@@ -1,0 +1,5 @@
+apiVersion: ignite.weave.works/v1alpha2
+kind: VM
+spec:
+  image:
+    oci: weaveworks/ignite-ubuntu
