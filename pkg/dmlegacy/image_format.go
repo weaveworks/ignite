@@ -19,7 +19,10 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-const blockSize = 4096 // Block size to use for the ext4 filesystems, this is the default
+const (
+	blockSize       = 4096   // Block size to use for the ext4 filesystems, this is the default
+	minimumBaseSize = 500000 // Mimimum size of the base image, ~ half a megabyte.
+)
 
 // CreateImageFilesystem creates an ext4 filesystem in a file, containing the files from the source
 func CreateImageFilesystem(img *api.Image, src source.Source) error {
@@ -34,7 +37,18 @@ func CreateImageFilesystem(img *api.Image, src source.Source) error {
 	// To accommodate space for the tar file contents and the ext4 journal + other metadata,
 	// make the base image a sparse file three times the size of the source contents. This
 	// will be shrunk to fit by resizeToMinimum later.
-	if err := imageFile.Truncate(int64(img.Status.OCISource.Size.Bytes()) * 3); err != nil {
+	var baseImageSize int64
+	threeTimesImageSize := img.Status.OCISource.Size.Bytes() * 3
+	// If the base image is too small, filesystem creation using mkfs fails with
+	// not enough space error. Ensure the base image size is at least the
+	// minimum base size.
+	if threeTimesImageSize < minimumBaseSize {
+		baseImageSize = int64(minimumBaseSize)
+	} else {
+		baseImageSize = int64(threeTimesImageSize)
+	}
+
+	if err := imageFile.Truncate(baseImageSize); err != nil {
 		return errors.Wrapf(err, "failed to allocate space for image %s", img.GetUID())
 	}
 
@@ -104,6 +118,12 @@ func setupResolvConf(tempDir string) error {
 
 	if !empty {
 		return nil
+	}
+
+	// Ensure /etc directory exists. Some images don't contain /etc directory
+	// which results in symlink creation failure.
+	if err := os.MkdirAll(filepath.Dir(resolvConf), constants.DATA_DIR_PERM); err != nil {
+		return err
 	}
 
 	return os.Symlink("../proc/net/pnp", resolvConf)
