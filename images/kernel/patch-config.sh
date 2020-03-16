@@ -58,4 +58,3 @@ for file in ./versioned/*; do
     # Apply patches to the new file
     patch_file ${new_file}
 done
-
