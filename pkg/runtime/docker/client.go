@@ -47,7 +47,7 @@ func (dc *dockerClient) PullImage(image meta.OCIImageRef) (err error) {
 	var rc io.ReadCloser
 	if rc, err = dc.client.ImagePull(context.Background(), image.Normalized(), types.ImagePullOptions{}); err == nil {
 		// Don't output the pull command
-		util.DeferErr(&err, rc.Close)
+		defer util.DeferErr(&err, rc.Close)
 		_, err = io.Copy(ioutil.Discard, rc)
 	}
 

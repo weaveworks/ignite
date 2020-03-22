@@ -31,3 +31,33 @@ func TestImportTinyImage(t *testing.T) {
 	importImgOut, importImgErr := importImgCmd.CombinedOutput()
 	assert.Check(t, importImgErr, fmt.Sprintf("image import: \n%q\n%s", importImgCmd.Args, importImgOut))
 }
+
+func TestDockerImportImage(t *testing.T) {
+	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
+
+	testImage := "hello-world:latest"
+	// Remove if the image already exists.
+	rmvImgCmd := exec.Command(
+		igniteBin,
+		"image", "rm", testImage,
+	)
+	// Ignore error if the image doesn't exists.
+	_, _ = rmvImgCmd.CombinedOutput()
+
+	// Remove image from docker image store if already exists.
+	rmvDockerImgCmd := exec.Command(
+		"docker",
+		"rmi", testImage,
+	)
+	// Ignore error if the image doesn't exists.
+	_, _ = rmvDockerImgCmd.CombinedOutput()
+
+	// Import the image.
+	importImgCmd := exec.Command(
+		igniteBin,
+		"--runtime=docker",
+		"image", "import", testImage,
+	)
+	importImgOut, importImgErr := importImgCmd.CombinedOutput()
+	assert.Check(t, importImgErr, fmt.Sprintf("image import: \n%q\n%s", importImgCmd.Args, importImgOut))
+}
