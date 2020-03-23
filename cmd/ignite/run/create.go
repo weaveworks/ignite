@@ -28,10 +28,11 @@ type CreateFlags struct {
 	// If it was set using flags, it will be copied over to
 	// the API type. TODO: When we later have internal types
 	// this can go away
-	SSH        api.SSH
-	ConfigFile string
-	VM         *api.VM
-	Labels     []string
+	SSH         api.SSH
+	ConfigFile  string
+	VM          *api.VM
+	Labels      []string
+	RequireName bool
 }
 
 type createOptions struct {
@@ -66,6 +67,11 @@ func (cf *CreateFlags) constructVMFromCLI(args []string) error {
 		cf.VM.Spec.SSH = &cf.SSH
 	}
 
+	// If --require-name is true, VM name must be provided.
+	if cf.RequireName && len(cf.VM.Name) == 0 {
+		return fmt.Errorf("must pass a VM name, flag --require-name set")
+	}
+
 	return nil
 }
 
@@ -76,6 +82,10 @@ func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
 		cf.VM = &api.VM{}
 		if err := scheme.Serializer.DecodeFileInto(cf.ConfigFile, cf.VM); err != nil {
 			return nil, err
+		}
+		// If --require-name is true, VM name must be provided.
+		if cf.RequireName && len(cf.VM.Name) == 0 {
+			return nil, fmt.Errorf("must set VM name, flag --require-name set")
 		}
 	} else {
 		if err := cf.constructVMFromCLI(args); err != nil {

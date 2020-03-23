@@ -40,6 +40,7 @@ ignite run <OCI image> [flags]
       --memory size                       Amount of RAM to allocate for the VM (default 512.0 MB)
   -n, --name string                       Specify the name
   -p, --ports strings                     Map host ports to VM ports
+      --require-name                      Require VM name to be passed, no name generation
   -s, --size size                         VM filesystem size, for example 5GB or 2048MB (default 4.0 GB)
       --ssh[=<path>]                      Enable SSH for the VM. If <path> is given, it will be imported as the public key. If just '--ssh' is specified, a new keypair will be generated. (default is unset, which disables SSH access to the VM)
   -v, --volumes volume                    Expose block devices from the host inside the VM
