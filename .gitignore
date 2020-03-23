@@ -5,4 +5,4 @@ bin
 *.ext4
 images/kubeadm/run
 images/alpine/alpine.*
-docs/_build
+site

@@ -29,8 +29,6 @@ jobs:
     # Restore bin/docs from a previous build if it exists
     - restore_cache:
         key: bin-docs
-    # Test that the documentation is okay
-    - run: make test-docs
     # Save the bin/docs directory, containing the builder image for the docs
     - save_cache:
         key: bin-docs

@@ -43,7 +43,6 @@ PROJECT = github.com/weaveworks/ignite
 APIS_DIR = ${PROJECT}/pkg/apis
 API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/ignite/v1alpha2,${APIS_DIR}/meta/v1alpha1
 CACHE_DIR = $(shell pwd)/bin/cache
-DOCS_PORT = 8000
 # Specifies if this is a CI build or not; if it is, it will save the docker image created to bin/$(GOARCH)/image.tar
 IS_CI_BUILD ?= 0
 # Unset any GOFLAGS that would interfere with the build
@@ -260,17 +259,6 @@ bin/docs/builder-image.tar:
 	$(DOCKER) build -t ignite-docs-builder -f docs/Dockerfile.build docs
 	$(DOCKER) save ignite-docs-builder -o $@
 
-build-docs: bin/docs/builder-image.tar
-	$(DOCKER) load -i bin/docs/builder-image.tar
-	$(DOCKER) build -t ignite-docs docs
-
-test-docs: build-docs
-	$(DOCKER) run -it --rm ignite-docs /usr/bin/linkchecker _build/html/index.html
-
-serve-docs: build-docs
-	@echo Stating docs website on http://localhost:${DOCS_PORT}/_build/html/index.html
-	@$(DOCKER) run -i --rm -p ${DOCS_PORT}:8000 -e USER_ID=$$UID ignite-docs
-
 e2e: build-all e2e-nobuild
 
 e2e-nobuild:
@@ -279,3 +267,9 @@ e2e-nobuild:
 		./e2e/. -v -mod=vendor \
 		-count $(E2E_COUNT) \
 		-run $(E2E_REGEX)
+
+docs-deps:
+	pip3 install -r docs/requirements.txt
+
+serve-docs: docs-deps
+	mkdocs serve

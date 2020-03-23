@@ -132,7 +132,7 @@ DEBU[0831] FileWatcher: Dispatched events batch and reset the events cache
 WARN[0831] Ignoring "/etc/firecracker/manifests/smoke-test.yml": unknown API version "" and/or kind ""
 ```
 
-Now add some VM details (see [Run Ignite VMs Declaratively](https://ignite.readthedocs.io/en/stable/declarative-config.html#run-ignite-vms-declaratively)
+Now add some VM details (see [Run Ignite VMs Declaratively](https://ignite.readthedocs.io/en/stable/declarative-config#run-ignite-vms-declaratively)
 for additional details):
 
 ```bash
