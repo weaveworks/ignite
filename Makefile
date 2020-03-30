@@ -203,9 +203,9 @@ api-doc:
 			bin/tmp/${GROUP_VERSION}.md > docs/api/${GROUP_VERSION}.md
 
 autogen: api-docs
-	$(MAKE) go-make TARGETS="dockerized-autogen"
+	$(MAKE) go-make TARGETS="go-autogen"
 
-dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen /go/bin/openapi-gen
+go-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen /go/bin/openapi-gen
 	# Let the boilerplate be empty
 	touch /tmp/boilerplate
 	/go/bin/deepcopy-gen \
