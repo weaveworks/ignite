@@ -85,6 +85,25 @@ $(BINARIES):
 	# Always update the image when ignite-spawn is updated
 	[[ $@ == "ignite-spawn" ]] && $(MAKE) image || exit 0
 
+GO_MAKE_TARGET := go-in-docker # user can override to "local"
+go-make:
+# MAKEFLAGS must be set manually in case the sub-make is in a container:
+	$(MAKE) $(GO_MAKE_TARGET) COMMAND="$(MAKE) \"MAKEFLAGS=$(MAKEFLAGS)\" $(TARGETS)"
+local: # Do not use directly -- use $(GO_MAKE_TARGET)
+	$(COMMAND)
+go-in-docker: # Do not use directly -- use $(GO_MAKE_TARGET)
+	mkdir -p $(CACHE_DIR)/go $(CACHE_DIR)/cache
+	$(DOCKER) run -it --rm \
+		-v $(CACHE_DIR)/go:/go \
+		-v $(CACHE_DIR)/cache:/.cache/go-build \
+		-v $(shell pwd):/go/src/${PROJECT} \
+		-w /go/src/${PROJECT} \
+		-u $(shell id -u):$(shell id -g) \
+		-e GO111MODULE=on \
+		-e GOARCH=$(GOARCH) \
+		golang:$(GO_VERSION) \
+		$(COMMAND)
+
 # Make make execute this target although the file already exists.
 .PHONY: bin/$(GOARCH)/ignite bin/$(GOARCH)/ignite-spawn bin/$(GOARCH)/ignited
 bin/$(GOARCH)/ignite bin/$(GOARCH)/ignited bin/$(GOARCH)/ignite-spawn: bin/$(GOARCH)/%:
@@ -169,7 +188,7 @@ api-docs: godoc2md
 api-doc:
 	mkdir -p docs/api bin/tmp/${GROUPVERSION}
 	mv $(shell pwd)/pkg/apis/${GROUPVERSION}/zz_generated* bin/tmp/${GROUPVERSION}
-	$(MAKE) go-in-docker COMMAND="godoc2md /go/src/${PROJECT}/pkg/apis/${GROUPVERSION} > bin/tmp/${GROUP_VERSION}.md"
+	$(MAKE) $(GO_MAKE_TARGET) COMMAND="godoc2md /go/src/${PROJECT}/pkg/apis/${GROUPVERSION} > bin/tmp/${GROUP_VERSION}.md"
 	sed -e "s|src/target|pkg/apis/${GROUPVERSION}|g;s|/go/src/||g" -i bin/tmp/${GROUP_VERSION}.md
 	sed -e "s|(/pkg/apis|(https://github.com/weaveworks/ignite/tree/master/pkg/apis|g" -i bin/tmp/${GROUP_VERSION}.md
 	mv bin/tmp/${GROUPVERSION}/*.go $(shell pwd)/pkg/apis/${GROUPVERSION}/
@@ -182,22 +201,6 @@ api-doc:
 			--from markdown \
 			--to gfm \
 			bin/tmp/${GROUP_VERSION}.md > docs/api/${GROUP_VERSION}.md
-
-go-in-docker:
-	mkdir -p $(CACHE_DIR)/go $(CACHE_DIR)/cache
-	$(DOCKER) run -it --rm \
-		-v $(CACHE_DIR)/go:/go \
-		-v $(CACHE_DIR)/cache:/.cache/go-build \
-		-v $(shell pwd):/go/src/${PROJECT} \
-		-w /go/src/${PROJECT} \
-		-u $(shell id -u):$(shell id -g) \
-		-e GO111MODULE=on \
-		-e GOARCH=$(GOARCH) \
-		golang:$(GO_VERSION) \
-		$(COMMAND)
-
-go-make:
-	$(MAKE) go-in-docker COMMAND="make \"MAKEFLAGS=$(MAKEFLAGS)\" $(TARGETS)"
 
 autogen: api-docs
 	$(MAKE) go-make TARGETS="dockerized-autogen"
