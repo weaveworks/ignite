@@ -9,8 +9,12 @@ get_version_vars() {
   else
     IGNITE_GIT_TREE_STATE="dirty"
   fi
-  # Use git describe to find the version based on tags.
-  IGNITE_GIT_VERSION=$(git describe --tags --abbrev=14 "${IGNITE_GIT_COMMIT}^{commit}" 2>/dev/null)
+
+  # allow env override for IGNITE_GIT_VERSION
+  if [ -z "${IGNITE_GIT_VERSION}" ]; then
+    # Use git describe to find the version based on tags.
+    IGNITE_GIT_VERSION=$(git describe --tags --abbrev=14 "${IGNITE_GIT_COMMIT}^{commit}" 2>/dev/null)
+  fi
 
   # This translates the "git describe" to an actual semver.org
   # compatible semantic version that looks something like this:

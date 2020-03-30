@@ -36,7 +36,7 @@ DOCKER_USER?=weaveworks
 IMAGE=$(DOCKER_USER)/ignite
 GIT_VERSION:=$(shell hack/ldflags.sh --version-only)
 IMAGE_DEV_TAG=dev
-IMAGE_TAG:=$(shell hack/ldflags.sh --image-tag-only)
+IMAGE_TAG:=$(shell IGNITE_GIT_VERSION=$(GIT_VERSION) hack/ldflags.sh --image-tag-only)
 # IS_DIRTY is 1 if the tree state is dirty, otherwise 0
 IS_DIRTY:=$(shell echo ${GIT_VERSION} | grep -o dirty | wc -l)
 PROJECT = github.com/weaveworks/ignite
@@ -107,7 +107,7 @@ go-in-docker: # Do not use directly -- use $(GO_MAKE_TARGET)
 # Make make execute this target although the file already exists.
 .PHONY: bin/$(GOARCH)/ignite bin/$(GOARCH)/ignite-spawn bin/$(GOARCH)/ignited
 bin/$(GOARCH)/ignite bin/$(GOARCH)/ignited bin/$(GOARCH)/ignite-spawn: bin/$(GOARCH)/%:
-	CGO_ENABLED=0 GOARCH=$(GOARCH) go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/$(GOARCH)/$* ./cmd/$*
+	CGO_ENABLED=0 GOARCH=$(GOARCH) go build -mod=vendor -ldflags "$(shell IGNITE_GIT_VERSION=$(GIT_VERSION) ./hack/ldflags.sh)" -o bin/$(GOARCH)/$* ./cmd/$*
 ifeq ($(GOARCH),$(GOHOSTARCH))
 	ln -sf ./$(GOARCH)/$* bin/$*
 endif
