@@ -81,7 +81,7 @@ install-all: install ignited
 
 BINARIES = ignite ignited ignite-spawn
 $(BINARIES):
-	$(MAKE) shell COMMAND="make bin/$(GOARCH)/$@"
+	$(MAKE) go-make TARGETS="bin/$(GOARCH)/$@"
 	# Always update the image when ignite-spawn is updated
 	[[ $@ == "ignite-spawn" ]] && $(MAKE) image || exit 0
 
@@ -156,7 +156,7 @@ tidy: /go/bin/goimports
 	go run hack/cobra.go
 
 tidy-in-docker:
-	$(MAKE) shell COMMAND="make tidy"
+	$(MAKE) go-make TARGETS="tidy"
 
 graph:
 	hack/graph.sh
@@ -169,7 +169,7 @@ api-docs: godoc2md
 api-doc:
 	mkdir -p docs/api bin/tmp/${GROUPVERSION}
 	mv $(shell pwd)/pkg/apis/${GROUPVERSION}/zz_generated* bin/tmp/${GROUPVERSION}
-	$(MAKE) shell COMMAND="godoc2md /go/src/${PROJECT}/pkg/apis/${GROUPVERSION} > bin/tmp/${GROUP_VERSION}.md"
+	$(MAKE) go-in-docker COMMAND="godoc2md /go/src/${PROJECT}/pkg/apis/${GROUPVERSION} > bin/tmp/${GROUP_VERSION}.md"
 	sed -e "s|src/target|pkg/apis/${GROUPVERSION}|g;s|/go/src/||g" -i bin/tmp/${GROUP_VERSION}.md
 	sed -e "s|(/pkg/apis|(https://github.com/weaveworks/ignite/tree/master/pkg/apis|g" -i bin/tmp/${GROUP_VERSION}.md
 	mv bin/tmp/${GROUPVERSION}/*.go $(shell pwd)/pkg/apis/${GROUPVERSION}/
@@ -183,7 +183,7 @@ api-doc:
 			--to gfm \
 			bin/tmp/${GROUP_VERSION}.md > docs/api/${GROUP_VERSION}.md
 
-shell:
+go-in-docker:
 	mkdir -p $(CACHE_DIR)/go $(CACHE_DIR)/cache
 	$(DOCKER) run -it --rm \
 		-v $(CACHE_DIR)/go:/go \
@@ -196,8 +196,11 @@ shell:
 		golang:$(GO_VERSION) \
 		$(COMMAND)
 
+go-make:
+	$(MAKE) go-in-docker COMMAND="make \"MAKEFLAGS=$(MAKEFLAGS)\" $(TARGETS)"
+
 autogen: api-docs
-	$(MAKE) shell COMMAND="make dockerized-autogen"
+	$(MAKE) go-make TARGETS="dockerized-autogen"
 
 dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen /go/bin/openapi-gen
 	# Let the boilerplate be empty
