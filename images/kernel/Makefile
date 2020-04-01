@@ -1,4 +1,5 @@
 # Check https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/refs/ for updates
+OCI_TOOL?=docker
 REGISTRY?=weaveworks
 IMAGE_NAME?=${REGISTRY}/ignite-kernel
 KERNEL_VERSIONS ?= 4.14.166 4.19.97 5.4.13
@@ -28,7 +29,7 @@ upgrade-%:
 
 build: $(addprefix build-,$(KERNEL_VERSIONS))
 build-%:
-	docker build -t $(IMAGE_NAME):$*-${GOARCH} \
+	$(OCI_TOOL) build -t $(IMAGE_NAME):$*-${GOARCH} \
 		--build-arg KERNEL_VERSION=$* \
 		--build-arg ARCH=${KERNEL_ARCH} \
 		--build-arg GOARCH=${GOARCH} \
