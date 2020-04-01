@@ -36,7 +36,7 @@ DOCKER_USER?=weaveworks
 IMAGE=$(DOCKER_USER)/ignite
 GIT_VERSION:=$(shell hack/ldflags.sh --version-only)
 IMAGE_DEV_TAG=dev
-IMAGE_TAG:=$(shell hack/ldflags.sh --image-tag-only)
+IMAGE_TAG:=$(shell IGNITE_GIT_VERSION=$(GIT_VERSION) hack/ldflags.sh --image-tag-only)
 # IS_DIRTY is 1 if the tree state is dirty, otherwise 0
 IS_DIRTY:=$(shell echo ${GIT_VERSION} | grep -o dirty | wc -l)
 PROJECT = github.com/weaveworks/ignite
@@ -81,14 +81,33 @@ install-all: install ignited
 
 BINARIES = ignite ignited ignite-spawn
 $(BINARIES):
-	$(MAKE) shell COMMAND="make bin/$(GOARCH)/$@"
+	$(MAKE) go-make TARGETS="bin/$(GOARCH)/$@"
 	# Always update the image when ignite-spawn is updated
 	[[ $@ == "ignite-spawn" ]] && $(MAKE) image || exit 0
+
+GO_MAKE_TARGET := go-in-docker # user can override to "local"
+go-make:
+# MAKEFLAGS must be set manually in case the sub-make is in a container:
+	$(MAKE) $(GO_MAKE_TARGET) COMMAND="$(MAKE) \"MAKEFLAGS=$(MAKEFLAGS)\" $(TARGETS)"
+local: # Do not use directly -- use $(GO_MAKE_TARGET)
+	$(COMMAND)
+go-in-docker: # Do not use directly -- use $(GO_MAKE_TARGET)
+	mkdir -p $(CACHE_DIR)/go $(CACHE_DIR)/cache
+	$(DOCKER) run -it --rm \
+		-v $(CACHE_DIR)/go:/go \
+		-v $(CACHE_DIR)/cache:/.cache/go-build \
+		-v $(shell pwd):/go/src/${PROJECT} \
+		-w /go/src/${PROJECT} \
+		-u $(shell id -u):$(shell id -g) \
+		-e GO111MODULE=on \
+		-e GOARCH=$(GOARCH) \
+		golang:$(GO_VERSION) \
+		$(COMMAND)
 
 # Make make execute this target although the file already exists.
 .PHONY: bin/$(GOARCH)/ignite bin/$(GOARCH)/ignite-spawn bin/$(GOARCH)/ignited
 bin/$(GOARCH)/ignite bin/$(GOARCH)/ignited bin/$(GOARCH)/ignite-spawn: bin/$(GOARCH)/%:
-	CGO_ENABLED=0 GOARCH=$(GOARCH) go build -mod=vendor -ldflags "$(shell ./hack/ldflags.sh)" -o bin/$(GOARCH)/$* ./cmd/$*
+	CGO_ENABLED=0 GOARCH=$(GOARCH) go build -mod=vendor -ldflags "$(shell IGNITE_GIT_VERSION=$(GIT_VERSION) ./hack/ldflags.sh)" -o bin/$(GOARCH)/$* ./cmd/$*
 ifeq ($(GOARCH),$(GOHOSTARCH))
 	ln -sf ./$(GOARCH)/$* bin/$*
 endif
@@ -156,7 +175,7 @@ tidy: /go/bin/goimports
 	go run hack/cobra.go
 
 tidy-in-docker:
-	$(MAKE) shell COMMAND="make tidy"
+	$(MAKE) go-make TARGETS="tidy"
 
 graph:
 	hack/graph.sh
@@ -169,7 +188,7 @@ api-docs: godoc2md
 api-doc:
 	mkdir -p docs/api bin/tmp/${GROUPVERSION}
 	mv $(shell pwd)/pkg/apis/${GROUPVERSION}/zz_generated* bin/tmp/${GROUPVERSION}
-	$(MAKE) shell COMMAND="godoc2md /go/src/${PROJECT}/pkg/apis/${GROUPVERSION} > bin/tmp/${GROUP_VERSION}.md"
+	$(MAKE) $(GO_MAKE_TARGET) COMMAND="godoc2md /go/src/${PROJECT}/pkg/apis/${GROUPVERSION} > bin/tmp/${GROUP_VERSION}.md"
 	sed -e "s|src/target|pkg/apis/${GROUPVERSION}|g;s|/go/src/||g" -i bin/tmp/${GROUP_VERSION}.md
 	sed -e "s|(/pkg/apis|(https://github.com/weaveworks/ignite/tree/master/pkg/apis|g" -i bin/tmp/${GROUP_VERSION}.md
 	mv bin/tmp/${GROUPVERSION}/*.go $(shell pwd)/pkg/apis/${GROUPVERSION}/
@@ -183,23 +202,10 @@ api-doc:
 			--to gfm \
 			bin/tmp/${GROUP_VERSION}.md > docs/api/${GROUP_VERSION}.md
 
-shell:
-	mkdir -p $(CACHE_DIR)/go $(CACHE_DIR)/cache
-	$(DOCKER) run -it --rm \
-		-v $(CACHE_DIR)/go:/go \
-		-v $(CACHE_DIR)/cache:/.cache/go-build \
-		-v $(shell pwd):/go/src/${PROJECT} \
-		-w /go/src/${PROJECT} \
-		-u $(shell id -u):$(shell id -g) \
-		-e GO111MODULE=on \
-		-e GOARCH=$(GOARCH) \
-		golang:$(GO_VERSION) \
-		$(COMMAND)
-
 autogen: api-docs
-	$(MAKE) shell COMMAND="make dockerized-autogen"
+	$(MAKE) go-make TARGETS="go-autogen"
 
-dockerized-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen /go/bin/openapi-gen
+go-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen /go/bin/openapi-gen
 	# Let the boilerplate be empty
 	touch /tmp/boilerplate
 	/go/bin/deepcopy-gen \
