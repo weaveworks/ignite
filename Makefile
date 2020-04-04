@@ -271,6 +271,12 @@ serve-docs: build-docs
 	@echo Stating docs website on http://localhost:${DOCS_PORT}/_build/html/index.html
 	@$(DOCKER) run -i --rm -p ${DOCS_PORT}:8000 -e USER_ID=$$UID ignite-docs
 
+build-ignitew: build-all
+	$(DOCKER) build --no-cache -t ignitew-builder -f Dockerfile.ignitew .
+	$(DOCKER) create --name=ignitew-builder ignitew-builder
+	$(DOCKER) cp ignitew-builder:/output/ignitew .
+	$(DOCKER) rm -f ignitew-builder
+
 e2e: build-all e2e-nobuild
 
 e2e-nobuild:

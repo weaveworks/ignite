@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
@@ -100,9 +101,20 @@ func StartCmdChecks(vm *api.VM, ignoredPreflightErrors sets.String) error {
 	for _, dependency := range constants.PathDependencies {
 		checks = append(checks, ExistingFileChecker{filePath: dependency})
 	}
+	// This should be warning only, in case users prefer other network plugins
 	if providers.NetworkPluginName == network.PluginCNI {
-		for _, dependency := range constants.CNIDependencies {
-			checks = append(checks, ExistingFileChecker{filePath: dependency})
+		// In case of using ignitew, we put CNI plugin binaries relatively to the executable
+		exeDir := filepath.Dir(os.Args[0])
+		if _, err := os.Stat(exeDir); err == nil {
+			for _, dependency := range constants.CNIDependencies {
+				releativeCNIPath := filepath.Join(exeDir, dependency)
+				checks = append(checks, ExistingFileChecker{filePath: releativeCNIPath})
+			}
+		} else {
+			// Otherwise in the normal case, we check usually path
+			for _, dependency := range constants.CNIDependencies {
+				checks = append(checks, ExistingFileChecker{filePath: dependency})
+			}
 		}
 	}
 
