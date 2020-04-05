@@ -20,7 +20,8 @@ ignite exec <vm> <command...> [flags]
 ```
   -h, --help              help for exec
   -i, --identity string   Override the vm's default identity file
-  -t, --timeout uint32    Timeout waiting for connection in seconds (default 10)
+      --timeout uint32    Timeout waiting for connection in seconds (default 10)
+  -t, --tty               Allocate a pseudo-TTY
 ```
 
 ### Options inherited from parent commands

@@ -2,7 +2,6 @@ package run
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net"
 	"os"
@@ -16,9 +15,11 @@ import (
 	shellescape "gopkg.in/alessio/shellescape.v1"
 )
 
+// ExecFlags contains the flags supported by the exec command.
 type ExecFlags struct {
 	Timeout      uint32
 	IdentityFile string
+	Tty          bool
 }
 
 type execOptions struct {
@@ -27,6 +28,7 @@ type execOptions struct {
 	command []string
 }
 
+// NewExecOptions constructs and returns an execOptions.
 func (ef *ExecFlags) NewExecOptions(vmMatch string, command ...string) (eo *execOptions, err error) {
 	eo = &execOptions{
 		ExecFlags: ef,
@@ -37,6 +39,7 @@ func (ef *ExecFlags) NewExecOptions(vmMatch string, command ...string) (eo *exec
 	return
 }
 
+// Exec executes command in a VM based on the provided execOptions.
 func Exec(eo *execOptions) error {
 	// Check if the VM is running
 	if !eo.vm.Running() {
@@ -72,7 +75,7 @@ func Exec(eo *execOptions) error {
 
 	// Run the command, DO NOT wrap this error as the caller can check for the command exit
 	// code in the ssh.ExitError type
-	return runSSHCommand(client, eo.command)
+	return runSSHCommand(client, eo.Tty, eo.command)
 }
 
 func newSignerForKey(keyPath string) (ssh.Signer, error) {
@@ -96,7 +99,7 @@ func newSSHConfig(publicKey ssh.Signer, timeout uint32) *ssh.ClientConfig {
 	}
 }
 
-func runSSHCommand(client *ssh.Client, command []string) error {
+func runSSHCommand(client *ssh.Client, tty bool, command []string) error {
 	// create a session for the command
 	session, err := client.NewSession()
 	if err != nil {
@@ -104,32 +107,22 @@ func runSSHCommand(client *ssh.Client, command []string) error {
 	}
 	defer session.Close()
 
-	// get a pty
-	// TODO: should these be based on the host terminal?
-	// TODO: should we request something other than xterm?
-	// TODO: we should probably configure the terminal modes
-	modes := ssh.TerminalModes{}
-	if err := session.RequestPty("xterm", 80, 40, modes); err != nil {
-		return fmt.Errorf("request for pseudo terminal failed: %v", err)
+	if tty {
+		// get a pty
+		// TODO: should these be based on the host terminal?
+		// TODO: should we request something other than xterm?
+		// TODO: we should probably configure the terminal modes
+		modes := ssh.TerminalModes{}
+		if err := session.RequestPty("xterm", 80, 40, modes); err != nil {
+			return fmt.Errorf("request for pseudo terminal failed: %v", err)
+		}
 	}
 
-	// connect input / output
+	// Connect input / output
 	// TODO: these should come from the cobra command instead of hardcoding os.Stderr etc.
-	stderr, err := session.StderrPipe()
-	if err != nil {
-		return fmt.Errorf("failed to connect stderr: %v", err)
-	}
-	go io.Copy(os.Stderr, stderr)
-	stdout, err := session.StdoutPipe()
-	if err != nil {
-		return fmt.Errorf("failed to connect stdout: %v", err)
-	}
-	go io.Copy(os.Stdout, stdout)
-	stdin, err := session.StdinPipe()
-	if err != nil {
-		return fmt.Errorf("failed to connect stdin: %v", err)
-	}
-	go io.Copy(stdin, os.Stdin)
+	session.Stderr = os.Stderr
+	session.Stdout = os.Stdout
+	session.Stdin = os.Stdin
 
 	/*
 		Do not wrap this error so the caller can check for the exit code
