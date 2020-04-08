@@ -18,6 +18,8 @@
   - [func SetDefaults\_PoolSpec(obj \*PoolSpec)](#SetDefaults_PoolSpec)
   - [func SetDefaults\_VMKernelSpec(obj
     \*VMKernelSpec)](#SetDefaults_VMKernelSpec)
+  - [func SetDefaults\_VMSandboxSpec(obj
+    \*VMSandboxSpec)](#SetDefaults_VMSandboxSpec)
   - [func SetDefaults\_VMSpec(obj \*VMSpec)](#SetDefaults_VMSpec)
   - [type BlockDeviceVolume](#BlockDeviceVolume)
   - [type FileMapping](#FileMapping)
@@ -43,6 +45,7 @@
   - [type VMImageSpec](#VMImageSpec)
   - [type VMKernelSpec](#VMKernelSpec)
   - [type VMNetworkSpec](#VMNetworkSpec)
+  - [type VMSandboxSpec](#VMSandboxSpec)
   - [type VMSpec](#VMSpec)
   - [type VMStatus](#VMStatus)
   - [type VMStorageSpec](#VMStorageSpec)
@@ -97,25 +100,31 @@ var SchemeGroupVersion = schema.GroupVersion{
 
 SchemeGroupVersion is group version used to register these objects
 
-## <a name="SetDefaults_PoolSpec">func</a> [SetDefaults\_PoolSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/defaults.go?s=263:303#L13)
+## <a name="SetDefaults_PoolSpec">func</a> [SetDefaults\_PoolSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/defaults.go?s=308:348#L15)
 
 ``` go
 func SetDefaults_PoolSpec(obj *PoolSpec)
 ```
 
-## <a name="SetDefaults_VMKernelSpec">func</a> [SetDefaults\_VMKernelSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/defaults.go?s=1145:1193#L49)
+## <a name="SetDefaults_VMKernelSpec">func</a> [SetDefaults\_VMKernelSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/defaults.go?s=1190:1238#L51)
 
 ``` go
 func SetDefaults_VMKernelSpec(obj *VMKernelSpec)
 ```
 
-## <a name="SetDefaults_VMSpec">func</a> [SetDefaults\_VMSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/defaults.go?s=829:865#L35)
+## <a name="SetDefaults_VMSandboxSpec">func</a> [SetDefaults\_VMSandboxSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/defaults.go?s=1468:1518#L62)
+
+``` go
+func SetDefaults_VMSandboxSpec(obj *VMSandboxSpec)
+```
+
+## <a name="SetDefaults_VMSpec">func</a> [SetDefaults\_VMSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/defaults.go?s=874:910#L37)
 
 ``` go
 func SetDefaults_VMSpec(obj *VMSpec)
 ```
 
-## <a name="BlockDeviceVolume">type</a> [BlockDeviceVolume](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7433:7493#L195)
+## <a name="BlockDeviceVolume">type</a> [BlockDeviceVolume](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7601:7661#L201)
 
 ``` go
 type BlockDeviceVolume struct {
@@ -125,7 +134,7 @@ type BlockDeviceVolume struct {
 
 BlockDeviceVolume defines a block device on the host
 
-## <a name="FileMapping">type</a> [FileMapping](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7728:7823#L206)
+## <a name="FileMapping">type</a> [FileMapping](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7896:7991#L212)
 
 ``` go
 type FileMapping struct {
@@ -136,7 +145,7 @@ type FileMapping struct {
 
 FileMapping defines mappings between files on the host and VM
 
-## <a name="Image">type</a> [Image](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=395:868#L16)
+## <a name="Image">type</a> [Image](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=390:863#L16)
 
 ``` go
 type Image struct {
@@ -154,7 +163,7 @@ type Image struct {
 Image represents a cached OCI image ready to be used with Ignite
 +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-## <a name="ImageSpec">type</a> [ImageSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=916:976#L28)
+## <a name="ImageSpec">type</a> [ImageSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=911:971#L28)
 
 ``` go
 type ImageSpec struct {
@@ -164,7 +173,7 @@ type ImageSpec struct {
 
 ImageSpec declares what the image contains
 
-## <a name="ImageStatus">type</a> [ImageStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=1364:1513#L42)
+## <a name="ImageStatus">type</a> [ImageStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=1359:1508#L42)
 
 ``` go
 type ImageStatus struct {
@@ -175,7 +184,7 @@ type ImageStatus struct {
 
 ImageStatus defines the status of the image
 
-## <a name="Kernel">type</a> [Kernel](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=3898:4374#L106)
+## <a name="Kernel">type</a> [Kernel](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=3893:4369#L106)
 
 ``` go
 type Kernel struct {
@@ -195,7 +204,7 @@ kernels This file is stored in
 /var/lib/firecracker/kernels/{oci-image-digest}/metadata.json
 +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-## <a name="KernelSpec">type</a> [KernelSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=4427:4593#L118)
+## <a name="KernelSpec">type</a> [KernelSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=4422:4588#L118)
 
 ``` go
 type KernelSpec struct {
@@ -205,7 +214,7 @@ type KernelSpec struct {
 
 KernelSpec describes the properties of a kernel
 
-## <a name="KernelStatus">type</a> [KernelStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=4644:4760#L125)
+## <a name="KernelStatus">type</a> [KernelStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=4639:4755#L125)
 
 ``` go
 type KernelStatus struct {
@@ -216,7 +225,7 @@ type KernelStatus struct {
 
 KernelStatus describes the status of a kernel
 
-## <a name="OCIImageSource">type</a> [OCIImageSource](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=1083:1315#L34)
+## <a name="OCIImageSource">type</a> [OCIImageSource](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=1078:1310#L34)
 
 ``` go
 type OCIImageSource struct {
@@ -230,7 +239,7 @@ type OCIImageSource struct {
 OCIImageSource specifies how the OCI image was imported. It is the
 status variant of OCIImageClaim
 
-## <a name="Pool">type</a> [Pool](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=1788:1974#L51)
+## <a name="Pool">type</a> [Pool](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=1783:1969#L51)
 
 ``` go
 type Pool struct {
@@ -246,7 +255,7 @@ snapshotter part of Ignite, and the file (existing as a singleton) is
 present at /var/lib/firecracker/snapshotter/pool.json
 +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-## <a name="PoolDevice">type</a> [PoolDevice](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=3265:3655#L93)
+## <a name="PoolDevice">type</a> [PoolDevice](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=3260:3650#L93)
 
 ``` go
 type PoolDevice struct {
@@ -262,7 +271,7 @@ type PoolDevice struct {
 
 PoolDevice defines one device in the pool
 
-## <a name="PoolDeviceType">type</a> [PoolDeviceType](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=2994:3020#L83)
+## <a name="PoolDeviceType">type</a> [PoolDeviceType](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=2989:3015#L83)
 
 ``` go
 type PoolDeviceType string
@@ -277,7 +286,7 @@ const (
 )
 ```
 
-## <a name="PoolSpec">type</a> [PoolSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=2021:2734#L61)
+## <a name="PoolSpec">type</a> [PoolSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=2016:2729#L61)
 
 ``` go
 type PoolSpec struct {
@@ -298,7 +307,7 @@ type PoolSpec struct {
 
 PoolSpec defines the Pool’s specification
 
-## <a name="PoolStatus">type</a> [PoolStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=2784:2992#L77)
+## <a name="PoolStatus">type</a> [PoolStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=2779:2987#L77)
 
 ``` go
 type PoolStatus struct {
@@ -310,7 +319,7 @@ type PoolStatus struct {
 
 PoolStatus defines the Pool’s current status
 
-## <a name="Runtime">type</a> [Runtime](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=8172:8218#L221)
+## <a name="Runtime">type</a> [Runtime](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=8340:8386#L227)
 
 ``` go
 type Runtime struct {
@@ -320,7 +329,7 @@ type Runtime struct {
 
 Runtime specifies the VM’s runtime information
 
-## <a name="SSH">type</a> [SSH](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=8043:8120#L215)
+## <a name="SSH">type</a> [SSH](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=8211:8288#L221)
 
 ``` go
 type SSH struct {
@@ -345,7 +354,7 @@ func (s *SSH) MarshalJSON() ([]byte, error)
 func (s *SSH) UnmarshalJSON(b []byte) error
 ```
 
-## <a name="VM">type</a> [VM](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=4962:5426#L133)
+## <a name="VM">type</a> [VM](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=4957:5421#L133)
 
 ``` go
 type VM struct {
@@ -364,7 +373,7 @@ VM represents a virtual machine run by Firecracker These files are
 stored in /var/lib/firecracker/vm/{vm-id}/metadata.json
 +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-## <a name="VMImageSpec">type</a> [VMImageSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6733:6795#L169)
+## <a name="VMImageSpec">type</a> [VMImageSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6774:6836#L170)
 
 ``` go
 type VMImageSpec struct {
@@ -372,7 +381,7 @@ type VMImageSpec struct {
 }
 ```
 
-## <a name="VMKernelSpec">type</a> [VMKernelSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6797:6917#L173)
+## <a name="VMKernelSpec">type</a> [VMKernelSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6838:6958#L174)
 
 ``` go
 type VMKernelSpec struct {
@@ -381,7 +390,7 @@ type VMKernelSpec struct {
 }
 ```
 
-## <a name="VMNetworkSpec">type</a> [VMNetworkSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=6919:6998#L178)
+## <a name="VMNetworkSpec">type</a> [VMNetworkSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7087:7166#L184)
 
 ``` go
 type VMNetworkSpec struct {
@@ -389,15 +398,26 @@ type VMNetworkSpec struct {
 }
 ```
 
-## <a name="VMSpec">type</a> [VMSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=5474:6731#L145)
+## <a name="VMSandboxSpec">type</a> [VMSandboxSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7021:7085#L180)
+
+``` go
+type VMSandboxSpec struct {
+    OCI meta.OCIImageRef `json:"oci"`
+}
+```
+
+VMSandboxSpec is the spec of the sandbox used for the VM.
+
+## <a name="VMSpec">type</a> [VMSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=5469:6772#L145)
 
 ``` go
 type VMSpec struct {
-    Image    VMImageSpec  `json:"image"`
-    Kernel   VMKernelSpec `json:"kernel"`
-    CPUs     uint64       `json:"cpus"`
-    Memory   meta.Size    `json:"memory"`
-    DiskSize meta.Size    `json:"diskSize"`
+    Image    VMImageSpec   `json:"image"`
+    Sandbox  VMSandboxSpec `json:"sandbox"`
+    Kernel   VMKernelSpec  `json:"kernel"`
+    CPUs     uint64        `json:"cpus"`
+    Memory   meta.Size     `json:"memory"`
+    DiskSize meta.Size     `json:"diskSize"`
     // TODO: Implement working omitempty without pointers for the following entries
     // Currently both will show in the JSON output as empty arrays. Making them
     // pointers requires plenty of nil checks (as their contents are accessed directly)
@@ -419,7 +439,7 @@ type VMSpec struct {
 
 VMSpec describes the configuration of a VM
 
-## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=8259:8598#L226)
+## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=8427:8766#L232)
 
 ``` go
 type VMStatus struct {
@@ -434,7 +454,7 @@ type VMStatus struct {
 
 VMStatus defines the status of a VM
 
-## <a name="VMStorageSpec">type</a> [VMStorageSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7059:7203#L183)
+## <a name="VMStorageSpec">type</a> [VMStorageSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7227:7371#L189)
 
 ``` go
 type VMStorageSpec struct {
@@ -445,7 +465,7 @@ type VMStorageSpec struct {
 
 VMStorageSpec defines the VM’s Volumes and VolumeMounts
 
-## <a name="Volume">type</a> [Volume](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7244:7375#L189)
+## <a name="Volume">type</a> [Volume](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7412:7543#L195)
 
 ``` go
 type Volume struct {
@@ -456,7 +476,7 @@ type Volume struct {
 
 Volume defines named storage volume
 
-## <a name="VolumeMount">type</a> [VolumeMount](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7565:7661#L200)
+## <a name="VolumeMount">type</a> [VolumeMount](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha2/types.go?s=7733:7829#L206)
 
 ``` go
 type VolumeMount struct {
