@@ -122,4 +122,4 @@ spec:
 ```
 
 You can find the full API reference in the
-[api/](https://github.com/weaveworks/ignite/tree/master/api) subfolder of the project.
+[pkg/apis/](https://github.com/weaveworks/ignite/tree/master/pkg/apis) subfolder of the project.
