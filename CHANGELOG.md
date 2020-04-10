@@ -139,7 +139,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
 
 __________
 **[OCI images for this release](
@@ -176,7 +176,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
 
 __________
 **[OCI images for this release](
@@ -199,7 +199,7 @@ The main themes of this release has been:
 - **containerd** is now used as the default container runtime for higher security and speed, and less resource usage
   - This means that Ignite doesn't depend on `docker` anymore!
 - **CNI** is now the default networking plugin; by default the `bridge` and `portmap` plugins are used
-  - You can still use your third-party CNI implementation of choice, see [the networking doc](https://ignite.readthedocs.io/en/stable/networking.html)
+  - You can still use your third-party CNI implementation of choice, see [the networking doc](https://ignite.readthedocs.io/en/stable/networking)
 - **GitOps Toolkit** refactor is complete; now everything you need to create your Git-backed application is available at **https://github.com/weaveworks/gitops-toolkit**
   - Ignite is using this toolkit internally to perform its GitOps capabilities, now you can easily use this functionality, too!
 - **Bugfixes and usability improvements** all around the place
@@ -269,7 +269,7 @@ export CNI_VERSION=v0.8.2
 curl -sSL https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz | tar -xz -C /opt/cni/bin
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
 
 ---
 
@@ -299,7 +299,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
 
 
 ---
@@ -337,7 +337,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
 
 ---
 
@@ -444,7 +444,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
 
 ---
 
@@ -499,7 +499,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
 
 
 ---
@@ -578,7 +578,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
 
 
 ---
