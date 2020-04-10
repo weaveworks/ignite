@@ -9,11 +9,11 @@ import (
 	"path"
 	"time"
 
+	"github.com/alessio/shellescape"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/util"
 	"golang.org/x/crypto/ssh"
-	shellescape "gopkg.in/alessio/shellescape.v1"
 )
 
 type ExecFlags struct {
