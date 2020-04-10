@@ -130,9 +130,9 @@ func (ss *SyncStorage) monitorFunc() {
 	log.Debug("SyncStorage: Monitoring thread started")
 	defer log.Debug("SyncStorage: Monitoring thread stopped")
 
-	// TODO: Support detecting changes done when Ignite isn't running
+	// TODO: Support detecting changes done when the GitOps daemon isn't running
 	// This is difficult to do though, as we have don't know which state is the latest
-	// For now, only update the state on write when Ignite is running
+	// For now, only update the state on write when the daemon is running
 	for {
 		upd, ok := <-ss.eventStream
 		if ok {

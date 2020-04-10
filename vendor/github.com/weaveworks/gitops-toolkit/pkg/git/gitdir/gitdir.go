@@ -20,10 +20,10 @@ func NewGitDirectory(url, branch string, paths []string, interval time.Duration)
 		gitConfig: git.Config{
 			Branch:    branch,
 			Paths:     paths,
-			UserName:  "Weave Ignite",
+			UserName:  "Weave GitOps Toolkit",
 			UserEmail: "support@weave.works",
-			SyncTag:   "ignite-gitops",
-			NotesRef:  "ignite-gitops",
+			SyncTag:   "gitops-toolkit",
+			NotesRef:  "gitops-toolkit",
 		},
 		syncInterval: interval,
 		wg:           &sync.WaitGroup{},
@@ -200,7 +200,7 @@ func (d *GitDirectory) doCommit() error {
 	// Do a commit and push
 	if err := d.checkout.CommitAndPush(context.Background(), git.CommitAction{
 		//Author: d.gitConfig.UserName,
-		Message: "Update files changed by Ignite",
+		Message: "Update files changed by GitOps Toolkit",
 	}, nil, true); err != nil {
 		return fmt.Errorf("git commit and/or push error: %v", err)
 	}
