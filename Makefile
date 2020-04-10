@@ -53,16 +53,16 @@ undefine GOFLAGS
 GOHOSTARCH := $(shell GOARCH= go env GOARCH 2>/dev/null || echo "amd64")
 GOARCH ?= amd64
 GOARCH_LIST = amd64 arm64
-QEMUVERSION=v2.9.1
+QEMUVERSION=v4.2.0-6
 
 ifeq ($(GOARCH),amd64)
 QEMUARCH=amd64
-BASEIMAGE=alpine:3.9
+BASEIMAGE=alpine:3.11
 FIRECRACKER_ARCH_SUFFIX=-x86_64
 endif
 ifeq ($(GOARCH),arm64)
 QEMUARCH=aarch64
-BASEIMAGE=arm64v8/alpine:3.9
+BASEIMAGE=arm64v8/alpine:3.11
 FIRECRACKER_ARCH_SUFFIX=-aarch64
 endif
 
