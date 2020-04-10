@@ -10,11 +10,12 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"go/importer"
 	"go/types"
 	"log"
 	"os"
 	"strings"
+
+	"golang.org/x/tools/go/packages"
 )
 
 var packageHdr = `
@@ -44,9 +45,19 @@ func getTypeStruct(t types.Type, scope *types.Scope) (*types.Struct, bool) {
 	return nil, false
 }
 
+// loadModule retrieves package description for a given module.
+func loadModule(name string) (*types.Package, error) {
+	conf := packages.Config{Mode: packages.NeedTypes | packages.NeedTypesInfo}
+	pkgs, err := packages.Load(&conf, name)
+	if err != nil {
+		return nil, err
+	}
+	return pkgs[0].Types, nil
+}
+
 func main() {
 	// Import and type-check the package
-	pkg, err := importer.Default().Import("github.com/miekg/dns")
+	pkg, err := loadModule("github.com/miekg/dns")
 	fatalIfErr(err)
 	scope := pkg.Scope()
 
@@ -101,6 +112,8 @@ return off, err
 					o("off, err = packDataNsec(rr.%s, msg, off)\n")
 				case `dns:"domain-name"`:
 					o("off, err = packDataDomainNames(rr.%s, msg, off, compression, false)\n")
+				case `dns:"apl"`:
+					o("off, err = packDataApl(rr.%s, msg, off)\n")
 				default:
 					log.Fatalln(name, st.Field(i).Name(), st.Tag(i))
 				}
@@ -225,6 +238,8 @@ return off, err
 					o("rr.%s, off, err = unpackDataNsec(msg, off)\n")
 				case `dns:"domain-name"`:
 					o("rr.%s, off, err = unpackDataDomainNames(msg, off, rdStart + int(rr.Hdr.Rdlength))\n")
+				case `dns:"apl"`:
+					o("rr.%s, off, err = unpackDataApl(msg, off)\n")
 				default:
 					log.Fatalln(name, st.Field(i).Name(), st.Tag(i))
 				}

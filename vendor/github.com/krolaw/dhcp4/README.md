@@ -1,9 +1,6 @@
 # DHCP4 - A DHCP library written in Go.
 
-## New Maintainer requested
-I no longer work on projects requiring DHCP and am therefore not suited to maintain this library. If you are interested in taking over see [#46](https://github.com/krolaw/dhcp4/issues/46).
-
-## Author
+## Original Author
 http://richard.warburton.it/
 
 ## Quick Start
