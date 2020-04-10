@@ -163,8 +163,9 @@ func copyKernelToOverlay(vm *api.VM, mountPoint string) error {
 		log.Warnf("Could not find kernel overlay files, not copying into the VM.")
 		return nil
 	}
-
-	_, err = util.ExecuteCommand("tar", "-xf", kernelTarPath, "-C", mountPoint)
+	// It is important to not replace existing symlinks to directories when extracting because
+	// /lib might be a symlink (usually to usr/lib)
+	_, err = util.ExecuteCommand("tar", "--keep-directory-symlink", "-xf", kernelTarPath, "-C", mountPoint)
 	return err
 }
 
