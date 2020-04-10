@@ -165,7 +165,9 @@ func copyKernelToOverlay(vm *api.VM, mountPoint string) error {
 	}
 	// It is important to not replace existing symlinks to directories when extracting because
 	// /lib might be a symlink (usually to usr/lib)
-	_, err = util.ExecuteCommand("tar", "--keep-directory-symlink", "-xf", kernelTarPath, "-C", mountPoint)
+	// WARNING: `-h` is only available on GNU and Busybox tar.  It is not present on BSD's bsdtar
+	//          It means "Follow symlinks"
+	_, err = util.ExecuteCommand("tar", "-h", "-xf", kernelTarPath, "-C", mountPoint)
 	return err
 }
 
