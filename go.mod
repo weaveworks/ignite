@@ -1,6 +1,12 @@
 module github.com/weaveworks/ignite
 
-go 1.12
+go 1.14
+
+replace (
+	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20190711223531-1fb7fffdb266
+	github.com/docker/docker => github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0
+	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c
+)
 
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
@@ -18,7 +24,7 @@ require (
 	github.com/containers/image v3.0.2+incompatible
 	github.com/coreos/go-iptables v0.4.5
 	github.com/docker/distribution v0.0.0-00010101000000-000000000000 // indirect
-	github.com/docker/docker v1.13.1
+	github.com/docker/docker v0.0.0-00010101000000-000000000000
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
 	github.com/firecracker-microvm/firecracker-go-sdk v0.21.0
@@ -26,6 +32,7 @@ require (
 	github.com/go-openapi/spec v0.19.7
 	github.com/gogo/googleapis v1.3.2 // indirect
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
+	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/imdario/mergo v0.3.9 // indirect
 	github.com/krolaw/dhcp4 v0.0.0-20190909130307-a50d88189771
 	github.com/lithammer/dedent v1.1.0
@@ -45,17 +52,11 @@ require (
 	github.com/stretchr/testify v1.5.1
 	github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2 // indirect
 	github.com/vishvananda/netlink v1.1.0
-	github.com/weaveworks/gitops-toolkit v0.0.0-20191009213125-6d6e6c8de6d4
-	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
-	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
+	github.com/weaveworks/gitops-toolkit v0.0.0-20200410161308-f0fc148681c0
+	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71
+	golang.org/x/sys v0.0.0-20200409092240-59c9f1ba88fa
 	gotest.tools v2.2.0+incompatible
 	k8s.io/apimachinery v0.18.1
 	k8s.io/kube-openapi v0.0.0-20200403204345-e1beb1bd0f35
 	sigs.k8s.io/yaml v1.2.0
-)
-
-replace (
-	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20190711223531-1fb7fffdb266
-	github.com/docker/docker => github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0
-	k8s.io/apimachinery => k8s.io/apimachinery v0.17.4
 )

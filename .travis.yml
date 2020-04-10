@@ -5,7 +5,7 @@ services:
 - docker
 
 env:
-- GIMME_GO_VERSION=1.12.17
+- GIMME_GO_VERSION=1.14.2
 
 install:
 - eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | bash)" # install specific go version
