@@ -144,7 +144,7 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*api.Kernel, error
 		defer reader.Close()
 
 		// Extract only the /boot and /lib directories of the tar stream into the tempDir
-		tarCmd := exec.Command("tar", "-x", "-C", tempDir, "boot", "lib")
+		tarCmd := exec.Command("tar", "-x", "-C", tempDir, "boot", "lib/modules")
 		tarCmd.Stdin = reader
 		if err := tarCmd.Start(); err != nil {
 			return nil, err
