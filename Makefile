@@ -98,7 +98,6 @@ go-in-docker: # Do not use directly -- use $(GO_MAKE_TARGET)
 		-v $(shell pwd):/go/src/${PROJECT} \
 		-w /go/src/${PROJECT} \
 		-u $(shell id -u):$(shell id -g) \
-		-e GO111MODULE=on \
 		-e GOARCH=$(GOARCH) \
 		golang:$(GO_VERSION) \
 		$(COMMAND)
@@ -201,12 +200,15 @@ api-doc:
 			--to gfm \
 			bin/tmp/${GROUP_VERSION}.md > docs/api/${GROUP_VERSION}.md
 
-autogen: api-docs
+autogen:
 	$(MAKE) go-make TARGETS="go-autogen"
 
 go-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen /go/bin/openapi-gen
 	# Let the boilerplate be empty
 	touch /tmp/boilerplate
+	# Need to do this, otherwise go mod thinks the state is dirty (for some reason)
+	go mod vendor
+
 	/go/bin/deepcopy-gen \
 		--input-dirs ${API_DIRS} \
 		--bounding-dirs ${APIS_DIR} \
@@ -228,12 +230,15 @@ go-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen /g
 		--output-package ${PROJECT}/pkg/openapi \
 		--report-filename pkg/openapi/violations.txt \
 		-h /tmp/boilerplate
+	
+	# These commands modify the env a bit, clean up after us too
+	$(MAKE) tidy
 
-/go/bin/%: vendor
-	go install k8s.io/code-generator/cmd/$*
+/go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen: /go/bin/%: vendor
+	go get k8s.io/code-generator/cmd/$*
 
 /go/bin/openapi-gen:
-	go install k8s.io/kube-openapi/cmd/openapi-gen
+	go get k8s.io/kube-openapi/cmd/openapi-gen
 
 godoc2md: bin/cache/go/bin/godoc2md
 bin/cache/go/bin/godoc2md:
