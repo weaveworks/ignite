@@ -169,11 +169,9 @@ var BootstrapLoggingHandler = Handler{
 	Name: BootstrapLoggingHandlerName,
 	Fn: func(ctx context.Context, m *Machine) error {
 		if err := m.setupLogging(ctx); err != nil {
-			m.logger.Warnf("setupLogging() returned %s. Continuing anyway.", err)
-		} else {
-			m.logger.Debugf("setup logging: success")
+			return err
 		}
-
+		m.logger.Debugf("setup logging: success")
 		return nil
 	},
 }

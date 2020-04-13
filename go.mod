@@ -27,7 +27,7 @@ require (
 	github.com/docker/docker v0.0.0-00010101000000-000000000000
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
-	github.com/firecracker-microvm/firecracker-go-sdk v0.21.0
+	github.com/firecracker-microvm/firecracker-go-sdk v0.21.1-0.20200312220944-e6eaff81c885
 	github.com/freddierice/go-losetup v0.0.0-20170407175016-fc9adea44124
 	github.com/go-openapi/spec v0.19.7
 	github.com/gogo/googleapis v1.3.2 // indirect
