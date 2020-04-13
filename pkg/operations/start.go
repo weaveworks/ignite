@@ -132,9 +132,11 @@ func StartVM(vm *api.VM, debug bool) error {
 	startTime := apiruntime.Timestamp()
 	vm.Status.StartTime = &startTime
 
-	// Append the runtime IP address of the VM to its state
+	// Append non-loopback runtime IP addresses of the VM to its state
 	for _, addr := range result.Addresses {
-		vm.Status.IPAddresses = append(vm.Status.IPAddresses, addr.IP)
+		if !addr.IP.IsLoopback() {
+			vm.Status.IPAddresses = append(vm.Status.IPAddresses, addr.IP)
+		}
 	}
 
 	// Set the VM's status to running
