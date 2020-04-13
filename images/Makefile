@@ -36,7 +36,7 @@ endif
 	@ls ${WHAT} >/dev/null
 
 ifeq ($(IS_MANIFEST_LIST),0)
-	docker build --build-arg RELEASE -t $(FULL_IMAGE_NAME) ${WHAT}
+	sed "s|DOCKERARCH|$(DOCKERARCH)|g;/QEMUARCH/d" ${WHAT}/Dockerfile | docker build --build-arg RELEASE -f - -t $(FULL_IMAGE_NAME) ${WHAT}
 else
 	# Register /usr/bin/qemu-ARCH-static as the handler for non-x86 binaries in the kernel
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset
