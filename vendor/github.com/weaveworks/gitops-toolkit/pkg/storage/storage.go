@@ -88,7 +88,7 @@ func (s *GenericStorage) New(gvk schema.GroupVersionKind) (runtime.Object, error
 	// Cast to runtime.Object, and make sure it works
 	metaObj, ok := obj.(runtime.Object)
 	if !ok {
-		return nil, fmt.Errorf("can't convert to ignite object")
+		return nil, fmt.Errorf("can't convert to gitops-toolkit.runtime.Object")
 	}
 	// Set the desired gvk from the caller of this Object
 	// In practice, this means, although we created an internal type,
@@ -233,7 +233,7 @@ func (s *GenericStorage) decode(content []byte, gvk schema.GroupVersionKind) (ru
 	// Cast to runtime.Object, and make sure it works
 	metaObj, ok := obj.(runtime.Object)
 	if !ok {
-		return nil, fmt.Errorf("can't convert to ignite object")
+		return nil, fmt.Errorf("can't convert to gitops-toolkit.runtime.Object")
 	}
 
 	// Set the desired gvk of this Object from the caller

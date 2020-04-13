@@ -203,7 +203,7 @@ func (s *GenericWatchStorage) resolveAPIType(path string) (runtime.Object, error
 
 	gvk := obj.GroupVersionKind()
 
-	// Don't decode API objects unknown to Ignite (e.g. Kubernetes manifests)
+	// Don't decode API objects unknown to the scheme (e.g. Kubernetes manifests)
 	if !s.Serializer().Scheme().Recognizes(gvk) {
 		return nil, fmt.Errorf("unknown API version %q and/or kind %q", obj.APIVersion, obj.Kind)
 	}
