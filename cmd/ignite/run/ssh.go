@@ -76,18 +76,39 @@ func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout 
 		return fmt.Errorf("unable to create signer for private key: %v", err)
 	}
 
+	// Defer exit here and set the exit code based on any ssh error, so that
+	// this ssh command returns the correct ssh exit code. Since this function
+	// results in an os.Exit, any error returned by this function won't be
+	// received by the caller. Print the error to make the errror message
+	// visible and set the error code when an error is found.
+	exitCode := 0
+	defer func() {
+		os.Exit(exitCode)
+	}()
+
+	// printErrAndSetExitCode is used to print an error message, set exit code
+	// and return nil. This is needed because once the ssh connection is
+	// estabilish, to return the error code of the actual ssh session, instead
+	// of returning an error, the runSSH function defers os.Exit with the ssh
+	// exit code. For showing any error to the user, it needs to be printed.
+	printErrAndSetExitCode := func(errMsg error, exitCode *int, code int) error {
+		fmt.Printf("%v\n", errMsg)
+		*exitCode = code
+		return nil
+	}
+
 	// Create an SSH client, and connect.
 	config := newSSHConfig(signer, timeout)
 	client, err := ssh.Dial(defaultSSHNetwork, net.JoinHostPort(ipAddrs[0].String(), defaultSSHPort), config)
 	if err != nil {
-		return fmt.Errorf("failed to dial: %v", err)
+		return printErrAndSetExitCode(fmt.Errorf("failed to dial: %v", err), &exitCode, 1)
 	}
 	defer client.Close()
 
 	// Create a session.
 	session, err := client.NewSession()
 	if err != nil {
-		return fmt.Errorf("failed to create session: %v", err)
+		return printErrAndSetExitCode(fmt.Errorf("failed to create session: %v", err), &exitCode, 1)
 	}
 	defer session.Close()
 
@@ -99,14 +120,14 @@ func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout 
 		// Store the raw state of the terminal.
 		state, err := terminal.MakeRaw(fd)
 		if err != nil {
-			return fmt.Errorf("failed to make terminal raw: %v", err)
+			return printErrAndSetExitCode(fmt.Errorf("failed to make terminal raw: %v", err), &exitCode, 1)
 		}
 		defer terminal.Restore(fd, state)
 
 		// Get the terminal dimensions.
 		w, h, err := terminal.GetSize(fd)
 		if err != nil {
-			return fmt.Errorf("failed to get terminal size: %v", err)
+			return printErrAndSetExitCode(fmt.Errorf("failed to get terminal size: %v", err), &exitCode, 1)
 		}
 
 		// Set terminal modes.
@@ -121,7 +142,7 @@ func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout 
 		}
 
 		if err := session.RequestPty(term, h, w, modes); err != nil {
-			return fmt.Errorf("request for pseudo terminal failed: %v", err)
+			return printErrAndSetExitCode(fmt.Errorf("request for pseudo terminal failed: %v", err), &exitCode, 1)
 		}
 	}
 
@@ -134,25 +155,21 @@ func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout 
 
 	if len(command) == 0 {
 		if err := session.Shell(); err != nil {
-			return fmt.Errorf("failed to start shell: %v", err)
+			return printErrAndSetExitCode(fmt.Errorf("failed to start shell: %v", err), &exitCode, 1)
 		}
 
 		if err := session.Wait(); err != nil {
 			if e, ok := err.(*ssh.ExitError); ok {
-				switch e.ExitStatus() {
-				case 130:
-					// When Ctrl-C is pressed during the ssh session, exit ends
-					// with error:
-					// 		failed waiting for session to exit: Process exited with status 130
-					// Ignore this error for clean exit.
-					return nil
-				}
+				return printErrAndSetExitCode(err, &exitCode, e.ExitStatus())
 			}
-			return fmt.Errorf("failed waiting for session to exit: %v", err)
+			return printErrAndSetExitCode(fmt.Errorf("failed waiting for session to exit: %v", err), &exitCode, 1)
 		}
 	} else {
 		if err := session.Run(joinShellCommand(command)); err != nil {
-			return fmt.Errorf("failed to run shell command: %s", err)
+			if e, ok := err.(*ssh.ExitError); ok {
+				return printErrAndSetExitCode(err, &exitCode, e.ExitStatus())
+			}
+			return printErrAndSetExitCode(fmt.Errorf("failed to run shell command: %s", err), &exitCode, 1)
 		}
 	}
 	return nil
