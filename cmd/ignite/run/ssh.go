@@ -112,7 +112,14 @@ func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout 
 		modes := ssh.TerminalModes{
 			ssh.ECHO: 1,
 		}
-		if err := session.RequestPty(defaultTerm, h, w, modes); err != nil {
+
+		// Read the TERM environment variable and use it to request the PTY.
+		term := os.Getenv("TERM")
+		if term == "" {
+			term = defaultTerm
+		}
+
+		if err := session.RequestPty(term, h, w, modes); err != nil {
 			return fmt.Errorf("request for pseudo terminal failed: %v", err)
 		}
 	}
