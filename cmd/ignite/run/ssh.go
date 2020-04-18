@@ -27,6 +27,7 @@ const (
 type SSHFlags struct {
 	Timeout      uint32
 	IdentityFile string
+	Tty          bool
 }
 
 type sshOptions struct {
@@ -43,7 +44,7 @@ func (sf *SSHFlags) NewSSHOptions(vmMatch string) (so *sshOptions, err error) {
 
 // SSH starts a ssh session as per the provided ssh options.
 func SSH(so *sshOptions) error {
-	return runSSH(so.vm, so.IdentityFile, []string{}, true, so.Timeout)
+	return runSSH(so.vm, so.IdentityFile, []string{}, so.Tty, so.Timeout)
 }
 
 // runSSH creates and runs ssh session based on the provided arguments.
