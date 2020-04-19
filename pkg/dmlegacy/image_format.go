@@ -11,6 +11,7 @@ import (
 	"strings"
 	"unicode"
 
+	containerderr "github.com/containerd/containerd/errdefs"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
@@ -99,7 +100,10 @@ func addFiles(img *api.Image, src source.Source) error {
 	}
 
 	if err := src.Cleanup(); err != nil {
-		return err
+		// Ignore the cleanup error if the resource no longer exists.
+		if !errors.Is(err, containerderr.ErrNotFound) {
+			return err
+		}
 	}
 
 	return setupResolvConf(tempDir)
