@@ -70,8 +70,8 @@ Install the CNI binaries like this:
 ```shell
 export CNI_VERSION=v0.8.5
 export ARCH=$([ $(uname -m) = "x86_64" ] && echo amd64 || echo arm64)
-mkdir -p /opt/cni/bin
-curl -sSL https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz | tar -xz -C /opt/cni/bin
+sudo mkdir -p /opt/cni/bin
+curl -sSL https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz | sudo tar -xz -C /opt/cni/bin
 ```
 
 Note that the SSH and Git packages are optional; they are only needed if you use
