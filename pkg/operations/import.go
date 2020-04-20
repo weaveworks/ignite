@@ -1,12 +1,14 @@
 package operations
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
 
+	containerderr "github.com/containerd/containerd/errdefs"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/gitops-toolkit/pkg/filter"
 	"github.com/weaveworks/gitops-toolkit/pkg/storage/filterer"
@@ -156,7 +158,10 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*api.Kernel, error
 
 		// Remove the temporary container
 		if err := dockerSource.Cleanup(); err != nil {
-			return nil, err
+			// Ignore the cleanup error if the resource no longer exists.
+			if !errors.Is(err, containerderr.ErrNotFound) {
+				return nil, err
+			}
 		}
 
 		// Locate the kernel file in the temporary directory
