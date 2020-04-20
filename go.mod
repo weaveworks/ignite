@@ -47,6 +47,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.11.0
 	github.com/prometheus/client_golang v1.5.1
+	github.com/rjeczalik/notify v0.9.2
 	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/pflag v1.0.5
@@ -58,6 +59,6 @@ require (
 	golang.org/x/sys v0.0.0-20200409092240-59c9f1ba88fa
 	gotest.tools v2.2.0+incompatible
 	k8s.io/apimachinery v0.18.1
-	k8s.io/kube-openapi v0.0.0-20200403204345-e1beb1bd0f35
+	k8s.io/kube-openapi v0.0.0-20200413232311-afe0b5e9f729
 	sigs.k8s.io/yaml v1.2.0
 )
