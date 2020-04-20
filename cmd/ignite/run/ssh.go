@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/alessio/shellescape"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/terminal"
 
@@ -92,7 +93,7 @@ func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout 
 	// of returning an error, the runSSH function defers os.Exit with the ssh
 	// exit code. For showing any error to the user, it needs to be printed.
 	printErrAndSetExitCode := func(errMsg error, exitCode *int, code int) error {
-		fmt.Printf("%v\n", errMsg)
+		log.Errorf("%v\n", errMsg)
 		*exitCode = code
 		return nil
 	}
