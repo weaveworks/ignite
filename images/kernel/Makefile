@@ -1,7 +1,7 @@
 # Check https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/refs/ for updates
 REGISTRY?=weaveworks
 IMAGE_NAME?=${REGISTRY}/ignite-kernel
-KERNEL_VERSIONS ?= 4.14.166 4.19.97 5.4.13
+KERNEL_VERSIONS ?= 4.14.174 4.19.114 5.4.31
 GOARCH?=amd64
 GOARCH_LIST = amd64 arm64
 
@@ -18,11 +18,13 @@ endif
 all: build
 
 upgrade: $(addprefix upgrade-,$(KERNEL_VERSIONS))
+	mkdir -p generated
 	./patch-config.sh
 	for file in generated/*; do \
 		./upgrade-config.sh $$file $$file; done
 
 upgrade-%:
+	mkdir -p versioned
 	for file in upstream/*; do \
 		./upgrade-config.sh $$file versioned/$$(basename $$file)-$*; done
 
