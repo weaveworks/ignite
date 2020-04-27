@@ -25,3 +25,6 @@ CONFIG_IP_VS_MH=m
 # https://superuser.com/questions/287371/obtain-kernel-config-from-currently-running-linux-system
 CONFIG_IKCONFIG=y
 CONFIG_IKCONFIG_PROC=y
+
+# Enable support for TCMU, required by most of the storage systems.
+CONFIG_TCM_USER2=m
