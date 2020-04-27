@@ -22,6 +22,15 @@ func NewCmdInspect(out io.Writer) *cobra.Command {
 			The kind can be "image", "kernel" or "vm". The object is matched
 			by prefix based on its ID and name. Outputs JSON by default, can
 			be overridden with the output flag (-o, --output).
+
+			Example usage:
+				$ ignite inspect vm my-vm
+
+				$ ignite inspect vm my-vm -t {{.Status.IPAddresses}}
+
+				$ ignite inspect vm my-vm -t {{.ObjectMeta.Name}}
+
+				$ ignite inspect vm my-vm -t {{.Spec.Image.OCI}}
 		`),
 		Args: cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
