@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/util/sets"
+
+	"github.com/weaveworks/ignite/pkg/preflight"
 )
 
 type fakeChecker struct {
@@ -23,24 +25,28 @@ func (fc fakeChecker) Name() string {
 	return "FakeChecker"
 }
 
+func (fc fakeChecker) Type() string {
+	return "FakeChecker"
+}
+
 func TestRunChecks(t *testing.T) {
 	utests := []struct {
-		checkers      []Checker
+		checkers      []preflight.Checker
 		ignoredErrors []string
 		expectedError bool
 	}{
 		{
-			checkers:      []Checker{fakeChecker{info: ""}},
+			checkers:      []preflight.Checker{fakeChecker{info: ""}},
 			ignoredErrors: []string{},
 			expectedError: false,
 		},
 		{
-			checkers:      []Checker{fakeChecker{info: ""}, fakeChecker{info: "error"}},
+			checkers:      []preflight.Checker{fakeChecker{info: ""}, fakeChecker{info: "error"}},
 			ignoredErrors: []string{},
 			expectedError: true,
 		},
 		{
-			checkers:      []Checker{fakeChecker{info: ""}, fakeChecker{info: "error"}},
+			checkers:      []preflight.Checker{fakeChecker{info: ""}, fakeChecker{info: "error"}},
 			ignoredErrors: []string{"fakechecker"},
 			expectedError: false,
 		},
