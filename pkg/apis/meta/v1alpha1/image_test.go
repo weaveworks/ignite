@@ -26,11 +26,13 @@ func TestNewOCIImageRef(t *testing.T) {
 	for _, rt := range tests {
 		actual, err := NewOCIImageRef(rt.in)
 		if (err != nil) != rt.err {
-			t.Errorf("expected error %t, actual: %v", rt.err, err)
+			t.Fatalf("expected error %t, actual: %v", rt.err, err)
 		}
-
-		if actual.String() != rt.out {
-			t.Errorf("expected %q, actual: %q", rt.out, actual.String())
+		// Check actual string when there's no error.
+		if err == nil {
+			if actual.String() != rt.out {
+				t.Errorf("expected %q, actual: %q", rt.out, actual.String())
+			}
 		}
 	}
 }

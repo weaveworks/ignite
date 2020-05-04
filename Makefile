@@ -69,6 +69,12 @@ endif
 E2E_REGEX := Test
 E2E_COUNT := 1
 
+TEST_COUNT := 1
+
+# Project packages.
+TEST_REQUIRES_ROOT_PACKAGES="$(PROJECT)/pkg/runtime/containerd"
+TEST_E2E_PACKAGES="$(PROJECT)/e2e"
+
 # Default is to build all the binaries for this architecture
 all: build-all-$(GOARCH)
 
@@ -175,6 +181,17 @@ tidy: /go/bin/goimports
 tidy-in-docker:
 	$(MAKE) go-make TARGETS="tidy"
 
+# Exclude e2e tests, incomplete package pkg/dm and packages that require root.
+test:
+	go test -mod=vendor -v $(shell go list ./... | grep -v /e2e | grep -v /pkg/dm | grep -v $(TEST_REQUIRES_ROOT_PACKAGES)) -count=$(TEST_COUNT)
+
+test-in-docker:
+	$(MAKE) go-make TARGETS="test"
+
+# Run tests that require root.
+root-test:
+	sudo $(shell which go) test -mod=vendor -v $(TEST_REQUIRES_ROOT_PACKAGES) -count=$(TEST_COUNT)
+
 graph:
 	hack/graph.sh
 
@@ -269,7 +286,7 @@ e2e: build-all e2e-nobuild
 e2e-nobuild:
 	sudo IGNITE_E2E_HOME=$(shell pwd) \
 		$(shell which go) test \
-		./e2e/. -v -mod=vendor \
+		$(TEST_E2E_PACKAGES) -v -mod=vendor \
 		-count $(E2E_COUNT) \
 		-run $(E2E_REGEX)
 
