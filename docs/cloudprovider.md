@@ -8,15 +8,15 @@ Amazon EC2 [bare metal instances](https://aws.amazon.com/about-aws/whats-new/201
 
 Here's a list of instances with KVM support, with pricing (as of July 2019), to help you test Ignite. All the instances listed below are EBS-optimized, with 25 Gigabit available network performance and IPv6 support.
 
-| Family | Type | Pricing (US-West-2) per On Demand Linux Instance Hr | vCPUs | Memory (GiB) | Instance Storage (GB) | 
-| ---- | ---- | :----: | :----: | :----: | ---- | 
-|Compute optimized | c5.metal | $4.08 | 96 |192 |EBS only | 
-| General purpose | m5.metal | $4.608 | 96 | 384 | EBS only |
-| General purpose |  m5d.metal | $5.424 | 96 | 384  |4 x 900 (SSD) |
-|Memory optimized| r5.metal| $6.048 |96 |768| EBS only| 
-|Memory optimized| r5d.metal| $6.912 | 96 |768 |4 x 900 (SSD)| 
-|Memory optimized| z1d.metal| $4.464 | 48 |384 |2 x 900 (SSD)|
-|Storage optimized| i3.metal| $4.992 | 72 | 512 | 8 x 1900 (SSD) |
+| Family            | Type      | Pricing (US-West-2) per On Demand Linux Instance Hr | vCPUs | Memory (GiB) | Instance Storage (GB) |
+| ----------------- | --------- | :-------------------------------------------------: | :---: | :----------: | --------------------- |
+| Compute optimized | c5.metal  |                        $4.08                        |  96   |     192      | EBS only              |
+| General purpose   | m5.metal  |                       $4.608                        |  96   |     384      | EBS only              |
+| General purpose   | m5d.metal |                       $5.424                        |  96   |     384      | 4 x 900 (SSD)         |
+| Memory optimized  | r5.metal  |                       $6.048                        |  96   |     768      | EBS only              |
+| Memory optimized  | r5d.metal |                       $6.912                        |  96   |     768      | 4 x 900 (SSD)         |
+| Memory optimized  | z1d.metal |                       $4.464                        |  48   |     384      | 2 x 900 (SSD)         |
+| Storage optimized | i3.metal  |                       $4.992                        |  72   |     512      | 8 x 1900 (SSD)        |
 
 Use the AWS console to [launch one of these instances](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/LaunchingAndUsingInstances.html) and [connect to your instance using SSH](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AccessingInstancesLinux.html). Then, follow the instructions in the [installation guide](./installation.md).
 
@@ -44,21 +44,25 @@ Use Google compute from a custom KVM image so that Ignite can be installed and r
 Azure supports nested virtualizations on Dv3 and Ev3 series virtual machines with 4 or more vCPUs. The smallest sizes supporting Ignite are listed below for development purposes. Larger and more specialized SKUs also support virtualization. There is no special configuration required. Follow the standard Ignite installation instructions for Ubuntu.
 
 
-| Family | Type | $/hr (West US 2) | $/month | vCPUs | Memory (GiB) | Instance Storage (GB) | 
-| ----           | ------ | :----: | :-----: | :-: | :-: | :----: 
-|General purpose | D4s_v3 | $0.192 | $140.16 | 4   | 16  | 32GiB  |
-|General purpose | D8s_v3 | $0.384 | $280.32 | 8   | 32  | 64GiB  |
-|Memory optimized| E4s_v3 | $0.252 | $183.96 | 4   | 32  | 64GiB  | 
-|Memory optimized| E8s_v3 | $0.504 | $367.92 | 8   | 64  | 128GiB |
+| Family           | Type   | $/hr (West US 2) | $/month | vCPUs | Memory (GiB) | Instance Storage (GB) |
+| ---------------- | ------ | :--------------: | :-----: | :---: | :----------: | :-------------------: |
+| General purpose  | D4s_v3 |      $0.192      | $140.16 |   4   |      16      |         32GiB         |
+| General purpose  | D8s_v3 |      $0.384      | $280.32 |   8   |      32      |         64GiB         |
+| Memory optimized | E4s_v3 |      $0.252      | $183.96 |   4   |      32      |         64GiB         |
+| Memory optimized | E8s_v3 |      $0.504      | $367.92 |   8   |      64      |        128GiB         |
 
 
 ## Packet
 
 As a bare metal provider Packet naturally supports virtualization. For development purposes, using a t1.small.x86 with Ubuntu 18.04 or 19.04 works well.
 
-| Config | $/hr | $/month | CPUs | Memory (GiB) | Instance Storage (GB) |  
-| ------ | :----: | :-----: | :-: | :-: | :----: 
-| t1.small.x86 | $0.07 | ~$51.1 | 4@2.4Ghz  | 8  | 80GiB   |
-| c1.small.x86 | $0.40 | ~$292  | 4@3.5Ghz  | 32 | 120GiB  |
+| Config       | $/hr  | $/month |   CPUs   | Memory (GiB) | Instance Storage (GB) |
+| ------------ | :---: | :-----: | :------: | :----------: | :-------------------: |
+| t1.small.x86 | $0.07 | ~$51.1  | 4@2.4Ghz |      8       |         80GiB         |
+| c1.small.x86 | $0.40 |  ~$292  | 4@3.5Ghz |      32      |        120GiB         |
 
+## DigitalOcean
 
+DigitalOcean provides KVM support on all of its droplets. For development
+purposes, using any of `s-1vcpu-1gb`, `s-2vcpu-4gb`, `s-4vcpu-8gb`, or even
+bigger machines with Ubuntu 18.04 works well.
