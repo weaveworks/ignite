@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -11,8 +12,11 @@ import (
 	"time"
 
 	"github.com/goombaio/namegenerator"
+	"github.com/rjeczalik/notify"
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/constants"
+	//"github.com/containerd/fifo"
+	//"golang.org/x/net/context"
 )
 
 // GenericCheckErr is used by the commands to check if the action failed
@@ -169,4 +173,72 @@ func (p *Prefixer) Prefix(input ...interface{}) string {
 	}
 
 	return p.prefix
+}
+
+// Watch the fifo (named-pipe) file at pipePath and copy any
+// writes to the fifo buffer to a persitent file at filePath
+// Credit: https://stackoverflow.com/questions/45443414/read-continuously-from-a-named-pipe
+func NamedPipeWatcher(pipePath string, filePath string) {
+	var p, f *os.File
+	var err error
+	var e notify.EventInfo
+
+	syscall.Mkfifo(pipePath, 0666)
+
+	if p, err = os.Open(pipePath); os.IsNotExist(err) {
+		log.Fatalf("Named pipe '%s' does not exist", pipePath)
+	} else if os.IsPermission(err) {
+		log.Fatalf("Insufficient permissions to read named pipe '%s': %s", pipePath, err)
+	} else if err != nil {
+		log.Fatalf("Error while opening named pipe '%s': %s", pipePath, err)
+	}
+
+	defer p.Close()
+
+	// Do the same for the output file
+	if f, err = os.OpenFile(filePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0666); os.IsNotExist(err) {
+		log.Fatalf("File '%s' does not exist", filePath)
+		return
+	} else if os.IsPermission(err) {
+		log.Fatalf("Insufficient permissions to open/create file '%s' for appending: %s", filePath, err)
+		return
+	} else if err != nil {
+		log.Fatalf("Error while opening file '%s' for writing: %err", filePath, err)
+		return
+	}
+
+	defer f.Close()
+
+	// Here is where it happens. We create a buffered channel for events which might happen
+	// on the file. The reason why we make it buffered to the number of expected concurrent writers
+	// is that if all writers would (theoretically) write at once or at least pretty close
+	// to each other, it might happen that we loose event. This is due to the underlying implementations
+	// not because of go.
+	c := make(chan notify.EventInfo, constants.MAX_CONCURRENT_WRITERS)
+
+	// Here we tell notify to watch out named pipe for events, Write and Remove events
+	// specifically. We watch for remove events, too, as this removes the file handle we
+	// read from, making reads impossible
+	notify.Watch(pipePath, c, notify.Write|notify.Remove)
+
+loop:
+	for {
+		// ...waiting for an event to be passed.
+		e = <-c
+
+		switch e.Event() {
+		case notify.Write:
+			// If it a a write event, we copy the content of the named pipe to
+			// our output file and wait for the next event to happen.
+			// Note that this is idempotent: Even if we have huge writes by multiple
+			// writers on the named pipe, the first call to Copy will copy the contents.
+			// The time to copy that data may well be longer than it takes to generate the events.
+			// However, subsequent calls may copy nothing, but that does not do any harm.
+			io.Copy(f, p)
+		case notify.Remove:
+			// Some user or process has removed the named pipe,
+			// so we have nothing left to read from.
+			break loop
+		}
+	}
 }
