@@ -246,6 +246,7 @@ Your feedback is always welcome!
 
 - Leigh Capili, [@stealthybox](https://github.com/stealthybox)
 - Chanwit Kaewkasi, [@chanwit](https://github.com/chanwit)
+- Sunny, [@darkowlzz](https://github.com/darkowlzz)
 
 ## License
 
