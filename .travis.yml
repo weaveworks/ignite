@@ -26,4 +26,6 @@ before_script:
 - make ignite ignite-spawn bin/amd64/Dockerfile GO_MAKE_TARGET=local GIT_VERSION=v0.0-${TRAVIS_COMMIT}-e2e  # bypass hack/ldflags.sh -- no tag info in shallow clone
 
 script:
+- make test
+- make root-test
 - make e2e-nobuild  # this depends on Travis CI's support for nested virtualization
