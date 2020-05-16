@@ -1,8 +1,12 @@
 package v1alpha2
 
 import (
+	"fmt"
+
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/version"
+
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -54,6 +58,13 @@ func SetDefaults_VMKernelSpec(obj *VMKernelSpec) {
 
 	if len(obj.CmdLine) == 0 {
 		obj.CmdLine = constants.VM_DEFAULT_KERNEL_ARGS
+	}
+}
+
+func SetDefaults_VMSandboxSpec(obj *VMSandboxSpec) {
+	// Default the sandbox image if unset.
+	if obj.OCI.IsUnset() {
+		obj.OCI, _ = meta.NewOCIImageRef(fmt.Sprintf("%s:%s", constants.DEFAULT_SANDBOX_IMAGE_NAME, version.GetIgnite().ImageTag()))
 	}
 }
 

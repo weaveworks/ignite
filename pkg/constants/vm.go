@@ -30,4 +30,8 @@ const (
 
 	// Subdirectory for volumes to be forwarded into the VM
 	IGNITE_SPAWN_VOLUME_DIR = "/volumes"
+
+	// DEFAULT_SANDBOX_IMAGE_NAME is the name of the default sandbox container
+	// image to be used.
+	DEFAULT_SANDBOX_IMAGE_NAME = "weaveworks/ignite"
 )

@@ -143,11 +143,12 @@ type VM struct {
 
 // VMSpec describes the configuration of a VM
 type VMSpec struct {
-	Image    VMImageSpec  `json:"image"`
-	Kernel   VMKernelSpec `json:"kernel"`
-	CPUs     uint64       `json:"cpus"`
-	Memory   meta.Size    `json:"memory"`
-	DiskSize meta.Size    `json:"diskSize"`
+	Image    VMImageSpec   `json:"image"`
+	Sandbox  VMSandboxSpec `json:"sandbox"`
+	Kernel   VMKernelSpec  `json:"kernel"`
+	CPUs     uint64        `json:"cpus"`
+	Memory   meta.Size     `json:"memory"`
+	DiskSize meta.Size     `json:"diskSize"`
 	// TODO: Implement working omitempty without pointers for the following entries
 	// Currently both will show in the JSON output as empty arrays. Making them
 	// pointers requires plenty of nil checks (as their contents are accessed directly)
@@ -173,6 +174,11 @@ type VMImageSpec struct {
 type VMKernelSpec struct {
 	OCI     meta.OCIImageRef `json:"oci"`
 	CmdLine string           `json:"cmdLine,omitempty"`
+}
+
+// VMSandboxSpec is the spec of the sandbox used for the VM.
+type VMSandboxSpec struct {
+	OCI meta.OCIImageRef `json:"oci"`
 }
 
 type VMNetworkSpec struct {

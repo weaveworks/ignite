@@ -19,14 +19,21 @@ func TestConstructVMFromCLI(t *testing.T) {
 		t.Fatalf("error parsing image: %v", err)
 	}
 
+	testSandboxImage := "weaveworks/ignite:test"
+	sandboxOCIRef, err := meta.NewOCIImageRef(testSandboxImage)
+	if err != nil {
+		t.Fatalf("error parsing image: %v", err)
+	}
+
 	tests := []struct {
-		name            string
-		createFlag      *CreateFlags
-		args            []string
-		wantCopyFiles   []api.FileMapping
-		wantPortMapping meta.PortMappings
-		wantSSH         api.SSH
-		err             bool
+		name             string
+		createFlag       *CreateFlags
+		args             []string
+		wantCopyFiles    []api.FileMapping
+		wantPortMapping  meta.PortMappings
+		wantSSH          api.SSH
+		wantSandboxImage meta.OCIImageRef
+		err              bool
 	}{
 		{
 			name: "with VM name and image arg",
@@ -128,6 +135,20 @@ func TestConstructVMFromCLI(t *testing.T) {
 			args: []string{testImage},
 			err:  true,
 		},
+		{
+			name: "with sandbox image",
+			createFlag: &CreateFlags{
+				VM: &api.VM{
+					Spec: api.VMSpec{
+						Sandbox: api.VMSandboxSpec{
+							OCI: sandboxOCIRef,
+						},
+					},
+				},
+			},
+			args:             []string{testImage},
+			wantSandboxImage: sandboxOCIRef,
+		},
 	}
 
 	for _, rt := range tests {
@@ -163,6 +184,11 @@ func TestConstructVMFromCLI(t *testing.T) {
 				// Check if the SSH values are set as expected.
 				if reflect.DeepEqual(rt.createFlag.VM.Spec.SSH, rt.wantSSH) {
 					t.Errorf("expected VM.Spec.SSH to be %v, actual: %v", rt.wantSSH, rt.createFlag.VM.Spec.SSH)
+				}
+
+				// Check if the sandbox image is set as expected.
+				if rt.createFlag.VM.Spec.Sandbox.OCI != rt.wantSandboxImage {
+					t.Errorf("expected VM.Spec.Sandbox to be %v, actual: %v", rt.wantSandboxImage, rt.createFlag.VM.Spec.Sandbox.OCI)
 				}
 			}
 		})

@@ -608,6 +608,7 @@ func autoConvert_ignite_VMSpec_To_v1alpha1_VMSpec(in *ignite.VMSpec, out *VMSpec
 	if err := Convert_ignite_VMImageSpec_To_v1alpha1_VMImageSpec(&in.Image, &out.Image, s); err != nil {
 		return err
 	}
+	// WARNING: in.Sandbox requires manual conversion: does not exist in peer-type
 	if err := Convert_ignite_VMKernelSpec_To_v1alpha1_VMKernelSpec(&in.Kernel, &out.Kernel, s); err != nil {
 		return err
 	}

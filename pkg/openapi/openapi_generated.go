@@ -52,6 +52,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMImageSpec":       schema_pkg_apis_ignite_v1alpha2_VMImageSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMKernelSpec":      schema_pkg_apis_ignite_v1alpha2_VMKernelSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMNetworkSpec":     schema_pkg_apis_ignite_v1alpha2_VMNetworkSpec(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMSandboxSpec":     schema_pkg_apis_ignite_v1alpha2_VMSandboxSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMSpec":            schema_pkg_apis_ignite_v1alpha2_VMSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStatus":          schema_pkg_apis_ignite_v1alpha2_VMStatus(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStorageSpec":     schema_pkg_apis_ignite_v1alpha2_VMStorageSpec(ref),
@@ -1241,6 +1242,27 @@ func schema_pkg_apis_ignite_v1alpha2_VMNetworkSpec(ref common.ReferenceCallback)
 	}
 }
 
+func schema_pkg_apis_ignite_v1alpha2_VMSandboxSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "VMSandboxSpec is the spec of the sandbox used for the VM.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"oci": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIImageRef"),
+						},
+					},
+				},
+				Required: []string{"oci"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.OCIImageRef"},
+	}
+}
+
 func schema_pkg_apis_ignite_v1alpha2_VMSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -1251,6 +1273,11 @@ func schema_pkg_apis_ignite_v1alpha2_VMSpec(ref common.ReferenceCallback) common
 					"image": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMImageSpec"),
+						},
+					},
+					"sandbox": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMSandboxSpec"),
 						},
 					},
 					"kernel": {
@@ -1305,11 +1332,11 @@ func schema_pkg_apis_ignite_v1alpha2_VMSpec(ref common.ReferenceCallback) common
 						},
 					},
 				},
-				Required: []string{"image", "kernel", "cpus", "memory", "diskSize"},
+				Required: []string{"image", "sandbox", "kernel", "cpus", "memory", "diskSize"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.FileMapping", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.SSH", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMKernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMNetworkSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStorageSpec", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.FileMapping", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.SSH", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMKernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMNetworkSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMSandboxSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStorageSpec", "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1.Size"},
 	}
 }
 

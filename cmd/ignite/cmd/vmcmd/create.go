@@ -77,6 +77,7 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	cmdutil.SizeVar(fs, &cf.VM.Spec.Memory, "memory", "Amount of RAM to allocate for the VM")
 	cmdutil.SizeVarP(fs, &cf.VM.Spec.DiskSize, "size", "s", "VM filesystem size, for example 5GB or 2048MB")
 	cmdutil.OCIImageRefVarP(fs, &cf.VM.Spec.Kernel.OCI, "kernel-image", "k", "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
+	cmdutil.OCIImageRefVar(fs, &cf.VM.Spec.Sandbox.OCI, "sandbox-image", "Specify an OCI image for the VM sandbox")
 	cmdutil.SSHVar(fs, &cf.SSH)
 	cmdutil.VolumeVarP(fs, &cf.VM.Spec.Storage, "volumes", "v", "Expose block devices from the host inside the VM")
 }
