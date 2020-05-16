@@ -55,9 +55,10 @@ require (
 	github.com/vishvananda/netlink v1.1.0
 	github.com/weaveworks/gitops-toolkit v0.0.0-20200410161308-f0fc148681c0
 	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71
+	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b // indirect
 	golang.org/x/sys v0.0.0-20200409092240-59c9f1ba88fa
 	gotest.tools v2.2.0+incompatible
 	k8s.io/apimachinery v0.18.1
-	k8s.io/kube-openapi v0.0.0-20200403204345-e1beb1bd0f35
+	k8s.io/kube-openapi v0.0.0-20200427153329-656914f816f9
 	sigs.k8s.io/yaml v1.2.0
 )
