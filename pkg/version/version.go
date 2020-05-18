@@ -3,12 +3,13 @@ package version
 import (
 	"fmt"
 	"runtime"
-	"strings"
 
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/providers"
 	igniteruntime "github.com/weaveworks/ignite/pkg/runtime"
 )
 
+// These variables are used for building ignite with ldflag overrides
 var (
 	gitMajor           = ""
 	gitMinor           = ""
@@ -17,7 +18,30 @@ var (
 	gitTreeState       = ""
 	buildDate          = ""
 	firecrackerVersion = ""
+
+	// allow overriding the DEFAULT_SANDBOX_IMAGE_* constants
+	sandboxImageName      = ""
+	sandboxImageTag       = ""
+	sandboxImageDelimeter = ":" // set to "@" to support using sha256:<hash> as a "tag"
+
+	// allow overriding the DEFAULT_KERNEL_IMAGE_* constants
+	kernelImageName      = ""
+	kernelImageTag       = ""
+	kernelImageDelimeter = ":" // set to "@" to support using sha256:<hash> as a "tag"
 )
+
+// Image represents an OCI image
+// TODO: use a shared or upstream OCI Image type
+type Image struct {
+	Name      string `json:"name"`
+	Tag       string `json:"tag"`
+	Delimeter string `json:"delimeter"`
+}
+
+// String returns Image{} as a human-friendly version string.
+func (image Image) String() string {
+	return fmt.Sprintf("%s%s%s", image.Name, image.Delimeter, image.Tag)
+}
 
 // Info stores information about a component's version
 type Info struct {
@@ -30,28 +54,18 @@ type Info struct {
 	GoVersion    string `json:"goVersion"`
 	Compiler     string `json:"compiler"`
 	Platform     string `json:"platform"`
+	SandboxImage Image  `json:"sandboxImage"`
+	KernelImage  Image  `json:"kernelImage"`
 }
 
-// String returns info as a human-friendly version string.
+// String returns Info{} as a human-friendly version string.
 func (info Info) String() string {
 	return info.GitVersion
 }
 
-// ImageTag returns .GitVersion, but without "+" signs which are disallowed in docker image tags
-// Also, if the binary was built from a dirty commit, always use the :dev tag of the ignite-spawn image
-func (info Info) ImageTag() string {
-	// Use the :dev image tag for non-release builds
-	if GetIgnite().GitTreeState == "dirty" {
-		return "dev"
-	}
-
-	// Replace plus signs
-	return strings.ReplaceAll(GetIgnite().GitVersion, "+", "-")
-}
-
 // GetIgnite gets ignite's version
 func GetIgnite() Info {
-	return Info{
+	info := Info{
 		Major:        gitMajor,
 		Minor:        gitMinor,
 		GitVersion:   gitVersion,
@@ -61,7 +75,35 @@ func GetIgnite() Info {
 		GoVersion:    runtime.Version(),
 		Compiler:     runtime.Compiler,
 		Platform:     fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH),
+
+		SandboxImage: Image{
+			Name:      constants.DEFAULT_SANDBOX_IMAGE_NAME,
+			Tag:       constants.DEFAULT_SANDBOX_IMAGE_TAG,
+			Delimeter: sandboxImageDelimeter,
+		},
+
+		KernelImage: Image{
+			Name:      constants.DEFAULT_KERNEL_IMAGE_NAME,
+			Tag:       constants.DEFAULT_KERNEL_IMAGE_TAG,
+			Delimeter: kernelImageDelimeter,
+		},
 	}
+
+	if sandboxImageName != "" {
+		info.SandboxImage.Name = sandboxImageName
+	}
+	if sandboxImageTag != "" {
+		info.SandboxImage.Tag = sandboxImageTag
+	}
+
+	if kernelImageName != "" {
+		info.KernelImage.Name = kernelImageName
+	}
+	if kernelImageTag != "" {
+		info.KernelImage.Tag = kernelImageTag
+	}
+
+	return info
 }
 
 // GetFirecracker returns firecracker's version
@@ -71,6 +113,7 @@ func GetFirecracker() Info {
 	}
 }
 
+// GetCurrentRuntime returns the current configured runtime
 func GetCurrentRuntime() igniteruntime.Name {
 	return providers.RuntimeName
 }

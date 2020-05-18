@@ -106,6 +106,13 @@ func TestNewCPOptions(t *testing.T) {
 			}
 			vm.SetKernel(kernel)
 
+			// Set sandbox image without a helper.
+			ociRefSandbox, err := meta.NewOCIImageRef("foo/bar:latest")
+			if err != nil {
+				t.Errorf("failed to create new image reference: %v", err)
+			}
+			vm.Spec.Sandbox.OCI = ociRefSandbox
+
 			// Save object.
 			if err := ic.VMs().Set(vm); err != nil {
 				t.Errorf("failed to store VM object: %v", err)

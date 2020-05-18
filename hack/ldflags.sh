@@ -2,7 +2,15 @@
 
 # Note: This file is heavily inspired by https://github.com/kubernetes/kubernetes/blob/master/hack/lib/version.sh
 
+git_to_image_tag() {
+  echo "${1//+/-}"
+}
+
 get_version_vars() {
+  DOCKER_USER="${DOCKER_USER:-"weaveworks"}"
+  IGNITE_SANDBOX_IMAGE_NAME="${DOCKER_USER}/ignite"
+  IGNITE_KERNEL_IMAGE_NAME="${DOCKER_USER}/ignite-kernel"
+
   IGNITE_GIT_COMMIT=$(git rev-parse "HEAD^{commit}" 2>/dev/null)
   if git_status=$(git status --porcelain 2>/dev/null) && [[ -z ${git_status} ]]; then
     IGNITE_GIT_TREE_STATE="clean"
@@ -27,7 +35,7 @@ get_version_vars() {
     # We have distance to base tag (v1.1.0-1-gCommitHash)
     IGNITE_GIT_VERSION=$(echo "${IGNITE_GIT_VERSION}" | sed "s/-g\([0-9a-f]\{14\}\)$/+\1/")
   fi
-  if [[ "${IGNITE_GIT_TREE_STATE}" == "dirty" ]]; then
+  if [[ "${IGNITE_GIT_TREE_STATE}" == "dirty" && -n "${IGNITE_GIT_VERSION}" ]] && ! echo "${IGNITE_GIT_VERSION}" | grep -c dirty >/dev/null; then
     # git describe --dirty only considers changes to existing files, but
     # that is problematic since new untracked .go files affect the build,
     # so use our idea of "dirty" from git status instead.
@@ -44,6 +52,8 @@ get_version_vars() {
       IGNITE_GIT_MINOR+="+"
     fi
   fi
+
+  IGNITE_SANDBOX_IMAGE_TAG="$(git_to_image_tag "${IGNITE_GIT_VERSION}")"
 }
 
 ldflag() {
@@ -60,6 +70,15 @@ ldflags() {
   local buildDate=
   [[ -z ${SOURCE_DATE_EPOCH-} ]] || buildDate="--date=@${SOURCE_DATE_EPOCH}"
   local -a ldflags=($(ldflag "buildDate" "$(date ${buildDate} -u +'%Y-%m-%dT%H:%M:%SZ')"))
+
+  if [[ -n ${IGNITE_SANDBOX_IMAGE_NAME-} ]]; then
+    ldflags+=($(ldflag "sandboxImageName" "${IGNITE_SANDBOX_IMAGE_NAME}"))
+  fi
+
+  if [[ -n ${IGNITE_KERNEL_IMAGE_NAME-} ]]; then
+    ldflags+=($(ldflag "kernelImageName" "${IGNITE_KERNEL_IMAGE_NAME}"))
+  fi
+
   if [[ -n ${IGNITE_GIT_COMMIT-} ]]; then
     ldflags+=($(ldflag "gitCommit" "${IGNITE_GIT_COMMIT}"))
     ldflags+=($(ldflag "gitTreeState" "${IGNITE_GIT_TREE_STATE}"))
@@ -67,6 +86,9 @@ ldflags() {
 
   if [[ -n ${IGNITE_GIT_VERSION-} ]]; then
     ldflags+=($(ldflag "gitVersion" "${IGNITE_GIT_VERSION}"))
+    if [[ "${IGNITE_GIT_TREE_STATE}" == "clean" ]]; then
+      ldflags+=($(ldflag "sandboxImageTag" "${IGNITE_SANDBOX_IMAGE_TAG}"))
+    fi
   fi
 
   if [[ -n ${IGNITE_GIT_MAJOR-} && -n ${IGNITE_GIT_MINOR-} ]]; then
@@ -85,7 +107,7 @@ ldflags() {
     echo "${IGNITE_GIT_VERSION}"
     exit 0
   elif [[ $1 == "--image-tag-only" ]]; then
-    echo "${IGNITE_GIT_VERSION}" | sed "s/+/-/g"
+    echo "${IGNITE_SANDBOX_IMAGE_TAG}"
     exit 0
   fi
 
@@ -93,4 +115,4 @@ ldflags() {
   echo "${ldflags[*]-}"
 }
 
-ldflags $@
+ldflags "$@"

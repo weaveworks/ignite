@@ -3,6 +3,8 @@ package v1alpha2
 import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/version"
+
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -47,13 +49,20 @@ func SetDefaults_VMSpec(obj *VMSpec) {
 }
 
 func SetDefaults_VMKernelSpec(obj *VMKernelSpec) {
-	// Default the kernel image if unset
+	// Default the kernel image if unset.
 	if obj.OCI.IsUnset() {
-		obj.OCI, _ = meta.NewOCIImageRef(constants.DEFAULT_KERNEL_IMAGE)
+		obj.OCI, _ = meta.NewOCIImageRef(version.GetIgnite().KernelImage.String())
 	}
 
 	if len(obj.CmdLine) == 0 {
 		obj.CmdLine = constants.VM_DEFAULT_KERNEL_ARGS
+	}
+}
+
+func SetDefaults_VMSandboxSpec(obj *VMSandboxSpec) {
+	// Default the sandbox image if unset.
+	if obj.OCI.IsUnset() {
+		obj.OCI, _ = meta.NewOCIImageRef(version.GetIgnite().SandboxImage.String())
 	}
 }
 

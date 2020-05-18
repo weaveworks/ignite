@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/version"
 )
 
 // NewCmdCreate creates a new VM given an image and a kernel
@@ -40,7 +40,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 					--ssh \
 					--memory 2GB \
 					--size 6GB
-		`, constants.DEFAULT_KERNEL_IMAGE)),
+		`, version.GetIgnite().KernelImage.String())),
 		Args: cobra.RangeArgs(0, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			cmdutil.CheckErr(func() error {
@@ -77,6 +77,7 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	cmdutil.SizeVar(fs, &cf.VM.Spec.Memory, "memory", "Amount of RAM to allocate for the VM")
 	cmdutil.SizeVarP(fs, &cf.VM.Spec.DiskSize, "size", "s", "VM filesystem size, for example 5GB or 2048MB")
 	cmdutil.OCIImageRefVarP(fs, &cf.VM.Spec.Kernel.OCI, "kernel-image", "k", "Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules")
+	cmdutil.OCIImageRefVar(fs, &cf.VM.Spec.Sandbox.OCI, "sandbox-image", "Specify an OCI image for the VM sandbox")
 	cmdutil.SSHVar(fs, &cf.SSH)
 	cmdutil.VolumeVarP(fs, &cf.VM.Spec.Storage, "volumes", "v", "Expose block devices from the host inside the VM")
 }

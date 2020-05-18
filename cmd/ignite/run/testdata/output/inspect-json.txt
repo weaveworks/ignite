@@ -10,6 +10,9 @@
     "image": {
       "oci": "foo/bar:latest"
     },
+    "sandbox": {
+      "oci": "foo/bar:latest"
+    },
     "kernel": {
       "oci": "foo/bar:latest"
     },
