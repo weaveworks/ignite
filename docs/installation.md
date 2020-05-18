@@ -13,6 +13,7 @@ See [cloudprovider.md](cloudprovider.md) for guidance on running Ignite on vario
 there is virtualization support in the CPU and kernel it works.
 
 See [dependencies.md](dependencies.md) for needed dependencies.
+Look at [arm.md](arm.md) for use on Raspberry Pi and other ARM machines.
 
 ### Checking for KVM support
 
