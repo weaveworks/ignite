@@ -34,11 +34,11 @@ FIRECRACKER_VERSION:=$(shell cat hack/FIRECRACKER_VERSION)
 GO_VERSION=1.14.2
 DOCKER_USER?=weaveworks
 IMAGE=$(DOCKER_USER)/ignite
-GIT_VERSION:=$(shell hack/ldflags.sh --version-only)
+GIT_VERSION:=$(shell DOCKER_USER=$(DOCKER_USER) hack/ldflags.sh --version-only)
 IMAGE_DEV_TAG=dev
-IMAGE_TAG:=$(shell IGNITE_GIT_VERSION=$(GIT_VERSION) hack/ldflags.sh --image-tag-only)
+IMAGE_TAG:=$(shell IGNITE_GIT_VERSION=$(GIT_VERSION) DOCKER_USER=$(DOCKER_USER) hack/ldflags.sh --image-tag-only)
 # IS_DIRTY is 1 if the tree state is dirty, otherwise 0
-IS_DIRTY:=$(shell echo ${GIT_VERSION} | grep -o dirty | wc -l)
+IS_DIRTY:=$(shell echo ${GIT_VERSION} | grep -c dirty)
 PROJECT = github.com/weaveworks/ignite
 APIS_DIR = ${PROJECT}/pkg/apis
 API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/ignite/v1alpha2,${APIS_DIR}/meta/v1alpha1
@@ -74,6 +74,7 @@ TEST_COUNT := 1
 # Project packages.
 TEST_REQUIRES_ROOT_PACKAGES="$(PROJECT)/pkg/runtime/containerd"
 TEST_E2E_PACKAGES="$(PROJECT)/e2e"
+
 
 # Default is to build all the binaries for this architecture
 all: build-all-$(GOARCH)
@@ -111,7 +112,7 @@ go-in-docker: # Do not use directly -- use $(GO_MAKE_TARGET)
 # Make make execute this target although the file already exists.
 .PHONY: bin/$(GOARCH)/ignite bin/$(GOARCH)/ignite-spawn bin/$(GOARCH)/ignited
 bin/$(GOARCH)/ignite bin/$(GOARCH)/ignited bin/$(GOARCH)/ignite-spawn: bin/$(GOARCH)/%:
-	CGO_ENABLED=0 GOARCH=$(GOARCH) go build -mod=vendor -ldflags "$(shell IGNITE_GIT_VERSION=$(GIT_VERSION) ./hack/ldflags.sh)" -o bin/$(GOARCH)/$* ./cmd/$*
+	CGO_ENABLED=0 GOARCH=$(GOARCH) go build -mod=vendor -ldflags "$(shell IGNITE_GIT_VERSION=$(GIT_VERSION) DOCKER_USER=$(DOCKER_USER) ./hack/ldflags.sh)" -o bin/$(GOARCH)/$* ./cmd/$*
 ifeq ($(GOARCH),$(GOHOSTARCH))
 	ln -sf ./$(GOARCH)/$* bin/$*
 endif
@@ -130,32 +131,30 @@ endif
 	$(DOCKER) build -t $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) \
 		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} \
 		--build-arg FIRECRACKER_ARCH_SUFFIX=${FIRECRACKER_ARCH_SUFFIX} bin/$(GOARCH)
-	# Load the dev image into the host's containerd content store
 	$(DOCKER) image save $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) \
 		| $(CTR) -n firecracker image import -
 ifeq ($(GOARCH),$(GOHOSTARCH))
 	# Only tag the development image if its architecture matches the host
 	$(DOCKER) tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_DEV_TAG}
-	# Load the dev image into the host's containerd content store
 	$(DOCKER) image save $(IMAGE):${IMAGE_DEV_TAG} \
 		| $(CTR) -n firecracker image import -
 endif
+ifneq (${IMAGE_TAG},)
 ifeq ($(IS_DIRTY),0)
 	$(DOCKER) tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}-$(GOARCH)
-	# Load the dev image into the host's containerd content store
 	$(DOCKER) image save $(IMAGE):${IMAGE_TAG}-$(GOARCH) \
 		| $(CTR) -n firecracker image import -
 ifeq ($(GOARCH),$(GOHOSTARCH))
 	# For dev builds for a clean (non-dirty) environment; "simulate" that
 	# a manifest list has been built by tagging the docker image
 	$(DOCKER) tag $(IMAGE):${IMAGE_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}
-	# Load the dev image into the host's containerd content store
 	$(DOCKER) image save $(IMAGE):${IMAGE_TAG} \
 		| $(CTR) -n firecracker image import -
 endif
 endif
 ifeq ($(IS_CI_BUILD),1)
 	$(DOCKER) save $(IMAGE):${IMAGE_TAG}-$(GOARCH) -o bin/$(GOARCH)/image.tar
+endif
 endif
 
 build-all: $(addprefix build-all-,$(GOARCH_LIST))

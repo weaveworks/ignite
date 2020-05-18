@@ -23,7 +23,7 @@ install:
   curl -sSL https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz | sudo tar -xz -C /opt/cni/bin
 
 before_script:
-- make ignite ignite-spawn bin/amd64/Dockerfile GO_MAKE_TARGET=local GIT_VERSION=v0.0-${TRAVIS_COMMIT}-e2e  # bypass hack/ldflags.sh -- no tag info in shallow clone
+- make ignite ignite-spawn bin/amd64/Dockerfile GO_MAKE_TARGET=local
 
 script:
 - make test

@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/version"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -51,9 +52,9 @@ func SetDefaults_VMSpec(obj *VMSpec) {
 }
 
 func SetDefaults_VMKernelSpec(obj *VMKernelSpec) {
-	// Default the kernel image if unset
+	// Default the kernel image if unset.
 	if obj.OCIClaim.Ref.IsUnset() {
-		obj.OCIClaim.Ref, _ = meta.NewOCIImageRef(constants.DEFAULT_KERNEL_IMAGE)
+		obj.OCIClaim.Ref, _ = meta.NewOCIImageRef(version.GetIgnite().KernelImage.String())
 	}
 
 	if len(obj.CmdLine) == 0 {

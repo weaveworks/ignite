@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/version"
 )
 
 // NewCmdCreate creates a new VM given an image and a kernel
@@ -40,7 +40,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 					--ssh \
 					--memory 2GB \
 					--size 6GB
-		`, constants.DEFAULT_KERNEL_IMAGE)),
+		`, version.GetIgnite().KernelImage.String())),
 		Args: cobra.RangeArgs(0, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			cmdutil.CheckErr(func() error {
