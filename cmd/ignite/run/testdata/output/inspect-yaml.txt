@@ -13,6 +13,8 @@ spec:
     oci: foo/bar:latest
   memory: 0B
   network: {}
+  sandbox:
+    oci: foo/bar:latest
   storage: {}
 status:
   image:

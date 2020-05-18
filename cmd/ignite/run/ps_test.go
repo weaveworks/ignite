@@ -62,6 +62,13 @@ func createTestVM(name, id string) (*api.VM, error) {
 	}
 	vm.SetKernel(kernel)
 
+	// Set sandbox image without a helper.
+	ociRefSandbox, err := meta.NewOCIImageRef("foo/bar:latest")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create new image reference: %v", err)
+	}
+	vm.Spec.Sandbox.OCI = ociRefSandbox
+
 	return vm, nil
 }
 
