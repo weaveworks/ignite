@@ -21,7 +21,13 @@ if [[ ${FROM} != ${TO} ]]; then
     cp ${FROM} ${TO}
 fi
 
-docker run -it \
+if ! [ -x "$(command -v podman)" ]; then
+  oci_tool=podman
+else
+  oci_tool=docker
+fi
+
+${oci_tool} run -it \
     ${ARCH_PARAMETER} \
 	-v $(pwd)/${TO}:/tmp/.config \
     ${KERNEL_BUILDER_IMAGE} /bin/bash -c "\
