@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"testing"
 
+	flag "github.com/spf13/pflag"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/libgitops/pkg/runtime"
@@ -221,7 +222,7 @@ func TestNewCreateOptions(t *testing.T) {
 
 	for _, rt := range tests {
 		t.Run(rt.name, func(t *testing.T) {
-			_, err := rt.createFlag.NewCreateOptions([]string{})
+			_, err := rt.createFlag.NewCreateOptions([]string{}, flag.NewFlagSet("test", flag.ExitOnError))
 			if (err != nil) != rt.err {
 				t.Errorf("expected error %t, actual: %v", rt.err, err)
 			}

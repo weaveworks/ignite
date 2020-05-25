@@ -5,6 +5,8 @@ import (
 	"path"
 	"strings"
 
+	flag "github.com/spf13/pflag"
+
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
@@ -75,7 +77,48 @@ func (cf *CreateFlags) constructVMFromCLI(args []string) error {
 	return nil
 }
 
-func (cf *CreateFlags) NewCreateOptions(args []string) (*createOptions, error) {
+func (cf *CreateFlags) NewCreateOptions(args []string, fs *flag.FlagSet) (*createOptions, error) {
+	// If component config file is in use, create a new base VM, use the VM
+	// spec defined in the config and based on the flags, override the configs.
+	if providers.ComponentConfig != nil {
+		newVM := providers.Client.VMs().New()
+		newVM.Spec = providers.ComponentConfig.Spec.VM
+
+		if fs.Changed("name") {
+			newVM.Name = cf.VM.Name
+		}
+
+		if fs.Changed("cpus") {
+			newVM.Spec.CPUs = cf.VM.Spec.CPUs
+		}
+
+		if fs.Changed("kernel-args") {
+			newVM.Spec.Kernel.CmdLine = cf.VM.Spec.Kernel.CmdLine
+		}
+
+		if fs.Changed("memory") {
+			newVM.Spec.Memory = cf.VM.Spec.Memory
+		}
+
+		if fs.Changed("size") {
+			newVM.Spec.DiskSize = cf.VM.Spec.DiskSize
+		}
+
+		if fs.Changed("kernel-image") {
+			newVM.Spec.Kernel.OCI = cf.VM.Spec.Kernel.OCI
+		}
+
+		if fs.Changed("sandbox-image") {
+			newVM.Spec.Sandbox.OCI = cf.VM.Spec.Sandbox.OCI
+		}
+
+		if fs.Changed("volumes") {
+			newVM.Spec.Storage = cf.VM.Spec.Storage
+		}
+
+		cf.VM = newVM
+	}
+
 	// Decode the config file if given, or construct the VM based off flags and args
 	if len(cf.ConfigFile) != 0 {
 		// Marshal into a "clean" object, discard all flag input

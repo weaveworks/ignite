@@ -39,6 +39,8 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Volume":            schema_pkg_apis_ignite_v1alpha2_Volume(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VolumeMount":       schema_pkg_apis_ignite_v1alpha2_VolumeMount(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.BlockDeviceVolume": schema_pkg_apis_ignite_v1alpha3_BlockDeviceVolume(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.Configuration":     schema_pkg_apis_ignite_v1alpha3_Configuration(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.ConfigurationSpec": schema_pkg_apis_ignite_v1alpha3_ConfigurationSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.FileMapping":       schema_pkg_apis_ignite_v1alpha3_FileMapping(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.Image":             schema_pkg_apis_ignite_v1alpha3_Image(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.ImageSpec":         schema_pkg_apis_ignite_v1alpha3_ImageSpec(ref),
@@ -860,6 +862,69 @@ func schema_pkg_apis_ignite_v1alpha3_BlockDeviceVolume(ref common.ReferenceCallb
 				Required: []string{"path"},
 			},
 		},
+	}
+}
+
+func schema_pkg_apis_ignite_v1alpha3_Configuration(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "Configuration represents the ignite runtime configuration.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"TypeMeta": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"),
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.ConfigurationSpec"),
+						},
+					},
+				},
+				Required: []string{"TypeMeta", "metadata", "spec"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.ConfigurationSpec", "github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+	}
+}
+
+func schema_pkg_apis_ignite_v1alpha3_ConfigurationSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "ConfigurationSpec defines the ignite configuration.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"runtime": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"networkPlugin": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"vm": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.VMSpec"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.VMSpec"},
 	}
 }
 

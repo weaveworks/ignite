@@ -2,6 +2,8 @@ package ignite
 
 import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	igniteNetwork "github.com/weaveworks/ignite/pkg/network"
+	igniteRuntime "github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/libgitops/pkg/runtime"
 )
 
@@ -236,4 +238,20 @@ type VMStatus struct {
 	IPAddresses meta.IPAddresses `json:"ipAddresses,omitempty"`
 	Image       OCIImageSource   `json:"image"`
 	Kernel      OCIImageSource   `json:"kernel"`
+}
+
+// Configuration represents the ignite runtime configuration.
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type Configuration struct {
+	runtime.TypeMeta   `json:",inline"`
+	runtime.ObjectMeta `json:"metadata"`
+
+	Spec ConfigurationSpec `json:"spec"`
+}
+
+// ConfigurationSpec defines the ignite configuration.
+type ConfigurationSpec struct {
+	Runtime       igniteRuntime.Name       `json:"runtime,omitempty"`
+	NetworkPlugin igniteNetwork.PluginName `json:"networkPlugin,omitempty"`
+	VM            VMSpec                   `json:"vm,omitempty"`
 }

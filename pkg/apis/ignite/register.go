@@ -33,6 +33,7 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&Kernel{},
 		&Pool{},
 		&Image{},
+		&Configuration{},
 	)
 	return nil
 }

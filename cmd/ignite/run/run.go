@@ -1,5 +1,9 @@
 package run
 
+import (
+	flag "github.com/spf13/pflag"
+)
+
 type RunFlags struct {
 	*CreateFlags
 	*StartFlags
@@ -10,8 +14,8 @@ type runOptions struct {
 	*startOptions
 }
 
-func (rf *RunFlags) NewRunOptions(args []string) (*runOptions, error) {
-	co, err := rf.NewCreateOptions(args)
+func (rf *RunFlags) NewRunOptions(args []string, fs *flag.FlagSet) (*runOptions, error) {
+	co, err := rf.NewCreateOptions(args, fs)
 	if err != nil {
 		return nil, err
 	}
