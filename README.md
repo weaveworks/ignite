@@ -77,7 +77,7 @@ Ignite on the other hand lets you run a full-blown VM, easily and super-fast, bu
 
 Please check out the [Releases Page](https://github.com/weaveworks/ignite/releases).
 
-How to install Ignite is covered in [docs/installation.md](docs/installation.md) or on [Read the Docs](https://ignite.readthedocs.io/en/stable/installation).
+How to install Ignite is covered in [docs/installation.md](docs/installation.md) or on [Read the Docs](https://ignite.readthedocs.io/en/stable/installation.html).
 
 Guidance on Cloud Providers' instances that can run Ignite is covered in [docs/cloudprovider.md](docs/cloudprovider.md).
 
@@ -126,7 +126,7 @@ ignite ssh my-vm
 ignite rm my-vm
 ```
 
-For a walkthrough of how to use Ignite, go to [**docs/usage.md**](https://ignite.readthedocs.io/en/stable/usage).
+For a walkthrough of how to use Ignite, go to [**docs/usage.md**](https://ignite.readthedocs.io/en/stable/usage.html).
 
 ## Getting Started the GitOps way
 
@@ -156,7 +156,7 @@ For the complete guide, see [docs/gitops.md](docs/gitops.md).
 
 Want to see how awesome Ignite is?
 
-Take a look at the [awesome-ignite](https://ignite.readthedocs.io/en/stable/awesome) page!
+Take a look at the [awesome-ignite](https://ignite.readthedocs.io/en/stable/awesome.html) page!
 
 ### Documentation
 
