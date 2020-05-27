@@ -126,7 +126,7 @@ ignite ssh my-vm
 ignite rm my-vm
 ```
 
-For a walkthrough of how to use Ignite, go to [**docs/usage.md**](https://ignite.readthedocs.io/en/stable/usage.html).
+For a walkthrough of how to use Ignite, go to [**docs/usage.md**](docs/usage.md).
 
 ## Getting Started the GitOps way
 
@@ -156,7 +156,7 @@ For the complete guide, see [docs/gitops.md](docs/gitops.md).
 
 Want to see how awesome Ignite is?
 
-Take a look at the [awesome-ignite](https://ignite.readthedocs.io/en/stable/awesome.html) page!
+Take a look at the [awesome-ignite](docs/awesome.md) page!
 
 ### Documentation
 
