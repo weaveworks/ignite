@@ -15,8 +15,10 @@ IS_MANIFEST_LIST?=0
 TAG:=${RELEASE}$(if $(strip $(VERSION)),-${VERSION})
 OP:=build
 
+TMPDIR?=/tmp
+
 ifeq ($(IS_MANIFEST_LIST),1)
-TEMP_DIR:=$(shell mktemp -d)
+BUILD_TMPDIR:=$(shell mktemp -d $(TMPDIR)/ignite-image-build.XXXXXXXXXX)
 ARCH_TAG=-$(GOARCH)
 endif
 
@@ -36,18 +38,34 @@ endif
 	@ls ${WHAT} >/dev/null
 
 ifeq ($(IS_MANIFEST_LIST),0)
-	sed "s|DOCKERARCH|$(DOCKERARCH)|g;/QEMUARCH/d" ${WHAT}/Dockerfile | docker build --build-arg RELEASE -f - -t $(FULL_IMAGE_NAME) ${WHAT}
+	sed "s|DOCKERARCH|$(DOCKERARCH)|g;/QEMUARCH/d" ${WHAT}/Dockerfile \
+		| docker build \
+			--build-arg RELEASE \
+			--build-arg BINARY_REF \
+			--build-arg GOARCH \
+			-f -\
+			-t $(FULL_IMAGE_NAME) \
+			${WHAT}
 else
 	# Register /usr/bin/qemu-ARCH-static as the handler for non-x86 binaries in the kernel
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset
-	sed "s|QEMUARCH|$(QEMUARCH)|g;s|DOCKERARCH|$(DOCKERARCH)|g" ${WHAT}/Dockerfile > $(TEMP_DIR)/Dockerfile
+	cp -a ${WHAT}/. $(BUILD_TMPDIR)/
+	sed "s|QEMUARCH|$(QEMUARCH)|g;s|DOCKERARCH|$(DOCKERARCH)|g" ${WHAT}/Dockerfile > $(BUILD_TMPDIR)/Dockerfile
+
 ifeq ($(GOARCH),amd64)
-	sed "/COPY qemu/d" -i $(TEMP_DIR)/Dockerfile
+	sed "/COPY qemu/d" -i $(BUILD_TMPDIR)/Dockerfile
 else
 	$(MAKE) -C .. qemu
-	cp ../bin/$(GOARCH)/qemu-$(QEMUARCH)-static $(TEMP_DIR)
+	cp ../bin/$(GOARCH)/qemu-$(QEMUARCH)-static $(BUILD_TMPDIR)
 endif
-	docker build --build-arg RELEASE -t $(FULL_IMAGE_NAME)$(ARCH_TAG) $(TEMP_DIR)
+
+	docker build \
+		--build-arg RELEASE \
+		--build-arg BINARY_REF \
+		--build-arg GOARCH \
+		-t $(FULL_IMAGE_NAME)$(ARCH_TAG) \
+		$(BUILD_TMPDIR)
+	find $(BUILD_TMPDIR)/ -mindepth 1 -delete
 endif
 
 	docker tag $(FULL_IMAGE_NAME)$(ARCH_TAG) $(RELEASE_IMAGE_NAME)$(ARCH_TAG)
@@ -77,15 +95,16 @@ push-all: build-all
 
 build-all:
 	$(MAKE) ${OP} WHAT=amazon-kernel
-	$(MAKE) ${OP} WHAT=amazonlinux   RELEASE=2          IS_LATEST=true
+	$(MAKE) ${OP} WHAT=amazonlinux    RELEASE=2                                        IS_LATEST=true
 	$(MAKE) ${OP} WHAT=alpine
-	$(MAKE) ${OP} WHAT=opensuse      RELEASE=leap       IS_LATEST=true
-	$(MAKE) ${OP} WHAT=opensuse      RELEASE=tumbleweed
-	$(MAKE) ${OP} WHAT=ubuntu        RELEASE=16.04						IS_MANIFEST_LIST=0
-	$(MAKE) ${OP} WHAT=ubuntu        RELEASE=18.04      				IS_MANIFEST_LIST=1 GOARCH=arm64
-	$(MAKE) ${OP} WHAT=ubuntu        RELEASE=18.04      				IS_MANIFEST_LIST=1 GOARCH=amd64
-	$(MAKE) ${OP} WHAT=ubuntu        RELEASE=20.04      IS_LATEST=true	IS_MANIFEST_LIST=1 GOARCH=arm64
-	$(MAKE) ${OP} WHAT=ubuntu        RELEASE=20.04      IS_LATEST=true	IS_MANIFEST_LIST=1 GOARCH=amd64
-	$(MAKE) ${OP} WHAT=centos        RELEASE=7
-	$(MAKE) ${OP} WHAT=centos        RELEASE=8          IS_LATEST=true
-	$(MAKE) ${OP} WHAT=kubeadm
+	$(MAKE) ${OP} WHAT=opensuse       RELEASE=leap                                     IS_LATEST=true
+	$(MAKE) ${OP} WHAT=opensuse       RELEASE=tumbleweed
+	$(MAKE) ${OP} WHAT=ubuntu         RELEASE=16.04                                                    IS_MANIFEST_LIST=0
+	$(MAKE) ${OP} WHAT=ubuntu         RELEASE=18.04                                                    IS_MANIFEST_LIST=1  GOARCH=arm64
+	$(MAKE) ${OP} WHAT=ubuntu         RELEASE=18.04                                                    IS_MANIFEST_LIST=1  GOARCH=amd64
+	$(MAKE) ${OP} WHAT=ubuntu         RELEASE=20.04                                    IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=arm64
+	$(MAKE) ${OP} WHAT=ubuntu         RELEASE=20.04                                    IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=amd64
+	$(MAKE) ${OP} WHAT=centos         RELEASE=7
+	$(MAKE) ${OP} WHAT=centos         RELEASE=8                                        IS_LATEST=true
+	$(MAKE) ${OP} WHAT=kubeadm        RELEASE=v1.18.3  BINARY_REF=release/stable-1.18  IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=arm64
+	$(MAKE) ${OP} WHAT=kubeadm        RELEASE=v1.18.3  BINARY_REF=release/stable-1.18  IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=amd64
