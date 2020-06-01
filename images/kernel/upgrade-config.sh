@@ -21,6 +21,7 @@ if [[ ${FROM} != ${TO} ]]; then
     cp ${FROM} ${TO}
 fi
 
+docker pull ${KERNEL_BUILDER_IMAGE}
 docker run -it \
     ${ARCH_PARAMETER} \
 	-v $(pwd)/${TO}:/tmp/.config \
