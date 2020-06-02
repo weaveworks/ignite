@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
       iputils-ping \
       net-tools \
       openssh-server \
+      rng-tools \
       sudo \
       systemd \
       udev \
