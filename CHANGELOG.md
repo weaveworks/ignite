@@ -2,6 +2,286 @@
 
 # Changelog
 
+## v0.7.0
+
+**Released:** 02/06/2020
+
+We're excited to cut a large release.
+
+Among some of the many patches, VM's can now be started in parallel. (Images should be pulled beforehand) 
+The `ignite ssh` and `ignite exec` commands now share a native go implementation.
+We've added the `ignite cp` command along with improved CLI UX through filtering, templating, and examples.
+You can now also create and run VM's imperatively using YAML files with the `--config` flags.
+
+Performance and stability improvements in VM and network lifecycle should make using ignite more pleasant, 
+and the various bugfixes allow newer versions of Ubuntu to start functioning.
+
+Lastly, we're announcing initial support for ARM devices.
+Our docker images for ignite-kernels as well os our OS images for Ubuntu and kubeadm now ship with a manifest 
+list and `{}-arm64` tag.
+We've pushed a fresh set of kernel and OS images to dockerhub to support this.
+Check out our new guide for ARM -- try it out on your ARM server or RaspberryPi and let us know how it works for you.
+
+It was difficult to condense all of that!
+This release consists of **57** noteworthy PR's from **13** contributors.  **27** of these patches were sent by **8** external contributors -- thanks so much for using and contributing back to the project!
+
+As a special note, Sunny([@darkowlzz](https://github.com/darkowlzz))) from the [@StorageOS](https://github.com/StorageOS) team has joined in as a maintainer. Thanks for all of your help, Sunny.
+
+
+Cheers to everyone who was part of shipping this release:
+- @bbros-dev
+- @chanwit
+- @croomes
+- @darkowlzz
+- @dholbach
+- @gpauloski
+- @kobayashi
+- @luxas
+- @michaelbeaumont
+- @najeal
+- @palemtnrider
+- @PaulGrandperrin
+- @stealthybox
+
+### Enhancements
+
+- rm: Add --config flag ([#525](https://github.com/weaveworks/ignite/pull/525), [@darkowlzz](https://github.com/darkowlzz))
+- Add --require-name to create and run commands ([#560](https://github.com/weaveworks/ignite/pull/560), [@darkowlzz](https://github.com/darkowlzz))
+- Add labels to VMs ([#516](https://github.com/weaveworks/ignite/pull/516), [@darkowlzz](https://github.com/darkowlzz))
+- Added: vm filtering ([#458](https://github.com/weaveworks/ignite/pull/458), [@najeal](https://github.com/najeal))
+- Template formatted output for ps & inspect ([#518](https://github.com/weaveworks/ignite/pull/518), [@darkowlzz](https://github.com/darkowlzz))
+- Add examples of inspect cmd ([#590](https://github.com/weaveworks/ignite/pull/590), [@kobayashi](https://github.com/kobayashi))
+- Unify ssh and exec commands ([#580](https://github.com/weaveworks/ignite/pull/580), [@darkowlzz](https://github.com/darkowlzz))
+- Add interactive vm exec support ([#572](https://github.com/weaveworks/ignite/pull/572), [@darkowlzz](https://github.com/darkowlzz))
+- Add command ignite cp ([#550](https://github.com/weaveworks/ignite/pull/550), [@darkowlzz](https://github.com/darkowlzz) & [@gpauloski](https://github.com/gpauloski))
+- Unify some things around SSH handling ([#607](https://github.com/weaveworks/ignite/pull/607), [@luxas](https://github.com/luxas))
+- Write /etc/hostname. Needed get the right hostname for e.g. Ubuntu 20 ([#608](https://github.com/weaveworks/ignite/pull/608), [@luxas](https://github.com/luxas))
+- Update kubeadm image and guide ([#606](https://github.com/weaveworks/ignite/pull/606), [@luxas](https://github.com/luxas))
+- Implement kubeadm multi-arch + Fix image builds ([#605](https://github.com/weaveworks/ignite/pull/605), [@stealthybox](https://github.com/stealthybox))
+- Add sandbox-image VM flag ([#598](https://github.com/weaveworks/ignite/pull/598), [@darkowlzz](https://github.com/darkowlzz))
+- Initial set of metrics for gitops processing ([#494](https://github.com/weaveworks/ignite/pull/494), [@palemtnrider](https://github.com/palemtnrider))
+
+#### Kernel Improvements
+
+- Update OS and kernel versions ([#602](https://github.com/weaveworks/ignite/pull/602), [@luxas](https://github.com/luxas))
+- Completely restructure & document the kernel image build ([#506](https://github.com/weaveworks/ignite/pull/506), [@luxas](https://github.com/luxas))
+- Add ARM64 kernels and images ([#511](https://github.com/weaveworks/ignite/pull/511), [@luxas](https://github.com/luxas))
+- Add loadable module for TCMU-based storage devices ([#497](https://github.com/weaveworks/ignite/pull/497), [@croomes](https://github.com/croomes))
+- Bump kernel configurations ([#604](https://github.com/weaveworks/ignite/pull/604), [@luxas](https://github.com/luxas))
+- Bump default kernel to 4.19.125 ([#610](https://github.com/weaveworks/ignite/pull/610), [@stealthybox](https://github.com/stealthybox))
+
+
+### Bug Fixes
+
+- Filter loopback IPs from VM metadata to prevent SSH related test flakes ([#581](https://github.com/weaveworks/ignite/pull/581), [@stealthybox](https://github.com/stealthybox))
+- Parallel VM creation fix ([#524](https://github.com/weaveworks/ignite/pull/524), [@darkowlzz](https://github.com/darkowlzz))
+- Check runtime specific binary ([#479](https://github.com/weaveworks/ignite/pull/479), [@chanwit](https://github.com/chanwit))
+- Don't fail preflight when only `docker-containerd` is available ([#512](https://github.com/weaveworks/ignite/pull/512), [@luxas](https://github.com/luxas))
+- Fix preflight checker tests ([#591](https://github.com/weaveworks/ignite/pull/591), [@darkowlzz](https://github.com/darkowlzz))
+- ignited: catch signals and cleanup socket file ([#486](https://github.com/weaveworks/ignite/pull/486), [@chanwit](https://github.com/chanwit))
+- Cleanup container networking on vm rm ([#515](https://github.com/weaveworks/ignite/pull/515), [@michaelbeaumont](https://github.com/michaelbeaumont))
+- Fix image import with runtime docker ([#564](https://github.com/weaveworks/ignite/pull/564), [@darkowlzz](https://github.com/darkowlzz))
+- Tiny image import fix ([#553](https://github.com/weaveworks/ignite/pull/553), [@darkowlzz](https://github.com/darkowlzz))
+- Fix boot on recent distribution like Ubuntu >=19.10 ([#526](https://github.com/weaveworks/ignite/pull/526), [@PaulGrandperrin](https://github.com/PaulGrandperrin))
+- Followup to #526 Ubuntu 19+ tar symlink fix ([#577](https://github.com/weaveworks/ignite/pull/577), [@stealthybox](https://github.com/stealthybox))
+- Fix false positive object already exists error ([#517](https://github.com/weaveworks/ignite/pull/517), [@darkowlzz](https://github.com/darkowlzz))
+- Ignore docker source cleanup err when resource not found ([#588](https://github.com/weaveworks/ignite/pull/588), [@darkowlzz](https://github.com/darkowlzz))
+- Fix OCIString parsing of local docker images ([#556](https://github.com/weaveworks/ignite/pull/556), [@darkowlzz](https://github.com/darkowlzz))
+<!-- - Fix test breakage introduced by 585d77f ([#452](https://github.com/weaveworks/ignite/pull/452), [@stealthybox](https://github.com/stealthybox)) -->
+
+
+### Documentation
+
+- Use mkdocs instead of sphinx ([#565](https://github.com/weaveworks/ignite/pull/565), [@dholbach](https://github.com/dholbach))
+- Document ARM and RaspberryPi installation and usage ([#595](https://github.com/weaveworks/ignite/pull/595), [@stealthybox](https://github.com/stealthybox))
+- A bit more details on the ARM 64-bit documentation ([#609](https://github.com/weaveworks/ignite/pull/609), [@luxas](https://github.com/luxas))
+- Address #534 ([#541](https://github.com/weaveworks/ignite/pull/541), [@bbros-dev](https://github.com/bbros-dev))
+- Address #533 ([#540](https://github.com/weaveworks/ignite/pull/540), [@bbros-dev](https://github.com/bbros-dev))
+- Address #522 ([#537](https://github.com/weaveworks/ignite/pull/537), [@bbros-dev](https://github.com/bbros-dev))
+- Add FAQ entry about passing namespace to ctr ([#492](https://github.com/weaveworks/ignite/pull/492), [@palemtnrider](https://github.com/palemtnrider))
+- Fix CNI installation permission ([#586](https://github.com/weaveworks/ignite/pull/586), [@kobayashi](https://github.com/kobayashi))
+- Add ignite-cntr to awesome list ([#596](https://github.com/weaveworks/ignite/pull/596), [@stealthybox](https://github.com/stealthybox))
+- Add DigitalOcean in the cloud providers list ([#594](https://github.com/weaveworks/ignite/pull/594), [@darkowlzz](https://github.com/darkowlzz))
+- Small docs updates/fixes ([#505](https://github.com/weaveworks/ignite/pull/505), [@dholbach](https://github.com/dholbach))
+- Update instructions to latest ([#502](https://github.com/weaveworks/ignite/pull/502), [@dholbach](https://github.com/dholbach))
+
+
+### Dependencies
+
+- Workaround firecracker-go-sdk go.mod issue using new commit ([#582](https://github.com/weaveworks/ignite/pull/582), [@stealthybox](https://github.com/stealthybox))
+- Bump QEMU version to v4.2, Alpine to 3.11 and fix a bug ([#579](https://github.com/weaveworks/ignite/pull/579), [@luxas](https://github.com/luxas))
+- Upgrade to Go 1.14 ([#576](https://github.com/weaveworks/ignite/pull/576), [@luxas](https://github.com/luxas))
+<!-- - Update Go to 1.12.17 + `make autogen tidy-in-docker` ([#569](https://github.com/weaveworks/ignite/pull/569), [@stealthybox](https://github.com/stealthybox)) -->
+<!-- - Update vendored libraries ([#563](https://github.com/weaveworks/ignite/pull/563), [@luxas](https://github.com/luxas)) -->
+- Upgrade to Firecracker v0.21.1 ([#562](https://github.com/weaveworks/ignite/pull/562), [@luxas](https://github.com/luxas))
+<!-- - Upgrade Firecracker to v0.20.0 ([#507](https://github.com/weaveworks/ignite/pull/507), [@luxas](https://github.com/luxas)) -->
+- Bump CNI plugins to v0.8.5 ([#561](https://github.com/weaveworks/ignite/pull/561), [@luxas](https://github.com/luxas))
+- Bump kubeadm version to match 1.18-stable ([#603](https://github.com/weaveworks/ignite/pull/603), [@stealthybox](https://github.com/stealthybox))
+
+
+### Development
+
+- Fix #487 ([#490](https://github.com/weaveworks/ignite/pull/490), [@palemtnrider](https://github.com/palemtnrider))
+
+#### Testing
+
+- Run e2e in Travis CI /w nested virt ([#570](https://github.com/weaveworks/ignite/pull/570), [@stealthybox](https://github.com/stealthybox))
+- Enable unit tests ([#592](https://github.com/weaveworks/ignite/pull/592), [@darkowlzz](https://github.com/darkowlzz))
+<!-- - e2e test: Run the tests with vendored deps ([#552](https://github.com/weaveworks/ignite/pull/552), [@darkowlzz](https://github.com/darkowlzz)) -->
+
+
+### Governance
+- Add Sunny as maintainer ([#597](https://github.com/weaveworks/ignite/pull/597), [@stealthybox](https://github.com/stealthybox))
+
+
+
+<!-- 
+
+### Not in release  (autogenerated)
+
+- 0.5.x -- On release, use tidy-in-docker to prevent module differences from differing versions of go ([#434](https://github.com/weaveworks/ignite/pull/434), [@stealthybox](https://github.com/stealthybox))
+- Update docs/installation.md for v0.6.1 ([#466](https://github.com/weaveworks/ignite/pull/466), [@stealthybox](https://github.com/stealthybox))
+- Patch CVE-2019-18960 -- Use Firecracker v0.19.1 for ignite master ([#501](https://github.com/weaveworks/ignite/pull/501), [@stealthybox](https://github.com/stealthybox))
+- dependencies changed ([#491](https://github.com/weaveworks/ignite/pull/491), [@chanwit](https://github.com/chanwit))
+- update firecracker to v0.19.0 ([#480](https://github.com/weaveworks/ignite/pull/480), [@chanwit](https://github.com/chanwit))
+
+ -->
+## v0.6.3
+
+**Released:** 10/12/2019
+
+## v0.6.3
+
+**Released:** 10/12/2019
+
+This is the third patch release in the `v0.6.x` series, containing 1 security bug fix.
+
+See #500 for ignite-specific details regarding this CVE.
+
+### Security Bug Fixes
+
+- Patch CVE-2019-18960 -- Use Firecracker v0.18.1 for ignite 0.6.x ([#499](https://github.com/weaveworks/ignite/pull/499), [@stealthybox](https://github.com/stealthybox))
+
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.6.3
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+
+export CNI_VERSION=v0.8.2
+export ARCH=$([ $(uname -m) = "x86_64" ] && echo amd64 || echo arm64)
+mkdir -p /opt/cni/bin
+curl -sSL https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz | tar -xz -C /opt/cni/bin
+
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+__________
+**[OCI images for this release](
+https://hub.docker.com/r/weaveworks/ignite/tags?page=1&name=v0.6.3
+)**
+
+---
+
+## v0.6.2
+
+**Released:** 08/10/2019
+
+This is the second patch release in the `v0.6.X` series, containing bugfixes:
+It moves the blocking SSH wait for vm's run with `--ssh` to using the actual protocol.
+It also fixes a locale bug with `resize2fs` parsing that used to occur when using `zh_CN.utf8`.
+
+### Bug Fixes
+
+- Breakout and test `resize2fs` parsing with localized strings + fix for `zh_CN.utf8` ([#473](https://github.com/weaveworks/ignite/pull/473), [@stealthybox](https://github.com/stealthybox))
+- Refactor SSH wait ([#474](https://github.com/weaveworks/ignite/pull/474), [@stealthybox](https://github.com/stealthybox))
+- Use SSH Dial to check if SSH service is really running ([#469](https://github.com/weaveworks/ignite/pull/469), [@chanwit](https://github.com/chanwit))
+
+### Documentation
+
+- Ensure CNI bin dir exists before installing ([#471](https://github.com/weaveworks/ignite/pull/471), [@stealthybox](https://github.com/stealthybox))
+- Bump docs install version to v0.6.2 ([#475](https://github.com/weaveworks/ignite/pull/475), [@stealthybox](https://github.com/stealthybox))
+
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.6.2
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+__________
+**[OCI images for this release](
+https://hub.docker.com/r/weaveworks/ignite/tags?page=1&name=v0.6.2
+)**
+
+---
+
+## v0.5.5
+
+**Released:** 08/10/2019
+
+This is the fifth patch release in the `v0.5.X` series, containing bugfixes:
+It moves the blocking SSH wait for vm's run with `--ssh` to using the actual protocol.
+It also fixes a locale bug with `resize2fs` parsing that used to occur when using `zh_CN.utf8`.
+
+### Bug Fixes
+
+- Breakout and test resize2fs parsing with localized strings + fix for zh_CN.utf8 ([#473](https://github.com/weaveworks/ignite/pull/473), [@stealthybox](https://github.com/stealthybox))
+- Refactor SSH wait ([#474](https://github.com/weaveworks/ignite/pull/474), [@stealthybox](https://github.com/stealthybox))
+- Use SSH Dial to check if SSH service is really running ([#469](https://github.com/weaveworks/ignite/pull/469), [@chanwit](https://github.com/chanwit))
+
+### Documentation
+
+- Ensure CNI bin dir exists before installing ([#471](https://github.com/weaveworks/ignite/pull/471), [@stealthybox](https://github.com/stealthybox))
+- Bump docs install version to v0.5.5 ([@stealthybox](https://github.com/stealthybox))
+
+
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.5.5
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+__________
+**[OCI images for this release](
+https://hub.docker.com/r/weaveworks/ignite/tags?page=1&name=v0.5.5
+)**
+
+---
+
 ## v0.6.1
 
 **Released:** 02/10/2019
@@ -40,8 +320,8 @@ Example:
 # list all vm's on the default 172.18.0.0/16 CNI network
 sudo bin/ignite vm ls | grep '\b172.18.[0-9][0-9]*.[0-9][0-9]*\b'
 # stop the listed vm's with the appropriate runtime
-sudo bin/ignite my-containerd-vm
-sudo bin/ignite my-docker-vm --runtime docker
+sudo bin/ignite stop my-containerd-vm
+sudo bin/ignite stop my-docker-vm --runtime docker
 
 # remove the old CNI network config
 sudo rm -rf rm /etc/cni/net.d/
@@ -50,12 +330,12 @@ sudo ifconfig cni0 down
 sudo ip link delete cni0
 
 # restart your vm's
-sudo bin/ignite my-containerd-vm
-sudo bin/ignite my-docker-vm --runtime docker
+sudo bin/ignite start my-containerd-vm
+sudo bin/ignite start my-docker-vm --runtime docker
 # Your vm's will now have addresses configured in the 10.61.0.0/16 subnet.
 # If they did not have internet connectivity before, they now should.
 ```
-
+__________________
 ### Enhancements
 
 - wait for SSH when starting a VM ([#429](https://github.com/weaveworks/ignite/pull/429), [@chanwit](https://github.com/chanwit))
@@ -106,6 +386,29 @@ sudo bin/ignite my-docker-vm --runtime docker
 - Update CODEOWNERS ([#420](https://github.com/weaveworks/ignite/pull/420), [@stealthybox](https://github.com/stealthybox))
 - Switch maintainers ([#398](https://github.com/weaveworks/ignite/pull/398), [@luxas](https://github.com/luxas))
 
+## Trying it out / Next Steps!
+
+In short:
+
+```bash
+export VERSION=v0.6.1
+export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
+
+for binary in ignite ignited; do
+    echo "Installing ${binary}..."
+    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
+    chmod +x ${binary}
+    sudo mv ${binary} /usr/local/bin
+done
+```
+
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
+
+__________
+**[OCI images for this release](
+https://hub.docker.com/r/weaveworks/ignite/tags?page=1&name=v0.6.1
+)**
+
 ---
 
 ## v0.5.4
@@ -139,7 +442,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
 
 __________
 **[OCI images for this release](
@@ -176,7 +479,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
 
 __________
 **[OCI images for this release](
@@ -199,7 +502,7 @@ The main themes of this release has been:
 - **containerd** is now used as the default container runtime for higher security and speed, and less resource usage
   - This means that Ignite doesn't depend on `docker` anymore!
 - **CNI** is now the default networking plugin; by default the `bridge` and `portmap` plugins are used
-  - You can still use your third-party CNI implementation of choice, see [the networking doc](https://ignite.readthedocs.io/en/stable/networking)
+  - You can still use your third-party CNI implementation of choice, see [the networking doc](https://ignite.readthedocs.io/en/stable/networking.html)
 - **GitOps Toolkit** refactor is complete; now everything you need to create your Git-backed application is available at **https://github.com/weaveworks/gitops-toolkit**
   - Ignite is using this toolkit internally to perform its GitOps capabilities, now you can easily use this functionality, too!
 - **Bugfixes and usability improvements** all around the place
@@ -269,7 +572,7 @@ export CNI_VERSION=v0.8.2
 curl -sSL https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz | tar -xz -C /opt/cni/bin
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
 
 ---
 
@@ -299,7 +602,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
 
 
 ---
@@ -337,7 +640,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
 
 ---
 
@@ -444,7 +747,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
 
 ---
 
@@ -499,7 +802,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
 
 
 ---
@@ -578,7 +881,7 @@ for binary in ignite ignited; do
 done
 ```
 
-A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
+A more throughout installation guide is available here: https://ignite.readthedocs.io/en/latest/installation.html
 
 
 ---
