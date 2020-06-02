@@ -1,12 +1,10 @@
-## Run kubeadm in HA mode with Ignite VMs
+# Run kubeadm in HA mode with Ignite VMs
 
 This short guide shows you how to setup Kubernetes in HA mode with Ignite VMs.
 
 **NOTE:** At the moment, you need to execute all these commands as `root`.
 
-**NOTE:** This guide assumes you have no running containers, in other words, that
-the IP of the first docker container that will be run is `172.17.0.2`. You can check
-this with `docker run --rm busybox ip addr`.
+**NOTE:** It is assumed that you start no new VMs between running `prepare.sh` and starting the masters, as IP addresses are computed consecutively
 
 First set up some files and certificates using `prepare.sh` from this directory:
 
@@ -16,7 +14,7 @@ First set up some files and certificates using `prepare.sh` from this directory:
 
 This will create a kubeadm configuration file, generate the CA cert, give you a kubeconfig file, etc.
 
-### Start the seed master
+## Start the seed master
 
 For the bootstap master, copy over the CA cert and key to use, and the kubeadm config file:
 
@@ -29,15 +27,18 @@ ignite run weaveworks/ignite-kubeadm:latest \
     --copy-files $(pwd)/run/pki/ca.crt:/etc/kubernetes/pki/ca.crt \
     --copy-files $(pwd)/run/pki/ca.key:/etc/kubernetes/pki/ca.key \
     --name master-0
+
+# Get the IP address of the initial master, for the kubeadm join command below
+export MASTER_IP=$($ignite inspect vm master-0 | jq -r ".status.ipAddresses[0]")
 ```
 
 Initialize it with `kubeadm` using `ignite exec`:
 
 ```bash
-ignite exec master-0 kubeadm init --config /kubeadm.yaml --upload-certs
+ignite exec master-0 -- kubeadm init --config /kubeadm.yaml --upload-certs
 ```
 
-### Join additional masters
+## Join additional masters
 
 Create more master VMs, but copy only the variables we need for joining:
 
@@ -47,7 +48,6 @@ for i in {1..2}; do
         --cpus 2 \
         --memory 1GB \
         --ssh \
-        --copy-files $(pwd)/run/k8s-vars.sh:/etc/profile.d/02-k8s.sh \
         --name master-${i}
 done
 ```
@@ -55,8 +55,9 @@ done
 Use `ignite exec` to join each VM to the control plane:
 
 ```bash
+source run/k8s-vars.sh
 for i in {1..2}; do
-    ignite exec master-${i} kubeadm join firekube.luxas.dev:6443 \
+    ignite exec master-${i} -- kubeadm join ${MASTER_IP}.xip.io:6443 \
         --token ${TOKEN} \
         --discovery-token-ca-cert-hash sha256:${CA_HASH} \
         --certificate-key ${CERT_KEY} \
@@ -64,13 +65,13 @@ for i in {1..2}; do
 done
 ```
 
-### Set up a HAProxy loadbalancer locally
+## Set up a HAProxy loadbalancer locally
 
 ```bash
-docker run -d -v $(pwd)/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg -p 6443:443 haproxy:alpine
+docker run -d -v $(pwd)/run/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg -p 6443:443 haproxy:alpine
 ```
 
-### Use kubectl
+## Use kubectl
 
 This will make `kubectl` talk to any of the three masters you've set up, via HAproxy.
 
@@ -82,17 +83,17 @@ kubectl get nodes
 
 Right now it's expected that the nodes are in state `NotReady`, as CNI networking isn't set up.
 
-#### Install a CNI Network -- Weave Net
+### Install a CNI Network -- Weave Net
 
 We're going to use [Weave Net](https://github.com/weaveworks/weave).
 
 ```bash
-kubectl apply -f https://git.io/weave-kube-1.6
+kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
 ```
 
 With this, the nodes should transition into the `Ready` state in a minute or so.
 
-### Watch the cluster heal
+## Watch the cluster heal
 
 Kill the bootstrap master and see the cluster recover:
 
