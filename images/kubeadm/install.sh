@@ -8,10 +8,11 @@ export KUBECONFIG=/etc/kubernetes/admin.conf
 MODE=${1}
 BINARY_REF=${2}
 CONTROL_PLANE_VERSION=${3}
+GOARCH=${4}
 DRY_RUN=${DRY_RUN:-0}
 CLEANUP=${CLEANUP:-0}
 
-if [[ $# != 3 && ${MODE} != "cleanup" ]]; then
+if [[ $# != 4 && ${MODE} != "cleanup" ]]; then
 	cat <<-EOF
 	Usage:
 		${0} MODE BINARY_REF CONTROL_PLANE_VERSION
@@ -19,6 +20,7 @@ if [[ $# != 3 && ${MODE} != "cleanup" ]]; then
 	MODE=install|init|upgrade|cleanup
 	BINARY_REF=What kubeadm binary and debs to pull. Can be a PR number, version label like "ci/latest" or exact (merged) commit like "v1.12.0-alpha.0-1035-gf2dec305ad"
 	CONTROL_PLANE_VERSION=For init, this is the control plane version to use. For upgrade, this is the version to upgrade to
+	GOARCH=amd64|arm|arm64|ppc64le|s390x
 	EOF
 	exit 1
 fi
@@ -61,17 +63,17 @@ if [[ "${BINARY_REF}" =~ ^[0-9]{5}$ ]]; then
 	BUILD_NUMBER=$(gsutil_cat gs://kubernetes-jenkins/pr-logs/pull/${PR_NUMBER}/pull-kubernetes-bazel-build/latest-build.txt)
 	BAZEL_PULL_REF=$(gsutil_cat gs://kubernetes-jenkins/pr-logs/pull/${PR_NUMBER}/pull-kubernetes-bazel-build/${BUILD_NUMBER}/started.json | jq -r .pull)
 	BAZEL_BUILD_LOCATION=$(gsutil_cat gs://kubernetes-jenkins/shared-results/${BAZEL_PULL_REF}/bazel-build-location.txt)
-	BINARY_BUCKET="${BAZEL_BUILD_LOCATION}/bin/linux/amd64"
+	BINARY_BUCKET="${BAZEL_BUILD_LOCATION}/bin/linux/${GOARCH}"
 elif [[ "${BINARY_REF}" =~ ^(ci|ci-cross){1}/latest ]]; then
 	COMMIT=$(curl -sSL https://dl.k8s.io/${BINARY_REF}.txt)
-	BINARY_BUCKET="gs://kubernetes-release-dev/ci/${COMMIT}-bazel/bin/linux/amd64"
+	BINARY_BUCKET="gs://kubernetes-release-dev/ci/${COMMIT}-bazel/bin/linux/${GOARCH}"
 elif [[ "${BINARY_REF}" =~ ^release/[a-z]+(-[0-9]+.[0-9]+)*$ ]]; then
 	RELEASE=$(curl -sSL https://dl.k8s.io/${BINARY_REF}.txt)
-	BINARY_BUCKET="gs://kubernetes-release/release/${RELEASE}/bin/linux/amd64"
+	BINARY_BUCKET="gs://kubernetes-release/release/${RELEASE}/bin/linux/${GOARCH}"
 	INSTALL_APT=true
 else
 	# Assume an exact "git describe" version/commit reference like "v1.12.0-alpha.0-1035-gf2dec305ad"
-	BINARY_BUCKET="gs://kubernetes-release-dev/ci/${BINARY_REF}-bazel/bin/linux/amd64"
+	BINARY_BUCKET="gs://kubernetes-release-dev/ci/${BINARY_REF}-bazel/bin/linux/${GOARCH}"
 fi
 
 # Download the debs and kubeadm
@@ -155,3 +157,4 @@ crictl --version
 if [[ ${CLEANUP} == 1 ]]; then
 	cleanup
 fi
+ 
