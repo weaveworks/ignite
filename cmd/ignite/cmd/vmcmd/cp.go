@@ -46,6 +46,5 @@ func NewCmdCP(out io.Writer) *cobra.Command {
 }
 
 func addCPFlags(fs *pflag.FlagSet, cf *run.CPFlags) {
-	fs.StringVarP(&cf.IdentityFile, "identity", "i", "", "Override the vm's default identity file")
-	fs.Uint32VarP(&cf.Timeout, "timeout", "t", 10, "Timeout waiting for connection in seconds")
+	cmdutil.AddSSHFlags(fs, &cf.IdentityFile, &cf.Timeout)
 }

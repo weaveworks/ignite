@@ -6,7 +6,9 @@ import (
 	"strings"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/apis/ignite"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/preflight/checkers"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -54,7 +56,7 @@ func Start(so *startOptions) error {
 
 	// When --ssh is enabled, wait until SSH service started on port 22 at most N seconds
 	if ssh := so.vm.Spec.SSH; ssh != nil && ssh.Generate && len(so.vm.Status.IPAddresses) > 0 {
-		if err := waitForSSH(so.vm, 10, 5); err != nil {
+		if err := waitForSSH(so.vm, constants.SSH_DEFAULT_TIMEOUT_SECONDS, 5); err != nil {
 			return err
 		}
 	}
@@ -74,12 +76,16 @@ func dialSuccess(vm *ignite.VM, seconds int) error {
 	for i := 0; i < seconds*perSecond; i++ {
 		conn, dialErr := net.DialTimeout("tcp", addr, delay)
 		if conn != nil {
-			defer conn.Close()
+			conn.Close()
 			err = nil
 			break
 		}
 		err = dialErr
 		time.Sleep(delay)
+		// Report every ten seconds that we're waiting for SSH
+		if i%(10*perSecond) == 0 {
+			log.Info("Waiting for the ssh daemon within the VM to start...")
+		}
 	}
 	if err != nil {
 		if err, ok := err.(*net.OpError); ok && err.Timeout() {
