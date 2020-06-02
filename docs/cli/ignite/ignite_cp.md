@@ -25,7 +25,7 @@ ignite cp <source> <dest> [flags]
 ```
   -h, --help              help for cp
   -i, --identity string   Override the vm's default identity file
-  -t, --timeout uint32    Timeout waiting for connection in seconds (default 10)
+      --timeout uint32    Timeout waiting for connection in seconds (default 30)
 ```
 
 ### Options inherited from parent commands

@@ -2,6 +2,7 @@ package cmdutil
 
 import (
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/ignite/pkg/constants"
 )
 
 // This file contains a collection of common flag adders
@@ -19,4 +20,9 @@ func AddInteractiveFlag(fs *pflag.FlagSet, interactive *bool) {
 
 func AddForceFlag(fs *pflag.FlagSet, force *bool) {
 	fs.BoolVarP(force, "force", "f", *force, "Force this operation. Warning, use of this mode may have unintended consequences.")
+}
+
+func AddSSHFlags(fs *pflag.FlagSet, identityFile *string, timeout *uint32) {
+	fs.StringVarP(identityFile, "identity", "i", "", "Override the vm's default identity file")
+	fs.Uint32Var(timeout, "timeout", constants.SSH_DEFAULT_TIMEOUT_SECONDS, "Timeout waiting for connection in seconds")
 }

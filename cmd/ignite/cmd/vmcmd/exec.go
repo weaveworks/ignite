@@ -41,7 +41,6 @@ func NewCmdExec(out io.Writer, err io.Writer, in io.Reader) *cobra.Command {
 }
 
 func addExecFlags(fs *pflag.FlagSet, ef *run.ExecFlags) {
-	fs.StringVarP(&ef.IdentityFile, "identity", "i", "", "Override the vm's default identity file")
-	fs.Uint32Var(&ef.Timeout, "timeout", 10, "Timeout waiting for connection in seconds")
+	cmdutil.AddSSHFlags(fs, &ef.IdentityFile, &ef.Timeout)
 	fs.BoolVarP(&ef.Tty, "tty", "t", false, "Allocate a pseudo-TTY")
 }

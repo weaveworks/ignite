@@ -46,4 +46,7 @@ const (
 
 	// How many characters Ignite UIDs should have
 	IGNITE_UID_LENGTH = 16
+
+	// How long to wait for SSH to come up by default
+	SSH_DEFAULT_TIMEOUT_SECONDS = 30
 )

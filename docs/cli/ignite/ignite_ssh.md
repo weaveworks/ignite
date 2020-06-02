@@ -20,7 +20,7 @@ ignite ssh <vm> [flags]
 ```
   -h, --help              help for ssh
   -i, --identity string   Override the vm's default identity file
-      --timeout uint32    Timeout waiting for connection in seconds (default 10)
+      --timeout uint32    Timeout waiting for connection in seconds (default 30)
   -t, --tty               Allocate a pseudo-TTY (default true)
 ```
 
