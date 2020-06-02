@@ -139,7 +139,12 @@ func copyToOverlay(vm *api.VM) error {
 	}
 
 	// Write /etc/hosts for the VM
-	if err := writeEtcHosts(vm, mp.Path, vm.GetUID().String(), ip); err != nil {
+	if err := writeEtcHosts(mp.Path, vm.GetUID().String(), ip); err != nil {
+		return err
+	}
+
+	// Write the UID to /etc/hostname for the VM
+	if err := writeEtcHostname(mp.Path, vm.GetUID().String()); err != nil {
 		return err
 	}
 
@@ -173,7 +178,7 @@ func copyKernelToOverlay(vm *api.VM, mountPoint string) error {
 
 // writeEtcHosts populates the /etc/hosts file to avoid errors like
 // sudo: unable to resolve host 4462576f8bf5b689
-func writeEtcHosts(vm *api.VM, tmpDir, hostname string, primaryIP net.IP) error {
+func writeEtcHosts(tmpDir, hostname string, primaryIP net.IP) error {
 	hostFilePath := filepath.Join(tmpDir, "/etc/hosts")
 	empty, err := util.FileIsEmpty(hostFilePath)
 	if err != nil {
@@ -186,6 +191,11 @@ func writeEtcHosts(vm *api.VM, tmpDir, hostname string, primaryIP net.IP) error 
 
 	content := []byte(fmt.Sprintf(hostsFileTmpl, primaryIP.String(), hostname))
 	return ioutil.WriteFile(hostFilePath, content, 0644)
+}
+
+func writeEtcHostname(tmpDir, hostname string) error {
+	hostnameFilePath := filepath.Join(tmpDir, "/etc/hostname")
+	return ioutil.WriteFile(hostnameFilePath, []byte(hostname), 0644)
 }
 
 // Generate a new SSH keypair for the vm
