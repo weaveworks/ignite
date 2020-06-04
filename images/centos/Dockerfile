@@ -2,6 +2,9 @@ ARG RELEASE
 
 FROM centos:${RELEASE}
 
+# Shadow the bogus /etc/resolv.conf of centos:8 by copying a blank file over it
+COPY resolv.conf /etc/
+
 # Install common utilities
 RUN yum -y install \
         iproute \
