@@ -1,8 +1,8 @@
 package lookup
 
 import (
-	"github.com/weaveworks/gitops-toolkit/pkg/filter"
-	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
+	"github.com/weaveworks/libgitops/pkg/filter"
+	"github.com/weaveworks/libgitops/pkg/runtime"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/client"
 )

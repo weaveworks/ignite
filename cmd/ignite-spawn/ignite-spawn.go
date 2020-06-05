@@ -6,7 +6,7 @@ import (
 	"path"
 
 	log "github.com/sirupsen/logrus"
-	patchutil "github.com/weaveworks/gitops-toolkit/pkg/util/patch"
+	patchutil "github.com/weaveworks/libgitops/pkg/util/patch"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/constants"

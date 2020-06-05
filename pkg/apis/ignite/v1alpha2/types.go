@@ -1,7 +1,7 @@
 package v1alpha2
 
 import (
-	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
+	"github.com/weaveworks/libgitops/pkg/runtime"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 )
 
