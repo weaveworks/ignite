@@ -7,7 +7,7 @@ package v1alpha2
 import (
 	unsafe "unsafe"
 
-	pkgruntime "github.com/weaveworks/gitops-toolkit/pkg/runtime"
+	pkgruntime "github.com/weaveworks/libgitops/pkg/runtime"
 	ignite "github.com/weaveworks/ignite/pkg/apis/ignite"
 	v1alpha1 "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	conversion "k8s.io/apimachinery/pkg/conversion"

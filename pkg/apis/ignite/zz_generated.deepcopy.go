@@ -7,7 +7,7 @@ package ignite
 import (
 	net "net"
 
-	pkgruntime "github.com/weaveworks/gitops-toolkit/pkg/runtime"
+	pkgruntime "github.com/weaveworks/libgitops/pkg/runtime"
 	v1alpha1 "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )

@@ -10,8 +10,8 @@ import (
 
 	containerderr "github.com/containerd/containerd/errdefs"
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/gitops-toolkit/pkg/filter"
-	"github.com/weaveworks/gitops-toolkit/pkg/storage/filterer"
+	"github.com/weaveworks/libgitops/pkg/filter"
+	"github.com/weaveworks/libgitops/pkg/storage/filterer"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"

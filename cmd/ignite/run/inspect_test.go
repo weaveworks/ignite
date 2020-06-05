@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
+	"github.com/weaveworks/libgitops/pkg/runtime"
 )
 
 // Update the test output golden files with this flag.

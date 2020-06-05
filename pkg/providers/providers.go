@@ -2,7 +2,7 @@ package providers
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/gitops-toolkit/pkg/storage"
+	"github.com/weaveworks/libgitops/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/network"
 	"github.com/weaveworks/ignite/pkg/runtime"
