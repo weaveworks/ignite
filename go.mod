@@ -53,7 +53,7 @@ require (
 	github.com/stretchr/testify v1.5.1
 	github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2 // indirect
 	github.com/vishvananda/netlink v1.1.0
-	github.com/weaveworks/gitops-toolkit v0.0.0-20200410161308-f0fc148681c0
+	github.com/weaveworks/libgitops v0.0.0-20200605124804-6f749e677cc0
 	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71
 	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b // indirect
 	golang.org/x/sys v0.0.0-20200409092240-59c9f1ba88fa

@@ -7,9 +7,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/libgitops/pkg/runtime"
 )
 
 func TestConstructVMFromCLI(t *testing.T) {

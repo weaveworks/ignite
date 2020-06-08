@@ -2,11 +2,11 @@ package manifeststorage
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/gitops-toolkit/pkg/storage/cache"
-	"github.com/weaveworks/gitops-toolkit/pkg/storage/manifest"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/libgitops/pkg/storage/cache"
+	"github.com/weaveworks/libgitops/pkg/storage/manifest"
 )
 
 var ManifestStorage *manifest.ManifestStorage

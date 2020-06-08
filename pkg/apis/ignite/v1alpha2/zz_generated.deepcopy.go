@@ -7,8 +7,8 @@ package v1alpha2
 import (
 	net "net"
 
-	pkgruntime "github.com/weaveworks/gitops-toolkit/pkg/runtime"
 	v1alpha1 "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	pkgruntime "github.com/weaveworks/libgitops/pkg/runtime"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 

@@ -241,7 +241,7 @@ github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
 # github.com/google/gofuzz v1.1.0
 github.com/google/gofuzz
-# github.com/googleapis/gnostic v0.3.0
+# github.com/googleapis/gnostic v0.1.0
 github.com/googleapis/gnostic/OpenAPIv2
 github.com/googleapis/gnostic/compiler
 github.com/googleapis/gnostic/extensions
@@ -362,25 +362,25 @@ github.com/vishvananda/netlink
 github.com/vishvananda/netlink/nl
 # github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df
 github.com/vishvananda/netns
-# github.com/weaveworks/gitops-toolkit v0.0.0-20200410161308-f0fc148681c0
+# github.com/weaveworks/libgitops v0.0.0-20200605124804-6f749e677cc0
 ## explicit
-github.com/weaveworks/gitops-toolkit/pkg/filter
-github.com/weaveworks/gitops-toolkit/pkg/git
-github.com/weaveworks/gitops-toolkit/pkg/git/errors
-github.com/weaveworks/gitops-toolkit/pkg/git/gitdir
-github.com/weaveworks/gitops-toolkit/pkg/runtime
-github.com/weaveworks/gitops-toolkit/pkg/serializer
-github.com/weaveworks/gitops-toolkit/pkg/storage
-github.com/weaveworks/gitops-toolkit/pkg/storage/cache
-github.com/weaveworks/gitops-toolkit/pkg/storage/filterer
-github.com/weaveworks/gitops-toolkit/pkg/storage/manifest
-github.com/weaveworks/gitops-toolkit/pkg/storage/sync
-github.com/weaveworks/gitops-toolkit/pkg/storage/watch
-github.com/weaveworks/gitops-toolkit/pkg/storage/watch/update
-github.com/weaveworks/gitops-toolkit/pkg/util
-github.com/weaveworks/gitops-toolkit/pkg/util/patch
-github.com/weaveworks/gitops-toolkit/pkg/util/sync
-github.com/weaveworks/gitops-toolkit/pkg/util/watcher
+github.com/weaveworks/libgitops/pkg/filter
+github.com/weaveworks/libgitops/pkg/git
+github.com/weaveworks/libgitops/pkg/git/errors
+github.com/weaveworks/libgitops/pkg/git/gitdir
+github.com/weaveworks/libgitops/pkg/runtime
+github.com/weaveworks/libgitops/pkg/serializer
+github.com/weaveworks/libgitops/pkg/storage
+github.com/weaveworks/libgitops/pkg/storage/cache
+github.com/weaveworks/libgitops/pkg/storage/filterer
+github.com/weaveworks/libgitops/pkg/storage/manifest
+github.com/weaveworks/libgitops/pkg/storage/sync
+github.com/weaveworks/libgitops/pkg/storage/watch
+github.com/weaveworks/libgitops/pkg/storage/watch/update
+github.com/weaveworks/libgitops/pkg/util
+github.com/weaveworks/libgitops/pkg/util/patch
+github.com/weaveworks/libgitops/pkg/util/sync
+github.com/weaveworks/libgitops/pkg/util/watcher
 # github.com/whilp/git-urls v0.0.0-20160530060445-31bac0d230fa
 github.com/whilp/git-urls
 # go.mongodb.org/mongo-driver v1.1.2

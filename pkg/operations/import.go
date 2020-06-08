@@ -10,8 +10,6 @@ import (
 
 	containerderr "github.com/containerd/containerd/errdefs"
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/gitops-toolkit/pkg/filter"
-	"github.com/weaveworks/gitops-toolkit/pkg/storage/filterer"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
@@ -20,6 +18,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/source"
 	"github.com/weaveworks/ignite/pkg/util"
+	"github.com/weaveworks/libgitops/pkg/filter"
+	"github.com/weaveworks/libgitops/pkg/storage/filterer"
 )
 
 // FindOrImportImage returns an image based on the source string.
