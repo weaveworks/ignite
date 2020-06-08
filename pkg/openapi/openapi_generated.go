@@ -125,7 +125,7 @@ func schema_pkg_apis_ignite_v1alpha1_Image(ref common.ReferenceCallback) common.
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.ImageStatus", "github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -205,7 +205,7 @@ func schema_pkg_apis_ignite_v1alpha1_Kernel(ref common.ReferenceCallback) common
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.KernelStatus", "github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -521,7 +521,7 @@ func schema_pkg_apis_ignite_v1alpha1_VM(ref common.ReferenceCallback) common.Ope
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha1.VMStatus", "github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -794,7 +794,7 @@ func schema_pkg_apis_ignite_v1alpha2_Image(ref common.ReferenceCallback) common.
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.ImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.ImageStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.ImageSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.ImageStatus", "github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -874,7 +874,7 @@ func schema_pkg_apis_ignite_v1alpha2_Kernel(ref common.ReferenceCallback) common
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.KernelStatus", "github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -1166,7 +1166,7 @@ func schema_pkg_apis_ignite_v1alpha2_VM(ref common.ReferenceCallback) common.Ope
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMSpec", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.VMStatus", "github.com/weaveworks/libgitops/pkg/runtime.ObjectMeta", "k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta"},
 	}
 }
 
@@ -1391,7 +1391,7 @@ func schema_pkg_apis_ignite_v1alpha2_VMStatus(ref common.ReferenceCallback) comm
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/libgitops/pkg/runtime.Time", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageSource", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Runtime"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.OCIImageSource", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha2.Runtime", "github.com/weaveworks/libgitops/pkg/runtime.Time"},
 	}
 }
 

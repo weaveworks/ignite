@@ -3,10 +3,10 @@ package filter
 import (
 	"fmt"
 
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/libgitops/pkg/filter"
 	"github.com/weaveworks/libgitops/pkg/runtime"
 	"github.com/weaveworks/libgitops/pkg/storage/filterer"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 )
 
 // The VMFilter filters only VMs, but has special functionality for matching

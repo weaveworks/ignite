@@ -45,8 +45,8 @@ VM with a new IP address:
 package client
 
 import (
-	"github.com/weaveworks/libgitops/pkg/storage"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	"github.com/weaveworks/libgitops/pkg/storage"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )

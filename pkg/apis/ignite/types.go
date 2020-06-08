@@ -1,8 +1,8 @@
 package ignite
 
 import (
-	"github.com/weaveworks/libgitops/pkg/runtime"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/libgitops/pkg/runtime"
 )
 
 const (

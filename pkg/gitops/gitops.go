@@ -4,11 +4,11 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/libgitops/pkg/git/gitdir"
-	"github.com/weaveworks/libgitops/pkg/storage/manifest"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/operations/reconcile"
+	"github.com/weaveworks/libgitops/pkg/git/gitdir"
+	"github.com/weaveworks/libgitops/pkg/storage/manifest"
 )
 
 const syncInterval = 10 * time.Second

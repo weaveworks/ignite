@@ -10,10 +10,10 @@ import (
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/libgitops/pkg/runtime"
 	"github.com/weaveworks/libgitops/pkg/storage"
 	"github.com/weaveworks/libgitops/pkg/storage/filterer"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 

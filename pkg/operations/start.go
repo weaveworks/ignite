@@ -7,7 +7,6 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
-	apiruntime "github.com/weaveworks/libgitops/pkg/runtime"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -17,6 +16,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/util"
+	apiruntime "github.com/weaveworks/libgitops/pkg/runtime"
 )
 
 func StartVM(vm *api.VM, debug bool) error {

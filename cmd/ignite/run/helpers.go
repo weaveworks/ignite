@@ -1,9 +1,9 @@
 package run
 
 import (
-	"github.com/weaveworks/libgitops/pkg/filter"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/libgitops/pkg/filter"
 )
 
 // TODO: This
