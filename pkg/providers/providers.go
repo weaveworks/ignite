@@ -2,10 +2,10 @@ package providers
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/libgitops/pkg/storage"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/network"
 	"github.com/weaveworks/ignite/pkg/runtime"
+	"github.com/weaveworks/libgitops/pkg/storage"
 )
 
 // NetworkPluginName binds to the global flag to select the network plugin

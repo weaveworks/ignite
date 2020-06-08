@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/weaveworks/libgitops/pkg/runtime"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/libgitops/pkg/runtime"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/weaveworks/ignite/pkg/util"
