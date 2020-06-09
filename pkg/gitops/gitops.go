@@ -1,24 +1,24 @@
 package gitops
 
 import (
-	"time"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/operations/reconcile"
-	"github.com/weaveworks/libgitops/pkg/git/gitdir"
+	"github.com/weaveworks/libgitops/pkg/gitdir"
 	"github.com/weaveworks/libgitops/pkg/storage/manifest"
 )
 
-const syncInterval = 10 * time.Second
-
-func RunGitOps(url, branch string, paths []string) error {
+func RunGitOps(url string, opts gitdir.GitDirectoryOptions) error {
 	log.Infof("Starting GitOps loop for repo at %q\n", url)
-	log.Infof("Whenever changes are pushed to the %s branch, Ignite will apply the desired state locally\n", branch)
+	log.Info("Whenever changes are pushed to the target branch, Ignite will apply the desired state locally\n")
 
 	// Construct the GitDirectory implementation which backs the storage
-	gitDir := gitdir.NewGitDirectory(url, branch, paths, syncInterval)
+	gitDir, err := gitdir.NewGitDirectory(url, opts)
+	if err != nil {
+		return err
+	}
+	// TODO: Run gitDir.Cleanup() on SIGINT
 
 	// Wait for the repo to be cloned
 	gitDir.WaitForClone()
