@@ -354,6 +354,7 @@ github.com/matttproud/golang_protobuf_extensions/pbutil
 ## explicit
 github.com/miekg/dns
 # github.com/mitchellh/go-homedir v1.1.0
+## explicit
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure

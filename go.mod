@@ -34,6 +34,7 @@ require (
 	github.com/krolaw/dhcp4 v0.0.0-20190909130307-a50d88189771
 	github.com/lithammer/dedent v1.1.0
 	github.com/miekg/dns v1.1.29
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nightlyone/lockfile v1.0.0
 	github.com/opencontainers/go-digest v1.0.0-rc1
 	github.com/opencontainers/image-spec v1.0.1

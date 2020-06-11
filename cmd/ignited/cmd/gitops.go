@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/lithammer/dedent"
+	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -68,7 +66,7 @@ func NewCmdGitOps(out io.Writer) *cobra.Command {
 			if f.identityFile != "" {
 				var err error
 				// support ~ prefixes in the path
-				f.identityFile, err = resolveHomeEnv(f.identityFile)
+				f.identityFile, err = homedir.Expand(f.identityFile)
 				log.Tracef("Parsed identity file path: %s", f.identityFile)
 				util.GenericCheckErr(err)
 
@@ -78,7 +76,7 @@ func NewCmdGitOps(out io.Writer) *cobra.Command {
 			if f.hostsFile != "" {
 				var err error
 				// support ~ prefixes in the path
-				f.hostsFile, err = resolveHomeEnv(f.hostsFile)
+				f.hostsFile, err = homedir.Expand(f.hostsFile)
 				log.Tracef("Parsed_known hosts file path: %s", f.hostsFile)
 				util.GenericCheckErr(err)
 
@@ -112,19 +110,4 @@ func addGitOpsFlags(fs *pflag.FlagSet, f *gitOpsFlags) {
 
 	// TODO: We need to add path prefix support to the WatchStorage to support this
 	// fs.StringSliceVarP(&f.paths, "paths", "p", f.paths, "What subdirectories to care about. Default the whole repository")
-}
-
-// resolveHomeEnv resolves the ~ character in file paths at runtime
-func resolveHomeEnv(path string) (string, error) {
-	// exit quickly if possible
-	if !strings.Contains(path, "~") {
-		return path, nil
-	}
-	// get the HOME env var and fail if not found
-	homeEnv := os.Getenv("HOME")
-	if len(homeEnv) == 0 {
-		return "", fmt.Errorf("Couldn't lookup home directory for user")
-	}
-	// replace the first tilde in the path with $HOME
-	return strings.Replace(path, "~", homeEnv, 1), nil
 }
