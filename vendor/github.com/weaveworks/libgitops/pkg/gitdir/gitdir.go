@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/fluxcd/toolkit/pkg/ssh/knownhosts"
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -39,9 +40,13 @@ type GitDirectoryOptions struct {
 	// For HTTPS basic auth. The password should be e.g. a GitHub access token
 	Username, Password *string
 	// For Git SSH protocol. This is the bytes of e.g. ~/.ssh/id_rsa, given that ~/.ssh/id_rsa.pub is
-	// registered with and trusted by the Git provider. You can override the known hosts file using the
-	// SSH_KNOWN_HOSTS environment variable.
+	// registered with and trusted by the Git provider.
 	IdentityFileContent []byte
+
+	// The file content (in bytes) of the known_hosts file to use for remote (e.g. GitHub) public key verification
+	// If you want to use the default git CLI behavior, populate this byte slice with contents from
+	// ioutil.ReadFile("~/.ssh/known_hosts").
+	KnownHostsFileContent []byte
 }
 
 func (o *GitDirectoryOptions) Default() {
@@ -94,17 +99,23 @@ func NewGitDirectory(url string, opts GitDirectoryOptions) (*GitDirectory, error
 	switch ep.Protocol {
 	case "ssh":
 		// If we haven't got the right credentials, just continue in read-only mode
-		if len(opts.IdentityFileContent) == 0 {
+		if len(opts.IdentityFileContent) == 0 || len(opts.KnownHostsFileContent) == 0 {
 			break
 		}
-		d.auth, err = ssh.NewPublicKeys("git", opts.IdentityFileContent, "")
+		pk, err := ssh.NewPublicKeys("git", opts.IdentityFileContent, "")
 		if err != nil {
 			return nil, err
 		}
+		callback, err := knownhosts.New(opts.KnownHostsFileContent)
+		if err != nil {
+			return nil, err
+		}
+		pk.HostKeyCallback = callback
+		d.auth = pk
 		d.readwrite = true
 	case "https":
 		// If we haven't got the right credentials, just continue in read-only mode
-		if opts.Username == nil && opts.Password == nil {
+		if opts.Username == nil || opts.Password == nil {
 			break
 		}
 		d.auth = &http.BasicAuth{

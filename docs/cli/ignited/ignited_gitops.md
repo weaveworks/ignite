@@ -23,6 +23,7 @@ ignited gitops <repo-url> [flags]
 ```
   -b, --branch string           What branch to sync (default "master")
   -h, --help                    help for gitops
+      --hosts-file string       What known_hosts file to use for remote verification (default "~/.ssh/known_hosts")
       --https-password string   What password/access token to use when authenticating with Git over HTTPS
       --https-username string   What username to use when authenticating with Git over HTTPS
       --identity-file string    What SSH identity file to use for pushing
