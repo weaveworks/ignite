@@ -19,6 +19,7 @@ func TestConfigFile(t *testing.T) {
 	cases := []struct {
 		name             string
 		config           []byte
+		vmConfig         []byte
 		args             []string
 		wantVMProperties string
 		err              bool
@@ -51,10 +52,10 @@ spec:
     sandbox:
       oci: weaveworks/ignite:dev
     kernel:
-      oci: weaveworks/ignite-kernel:4.19.47
+      oci: weaveworks/ignite-kernel:5.4.43
     ssh: true
 `),
-			wantVMProperties: "'2.0 GB 2 3.0 GB weaveworks/ignite-ubuntu:latest weaveworks/ignite:dev weaveworks/ignite-kernel:4.19.47 {true }'",
+			wantVMProperties: "'2.0 GB 2 3.0 GB weaveworks/ignite-ubuntu:latest weaveworks/ignite:dev weaveworks/ignite-kernel:5.4.43 {true }'",
 		},
 		{
 			name: "runtime and network config",
@@ -85,9 +86,56 @@ spec:
 			args:             []string{"--memory=1GB", "--size=1GB", "--cpus=1", "--ssh"},
 			wantVMProperties: fmt.Sprintf("'1024.0 MB 1 1024.0 MB weaveworks/ignite-ubuntu:latest weaveworks/ignite:dev weaveworks/ignite-kernel:%s {true }'", constants.DEFAULT_KERNEL_IMAGE_TAG),
 		},
+		{
+			name: "vm config",
+			config: []byte(`---
+apiVersion: ignite.weave.works/v1alpha3
+kind: Configuration
+metadata:
+  name: test-config
+spec:
+  vm:
+    memory: "2GB"
+    diskSize: "3GB"
+    cpus: 2
+`),
+			vmConfig: []byte(`
+apiVersion: ignite.weave.works/v1alpha3
+kind: VM
+spec:
+  memory: "1GB"
+  diskSize: "2GB"
+  cpus: 1
+`),
+			wantVMProperties: fmt.Sprintf("'1024.0 MB 1 2.0 GB weaveworks/ignite-ubuntu:latest weaveworks/ignite:dev weaveworks/ignite-kernel:%s <nil>'", constants.DEFAULT_KERNEL_IMAGE_TAG),
+		},
+		{
+			name: "vm config and flags",
+			config: []byte(`---
+apiVersion: ignite.weave.works/v1alpha3
+kind: Configuration
+metadata:
+  name: test-config
+spec:
+  vm:
+    memory: "2GB"
+    diskSize: "3GB"
+    cpus: 2
+`),
+			vmConfig: []byte(`
+apiVersion: ignite.weave.works/v1alpha3
+kind: VM
+spec:
+  memory: "1GB"
+  diskSize: "2GB"
+`),
+			args:             []string{"--size=1GB", "--cpus=1"},
+			wantVMProperties: fmt.Sprintf("'1024.0 MB 1 1024.0 MB weaveworks/ignite-ubuntu:latest weaveworks/ignite:dev weaveworks/ignite-kernel:%s <nil>'", constants.DEFAULT_KERNEL_IMAGE_TAG),
+		},
 	}
 
 	for _, rt := range cases {
+		rt := rt
 		t.Run(rt.name, func(t *testing.T) {
 			// Create config file.
 			file, err := ioutil.TempFile("", "ignite-config-file-test")
@@ -101,6 +149,24 @@ spec:
 			assert.NilError(t, err)
 			assert.NilError(t, file.Close())
 
+			vmConfigFileName := ""
+
+			if len(rt.vmConfig) > 0 {
+				// Create a VM config file.
+				vmConfigFile, err := ioutil.TempFile("", "ignite-vm-config")
+				if err != nil {
+					t.Fatalf("failed to create a file: %v", err)
+				}
+				defer os.Remove(vmConfigFile.Name())
+
+				vmConfigFileName = vmConfigFile.Name()
+
+				// Populate the file.
+				_, err = vmConfigFile.Write(rt.vmConfig)
+				assert.NilError(t, err)
+				assert.NilError(t, vmConfigFile.Close())
+			}
+
 			vmName := "e2e_test_ignite_config_file"
 
 			// Create a VM with the ignite config file.
@@ -111,6 +177,12 @@ spec:
 				"--ignite-config=" + file.Name(),
 				"--sandbox-image=weaveworks/ignite:dev",
 			}
+
+			// Append VM config if provided.
+			if vmConfigFileName != "" {
+				runArgs = append(runArgs, "--config="+vmConfigFileName)
+			}
+
 			// Append the args to the run args for override flags.
 			runArgs = append(runArgs, rt.args...)
 			runCmd := exec.Command(

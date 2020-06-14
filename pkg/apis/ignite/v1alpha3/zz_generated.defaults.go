@@ -20,9 +20,9 @@ func RegisterDefaults(scheme *runtime.Scheme) error {
 
 func SetObjectDefaults_Configuration(in *Configuration) {
 	SetDefaults_ConfigurationSpec(&in.Spec)
-	SetDefaults_VMSpec(&in.Spec.VM)
-	SetDefaults_VMSandboxSpec(&in.Spec.VM.Sandbox)
-	SetDefaults_VMKernelSpec(&in.Spec.VM.Kernel)
+	SetDefaults_VMSpec(&in.Spec.VMDefaults)
+	SetDefaults_VMSandboxSpec(&in.Spec.VMDefaults.Sandbox)
+	SetDefaults_VMKernelSpec(&in.Spec.VMDefaults.Kernel)
 }
 
 func SetObjectDefaults_Pool(in *Pool) {

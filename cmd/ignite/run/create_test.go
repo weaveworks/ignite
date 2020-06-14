@@ -29,7 +29,6 @@ func TestConstructVMFromCLI(t *testing.T) {
 	tests := []struct {
 		name             string
 		createFlag       *CreateFlags
-		args             []string
 		wantCopyFiles    []api.FileMapping
 		wantPortMapping  meta.PortMappings
 		wantSSH          api.SSH
@@ -45,15 +44,6 @@ func TestConstructVMFromCLI(t *testing.T) {
 					},
 				},
 			},
-			args: []string{testImage},
-		},
-		{
-			name: "with invalid image reference",
-			createFlag: &CreateFlags{
-				VM: &api.VM{},
-			},
-			args: []string{"foo:bar:baz"},
-			err:  true,
 		},
 		{
 			name: "valid copy files flag",
@@ -61,7 +51,6 @@ func TestConstructVMFromCLI(t *testing.T) {
 				VM:        &api.VM{},
 				CopyFiles: []string{"/tmp/foo:/tmp/bar"},
 			},
-			args: []string{testImage},
 			wantCopyFiles: []api.FileMapping{
 				{
 					HostPath: "/tmp/foo",
@@ -75,8 +64,7 @@ func TestConstructVMFromCLI(t *testing.T) {
 				VM:        &api.VM{},
 				CopyFiles: []string{"foo:bar:baz"},
 			},
-			args: []string{testImage},
-			err:  true,
+			err: true,
 		},
 		{
 			name: "invalid copy files paths - not absolute paths",
@@ -84,8 +72,7 @@ func TestConstructVMFromCLI(t *testing.T) {
 				VM:        &api.VM{},
 				CopyFiles: []string{"foo:bar"},
 			},
-			args: []string{testImage},
-			err:  true,
+			err: true,
 		},
 		{
 			name: "valid port mapping",
@@ -93,7 +80,6 @@ func TestConstructVMFromCLI(t *testing.T) {
 				VM:           &api.VM{},
 				PortMappings: []string{"80:80"},
 			},
-			args: []string{testImage},
 			wantPortMapping: meta.PortMappings{
 				meta.PortMapping{
 					BindAddress: net.IPv4(0, 0, 0, 0),
@@ -109,8 +95,7 @@ func TestConstructVMFromCLI(t *testing.T) {
 				VM:           &api.VM{},
 				PortMappings: []string{"1.1.1.1:foo:bar"},
 			},
-			args: []string{testImage},
-			err:  true,
+			err: true,
 		},
 		{
 			name: "ssh public key set",
@@ -121,7 +106,6 @@ func TestConstructVMFromCLI(t *testing.T) {
 					PublicKey: "some-pub-key",
 				},
 			},
-			args: []string{testImage},
 			wantSSH: api.SSH{
 				Generate:  true,
 				PublicKey: "some-pub-key",
@@ -133,8 +117,7 @@ func TestConstructVMFromCLI(t *testing.T) {
 				VM:          &api.VM{},
 				RequireName: true,
 			},
-			args: []string{testImage},
-			err:  true,
+			err: true,
 		},
 		{
 			name: "with sandbox image",
@@ -147,24 +130,19 @@ func TestConstructVMFromCLI(t *testing.T) {
 					},
 				},
 			},
-			args:             []string{testImage},
 			wantSandboxImage: sandboxOCIRef,
 		},
 	}
 
 	for _, rt := range tests {
 		t.Run(rt.name, func(t *testing.T) {
-			err := rt.createFlag.constructVMFromCLI(rt.args)
+			rt.createFlag.VM.Spec.Image.OCI = testOCIRef
+			err := rt.createFlag.constructVMFromCLI(rt.createFlag.VM)
 			if (err != nil) != rt.err {
 				t.Errorf("expected error %t, actual: %v", rt.err, err)
 			}
 
 			if !rt.err {
-				// Check if the VM image is set as expected.
-				if rt.createFlag.VM.Spec.Image.OCI != testOCIRef {
-					t.Errorf("expected VM.Spec.Image.OCI to be %q, actual: %q", testOCIRef.String(), rt.createFlag.VM.Spec.Image.OCI.String())
-				}
-
 				// Check if copy files are set as expected.
 				if len(rt.wantCopyFiles) > 0 {
 					if !reflect.DeepEqual(rt.createFlag.VM.Spec.CopyFiles, rt.wantCopyFiles) {

@@ -915,7 +915,7 @@ func schema_pkg_apis_ignite_v1alpha3_ConfigurationSpec(ref common.ReferenceCallb
 							Format: "",
 						},
 					},
-					"vm": {
+					"vmDefaults": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.VMSpec"),
 						},

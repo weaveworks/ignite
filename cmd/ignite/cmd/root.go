@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/lithammer/dedent"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -26,7 +25,7 @@ import (
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
 )
 
-var logLevel = logrus.InfoLevel
+var logLevel = log.InfoLevel
 
 // Ignite config file path flag variable.
 var configPath string
@@ -68,13 +67,13 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 			} else {
 				// Check the default config location.
 				if _, err := os.Stat(constants.IGNITE_CONFIG_FILE); !os.IsNotExist(err) {
-					log.Infof("Found default ignite configuration file %s", constants.IGNITE_CONFIG_FILE)
+					log.Debugf("Found default ignite configuration file %s", constants.IGNITE_CONFIG_FILE)
 					configFilePath = constants.IGNITE_CONFIG_FILE
 				}
 			}
 
 			if configFilePath != "" {
-				log.Infof("Using ignite configuration file %s", configFilePath)
+				log.Debugf("Using ignite configuration file %s", configFilePath)
 				var err error
 				providers.ComponentConfig, err = getConfigFromFile(configFilePath)
 				if err != nil {
@@ -88,6 +87,8 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 				if providers.ComponentConfig.Spec.NetworkPlugin != "" {
 					providers.NetworkPluginName = providers.ComponentConfig.Spec.NetworkPlugin
 				}
+			} else {
+				log.Debugln("Using ignite default configurations")
 			}
 
 			// Populate the providers after flags have been parsed
@@ -165,12 +166,14 @@ func AddQuietFlag(fs *pflag.FlagSet) {
 func getConfigFromFile(configPath string) (*api.Configuration, error) {
 	componentConfig := &api.Configuration{}
 
+	// TODO: Fix libgitops DecodeFileInto to not allow empty files.
 	if err := scheme.Serializer.DecodeFileInto(configPath, componentConfig); err != nil {
 		return nil, err
 	}
 
 	// Ensure the read configuration is valid. If a file contains Kind and
 	// APIVersion, it's a valid config file. Empty file is invalid.
+	// NOTE: This is a workaround for libgitops allowing decode of empty file.
 	if componentConfig.Kind == "" || componentConfig.APIVersion == "" {
 		return nil, fmt.Errorf("invalid config file, Kind and APIVersion must be set")
 	}

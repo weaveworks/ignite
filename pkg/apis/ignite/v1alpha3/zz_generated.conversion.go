@@ -347,7 +347,7 @@ func Convert_ignite_Configuration_To_v1alpha3_Configuration(in *ignite.Configura
 func autoConvert_v1alpha3_ConfigurationSpec_To_ignite_ConfigurationSpec(in *ConfigurationSpec, out *ignite.ConfigurationSpec, s conversion.Scope) error {
 	out.Runtime = pkgruntime.Name(in.Runtime)
 	out.NetworkPlugin = network.PluginName(in.NetworkPlugin)
-	if err := Convert_v1alpha3_VMSpec_To_ignite_VMSpec(&in.VM, &out.VM, s); err != nil {
+	if err := Convert_v1alpha3_VMSpec_To_ignite_VMSpec(&in.VMDefaults, &out.VMDefaults, s); err != nil {
 		return err
 	}
 	return nil
@@ -361,7 +361,7 @@ func Convert_v1alpha3_ConfigurationSpec_To_ignite_ConfigurationSpec(in *Configur
 func autoConvert_ignite_ConfigurationSpec_To_v1alpha3_ConfigurationSpec(in *ignite.ConfigurationSpec, out *ConfigurationSpec, s conversion.Scope) error {
 	out.Runtime = pkgruntime.Name(in.Runtime)
 	out.NetworkPlugin = network.PluginName(in.NetworkPlugin)
-	if err := Convert_ignite_VMSpec_To_v1alpha3_VMSpec(&in.VM, &out.VM, s); err != nil {
+	if err := Convert_ignite_VMSpec_To_v1alpha3_VMSpec(&in.VMDefaults, &out.VMDefaults, s); err != nil {
 		return err
 	}
 	return nil
