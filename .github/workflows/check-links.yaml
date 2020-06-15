@@ -45,7 +45,7 @@ jobs:
         id: lc2
         uses: peter-evans/link-checker@v1
         with:
-          args: -d site/ -r site/ -x "(github.com/weaveworks/ignite($|/issue|/pull|/releases|/commit/|/releases)|squidfunk.github.io|ignite.readthedocs.io)"
+          args: -d site/ -r site/ -x "(github.com/weaveworks/ignite($|/issue|/pull|/releases|/commit/|/releases|/tree/master/pkg/apis)|squidfunk.github.io|ignite.readthedocs.io)"
 
       - name: Fail if there were link errors
         run: exit ${{ steps.lc2.outputs.exit_code }}
