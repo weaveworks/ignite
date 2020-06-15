@@ -1003,7 +1003,6 @@ There are many significant changes compared to before:
 
  - Make base and kernel OCI images composable for a VM. You can now choose what kernel to combine with what base image freely https://github.com/weaveworks/ignite/pull/105
  - Add the GitOps mode for Ignite using `ignite gitops` https://github.com/weaveworks/ignite/pull/100
-   - Documentation: https://github.com/weaveworks/ignite/blob/master/gitops
  - Make it possible to run `ignite create` and `ignite run` declaratively https://github.com/weaveworks/ignite/commit/57333646b52a0e1e3a725340e994b2749b39e5bd
    - Documentation: https://github.com/weaveworks/ignite/blob/master/docs/declarative-config.md
  - Added Prometheus metrics for `ignite-spawn` https://github.com/weaveworks/ignite/commit/94abc529972873db3fa3ee954099a4f62d67b6f3
@@ -1013,10 +1012,8 @@ There are many significant changes compared to before:
 ### API Machinery
 
  - Added the `ignite.weave.works/v1alpha1` API group with the Ignite API types https://github.com/weaveworks/ignite/commit/ca1edc8e7a61b950811c6145ba2ad53f8cdc2a04
-   - API reference: https://github.com/weaveworks/ignite/blob/master/api/ignite.md
    - This API version will not change in a future version. When improvements are made, it will be to `v1alpha2` etc.
  - Add a meta API package containing supporting but generic API types for Ignite https://github.com/weaveworks/ignite/commit/09d51abd409ee361e93884baae24ffc92cde63a9
-   - API reference: https://github.com/weaveworks/ignite/blob/master/api/meta.md
  - Create composable interfaces for the internal API machinery: `Client` -> `Cache` -> `Storage` -> `RawStorage` -> `Serializer` https://github.com/weaveworks/ignite/pull/93 https://github.com/weaveworks/ignite/pull/96 https://github.com/weaveworks/ignite/pull/99
  - The API Machinery used in Ignite is partly based on the Kubernetes API machinery (`k8s.io/apimachinery`), and hence follows some of the same patterns
 
@@ -1030,9 +1027,9 @@ There are many significant changes compared to before:
  - Add user-facing documentation and guides https://github.com/weaveworks/ignite/pull/113
    - See: https://github.com/weaveworks/ignite/tree/master/docs
  - Generate OpenAPI specifications https://github.com/weaveworks/ignite/commit/f1c5bfd473799f712c4c1d8fb276426780c1bf01
-   - See: https://github.com/weaveworks/ignite/blob/master/api/openapi/openapi_generated.go
+   - See: https://github.com/weaveworks/ignite/blob/master/pkg/openapi/openapi_generated.go
  - Add API type documentation https://github.com/weaveworks/ignite/commit/218c94723f836b8e2cb82886b8664544933ea605
-   - See: https://github.com/weaveworks/ignite/blob/master/api
+   - See: https://github.com/weaveworks/ignite/blob/master/pkg/openapi/
  - Added architecture diagram https://github.com/weaveworks/ignite/commit/da53f9fc2f5790edacb5d1b541dd4da8a6089673
    - See: https://github.com/weaveworks/ignite/blob/master/docs/architecture.png
  - Added graph of module dependencies https://github.com/weaveworks/ignite/commit/be7cc088c671c5728155fb146367a67d4ada4ea6
