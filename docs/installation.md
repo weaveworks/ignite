@@ -139,7 +139,7 @@ for additional details):
 ```bash
 VMFILE=/etc/firecracker/manifests/smoke-test.yml
 tee "$VMFILE" > /dev/null <<EOF
-apiVersion: ignite.weave.works/v1alpha2
+apiVersion: ignite.weave.works/v1alpha3
 kind: VM
 metadata:
   name: smoke-test
@@ -160,26 +160,26 @@ DEBU[2551] FileWatcher: Registered inotify events [notify.InCloseWrite: "/etc/fi
 DEBU[2552] FileWatcher: Sending update: MODIFY -> "/etc/firecracker/manifests/smoke-test.yml"
 DEBU[2552] FileWatcher: Dispatched events batch and reset the events cache
 DEBU[2552] GenericMappedRawStorage: AddMapping: "vm/d039cbcd-3606-462d-839e-25ac745cd7c5" -> "/etc/firecracker/manifests/smoke-test.yml"
-DEBU[2552] SyncStorage: Received update {{CREATE &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}} 0xc0004c7aa0} true
-DEBU[2552] SyncStorage: Sent update: {CREATE &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}}
+DEBU[2552] SyncStorage: Received update {{CREATE &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha3,}} 0xc0004c7aa0} true
+DEBU[2552] SyncStorage: Sent update: {CREATE &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha3,}}
 DEBU[2552] FileWatcher: Skipping suspended event MODIFY for path: "/etc/firecracker/manifests/smoke-test.yml"
 DEBU[2552] FileWatcher: Registered inotify events [notify.InCloseWrite: "/etc/firecracker/manifests/smoke-test.yml"] for path "/etc/firecracker/manifests/smoke-test.yml"
 DEBU[2553] FileWatcher: Sending update: MODIFY -> "/etc/firecracker/manifests/smoke-test.yml"
 DEBU[2553] FileWatcher: Dispatched events batch and reset the events cache
-DEBU[2553] SyncStorage: Received update {{MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}} 0xc0004c7aa0} true
+DEBU[2553] SyncStorage: Received update {{MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha3,}} 0xc0004c7aa0} true
 DEBU[2553] FileWatcher: Skipping suspended event MODIFY for path: "/etc/firecracker/manifests/smoke-test.yml"
-DEBU[2553] SyncStorage: Sent update: {MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}}
+DEBU[2553] SyncStorage: Sent update: {MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha3,}}
 DEBU[2553] FileWatcher: Registered inotify events [notify.InCloseWrite: "/etc/firecracker/manifests/smoke-test.yml"] for path "/etc/firecracker/manifests/smoke-test.yml"
 DEBU[2554] FileWatcher: Sending update: MODIFY -> "/etc/firecracker/manifests/smoke-test.yml"
 DEBU[2554] FileWatcher: Dispatched events batch and reset the events cache
-DEBU[2554] SyncStorage: Received update {{MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}} 0xc0004c7aa0} true
+DEBU[2554] SyncStorage: Received update {{MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha3,}} 0xc0004c7aa0} true
 DEBU[2554] FileWatcher: Registered inotify events [notify.InCloseWrite: "/etc/firecracker/manifests/smoke-test.yml"] for path "/etc/firecracker/manifests/smoke-test.yml"
-DEBU[2554] SyncStorage: Sent update: {MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}}
+DEBU[2554] SyncStorage: Sent update: {MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha3,}}
 DEBU[2554] FileWatcher: Skipping suspended event MODIFY for path: "/etc/firecracker/manifests/smoke-test.yml"
 DEBU[2555] FileWatcher: Sending update: MODIFY -> "/etc/firecracker/manifests/smoke-test.yml"
 DEBU[2555] FileWatcher: Dispatched events batch and reset the events cache
-DEBU[2555] SyncStorage: Received update {{MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}} 0xc0004c7aa0} true
-DEBU[2555] SyncStorage: Sent update: {MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha2,}}
+DEBU[2555] SyncStorage: Received update {{MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha3,}} 0xc0004c7aa0} true
+DEBU[2555] SyncStorage: Sent update: {MODIFY &TypeMeta{Kind:VM,APIVersion:ignite.weave.works/v1alpha3,}}
 DEBU[2555] FileWatcher: Skipping suspended event MODIFY for path: "/etc/firecracker/manifests/smoke-test.yml"
 DEBU[2556] FileWatcher: Registered inotify events [notify.InCloseWrite: "/etc/firecracker/manifests/smoke-test.yml"] for path "/etc/firecracker/manifests/smoke-test.yml"
 etc.
