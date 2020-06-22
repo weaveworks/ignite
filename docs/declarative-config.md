@@ -9,7 +9,7 @@ The first commands to support this feature are `ignite run` and `ignite create`.
 Here's an example API object file contents:
 
 ```yaml
-apiVersion: ignite.weave.works/v1alpha2
+apiVersion: ignite.weave.works/v1alpha3
 kind: VM
 metadata:
   name: my-vm
@@ -35,7 +35,7 @@ INFO[0002] Started Firecracker VM "e04128e6f96176a8" in a container with ID "ign
 The full reference format for the `VM` kind is as follows:
 
 ```yaml
-apiVersion: ignite.weave.works/v1alpha2
+apiVersion: ignite.weave.works/v1alpha3
 kind: VM
 metadata:
   # Automatically set when the object is created

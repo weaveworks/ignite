@@ -1,4 +1,4 @@
-apiVersion: ignite.weave.works/v1alpha2
+apiVersion: ignite.weave.works/v1alpha3
 kind: VM
 metadata:
   created: "2000-01-01T01:00:00Z"
