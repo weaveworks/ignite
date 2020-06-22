@@ -41,7 +41,7 @@ IMAGE_TAG:=$(shell IGNITE_GIT_VERSION=$(GIT_VERSION) DOCKER_USER=$(DOCKER_USER) 
 IS_DIRTY:=$(shell echo ${GIT_VERSION} | grep -c dirty)
 PROJECT = github.com/weaveworks/ignite
 APIS_DIR = ${PROJECT}/pkg/apis
-API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha1,${APIS_DIR}/ignite/v1alpha2,${APIS_DIR}/meta/v1alpha1
+API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha2,${APIS_DIR}/meta/v1alpha1
 CACHE_DIR = $(shell pwd)/bin/cache
 # Specifies if this is a CI build or not; if it is, it will save the docker image created to bin/$(GOARCH)/image.tar
 IS_CI_BUILD ?= 0

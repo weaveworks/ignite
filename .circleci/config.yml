@@ -39,9 +39,7 @@ jobs:
     - restore_cache:
         key: bin-cache
     # Run autogeneration and see if there are differences
-    # TODO: Fix this; somehow the docs/api/ignite_v1alpha1.md ends up being malformatted in CI; it adds
-    # <sup>@</sup>@ in the beginning of the file for some strange reason in CI, but not locally
-    - run: make autogen && make tidy-in-docker && git status --short && git checkout HEAD docs/api/ignite_v1alpha1.md
+    - run: make autogen && make tidy-in-docker && git status --short
     # Save the bin/cache directory
     - save_cache:
         key: bin-cache
