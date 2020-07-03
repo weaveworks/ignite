@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/util"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -116,33 +117,22 @@ func bridge(iface *net.Interface) (d *DHCPInterface, err error) {
 	tapName := constants.TAP_PREFIX + iface.Name
 	bridgeName := constants.BRIDGE_PREFIX + iface.Name
 
-	var handle *netlink.Handle
-	var bridge *netlink.Bridge
-	var tuntap, link netlink.Link
-
-	if handle, err = netlink.NewHandle(); err != nil {
-		return
+	if err := createTAPAdapter(tapName); err != nil {
+		return nil, err
 	}
 
-	if tuntap, err = createTAPAdapter(tapName); err != nil {
-		return
+	if err := createBridge(bridgeName); err != nil {
+		return nil, err
 	}
 
-	if bridge, err = createBridge(bridgeName); err != nil {
-		return
+	if err := connectAdapterToBridge(tapName, bridgeName); err != nil {
+		return nil, err
 	}
 
-	if err = handle.LinkSetMaster(tuntap, bridge); err != nil {
-		return
+	if err := connectAdapterToBridge(iface.Name, bridgeName); err != nil {
+		return nil, err
 	}
-
-	if link, err = netlink.LinkByName(iface.Name); err != nil {
-		return
-	}
-
-	if err = handle.LinkSetMaster(link, bridge); err != nil {
-		return
-	}
+	log.Infof("This is NEW code!")
 
 	d = &DHCPInterface{
 		VMTAP:  tapName,
@@ -159,6 +149,9 @@ func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
 		// set the bool to true so the caller knows to retry
 		return nil, true, fmt.Errorf("interface %q has no address", iface.Name)
 	}
+
+	str, err := util.ExecuteCommand("ip", "addr")
+	log.Infof("%s: %v", str, err)
 
 	handle, err := netlink.NewHandle()
 	if err != nil {
@@ -212,29 +205,34 @@ func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
 	return nil, false, fmt.Errorf("interface %s has no valid addresses", iface.Name)
 }
 
-func createTAPAdapter(tapName string) (*netlink.Tuntap, error) {
-	la := netlink.NewLinkAttrs()
-	la.Name = tapName
-	tuntap := &netlink.Tuntap{
-		LinkAttrs: la,
-		Mode:      netlink.TUNTAP_MODE_TAP,
-	}
-	return tuntap, addLink(tuntap)
-}
-
-func createBridge(bridgeName string) (*netlink.Bridge, error) {
-	la := netlink.NewLinkAttrs()
-	la.Name = bridgeName
-	bridge := &netlink.Bridge{LinkAttrs: la}
-	return bridge, addLink(bridge)
-}
-
-func addLink(link netlink.Link) (err error) {
-	if err = netlink.LinkAdd(link); err == nil {
-		err = netlink.LinkSetUp(link)
+func createTAPAdapter(tapName string) error {
+	if _, err := util.ExecuteCommand("ip", "tuntap", "add", "mode", "tap", tapName); err != nil {
+		return err
 	}
 
-	return
+	return setLinkUp(tapName)
+}
+
+func createBridge(bridgeName string) error {
+	macAddresses := make([]string, 0, 1)
+	util.NewMAC(&macAddresses)
+	mac := macAddresses[0]
+	log.Infof("bridge MAC is: %s", mac)
+	if _, err := util.ExecuteCommand("ip", "link", "add", "name", bridgeName, "address", mac, "type", "bridge"); err != nil {
+		return err
+	}
+
+	return setLinkUp(bridgeName)
+}
+
+func setLinkUp(adapterName string) error {
+	_, err := util.ExecuteCommand("ip", "link", "set", adapterName, "up")
+	return err
+}
+
+func connectAdapterToBridge(adapterName, bridgeName string) error {
+	_, err := util.ExecuteCommand("ip", "link", "set", adapterName, "master", bridgeName)
+	return err
 }
 
 func maskString(mask net.IPMask) string {

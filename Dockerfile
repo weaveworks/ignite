@@ -6,7 +6,8 @@ COPY qemu-QEMUARCH-static /usr/bin/
 
 # device-mapper is needed for snapshot functionalities
 RUN apk add --no-cache \
-    device-mapper
+    device-mapper \
+    iproute2
 
 # Download the Firecracker binary from Github
 ARG FIRECRACKER_VERSION
