@@ -45,7 +45,7 @@ kind: Configuration
 metadata:
   name: test-config
 spec:
-  vm:
+  vmDefaults:
     memory: "2GB"
     diskSize: "3GB"
     cpus: 2
@@ -78,7 +78,7 @@ kind: Configuration
 metadata:
   name: test-config
 spec:
-  vm:
+  vmDefaults:
     memory: "2GB"
     diskSize: "3GB"
     cpus: 2
@@ -94,7 +94,7 @@ kind: Configuration
 metadata:
   name: test-config
 spec:
-  vm:
+  vmDefaults:
     memory: "2GB"
     diskSize: "3GB"
     cpus: 2
@@ -117,7 +117,7 @@ kind: Configuration
 metadata:
   name: test-config
 spec:
-  vm:
+  vmDefaults:
     memory: "2GB"
     diskSize: "3GB"
     cpus: 2
@@ -189,14 +189,9 @@ spec:
 				igniteBin,
 				runArgs...,
 			)
-			runOut, _ := runCmd.CombinedOutput()
+			_, err = runCmd.CombinedOutput()
 
-			// Check if the VM creation failed with a fatal log message.
-			// NOTE: CombinedOutput doesn't return error if the process failed
-			// with a fatal message.
-			fatalRun := strings.Contains(string(runOut), "level=fatal")
-
-			if !fatalRun {
+			if err == nil {
 				// Delete the VM only when the creation succeeds, with the
 				// config file.
 				defer func() {
@@ -211,8 +206,8 @@ spec:
 				}()
 
 				// Check if run failure was expected.
-				if !fatalRun != rt.err {
-					assert.Assert(t, !fatalRun != rt.err, "expected VM creation failure")
+				if (err != nil) != rt.err {
+					t.Error("expected VM creation failure")
 				}
 			}
 

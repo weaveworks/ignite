@@ -1,0 +1,41 @@
+{
+  "kind": "VM",
+  "apiVersion": "ignite.weave.works/v1alpha3",
+  "metadata": {
+    "name": "",
+    "created": "2000-01-01T01:00:00Z"
+  },
+  "spec": {
+    "image": {
+      "oci": "weaveworks/ignite-ubuntu:latest"
+    },
+    "sandbox": {
+      "oci": "weaveworks/ignite-testimg:latest"
+    },
+    "kernel": {
+      "oci": "weaveworks/ignite-testimg:latest",
+      "cmdLine": "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp"
+    },
+    "cpus": 4,
+    "memory": "1500MB",
+    "diskSize": "10GB",
+    "network": {
+      
+    },
+    "storage": {
+      
+    },
+    "ssh": true
+  },
+  "status": {
+    "running": false,
+    "image": {
+      "id": null,
+      "size": "0B"
+    },
+    "kernel": {
+      "id": null,
+      "size": "0B"
+    }
+  }
+}
