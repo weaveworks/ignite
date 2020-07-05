@@ -25,3 +25,11 @@ for arch in ${ARCHES}; do
     ${DOCKER} manifest annotate --arch=${arch} ${IMAGE} ${IMAGE}-${arch}
 done
 ${DOCKER} manifest push --purge ${IMAGE}
+
+for arch in ${ARCHES}; do
+    CURR_IMAGE=${IMAGE}-${arch}
+    ${DOCKER} manifest create --amend ${CURR_IMAGE} ${CURR_IMAGE}
+    ${DOCKER} manifest annotate --arch=${arch} ${CURR_IMAGE} ${CURR_IMAGE}
+    ${DOCKER} manifest push --purge ${CURR_IMAGE}
+done
+
