@@ -3,6 +3,8 @@ package v1alpha3
 import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
+	igniteNetwork "github.com/weaveworks/ignite/pkg/network"
+	igniteRuntime "github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/version"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -63,6 +65,16 @@ func SetDefaults_VMSandboxSpec(obj *VMSandboxSpec) {
 	// Default the sandbox image if unset.
 	if obj.OCI.IsUnset() {
 		obj.OCI, _ = meta.NewOCIImageRef(version.GetIgnite().SandboxImage.String())
+	}
+}
+
+func SetDefaults_ConfigurationSpec(obj *ConfigurationSpec) {
+	// Default the runtime and network plugin if not set.
+	if obj.Runtime == "" {
+		obj.Runtime = igniteRuntime.RuntimeContainerd
+	}
+	if obj.NetworkPlugin == "" {
+		obj.NetworkPlugin = igniteNetwork.PluginCNI
 	}
 }
 

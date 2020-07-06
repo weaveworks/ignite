@@ -2,6 +2,7 @@ package providers
 
 import (
 	log "github.com/sirupsen/logrus"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/network"
 	"github.com/weaveworks/ignite/pkg/runtime"
@@ -29,6 +30,8 @@ var Client *client.Client
 
 // Storage is the default storage implementation
 var Storage storage.Storage
+
+var ComponentConfig *api.Configuration
 
 type ProviderInitFunc func() error
 

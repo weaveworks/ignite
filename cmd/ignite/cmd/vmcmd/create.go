@@ -44,7 +44,7 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 		Args: cobra.RangeArgs(0, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			cmdutil.CheckErr(func() error {
-				co, err := cf.NewCreateOptions(args)
+				co, err := cf.NewCreateOptions(args, cmd.Flags())
 				if err != nil {
 					return err
 				}

@@ -1,0 +1,12 @@
+{
+  "kind": "VM",
+  "apiVersion": "ignite.weave.works/v1alpha3",
+  "spec": {
+    "image": {
+      "oci": "weaveworks/ignite-ubuntu"
+    },
+    "cpus": 2,
+    "memory": "2GB",
+    "diskSize": "8GB"
+  }
+}

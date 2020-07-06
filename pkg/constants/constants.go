@@ -49,4 +49,7 @@ const (
 
 	// How long to wait for SSH to come up by default
 	SSH_DEFAULT_TIMEOUT_SECONDS = 30
+
+	// IGNITE_CONFIG_FILE is the default ignite configuration file path.
+	IGNITE_CONFIG_FILE = "/etc/ignite/config.yaml"
 )

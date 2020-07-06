@@ -1,0 +1,5 @@
+apiVersion: ignite.weave.works/v1alpha3
+kind: kernel
+spec:
+  memory: 1500MB
+  diskSize: 10GB
