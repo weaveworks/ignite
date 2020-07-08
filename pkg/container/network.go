@@ -116,11 +116,10 @@ func bridge(iface *net.Interface) (d *DHCPInterface, err error) {
 	tapName := constants.TAP_PREFIX + iface.Name
 	bridgeName := constants.BRIDGE_PREFIX + iface.Name
 
-	var handle *netlink.Handle
 	var bridge *netlink.Bridge
-	var tuntap, link netlink.Link
+	var eth, tuntap netlink.Link
 
-	if handle, err = netlink.NewHandle(); err != nil {
+	if eth, err = netlink.LinkByIndex(iface.Index); err != nil {
 		return
 	}
 
@@ -132,15 +131,7 @@ func bridge(iface *net.Interface) (d *DHCPInterface, err error) {
 		return
 	}
 
-	if err = handle.LinkSetMaster(tuntap, bridge); err != nil {
-		return
-	}
-
-	if link, err = netlink.LinkByName(iface.Name); err != nil {
-		return
-	}
-
-	if err = handle.LinkSetMaster(link, bridge); err != nil {
+	if err = setMaster(bridge, tuntap, eth); err != nil {
 		return
 	}
 
@@ -158,11 +149,6 @@ func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
 	if err != nil || addrs == nil || len(addrs) == 0 {
 		// set the bool to true so the caller knows to retry
 		return nil, true, fmt.Errorf("interface %q has no address", iface.Name)
-	}
-
-	handle, err := netlink.NewHandle()
-	if err != nil {
-		return nil, false, fmt.Errorf("failed to acquire handle on network namespace: %v", err)
 	}
 
 	for _, addr := range addrs {
@@ -197,7 +183,7 @@ func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
 			return nil, false, fmt.Errorf("failed to parse address from stringified IP %q: %v", addr.String(), err)
 		}
 
-		if err = handle.AddrDel(link, delAddr); err != nil {
+		if err = netlink.AddrDel(link, delAddr); err != nil {
 			return nil, false, fmt.Errorf("failed to remove address from interface %q: %v", iface.Name, err)
 		}
 
@@ -212,6 +198,7 @@ func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
 	return nil, false, fmt.Errorf("interface %s has no valid addresses", iface.Name)
 }
 
+// createTAPAdapter creates a new TAP device with the given name
 func createTAPAdapter(tapName string) (*netlink.Tuntap, error) {
 	la := netlink.NewLinkAttrs()
 	la.Name = tapName
@@ -222,6 +209,7 @@ func createTAPAdapter(tapName string) (*netlink.Tuntap, error) {
 	return tuntap, addLink(tuntap)
 }
 
+// createBridge creates a new bridge device with the given name
 func createBridge(bridgeName string) (*netlink.Bridge, error) {
 	la := netlink.NewLinkAttrs()
 	la.Name = bridgeName
@@ -229,11 +217,50 @@ func createBridge(bridgeName string) (*netlink.Bridge, error) {
 	return bridge, addLink(bridge)
 }
 
+// addLink creates the given link and brings it up
 func addLink(link netlink.Link) (err error) {
 	if err = netlink.LinkAdd(link); err == nil {
 		err = netlink.LinkSetUp(link)
 	}
 
+	return
+}
+
+// This is a MAC address persistence workaround, netlink.LinkSetMaster{,ByIndex}()
+// has a bug that arbitrarily changes the MAC addresses of the bridge and virtual
+// device to be bound to it. TODO: Remove when fixed upstream
+func setMaster(master netlink.Link, links ...netlink.Link) error {
+	masterIndex := master.Attrs().Index
+	masterMAC, err := getMAC(master)
+	if err != nil {
+		return err
+	}
+
+	for _, link := range links {
+		mac, err := getMAC(link)
+		if err != nil {
+			return err
+		}
+
+		if err = netlink.LinkSetMasterByIndex(link, masterIndex); err != nil {
+			return err
+		}
+
+		if err = netlink.LinkSetHardwareAddr(link, mac); err != nil {
+			return err
+		}
+	}
+
+	return netlink.LinkSetHardwareAddr(master, masterMAC)
+}
+
+// getMAC fetches the generated MAC address for the given link
+func getMAC(link netlink.Link) (addr net.HardwareAddr, err error) {
+	if link, err = netlink.LinkByIndex(link.Attrs().Index); err != nil {
+		return
+	}
+
+	addr = link.Attrs().HardwareAddr
 	return
 }
 
