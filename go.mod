@@ -8,6 +8,9 @@ replace (
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c
 )
 
+// TODO: Remove this when https://github.com/vishvananda/netlink/pull/554 is merged
+replace github.com/vishvananda/netlink => github.com/twelho/netlink v1.1.1-0.20200709104403-94a3428ca41d
+
 require (
 	github.com/alessio/shellescape v1.2.2
 	github.com/c2h5oh/datasize v0.0.0-20200112174442-28bbd4740fee
@@ -50,7 +53,9 @@ require (
 	github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2 // indirect
 	github.com/vishvananda/netlink v1.1.0
 	github.com/weaveworks/libgitops v0.0.0-20200611103311-2c871bbbbf0c
-	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/net v0.0.0-20200625001655-4c5254603344 // indirect
+	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208 // indirect
 	golang.org/x/sys v0.0.0-20200610111108-226ff32320da
 	gotest.tools v2.2.0+incompatible
 	k8s.io/apimachinery v0.18.3
