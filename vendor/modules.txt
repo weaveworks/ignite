@@ -431,7 +431,7 @@ github.com/stretchr/testify/assert
 # github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2
 ## explicit
 github.com/syndtr/gocapability/capability
-# github.com/vishvananda/netlink v1.1.0 => github.com/twelho/netlink v1.1.1-0.20200709104403-94a3428ca41d
+# github.com/vishvananda/netlink v1.1.0 => github.com/twelho/netlink v1.1.1-ageing
 ## explicit
 github.com/vishvananda/netlink
 github.com/vishvananda/netlink/nl
@@ -627,4 +627,4 @@ sigs.k8s.io/yaml
 # github.com/docker/distribution => github.com/docker/distribution v0.0.0-20190711223531-1fb7fffdb266
 # github.com/docker/docker => github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0
 # k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c
-# github.com/vishvananda/netlink => github.com/twelho/netlink v1.1.1-0.20200709104403-94a3428ca41d
+# github.com/vishvananda/netlink => github.com/twelho/netlink v1.1.1-ageing

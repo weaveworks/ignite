@@ -9,7 +9,7 @@ replace (
 )
 
 // TODO: Remove this when https://github.com/vishvananda/netlink/pull/554 is merged
-replace github.com/vishvananda/netlink => github.com/twelho/netlink v1.1.1-0.20200709104403-94a3428ca41d
+replace github.com/vishvananda/netlink => github.com/twelho/netlink v1.1.1-ageing
 
 require (
 	github.com/alessio/shellescape v1.2.2
