@@ -3,8 +3,8 @@ package v1alpha1
 import (
 	"fmt"
 
-	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/libgitops/pkg/runtime"
 )
 
 const (

@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
-	"github.com/weaveworks/gitops-toolkit/pkg/storage"
-	"github.com/weaveworks/gitops-toolkit/pkg/storage/cache"
+	"github.com/weaveworks/libgitops/pkg/runtime"
+	"github.com/weaveworks/libgitops/pkg/storage"
+	"github.com/weaveworks/libgitops/pkg/storage/cache"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"

@@ -1,0 +1,51 @@
+name: docs
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  markdown-link-checker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # Check top-level markdown files
+      - uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          max-depth: '0'
+          use-verbose-mode: 'yes'
+          config-file: 'markdown-link-check-config.json'
+
+  site-link-checker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r docs/requirements.txt
+
+      - name: Build docs for link check
+        run: mkdocs build
+
+        # Using liche action to check generated HTML site
+      - name: Link Checker (generated site)
+        id: lc2
+        uses: peter-evans/link-checker@v1
+        with:
+          args: -d site/ -r site/ -x "(github.com/weaveworks/ignite($|/issue|/pull|/releases|/commit/|/releases)|squidfunk.github.io|ignite.readthedocs.io)"
+
+      - name: Fail if there were link errors
+        run: exit ${{ steps.lc2.outputs.exit_code }}

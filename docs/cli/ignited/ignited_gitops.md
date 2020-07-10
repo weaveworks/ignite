@@ -21,9 +21,14 @@ ignited gitops <repo-url> [flags]
 ### Options
 
 ```
-  -b, --branch string   What branch to sync (default "master")
-  -h, --help            help for gitops
-  -p, --paths strings   What subdirectories to care about. Default the whole repository
+  -b, --branch string           What branch to sync (default "master")
+  -h, --help                    help for gitops
+      --hosts-file string       What known_hosts file to use for remote verification (default "~/.ssh/known_hosts")
+      --https-password string   What password/access token to use when authenticating with Git over HTTPS
+      --https-username string   What username to use when authenticating with Git over HTTPS
+      --identity-file string    What SSH identity file to use for pushing
+      --interval duration       Sync interval for pushing to and pulling from the remote (default 30s)
+      --timeout duration        Git operation (clone, push, pull) timeout (default 1m0s)
 ```
 
 ### Options inherited from parent commands

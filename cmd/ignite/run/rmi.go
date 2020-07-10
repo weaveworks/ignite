@@ -5,10 +5,10 @@ import (
 	"os"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/weaveworks/gitops-toolkit/pkg/filter"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/libgitops/pkg/filter"
 )
 
 type RmiFlags struct {

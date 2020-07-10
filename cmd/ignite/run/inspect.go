@@ -6,11 +6,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/weaveworks/gitops-toolkit/pkg/filter"
-	"github.com/weaveworks/gitops-toolkit/pkg/runtime"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/libgitops/pkg/filter"
+	"github.com/weaveworks/libgitops/pkg/runtime"
 )
 
 // InspectFlags contains the flags supported by inspect.
