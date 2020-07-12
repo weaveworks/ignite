@@ -53,7 +53,7 @@ func ActivateSnapshot(vm *api.VM) error {
 		return err
 	}
 	// Release the lock at the end.
-	defer lock.Unlock()
+	defer util.DeferErr(&err, lock.Unlock)
 
 	// Setup loop device for the image
 	imageLoop, err := newLoopDev(path.Join(constants.IMAGE_DIR, imageUID.String(), constants.IMAGE_FS), true)

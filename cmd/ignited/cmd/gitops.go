@@ -27,7 +27,7 @@ type gitOpsFlags struct {
 	username     string
 	password     string
 
-	paths []string
+	// paths []string
 }
 
 // NewCmdGitOps runs the GitOps functionality of Ignite

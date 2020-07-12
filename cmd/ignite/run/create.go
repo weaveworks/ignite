@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/util"
 
 	flag "github.com/spf13/pflag"
 	patchutil "github.com/weaveworks/libgitops/pkg/util/patch"
@@ -223,7 +224,8 @@ func Create(co *createOptions) error {
 	if err := metadata.SetLabels(co.VM, co.Labels); err != nil {
 		return err
 	}
-	defer metadata.Cleanup(co.VM, false) // TODO: Handle silent
+	var err error
+	defer util.DeferErr(&err, func() error { return metadata.Cleanup(co.VM, false) })
 
 	if err := providers.Client.VMs().Set(co.VM); err != nil {
 		return err

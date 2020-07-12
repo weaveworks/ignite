@@ -84,16 +84,16 @@ func AllocateAndPopulateOverlay(vm *api.VM) error {
 
 func copyToOverlay(vm *api.VM) error {
 	err := ActivateSnapshot(vm)
-	defer cleanup.DeactivateSnapshot(vm)
 	if err != nil {
 		return err
 	}
+	defer util.DeferErr(&err, func() error { return cleanup.DeactivateSnapshot(vm) })
 
 	mp, err := util.Mount(vm.SnapshotDev())
-	defer mp.Umount()
 	if err != nil {
 		return err
 	}
+	defer util.DeferErr(&err, mp.Umount)
 
 	// Copy the kernel files to the VM. TODO: Use snapshot overlaying instead.
 	if err := copyKernelToOverlay(vm, mp.Path); err != nil {

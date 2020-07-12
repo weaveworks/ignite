@@ -20,7 +20,7 @@ func ValidateBlockDeviceVolume(b *api.BlockDeviceVolume, fldPath *field.Path, pa
 
 	// Validate path uniqueness
 	if _, ok := paths[b.Path]; ok {
-		allErrs = append(allErrs, field.Invalid(pathFldPath, b.Path, fmt.Sprintf("blockDevice path must be unique")))
+		allErrs = append(allErrs, field.Invalid(pathFldPath, b.Path, "blockDevice path must be unique"))
 	} else {
 		paths[b.Path] = struct{}{}
 	}
@@ -45,7 +45,7 @@ func ValidateVMStorage(s *api.VMStorageSpec, fldPath *field.Path) (allErrs field
 		// For now require and validate the BlockDevice entry
 		blockDevFldPath := volumeFldPath.Child("blockDevice")
 		if volume.BlockDevice == nil {
-			allErrs = append(allErrs, field.Invalid(blockDevFldPath, nil, fmt.Sprint("blockDevice must be non-nil")))
+			allErrs = append(allErrs, field.Invalid(blockDevFldPath, nil, "blockDevice must be non-nil"))
 		} else {
 			allErrs = append(allErrs, ValidateBlockDeviceVolume(volume.BlockDevice, blockDevFldPath, blockDevPaths)...)
 		}
@@ -80,7 +80,7 @@ func ValidateVMStorage(s *api.VMStorageSpec, fldPath *field.Path) (allErrs field
 
 		// Validate volumeMount path uniqueness
 		if _, ok := mountPaths[mount.MountPath]; ok {
-			allErrs = append(allErrs, field.Invalid(mountPathFldPath, mount.MountPath, fmt.Sprintf("volumeMount path must be unique")))
+			allErrs = append(allErrs, field.Invalid(mountPathFldPath, mount.MountPath, "volumeMount path must be unique"))
 		} else {
 			mountPaths[mount.MountPath] = struct{}{}
 		}

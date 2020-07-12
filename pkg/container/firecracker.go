@@ -132,7 +132,7 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	if err := m.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start machine: %v", err)
 	}
-	defer m.StopVMM()
+	defer util.DeferErr(&err, m.StopVMM)
 
 	installSignalHandlers(ctx, m)
 
@@ -156,18 +156,24 @@ func installSignalHandlers(ctx context.Context, m *firecracker.Machine) {
 			switch s := <-c; {
 			case s == syscall.SIGTERM || s == os.Interrupt:
 				fmt.Println("Caught SIGTERM, requesting clean shutdown")
-				m.Shutdown(ctx)
+				if err := m.Shutdown(ctx); err != nil {
+					log.Errorf("Machine shutdown failed with error: %v", err)
+				}
 				time.Sleep(constants.STOP_TIMEOUT * time.Second)
 
 				// There's no direct way of checking if a VM is running, so we test if we can send it another shutdown
 				// request. If that fails, the VM is still running and we need to kill it.
 				if err := m.Shutdown(ctx); err == nil {
 					fmt.Println("Timeout exceeded, forcing shutdown") // TODO: Proper logging
-					m.StopVMM()
+					if err := m.StopVMM(); err != nil {
+						log.Errorf("VMM stop failed with error: %v", err)
+					}
 				}
 			case s == syscall.SIGQUIT:
 				fmt.Println("Caught SIGQUIT, forcing shutdown")
-				m.StopVMM()
+				if err := m.StopVMM(); err != nil {
+					log.Errorf("VMM stop failed with error: %v", err)
+				}
 			}
 		}
 	}()

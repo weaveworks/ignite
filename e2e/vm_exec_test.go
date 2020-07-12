@@ -57,4 +57,4 @@ func TestVMExecInteractive(t *testing.T) {
 	catOut, catErr := catCmd.CombinedOutput()
 	assert.Check(t, catErr, fmt.Sprintf("cat: \n%q\n%s", catCmd.Args, catOut))
 	assert.Equal(t, string(catOut), inputContent, fmt.Sprintf("unexpected file content on host:\n\t(WNT): %q\n\t(GOT): %q", inputContent, string(catOut)))
-} 
+}

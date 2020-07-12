@@ -123,7 +123,7 @@ func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout 
 		if err != nil {
 			return printErrAndSetExitCode(fmt.Errorf("failed to make terminal raw: %v", err), &exitCode, 1)
 		}
-		defer terminal.Restore(fd, state)
+		defer util.DeferErr(&err, func() error { return terminal.Restore(fd, state) })
 
 		// Get the terminal dimensions.
 		w, h, err := terminal.GetSize(fd)

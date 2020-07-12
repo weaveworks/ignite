@@ -11,9 +11,8 @@ import (
 )
 
 const (
-	filterSeparator   = ","
-	filterApplyFailed = "failed to apply filtering"
-	regexString       = `^(?P<key>{{(?:\.|[a-zA-Z0-9]+)+}})(?P<operator>(?:=|==|!=|=~|!~))(?P<value>[a-zA-Z0-9-_:/\.\s]+)$`
+	filterSeparator = ","
+	regexString     = `^(?P<key>{{(?:\.|[a-zA-Z0-9]+)+}})(?P<operator>(?:=|==|!=|=~|!~))(?P<value>[a-zA-Z0-9-_:/\.\s]+)$`
 )
 
 type metaFilter struct {

@@ -82,7 +82,10 @@ func addFiles(img *api.Image, src source.Source) error {
 	if _, err := util.ExecuteCommand("mount", "-o", "loop", p, tempDir); err != nil {
 		return fmt.Errorf("failed to mount image %q: %v", p, err)
 	}
-	defer util.ExecuteCommand("umount", tempDir)
+	defer util.DeferErr(&err, func() error {
+		_, err := util.ExecuteCommand("umount", tempDir)
+		return err
+	})
 
 	tarCmd := exec.Command("tar", "-x", "-C", tempDir)
 	reader, err := src.Reader()

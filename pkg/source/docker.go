@@ -3,7 +3,6 @@ package source
 import (
 	"fmt"
 	"io"
-	"os/exec"
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
@@ -15,7 +14,7 @@ import (
 type DockerSource struct {
 	imageRef    meta.OCIImageRef
 	cleanupFunc func() error
-	exportCmd   *exec.Cmd
+	// exportCmd   *exec.Cmd
 }
 
 // Compile-time assert to verify interface compatibility

@@ -6,6 +6,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 func ImportImage(source string) (*api.Image, error) {
@@ -18,7 +19,7 @@ func ImportImage(source string) (*api.Image, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer metadata.Cleanup(image, false) // TODO: Handle silent
+	defer util.DeferErr(&err, func() error { return metadata.Cleanup(image, false) })
 
 	return image, metadata.Success(image)
 }
@@ -33,7 +34,7 @@ func ImportKernel(source string) (*api.Kernel, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer metadata.Cleanup(kernel, false) // TODO: Handle silent
+	defer util.DeferErr(&err, func() error { return metadata.Cleanup(kernel, false) })
 
 	return kernel, metadata.Success(kernel)
 }
