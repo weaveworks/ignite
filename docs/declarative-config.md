@@ -72,6 +72,10 @@ spec:
     # Required, what OCI image to get the kernel binary (and optionally modules) from
     # Default: weaveworks/ignite-kernel:4.19.47
     oci:  [OCI image reference]
+  sandbox:
+    # Optional, what OCI image to use as the ignite sandbox.
+    # Default: weaveworks/ignite
+    oci: [OCI image reference]
   
   network:
     # Optional, an array of port mappings that map ports bound to the VM to the host
