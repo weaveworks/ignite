@@ -40,8 +40,8 @@ func (p *Pool) CreateVolume(size meta.Size, metadataPath string) (*Device, error
 
 		return &Device{
 			PoolDevice: &api.PoolDevice{
-				Size:         size.Add(extraSize),
-				Parent:       nil,
+				Size: size.Add(extraSize),
+				// Parent:       nil,
 				MetadataPath: metadataPath,
 			},
 			pool: p,

@@ -31,7 +31,7 @@ func (d *DMID) Pool() bool {
 	return d.index < 0
 }
 
-func (d *DMID) Index() int {
+func (d DMID) Index() int {
 	if !d.Pool() {
 		return int(d.index)
 	}
