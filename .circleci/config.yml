@@ -39,7 +39,7 @@ jobs:
     - restore_cache:
         key: bin-cache
     # Run autogeneration and see if there are differences
-    - run: make autogen && make tidy-in-docker && git status --short
+    - run: make autogen && make tidy-in-docker && make api-docs && git status --short
     # Save the bin/cache directory
     - save_cache:
         key: bin-cache
