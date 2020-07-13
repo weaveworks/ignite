@@ -70,76 +70,6 @@ Cheers to everyone who was part of shipping this release:
 - @PaulGrandperrin
 - @stealthybox
 
-
-
-## Next Steps / Installation
-
-In short:
-
-```bash
-export VERSION=v0.7.0
-export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
-
-for binary in ignite ignited; do
-    echo "Installing ${binary}..."
-    curl -sfLo ${binary} https://github.com/weaveworks/ignite/releases/download/${VERSION}/${binary}-${GOARCH}
-    chmod +x ${binary}
-    sudo mv ${binary} /usr/local/bin
-done
-
-export CNI_VERSION=v0.8.5
-export ARCH=$([ $(uname -m) = "x86_64" ] && echo amd64 || echo arm64)
-sudo mkdir -p /opt/cni/bin
-curl -sSL https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz | sudo tar -xz -C /opt/cni/bin
-
-```
-
-A more thorough installation guide is available here: https://ignite.readthedocs.io/en/latest/installation
-
-
-
-## OCI Images for this release
-
-[ignite](
-https://hub.docker.com/r/weaveworks/ignite/tags?page=1&name=v0.7.0
-) ( sandbox )
-
-[ignite-kernel:4.14.182](
-https://hub.docker.com/r/weaveworks/ignite-kernel/tags?page=1&name=4.14.182
-) [multi-arch]
-[ignite-kernel:4.19.125](
-https://hub.docker.com/r/weaveworks/ignite-kernel/tags?page=1&name=4.19.125
-) [multi-arch] ( default )
-[ignite-kernel:5.4.43](
-https://hub.docker.com/r/weaveworks/ignite-kernel/tags?page=1&name=5.4.43
-) [multi-arch]
-
-
-[ignite-amazon-kernel](
-https://hub.docker.com/r/weaveworks/ignite-amazon-kernel/tags?page=1&name=v0.7.0
-)
-[ignite-amazonlinux](
-https://hub.docker.com/r/weaveworks/ignite-amazonlinux/tags?page=1&name=v0.7.0
-) 2
-[ignite-alpine](
-https://hub.docker.com/r/weaveworks/ignite-alpine/tags?page=1&name=v0.7.0
-)
-[ignite-centos](
-https://hub.docker.com/r/weaveworks/ignite-centos/tags?page=1&name=v0.7.0
-) 7, 8
-[ignite-opensuse](
-https://hub.docker.com/r/weaveworks/ignite-opensuse/tags?page=1&name=v0.7.0
-) tumbleweed, leap
-[ignite-ubuntu](
-https://hub.docker.com/r/weaveworks/ignite-ubuntu/tags?page=1&name=v0.7.0
-) [multi-arch] 16.04, 18.04, 20.04
-[ignite-kubeadm](
-https://hub.docker.com/r/weaveworks/ignite-kubeadm/tags?page=1&name=v0.7.0
-) [multi-arch] v1.18.3
-
-
-
-__________
 ### Enhancements
 
 - rm: Add --config flag ([#525](https://github.com/weaveworks/ignite/pull/525), [@darkowlzz](https://github.com/darkowlzz))
@@ -243,8 +173,6 @@ __________
 - update firecracker to v0.19.0 ([#480](https://github.com/weaveworks/ignite/pull/480), [@chanwit](https://github.com/chanwit))
 
  -->
-
-
 
 ---
 
@@ -1128,9 +1056,9 @@ There are many significant changes compared to before:
  - Add user-facing documentation and guides https://github.com/weaveworks/ignite/pull/113
    - See: https://github.com/weaveworks/ignite/tree/master/docs
  - Generate OpenAPI specifications https://github.com/weaveworks/ignite/commit/f1c5bfd473799f712c4c1d8fb276426780c1bf01
-   - See: https://github.com/weaveworks/ignite/blob/master/api/openapi/openapi_generated.go
+   - See: https://github.com/weaveworks/ignite/blob/master/pkg/openapi/openapi_generated.go
  - Add API type documentation https://github.com/weaveworks/ignite/commit/218c94723f836b8e2cb82886b8664544933ea605
-   - See: https://github.com/weaveworks/ignite/blob/master/api
+   - See: https://github.com/weaveworks/ignite/blob/master/pkg/openapi/
  - Added architecture diagram https://github.com/weaveworks/ignite/commit/da53f9fc2f5790edacb5d1b541dd4da8a6089673
    - See: https://github.com/weaveworks/ignite/blob/master/docs/architecture.png
  - Added graph of module dependencies https://github.com/weaveworks/ignite/commit/be7cc088c671c5728155fb146367a67d4ada4ea6
