@@ -2,11 +2,39 @@
 
 # Changelog
 
+## v0.7.1
+
+**Released:** 13/07/2020
+
+The first patch release in the `v0.7.X` series pulls in an important fix for the long-standing
+networking issues in Ignite, with [#638](https://github.com/weaveworks/ignite/pull/638) merged
+you should be able to seamlessly integrate with different CNI providers and implement multi-node
+networking with Ignite VMs.
+
+`v0.7.1` also brings improvements to the GitOps functionality courtesy of [@luxas](https://github.com/luxas)
+and link checking improvements by [@dholbach](https://github.com/dholbach). Thanks!
+
+### Enhancements
+
+- Shadow the bogus /etc/resolv.conf of centos:8 to fix `wksctl` ([#611](https://github.com/weaveworks/ignite/pull/611), [@twelho](https://github.com/twelho))
+- Rename the `gitops-toolkit` dependency to `libgitops` ([#612](https://github.com/weaveworks/ignite/pull/612), [@twelho](https://github.com/twelho))
+- Use the new knownhosts package in fluxcd/toolkit ([#617](https://github.com/weaveworks/ignite/pull/617), [@luxas](https://github.com/luxas))
+- Use the new libgitops GitDirectory implementation ([#615](https://github.com/weaveworks/ignite/pull/615), [@luxas](https://github.com/luxas))
+
+### Bug Fixes
+
+- Fix CNI networking issues (MAC duplication + bridge ageing) ([#638](https://github.com/weaveworks/ignite/pull/638), [@twelho](https://github.com/twelho))
+
+### Documentation
+
+- Check links using GH Action ([#573](https://github.com/weaveworks/ignite/pull/573), [@dholbach](https://github.com/dholbach))
+
 ## v0.7.0
 
 **Released:** 02/06/2020
 
 We're excited to cut a large release.
+This release consists of **57** noteworthy PR's from **13** contributors.  **27** of these patches were sent by **8** external contributors -- thanks so much for using and contributing back to the project!
 
 Among some of the many patches, VM's can now be started in parallel. (Images should be pulled beforehand) 
 The `ignite ssh` and `ignite exec` commands now share a native go implementation.
@@ -20,12 +48,11 @@ Lastly, we're announcing initial support for ARM devices.
 Our docker images for ignite-kernels as well os our OS images for Ubuntu and kubeadm now ship with a manifest 
 list and `{}-arm64` tag.
 We've pushed a fresh set of kernel and OS images to dockerhub to support this.
-Check out our new guide for ARM -- try it out on your ARM server or RaspberryPi and let us know how it works for you.
+Check out our [new guide for ARM](https://ignite.readthedocs.io/en/latest/arm) -- try it out on your ARM server or RaspberryPi and let us know how it works for you.
 
 It was difficult to condense all of that!
-This release consists of **57** noteworthy PR's from **13** contributors.  **27** of these patches were sent by **8** external contributors -- thanks so much for using and contributing back to the project!
 
-As a special note, Sunny([@darkowlzz](https://github.com/darkowlzz))) from the [@StorageOS](https://github.com/StorageOS) team has joined in as a maintainer. Thanks for all of your help, Sunny.
+As a special note, Sunny([@darkowlzz](https://github.com/darkowlzz)) from the [@StorageOS](https://github.com/StorageOS) team has joined ignite as a maintainer. Thanks for all of your help, Sunny!
 
 
 Cheers to everyone who was part of shipping this release:
@@ -146,9 +173,8 @@ Cheers to everyone who was part of shipping this release:
 - update firecracker to v0.19.0 ([#480](https://github.com/weaveworks/ignite/pull/480), [@chanwit](https://github.com/chanwit))
 
  -->
-## v0.6.3
 
-**Released:** 10/12/2019
+---
 
 ## v0.6.3
 
@@ -1003,6 +1029,7 @@ There are many significant changes compared to before:
 
  - Make base and kernel OCI images composable for a VM. You can now choose what kernel to combine with what base image freely https://github.com/weaveworks/ignite/pull/105
  - Add the GitOps mode for Ignite using `ignite gitops` https://github.com/weaveworks/ignite/pull/100
+   - Documentation: https://github.com/weaveworks/ignite/blob/master/gitops
  - Make it possible to run `ignite create` and `ignite run` declaratively https://github.com/weaveworks/ignite/commit/57333646b52a0e1e3a725340e994b2749b39e5bd
    - Documentation: https://github.com/weaveworks/ignite/blob/master/docs/declarative-config.md
  - Added Prometheus metrics for `ignite-spawn` https://github.com/weaveworks/ignite/commit/94abc529972873db3fa3ee954099a4f62d67b6f3
@@ -1012,8 +1039,10 @@ There are many significant changes compared to before:
 ### API Machinery
 
  - Added the `ignite.weave.works/v1alpha1` API group with the Ignite API types https://github.com/weaveworks/ignite/commit/ca1edc8e7a61b950811c6145ba2ad53f8cdc2a04
+   - API reference: https://github.com/weaveworks/ignite/blob/master/api/ignite.md
    - This API version will not change in a future version. When improvements are made, it will be to `v1alpha2` etc.
  - Add a meta API package containing supporting but generic API types for Ignite https://github.com/weaveworks/ignite/commit/09d51abd409ee361e93884baae24ffc92cde63a9
+   - API reference: https://github.com/weaveworks/ignite/blob/master/api/meta.md
  - Create composable interfaces for the internal API machinery: `Client` -> `Cache` -> `Storage` -> `RawStorage` -> `Serializer` https://github.com/weaveworks/ignite/pull/93 https://github.com/weaveworks/ignite/pull/96 https://github.com/weaveworks/ignite/pull/99
  - The API Machinery used in Ignite is partly based on the Kubernetes API machinery (`k8s.io/apimachinery`), and hence follows some of the same patterns
 
