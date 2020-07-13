@@ -28,9 +28,6 @@ and link checking improvements by [@dholbach](https://github.com/dholbach). Than
 ### Documentation
 
 - Check links using GH Action ([#573](https://github.com/weaveworks/ignite/pull/573), [@dholbach](https://github.com/dholbach))
-## v0.7.0
-
-**Released:** 03/06/2020
 
 ## v0.7.0
 
@@ -250,10 +247,6 @@ __________
 
 
 ---
-
-## v0.6.3
-
-**Released:** 10/12/2019
 
 ## v0.6.3
 
