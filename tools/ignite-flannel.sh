@@ -1,8 +1,13 @@
 #!/bin/bash -e
+# This is a helper script to set up a standalone CNI overlay using Flannel
+# for use with Ignite VMs. See docs/networking.md for more information.
+
+shopt -s extglob nullglob
 
 ETCD_VERSION=v3.2.27
 FLANNEL_VERSION=v0.12.0-amd64
-DOCKER="sudo docker"
+ETCD_NAME="ignite-etcd"
+FLANNEL_NAME="ignite-flannel"
 
 FLANNEL_CONFLIST='{
 	"name": "cbr0",
@@ -27,20 +32,76 @@ FLANNEL_CONFLIST='{
 	]
 }'
 
-root_write() {
-	echo "$2" | sudo tee "$1" > /dev/null
+ARGS=("$@") # Save the args before shifting them away
+ACTIONS="init|cleanup"
+
+usage() {
+	cat <<- EOF
+	Usage:
+	    $0 [-h|--help] ($ACTIONS)
+
+	Available Options:
+	    -h, --help        Show this help text
+	EOF
+
+	exit "$1"
 }
 
+# Set the given action
+set_action() {
+	[ -n "$ACTION" ] && usage 1
+	ACTION="$1"
+}
+
+# Parse command line arguments
+while test "$#" -gt 0; do
+	case "$1" in
+		@($ACTIONS))
+			set_action "$1"
+			;;
+		-h|--help)
+			usage 0
+			;;
+		*)
+			usage 1
+			;;
+	esac
+
+	shift
+done
+
+[ -z "$ACTION" ] && usage 1
+
+# Elevate privileges if needed
+if [ "$EUID" -ne 0 ]; then
+	exec sudo "$0" "${ARGS[@]}"
+fi
+
+# Fancy message formatting
+log() {
+	echo -e "\e[32;1m==>\e[39m $*\e[0m"
+}
+
+# Stops the given containers
 stop_container() {
-	mapfile -t ID <<< "$(${DOCKER} ps -q --filter "name=$1")"
-	{ (( ${#ID[@]} )) && ${DOCKER} rm -f "${ID[@]}" 1> /dev/null; } || true
+	mapfile -t ID <<< "$(docker ps -q --filter "name=$1")"
+	{ (( ${#ID[@]} )) && docker stop "${ID[@]}" 1> /dev/null; } || true
 }
 
-start_etcd() {
-	${DOCKER} run -d --rm \
+# Forwards the passed parameters to 'etcdctl set'
+set_config() {
+	docker exec "$ETCD_NAME" etcdctl set "$@"
+}
+
+run_init() {
+	# Stop etcd and/or Flannel if they're already running
+	stop_container "$ETCD_NAME|$FLANNEL_NAME"
+
+	log "Starting $ETCD_NAME container... "
+	docker run -d --rm \
 		-p 2379:2379 \
 		-p 2380:2380 \
-		--name "$1" \
+		--name "$ETCD_NAME" \
 		gcr.io/etcd-development/etcd:${ETCD_VERSION} \
  		/usr/local/bin/etcd \
 		--name s1 \
@@ -52,46 +113,50 @@ start_etcd() {
 		--initial-cluster s1=http://0.0.0.0:2380 \
 		--initial-cluster-token tkn \
 		--initial-cluster-state new
-}
 
-start_flannel() {
-	${DOCKER} run -d --rm \
+	log "Setting Flannel config:"
+	set_config /coreos.com/network/config '{ "Network": "10.1.0.0/16" }'
+
+	log "Starting $FLANNEL_NAME container... "
+	docker run -d --rm \
 		--net host \
-		--name "$1" \
+		--name "$FLANNEL_NAME" \
 		--cap-add NET_ADMIN \
 		--device /dev/net/tun \
 		-v /etc/cni:/etc/cni \
 		-v /run/flannel:/run/flannel \
 		quay.io/coreos/flannel:${FLANNEL_VERSION} \
 		-ip-masq
-}
 
-set_config() {
-	# Forward the passed parameters to 'etcdctl set'
-	${DOCKER} exec ignite-etcd etcdctl set "$@"
-}
-
-set_cni_conf() {
+	log "Setting CNI config..."
 	# Remove Ignite's conflist if it exists
 	rm -f /etc/cni/net.d/10-ignite.conflist
 
 	# Write the Flannel conflist
-	root_write /etc/cni/net.d/10-flannel.conflist "$FLANNEL_CONFLIST"
+	echo "$FLANNEL_CONFLIST" > /etc/cni/net.d/10-flannel.conflist
 }
 
-# Stop etcd and/or Flannel if they're already running
-stop_container "ignite-etcd|ignite-flannel"
+run_cleanup() {
+	# Remove Flannel's conflist
+	rm -f /etc/cni/net.d/10-flannel.conflist
 
-echo "Starting ignite-etcd container:"
-start_etcd ignite-etcd
+	# Stop etcd and/or Flannel if they're running
+	stop_container "$ETCD_NAME|$FLANNEL_NAME"
+}
 
-echo "Setting Flannel config:"
-set_config /coreos.com/network/config '{ "Network": "10.1.0.0/16" }'
-
-echo "Starting ignite-flannel container:"
-start_flannel ignite-flannel
-
-echo "Setting CNI config."
-set_cni_conf
-
-echo "Initialized, now run your VMs with CNI networking."
+# Run the specified action
+case "$ACTION" in
+	init)
+		run_init
+		log "Initialized, now start your Ignite VMs with the CNI network plugin."
+		;;
+	cleanup)
+		run_cleanup
+		log "Cleanup complete."
+		;;
+	*)
+		# Should never happen
+		log "Configuration error: invalid action $ACTION"
+		exit 1
+		;;
+esac
