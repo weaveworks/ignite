@@ -2,6 +2,9 @@
 # This is a helper script to set up a standalone CNI overlay using Flannel
 # for use with Ignite VMs. See docs/networking.md for more information.
 
+# Note: This script is meant to serve as a simple example, it does NOT
+# secure the Flannel nor etcd traffic. Do not use it in production as-is.
+
 shopt -s extglob nullglob
 
 ETCD_VERSION=v3.2.27

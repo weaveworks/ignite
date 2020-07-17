@@ -65,6 +65,8 @@ out of the box, as the CNI implementation is most probably already running in a 
 a third-party CNI plugin to enable networking across multiple hosts/nodes. To ease the setup process, this repository
 provides a helper script at [tools/ignite-flannel.sh](https://github.com/weaveworks/ignite/blob/master/tools/ignite-flannel.sh).
 
+**Note: This script is meant to serve as a simple example, it does NOT secure the Flannel nor etcd traffic. Do not use it in production as-is.**
+
 ### Configuring the nodes
 
 #### Node 1 (192.168.1.2)
