@@ -161,6 +161,7 @@ run_init() {
 	rm -f /etc/cni/net.d/10-ignite.conflist
 
 	# Write the Flannel conflist
+	mkdir -p /etc/cni/net.d
 	echo "$FLANNEL_CONFLIST" > /etc/cni/net.d/10-flannel.conflist
 }
 
@@ -186,6 +187,7 @@ run_join() {
 	rm -f /etc/cni/net.d/10-ignite.conflist
 
 	# Write the Flannel conflist
+	mkdir -p /etc/cni/net.d
 	echo "$FLANNEL_CONFLIST" > /etc/cni/net.d/10-flannel.conflist
 }
 
