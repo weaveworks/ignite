@@ -15,7 +15,7 @@
   - [type DMID](#DMID)
       - [func NewDMID(i int) DMID](#NewDMID)
       - [func NewPoolDMID() DMID](#NewPoolDMID)
-      - [func (d \*DMID) Index() int](#DMID.Index)
+      - [func (d DMID) Index() int](#DMID.Index)
       - [func (d \*DMID) Pool() bool](#DMID.Pool)
       - [func (d DMID) String() string](#DMID.String)
   - [type IPAddresses](#IPAddresses)
@@ -110,10 +110,10 @@ func NewDMID(i int) DMID
 func NewPoolDMID() DMID
 ```
 
-### <a name="DMID.Index">func</a> (\*DMID) [Index](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/dmid.go?s=514:540#L34)
+### <a name="DMID.Index">func</a> (DMID) [Index](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/dmid.go?s=514:539#L34)
 
 ``` go
-func (d *DMID) Index() int
+func (d DMID) Index() int
 ```
 
 ### <a name="DMID.Pool">func</a> (\*DMID) [Pool](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/dmid.go?s=462:488#L30)
@@ -122,7 +122,7 @@ func (d *DMID) Index() int
 func (d *DMID) Pool() bool
 ```
 
-### <a name="DMID.String">func</a> (DMID) [String](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/dmid.go?s=623:652#L42)
+### <a name="DMID.String">func</a> (DMID) [String](https://github.com/weaveworks/ignite/tree/master/pkg/apis/meta/v1alpha1/dmid.go?s=622:651#L42)
 
 ``` go
 func (d DMID) String() string
