@@ -39,5 +39,5 @@ func (nf *RuntimeFlag) Type() string {
 var _ pflag.Value = &RuntimeFlag{}
 
 func RuntimeVar(fs *pflag.FlagSet, ptr *runtime.Name) {
-	fs.Var(&RuntimeFlag{value: ptr}, "runtime", fmt.Sprintf("Container runtime to use. Available options are: %v", runtimes))
+	fs.Var(&RuntimeFlag{value: ptr}, "runtime", fmt.Sprintf("Container runtime to use. Available options are: %v (default %v)", runtimes, runtime.RuntimeContainerd))
 }

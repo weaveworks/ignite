@@ -37,5 +37,5 @@ func (nf *NetworkPluginFlag) Type() string {
 var _ pflag.Value = &NetworkPluginFlag{}
 
 func NetworkPluginVar(fs *pflag.FlagSet, ptr *network.PluginName) {
-	fs.Var(&NetworkPluginFlag{value: ptr}, "network-plugin", fmt.Sprintf("Network plugin to use. Available options are: %v", plugins))
+	fs.Var(&NetworkPluginFlag{value: ptr}, "network-plugin", fmt.Sprintf("Network plugin to use. Available options are: %v (default %v)", plugins, network.PluginCNI))
 }

@@ -17,9 +17,11 @@ import (
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
+	"github.com/weaveworks/ignite/pkg/network"
 	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/providers/ignite"
+	"github.com/weaveworks/ignite/pkg/runtime"
 	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
 	"github.com/weaveworks/ignite/pkg/util"
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
@@ -80,15 +82,25 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 					log.Fatal(err)
 				}
 
-				// Set providers runtime and network plugin if found in config.
-				if providers.ComponentConfig.Spec.Runtime != "" {
+				// Set providers runtime and network plugin if found in config
+				// and not set explicitly via flags.
+				if providers.ComponentConfig.Spec.Runtime != "" && providers.RuntimeName == "" {
 					providers.RuntimeName = providers.ComponentConfig.Spec.Runtime
 				}
-				if providers.ComponentConfig.Spec.NetworkPlugin != "" {
+				if providers.ComponentConfig.Spec.NetworkPlugin != "" && providers.NetworkPluginName == "" {
 					providers.NetworkPluginName = providers.ComponentConfig.Spec.NetworkPlugin
 				}
 			} else {
 				log.Debugln("Using ignite default configurations")
+			}
+
+			// Set the default runtime and network-plugin if it's not set by
+			// now.
+			if providers.RuntimeName == "" {
+				providers.RuntimeName = runtime.RuntimeContainerd
+			}
+			if providers.NetworkPluginName == "" {
+				providers.NetworkPluginName = network.PluginCNI
 			}
 
 			// Populate the providers after flags have been parsed
