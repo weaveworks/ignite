@@ -9,32 +9,36 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-func ImportImage(source string) (*api.Image, error) {
+func ImportImage(source string) (image *api.Image, err error) {
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {
 		return nil, err
 	}
 
-	image, err := operations.FindOrImportImage(providers.Client, ociRef)
+	image, err = operations.FindOrImportImage(providers.Client, ociRef)
 	if err != nil {
 		return nil, err
 	}
 	defer util.DeferErr(&err, func() error { return metadata.Cleanup(image, false) })
 
-	return image, metadata.Success(image)
+	err = metadata.Success(image)
+
+	return
 }
 
-func ImportKernel(source string) (*api.Kernel, error) {
+func ImportKernel(source string) (kernel *api.Kernel, err error) {
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {
 		return nil, err
 	}
 
-	kernel, err := operations.FindOrImportKernel(providers.Client, ociRef)
+	kernel, err = operations.FindOrImportKernel(providers.Client, ociRef)
 	if err != nil {
 		return nil, err
 	}
 	defer util.DeferErr(&err, func() error { return metadata.Cleanup(kernel, false) })
 
-	return kernel, metadata.Success(kernel)
+	err = metadata.Success(kernel)
+
+	return
 }

@@ -14,7 +14,6 @@ import (
 type DockerSource struct {
 	imageRef    meta.OCIImageRef
 	cleanupFunc func() error
-	// exportCmd   *exec.Cmd
 }
 
 // Compile-time assert to verify interface compatibility

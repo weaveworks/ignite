@@ -20,7 +20,7 @@ import (
 )
 
 // ExecuteFirecracker executes the firecracker process using the Go SDK
-func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
+func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) (err error) {
 	drivePath := vm.SnapshotDev()
 
 	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(dhcpIfaces))
@@ -129,7 +129,7 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	//	m.EnableMetadata(opts.validMetadata)
 	//}
 
-	if err := m.Start(ctx); err != nil {
+	if err = m.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start machine: %v", err)
 	}
 	defer util.DeferErr(&err, m.StopVMM)
@@ -137,11 +137,11 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 	installSignalHandlers(ctx, m)
 
 	// wait for the VMM to exit
-	if err := m.Wait(ctx); err != nil {
+	if err = m.Wait(ctx); err != nil {
 		return fmt.Errorf("wait returned an error %s", err)
 	}
 
-	return nil
+	return err
 }
 
 // Install custom signal handlers:

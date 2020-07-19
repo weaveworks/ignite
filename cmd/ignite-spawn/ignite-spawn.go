@@ -38,7 +38,7 @@ func decodeVM(vmID string) (*api.VM, error) {
 	return vm, nil
 }
 
-func StartVM(vm *api.VM) error {
+func StartVM(vm *api.VM) (err error) {
 	// Setup networking inside of the container, return the available interfaces
 	dhcpIfaces, err := container.SetupContainerNetworking()
 	if err != nil {
@@ -49,7 +49,7 @@ func StartVM(vm *api.VM) error {
 	// This function returns the available IP addresses that are being
 	// served over DHCP now
 	if err = container.StartDHCPServers(vm, dhcpIfaces); err != nil {
-		return err
+		return
 	}
 
 	// Serve metrics over an unix socket in the VM's own directory
@@ -70,7 +70,7 @@ func StartVM(vm *api.VM) error {
 		return fmt.Errorf("runtime error for VM %q: %v", vm.GetUID(), err)
 	}
 
-	return nil
+	return
 }
 
 func serveMetrics(metricsSocket string) {

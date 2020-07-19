@@ -18,7 +18,7 @@ import (
 const snapshotLockFileName = "ignite-snapshot.lock"
 
 // ActivateSnapshot sets up the snapshot with devicemapper so that it is active and can be used
-func ActivateSnapshot(vm *api.VM) error {
+func ActivateSnapshot(vm *api.VM) (err error) {
 	device := util.NewPrefixer().Prefix(vm.GetUID())
 	devicePath := vm.SnapshotDev()
 
@@ -49,7 +49,7 @@ func ActivateSnapshot(vm *api.VM) error {
 	if err != nil {
 		return fmt.Errorf("failed to create lock: %v", err)
 	}
-	if err := obtainLock(lock); err != nil {
+	if err = obtainLock(lock); err != nil {
 		return err
 	}
 	// Release the lock at the end.
@@ -62,7 +62,7 @@ func ActivateSnapshot(vm *api.VM) error {
 	}
 
 	// Make sure the all directories above the snapshot directory exists
-	if err := os.MkdirAll(path.Dir(vm.OverlayFile()), 0755); err != nil {
+	if err = os.MkdirAll(path.Dir(vm.OverlayFile()), 0755); err != nil {
 		return err
 	}
 
@@ -95,7 +95,7 @@ func ActivateSnapshot(vm *api.VM) error {
 		dmBaseTable := []byte(fmt.Sprintf("0 %d linear %s 0\n%d %d zero", imageLoopSize, imageLoop.Path(), imageLoopSize, overlayLoopSize))
 
 		baseDevice := fmt.Sprintf("%s-base", device)
-		if err := runDMSetup(baseDevice, dmBaseTable); err != nil {
+		if err = runDMSetup(baseDevice, dmBaseTable); err != nil {
 			return err
 		}
 
@@ -105,7 +105,7 @@ func ActivateSnapshot(vm *api.VM) error {
 	// "0 8388608 snapshot /dev/{loop0,mapper/ignite-<uid>-base} /dev/loop1 P 8"
 	dmTable := []byte(fmt.Sprintf("0 %d snapshot %s %s P 8", overlayLoopSize, basePath, overlayLoop.Path()))
 
-	if err := runDMSetup(device, dmTable); err != nil {
+	if err = runDMSetup(device, dmTable); err != nil {
 		return err
 	}
 
@@ -115,18 +115,20 @@ func ActivateSnapshot(vm *api.VM) error {
 
 	// If the overlay is larger than the image, call resize2fs to make the filesystem fill the overlay
 	if overlayLoopSize > imageLoopSize {
-		if _, err := util.ExecuteCommand("resize2fs", devicePath); err != nil {
+		if _, err = util.ExecuteCommand("resize2fs", devicePath); err != nil {
 			return err
 		}
 	}
 
 	// By detaching the loop devices after setting up the snapshot
 	// they get automatically removed when the snapshot is removed.
-	if err := imageLoop.Detach(); err != nil {
+	if err = imageLoop.Detach(); err != nil {
 		return err
 	}
 
-	return overlayLoop.Detach()
+	err = overlayLoop.Detach()
+
+	return
 }
 
 // obtainLock tries to obtain a lock and retries if the lock is owned by
