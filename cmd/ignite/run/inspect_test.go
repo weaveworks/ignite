@@ -62,12 +62,18 @@ func TestInspect(t *testing.T) {
 			os.Stdout = w
 
 			err = Inspect(iop)
+			if (err != nil) != rt.err {
+				t.Errorf("expected error %t, actual: %v", rt.err, err)
+			}
 
 			w.Close()
 			os.Stdout = oldStdout
 
 			var buf bytes.Buffer
-			io.Copy(&buf, r)
+			_, err = io.Copy(&buf, r)
+			if err != nil {
+				t.Fatalf("failed copying to buffer: %v", err)
+			}
 
 			// Construct golden file path.
 			goldenFilePath := fmt.Sprintf("testdata%c%s", filepath.Separator, rt.golden)
@@ -91,10 +97,6 @@ func TestInspect(t *testing.T) {
 				if !bytes.Equal(buf.Bytes(), wantOutput) {
 					t.Errorf("expected output to be:\n%v\ngot output:\n%v", wantOutput, buf.Bytes())
 				}
-			}
-
-			if (err != nil) != rt.err {
-				t.Errorf("expected error %t, actual: %v", rt.err, err)
 			}
 		})
 	}

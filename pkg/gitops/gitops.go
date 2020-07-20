@@ -21,7 +21,9 @@ func RunGitOps(url string, opts gitdir.GitDirectoryOptions) error {
 	// TODO: Run gitDir.Cleanup() on SIGINT
 
 	// Wait for the repo to be cloned
-	gitDir.WaitForClone()
+	if err := gitDir.WaitForClone(); err != nil {
+		return err
+	}
 
 	// Construct a manifest storage for the path backed by git
 	s, err := manifest.NewTwoWayManifestStorage(gitDir.Dir(), constants.DATA_DIR, scheme.Serializer)

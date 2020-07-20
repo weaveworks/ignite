@@ -134,7 +134,10 @@ func TestPs(t *testing.T) {
 			os.Stdout = oldStdout
 
 			var buf bytes.Buffer
-			io.Copy(&buf, r)
+			_, err := io.Copy(&buf, r)
+			if err != nil {
+				t.Errorf("failed copying to buffer: %v", err)
+			}
 
 			// Construct golden file path.
 			goldenFilePath := fmt.Sprintf("testdata%c%s", filepath.Separator, rt.golden)
@@ -155,7 +158,7 @@ func TestPs(t *testing.T) {
 
 			// Check if the output contains expected result.
 			if !bytes.Equal(buf.Bytes(), wantOutput) {
-				t.Errorf("expected output to be:\n%v\ngot output:\n%v", string(wantOutput), string(buf.Bytes()))
+				t.Errorf("expected output to be:\n%v\ngot output:\n%v", string(wantOutput), buf.String())
 			}
 		})
 	}

@@ -51,7 +51,7 @@ func SSH(so *sshOptions) error {
 // runSSH creates and runs ssh session based on the provided arguments.
 // If the command list is empty, ssh shell is created, else the ssh command is
 // executed.
-func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout uint32) error {
+func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout uint32) (err error) {
 	// Check if the VM is running.
 	if !vm.Running() {
 		return fmt.Errorf("VM %q is not running", vm.GetUID())
@@ -123,7 +123,7 @@ func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout 
 		if err != nil {
 			return printErrAndSetExitCode(fmt.Errorf("failed to make terminal raw: %v", err), &exitCode, 1)
 		}
-		defer terminal.Restore(fd, state)
+		defer util.DeferErr(&err, func() error { return terminal.Restore(fd, state) })
 
 		// Get the terminal dimensions.
 		w, h, err := terminal.GetSize(fd)
@@ -142,7 +142,7 @@ func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout 
 			term = defaultTerm
 		}
 
-		if err := session.RequestPty(term, h, w, modes); err != nil {
+		if err = session.RequestPty(term, h, w, modes); err != nil {
 			return printErrAndSetExitCode(fmt.Errorf("request for pseudo terminal failed: %v", err), &exitCode, 1)
 		}
 	}
@@ -155,25 +155,25 @@ func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout 
 	session.Stdin = os.Stdin
 
 	if len(command) == 0 {
-		if err := session.Shell(); err != nil {
+		if err = session.Shell(); err != nil {
 			return printErrAndSetExitCode(fmt.Errorf("failed to start shell: %v", err), &exitCode, 1)
 		}
 
-		if err := session.Wait(); err != nil {
+		if err = session.Wait(); err != nil {
 			if e, ok := err.(*ssh.ExitError); ok {
 				return printErrAndSetExitCode(err, &exitCode, e.ExitStatus())
 			}
 			return printErrAndSetExitCode(fmt.Errorf("failed waiting for session to exit: %v", err), &exitCode, 1)
 		}
 	} else {
-		if err := session.Run(joinShellCommand(command)); err != nil {
+		if err = session.Run(joinShellCommand(command)); err != nil {
 			if e, ok := err.(*ssh.ExitError); ok {
 				return printErrAndSetExitCode(err, &exitCode, e.ExitStatus())
 			}
 			return printErrAndSetExitCode(fmt.Errorf("failed to run shell command: %s", err), &exitCode, 1)
 		}
 	}
-	return nil
+	return err
 }
 
 func newSignerForKey(keyPath string) (ssh.Signer, error) {

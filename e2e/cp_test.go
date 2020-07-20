@@ -123,7 +123,9 @@ func TestCopySymlinkedFileFromHostToVM(t *testing.T) {
 
 	// Create a new file symlinked to the first file.
 	newName := fmt.Sprintf("%s-link", file.Name())
-	os.Symlink(file.Name(), newName)
+	if err := os.Symlink(file.Name(), newName); err != nil {
+		t.Errorf("failed to create symlink: %v", err)
+	}
 	defer os.Remove(newName)
 
 	vmName := "e2e_test_copy_symlink_to_vm"

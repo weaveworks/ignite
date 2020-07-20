@@ -70,7 +70,7 @@ func CreateImageFilesystem(img *api.Image, src source.Source) error {
 }
 
 // addFiles copies the contents of the tar file into the ext4 filesystem
-func addFiles(img *api.Image, src source.Source) error {
+func addFiles(img *api.Image, src source.Source) (err error) {
 	log.Debugf("Copying in files to the image file from a source...")
 	p := path.Join(img.ObjectPath(), constants.IMAGE_FS)
 	tempDir, err := ioutil.TempDir("", "")
@@ -82,7 +82,10 @@ func addFiles(img *api.Image, src source.Source) error {
 	if _, err := util.ExecuteCommand("mount", "-o", "loop", p, tempDir); err != nil {
 		return fmt.Errorf("failed to mount image %q: %v", p, err)
 	}
-	defer util.ExecuteCommand("umount", tempDir)
+	defer util.DeferErr(&err, func() error {
+		_, execErr := util.ExecuteCommand("umount", tempDir)
+		return execErr
+	})
 
 	tarCmd := exec.Command("tar", "-x", "-C", tempDir)
 	reader, err := src.Reader()
@@ -91,22 +94,24 @@ func addFiles(img *api.Image, src source.Source) error {
 	}
 
 	tarCmd.Stdin = reader
-	if err := tarCmd.Start(); err != nil {
+	if err = tarCmd.Start(); err != nil {
 		return err
 	}
 
-	if err := tarCmd.Wait(); err != nil {
+	if err = tarCmd.Wait(); err != nil {
 		return err
 	}
 
-	if err := src.Cleanup(); err != nil {
+	if err = src.Cleanup(); err != nil {
 		// Ignore the cleanup error if the resource no longer exists.
 		if !errors.Is(err, containerderr.ErrNotFound) {
 			return err
 		}
 	}
 
-	return setupResolvConf(tempDir)
+	err = setupResolvConf(tempDir)
+
+	return
 }
 
 // setupResolvConf makes sure there is a resolv.conf file, otherwise

@@ -93,6 +93,8 @@ func (p *Pool) allocate() error {
 	if err := allocateBackingFile(p.Spec.DataPath, p.Spec.DataSize); err != nil {
 		return fmt.Errorf("failed to allocate data backing file: %v", err)
 	}
+
+	return nil
 }
 
 func (p *Pool) activate() error {

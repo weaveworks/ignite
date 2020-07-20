@@ -505,6 +505,7 @@ func TestMultipleMetaFilter(t *testing.T) {
 	for _, utest := range tests {
 		t.Run(utest.name, func(t *testing.T) {
 			mmf, err := GenerateMultipleMetadataFiltering(utest.str)
+			assert.Nil(t, err)
 			expected, err := mmf.AreExpected(utest.object)
 			if utest.err != nil {
 				assert.NotNil(t, err)

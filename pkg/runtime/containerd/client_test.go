@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/runtime"
 
 	v2shim "github.com/containerd/containerd/runtime/v2/shim"
+	"gotest.tools/assert"
 )
 
 var client runtime.Interface
@@ -78,7 +79,7 @@ func TestRunRemove(t *testing.T) {
 	//       remove dependency on VM constants for runtime client
 	//       this specific dir is currently required to support resolvconf
 	//       ideally, we could pass any tempdir with any permissions here
-	os.MkdirAll(vmDir, constants.DATA_DIR_PERM)
+	assert.NilError(t, os.MkdirAll(vmDir, constants.DATA_DIR_PERM))
 
 	cfg := &runtime.ContainerConfig{
 		Cmd: []string{
@@ -112,8 +113,8 @@ func TestRunRemove(t *testing.T) {
 	}
 
 	// just in case the process is hung -- cleanup
-	client.KillContainer(cName, "SIGQUIT") // TODO: common constant for SIGQUIT
-	client.RemoveContainer(cName)
+	client.KillContainer(cName, "SIGQUIT") //nolint:errcheck // TODO: common constant for SIGQUIT
+	client.RemoveContainer(cName)          //nolint:errcheck
 }
 
 func TestV2ShimRuntimesHaveBinaryNames(t *testing.T) {

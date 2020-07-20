@@ -167,7 +167,7 @@ func waitForSpawn(vm *api.VM) error {
 	const checkInterval = 100 * time.Millisecond
 
 	startTime := time.Now()
-	for time.Now().Sub(startTime) < timeout {
+	for time.Since(startTime) < timeout {
 		time.Sleep(checkInterval)
 
 		if util.FileExists(path.Join(vm.ObjectPath(), constants.PROMETHEUS_SOCKET)) {

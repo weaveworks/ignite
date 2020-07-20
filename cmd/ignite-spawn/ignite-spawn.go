@@ -12,6 +12,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/container"
 	dmcleanup "github.com/weaveworks/ignite/pkg/dmlegacy/cleanup"
 	"github.com/weaveworks/ignite/pkg/prometheus"
+	"github.com/weaveworks/ignite/pkg/util"
 	patchutil "github.com/weaveworks/libgitops/pkg/util/patch"
 )
 
@@ -37,7 +38,7 @@ func decodeVM(vmID string) (*api.VM, error) {
 	return vm, nil
 }
 
-func StartVM(vm *api.VM) error {
+func StartVM(vm *api.VM) (err error) {
 	// Setup networking inside of the container, return the available interfaces
 	dhcpIfaces, err := container.SetupContainerNetworking()
 	if err != nil {
@@ -48,7 +49,7 @@ func StartVM(vm *api.VM) error {
 	// This function returns the available IP addresses that are being
 	// served over DHCP now
 	if err = container.StartDHCPServers(vm, dhcpIfaces); err != nil {
-		return err
+		return
 	}
 
 	// Serve metrics over an unix socket in the VM's own directory
@@ -56,20 +57,20 @@ func StartVM(vm *api.VM) error {
 	serveMetrics(metricsSocket)
 
 	// Patches the VM object to set state to stopped, and clear IP addresses
-	defer patchStopped(vm)
+	defer util.DeferErr(&err, func() error { return patchStopped(vm) })
 
 	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
-	defer dmcleanup.DeactivateSnapshot(vm)
+	defer util.DeferErr(&err, func() error { return dmcleanup.DeactivateSnapshot(vm) })
 
 	// Remove the Prometheus socket post-run
-	defer os.Remove(metricsSocket)
+	defer util.DeferErr(&err, func() error { return os.Remove(metricsSocket) })
 
 	// Execute Firecracker
 	if err = container.ExecuteFirecracker(vm, dhcpIfaces); err != nil {
 		return fmt.Errorf("runtime error for VM %q: %v", vm.GetUID(), err)
 	}
 
-	return nil
+	return
 }
 
 func serveMetrics(metricsSocket string) {

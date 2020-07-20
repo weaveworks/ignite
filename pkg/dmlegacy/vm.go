@@ -82,21 +82,21 @@ func AllocateAndPopulateOverlay(vm *api.VM) error {
 	return copyToOverlay(vm)
 }
 
-func copyToOverlay(vm *api.VM) error {
-	err := ActivateSnapshot(vm)
-	defer cleanup.DeactivateSnapshot(vm)
+func copyToOverlay(vm *api.VM) (err error) {
+	err = ActivateSnapshot(vm)
 	if err != nil {
 		return err
 	}
+	defer util.DeferErr(&err, func() error { return cleanup.DeactivateSnapshot(vm) })
 
 	mp, err := util.Mount(vm.SnapshotDev())
-	defer mp.Umount()
 	if err != nil {
 		return err
 	}
+	defer util.DeferErr(&err, mp.Umount)
 
 	// Copy the kernel files to the VM. TODO: Use snapshot overlaying instead.
-	if err := copyKernelToOverlay(vm, mp.Path); err != nil {
+	if err = copyKernelToOverlay(vm, mp.Path); err != nil {
 		return err
 	}
 
@@ -124,11 +124,11 @@ func copyToOverlay(vm *api.VM) error {
 	// TODO: File/directory permissions?
 	for _, mapping := range fileMappings {
 		vmFilePath := path.Join(mp.Path, mapping.VMPath)
-		if err := os.MkdirAll(path.Dir(vmFilePath), constants.DATA_DIR_PERM); err != nil {
+		if err = os.MkdirAll(path.Dir(vmFilePath), constants.DATA_DIR_PERM); err != nil {
 			return err
 		}
 
-		if err := util.CopyFile(mapping.HostPath, vmFilePath); err != nil {
+		if err = util.CopyFile(mapping.HostPath, vmFilePath); err != nil {
 			return err
 		}
 	}
@@ -139,22 +139,24 @@ func copyToOverlay(vm *api.VM) error {
 	}
 
 	// Write /etc/hosts for the VM
-	if err := writeEtcHosts(mp.Path, vm.GetUID().String(), ip); err != nil {
+	if err = writeEtcHosts(mp.Path, vm.GetUID().String(), ip); err != nil {
 		return err
 	}
 
 	// Write the UID to /etc/hostname for the VM
-	if err := writeEtcHostname(mp.Path, vm.GetUID().String()); err != nil {
+	if err = writeEtcHostname(mp.Path, vm.GetUID().String()); err != nil {
 		return err
 	}
 
 	// Populate /etc/fstab with the VM's volume mounts
-	if err := populateFstab(vm, mp.Path); err != nil {
+	if err = populateFstab(vm, mp.Path); err != nil {
 		return err
 	}
 
 	// Set overlay root permissions
-	return os.Chmod(mp.Path, constants.DATA_DIR_PERM)
+	err = os.Chmod(mp.Path, constants.DATA_DIR_PERM)
+
+	return
 }
 
 func copyKernelToOverlay(vm *api.VM, mountPoint string) error {

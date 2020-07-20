@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/util"
 
 	flag "github.com/spf13/pflag"
 	patchutil "github.com/weaveworks/libgitops/pkg/util/patch"
@@ -214,27 +215,29 @@ func applyVMFlagOverrides(baseVM *api.VM, cf *CreateFlags, fs *flag.FlagSet) err
 	return err
 }
 
-func Create(co *createOptions) error {
+func Create(co *createOptions) (err error) {
 	// Generate a random UID and Name
-	if err := metadata.SetNameAndUID(co.VM, providers.Client); err != nil {
+	if err = metadata.SetNameAndUID(co.VM, providers.Client); err != nil {
 		return err
 	}
 	// Set VM labels.
-	if err := metadata.SetLabels(co.VM, co.Labels); err != nil {
+	if err = metadata.SetLabels(co.VM, co.Labels); err != nil {
 		return err
 	}
-	defer metadata.Cleanup(co.VM, false) // TODO: Handle silent
+	defer util.DeferErr(&err, func() error { return metadata.Cleanup(co.VM, false) })
 
-	if err := providers.Client.VMs().Set(co.VM); err != nil {
+	if err = providers.Client.VMs().Set(co.VM); err != nil {
 		return err
 	}
 
 	// Allocate and populate the overlay file
-	if err := dmlegacy.AllocateAndPopulateOverlay(co.VM); err != nil {
+	if err = dmlegacy.AllocateAndPopulateOverlay(co.VM); err != nil {
 		return err
 	}
 
-	return metadata.Success(co.VM)
+	err = metadata.Success(co.VM)
+
+	return
 }
 
 // TODO: Move this to meta, or a helper in API

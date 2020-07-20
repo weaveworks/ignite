@@ -35,9 +35,7 @@ func EnsureResolvConf(filepath string, perm os.FileMode) error {
 	filterLoopback(cfg)
 	// Fallback to default DNS servers
 	if len(cfg.Servers) == 0 {
-		for _, s := range fallbackNameServers {
-			cfg.Servers = append(cfg.Servers, s)
-		}
+		cfg.Servers = append(cfg.Servers, fallbackNameServers...)
 	}
 
 	data := buildResolvConf(cfg)
