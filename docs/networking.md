@@ -56,7 +56,7 @@ out of the box, as the CNI implementation is most probably already running in a 
 
 **Cons:**
 
-- **docker-dependent**: By design, this mode is can only be used with Docker, and is hence not portable across container runtimes.
+- **docker-dependent**: By design, this mode can only be used with Docker, and is hence not portable across container runtimes.
 - **No multi-node support**: The IP is local (in the `172.17.0.0/16` range), and hence other computers can't connect to your VM's IP address.
 
 ## Multi-node networking with Flannel
