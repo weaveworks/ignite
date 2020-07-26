@@ -85,19 +85,19 @@ func AllocateAndPopulateOverlay(vm *api.VM) error {
 func copyToOverlay(vm *api.VM) (err error) {
 	err = ActivateSnapshot(vm)
 	if err != nil {
-		return err
+		return
 	}
 	defer util.DeferErr(&err, func() error { return cleanup.DeactivateSnapshot(vm) })
 
 	mp, err := util.Mount(vm.SnapshotDev())
 	if err != nil {
-		return err
+		return
 	}
 	defer util.DeferErr(&err, mp.Umount)
 
 	// Copy the kernel files to the VM. TODO: Use snapshot overlaying instead.
 	if err = copyKernelToOverlay(vm, mp.Path); err != nil {
-		return err
+		return
 	}
 
 	// do not mutate vm.Spec.CopyFiles
@@ -109,7 +109,7 @@ func copyToOverlay(vm *api.VM) (err error) {
 			// generate a key if PublicKey is empty
 			pubKeyPath, err = newSSHKeypair(vm)
 			if err != nil {
-				return err
+				return
 			}
 		}
 
@@ -125,11 +125,11 @@ func copyToOverlay(vm *api.VM) (err error) {
 	for _, mapping := range fileMappings {
 		vmFilePath := path.Join(mp.Path, mapping.VMPath)
 		if err = os.MkdirAll(path.Dir(vmFilePath), constants.DATA_DIR_PERM); err != nil {
-			return err
+			return
 		}
 
 		if err = util.CopyFile(mapping.HostPath, vmFilePath); err != nil {
-			return err
+			return
 		}
 	}
 
@@ -140,17 +140,17 @@ func copyToOverlay(vm *api.VM) (err error) {
 
 	// Write /etc/hosts for the VM
 	if err = writeEtcHosts(mp.Path, vm.GetUID().String(), ip); err != nil {
-		return err
+		return
 	}
 
 	// Write the UID to /etc/hostname for the VM
 	if err = writeEtcHostname(mp.Path, vm.GetUID().String()); err != nil {
-		return err
+		return
 	}
 
 	// Populate /etc/fstab with the VM's volume mounts
 	if err = populateFstab(vm, mp.Path); err != nil {
-		return err
+		return
 	}
 
 	// Set overlay root permissions

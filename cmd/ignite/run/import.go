@@ -12,12 +12,12 @@ import (
 func ImportImage(source string) (image *api.Image, err error) {
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	image, err = operations.FindOrImportImage(providers.Client, ociRef)
 	if err != nil {
-		return nil, err
+		return
 	}
 	defer util.DeferErr(&err, func() error { return metadata.Cleanup(image, false) })
 
@@ -29,12 +29,12 @@ func ImportImage(source string) (image *api.Image, err error) {
 func ImportKernel(source string) (kernel *api.Kernel, err error) {
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	kernel, err = operations.FindOrImportKernel(providers.Client, ociRef)
 	if err != nil {
-		return nil, err
+		return
 	}
 	defer util.DeferErr(&err, func() error { return metadata.Cleanup(kernel, false) })
 

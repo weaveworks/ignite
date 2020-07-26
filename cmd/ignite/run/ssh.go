@@ -104,14 +104,14 @@ func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout 
 	if err != nil {
 		return printErrAndSetExitCode(fmt.Errorf("failed to dial: %v", err), &exitCode, 1)
 	}
-	defer client.Close()
+	defer util.DeferErr(&err, client.Close)
 
 	// Create a session.
 	session, err := client.NewSession()
 	if err != nil {
 		return printErrAndSetExitCode(fmt.Errorf("failed to create session: %v", err), &exitCode, 1)
 	}
-	defer session.Close()
+	defer util.DeferErr(&err, session.Close)
 
 	// Configure tty if requested.
 	if tty {
@@ -173,7 +173,7 @@ func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout 
 			return printErrAndSetExitCode(fmt.Errorf("failed to run shell command: %s", err), &exitCode, 1)
 		}
 	}
-	return err
+	return
 }
 
 func newSignerForKey(keyPath string) (ssh.Signer, error) {
