@@ -218,21 +218,21 @@ func applyVMFlagOverrides(baseVM *api.VM, cf *CreateFlags, fs *flag.FlagSet) err
 func Create(co *createOptions) (err error) {
 	// Generate a random UID and Name
 	if err = metadata.SetNameAndUID(co.VM, providers.Client); err != nil {
-		return err
+		return
 	}
 	// Set VM labels.
 	if err = metadata.SetLabels(co.VM, co.Labels); err != nil {
-		return err
+		return
 	}
 	defer util.DeferErr(&err, func() error { return metadata.Cleanup(co.VM, false) })
 
 	if err = providers.Client.VMs().Set(co.VM); err != nil {
-		return err
+		return
 	}
 
 	// Allocate and populate the overlay file
 	if err = dmlegacy.AllocateAndPopulateOverlay(co.VM); err != nil {
-		return err
+		return
 	}
 
 	err = metadata.Success(co.VM)

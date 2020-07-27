@@ -75,7 +75,7 @@ func addFiles(img *api.Image, src source.Source) (err error) {
 	p := path.Join(img.ObjectPath(), constants.IMAGE_FS)
 	tempDir, err := ioutil.TempDir("", "")
 	if err != nil {
-		return err
+		return
 	}
 	defer os.RemoveAll(tempDir)
 
@@ -90,22 +90,22 @@ func addFiles(img *api.Image, src source.Source) (err error) {
 	tarCmd := exec.Command("tar", "-x", "-C", tempDir)
 	reader, err := src.Reader()
 	if err != nil {
-		return err
+		return
 	}
 
 	tarCmd.Stdin = reader
 	if err = tarCmd.Start(); err != nil {
-		return err
+		return
 	}
 
 	if err = tarCmd.Wait(); err != nil {
-		return err
+		return
 	}
 
 	if err = src.Cleanup(); err != nil {
 		// Ignore the cleanup error if the resource no longer exists.
 		if !errors.Is(err, containerderr.ErrNotFound) {
-			return err
+			return
 		}
 	}
 
@@ -149,7 +149,7 @@ func resizeToMinimum(img *api.Image) (err error) {
 	}
 
 	if imageFile, err = os.OpenFile(p, os.O_RDWR, constants.DATA_DIR_FILE_PERM); err != nil {
-		return err
+		return
 	}
 	defer util.DeferErr(&err, imageFile.Close)
 

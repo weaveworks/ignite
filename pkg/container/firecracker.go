@@ -141,7 +141,7 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) (err error) {
 		return fmt.Errorf("wait returned an error %s", err)
 	}
 
-	return err
+	return
 }
 
 // Install custom signal handlers:
