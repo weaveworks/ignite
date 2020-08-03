@@ -101,7 +101,7 @@ func CP(co *cpOptions) error {
 		return fmt.Errorf("VM %q is not running", co.vm.GetUID())
 	}
 
-	ipAddrs := co.vm.Status.IPAddresses
+	ipAddrs := co.vm.Status.Network.IPAddresses
 	if len(ipAddrs) == 0 {
 		return fmt.Errorf("VM %q has no usable IP addresses", co.vm.GetUID())
 	}

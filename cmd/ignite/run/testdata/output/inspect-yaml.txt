@@ -23,4 +23,7 @@ status:
   kernel:
     id: null
     size: 0B
+  network:
+    ipAddresses: null
+    plugin: ""
   running: false

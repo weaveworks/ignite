@@ -69,6 +69,9 @@ func createTestVM(name, id string) (*api.VM, error) {
 	}
 	vm.Spec.Sandbox.OCI = ociRefSandbox
 
+	// Initialize network.
+	vm.Status.Network = &api.Network{}
+
 	return vm, nil
 }
 

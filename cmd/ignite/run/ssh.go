@@ -58,7 +58,7 @@ func runSSH(vm *api.VM, privKeyFile string, command []string, tty bool, timeout 
 	}
 
 	// Get the IP address.
-	ipAddrs := vm.Status.IPAddresses
+	ipAddrs := vm.Status.Network.IPAddresses
 	if len(ipAddrs) == 0 {
 		return fmt.Errorf("VM %q has no usable IP addresses", vm.GetUID())
 	}

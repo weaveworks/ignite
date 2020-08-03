@@ -28,6 +28,10 @@
   },
   "status": {
     "running": false,
+    "network": {
+      "plugin": "",
+      "ipAddresses": null
+    },
     "image": {
       "id": null,
       "size": "0B"
