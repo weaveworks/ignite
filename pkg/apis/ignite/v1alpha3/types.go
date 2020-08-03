@@ -227,17 +227,24 @@ type SSH struct {
 
 // Runtime specifies the VM's runtime information
 type Runtime struct {
-	ID string `json:"id"`
+	ID   string             `json:"id"`
+	Name igniteRuntime.Name `json:"name"`
+}
+
+// Network specifies the VM's network information.
+type Network struct {
+	Plugin      igniteNetwork.PluginName `json:"plugin"`
+	IPAddresses meta.IPAddresses         `json:"ipAddresses"`
 }
 
 // VMStatus defines the status of a VM
 type VMStatus struct {
-	Running     bool             `json:"running"`
-	Runtime     *Runtime         `json:"runtime,omitempty"`
-	StartTime   *runtime.Time    `json:"startTime,omitempty"`
-	IPAddresses meta.IPAddresses `json:"ipAddresses,omitempty"`
-	Image       OCIImageSource   `json:"image"`
-	Kernel      OCIImageSource   `json:"kernel"`
+	Running   bool           `json:"running"`
+	Runtime   *Runtime       `json:"runtime,omitempty"`
+	StartTime *runtime.Time  `json:"startTime,omitempty"`
+	Network   *Network       `json:"network,omitempty"`
+	Image     OCIImageSource `json:"image"`
+	Kernel    OCIImageSource `json:"kernel"`
 }
 
 // Configuration represents the ignite runtime configuration.
