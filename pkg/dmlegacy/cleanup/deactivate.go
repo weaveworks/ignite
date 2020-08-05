@@ -9,7 +9,7 @@ import (
 func DeactivateSnapshot(vm *api.VM) error {
 	dmArgs := []string{
 		"remove",
-		vm.SnapshotDev(),
+		util.NewPrefixer().Prefix(vm.GetUID()),
 	}
 
 	// If the base device is visible in "dmsetup", we should remove it
