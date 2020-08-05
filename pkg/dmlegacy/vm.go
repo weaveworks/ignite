@@ -83,7 +83,7 @@ func AllocateAndPopulateOverlay(vm *api.VM) error {
 }
 
 func copyToOverlay(vm *api.VM) (err error) {
-	err = ActivateSnapshot(vm)
+	_, err = ActivateSnapshot(vm)
 	if err != nil {
 		return
 	}

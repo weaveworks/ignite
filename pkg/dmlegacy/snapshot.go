@@ -17,10 +17,11 @@ import (
 
 const snapshotLockFileName = "ignite-snapshot.lock"
 
-// ActivateSnapshot sets up the snapshot with devicemapper so that it is active and can be used
-func ActivateSnapshot(vm *api.VM) (err error) {
+// ActivateSnapshot sets up the snapshot with devicemapper so that it is active and can be used.
+// It returns the path of the bootable snapshot device.
+func ActivateSnapshot(vm *api.VM) (devicePath string, err error) {
 	device := util.NewPrefixer().Prefix(vm.GetUID())
-	devicePath := vm.SnapshotDev()
+	devicePath = vm.SnapshotDev()
 
 	// Return if the snapshot is already setup
 	if util.FileExists(devicePath) {
@@ -47,7 +48,8 @@ func ActivateSnapshot(vm *api.VM) (err error) {
 	// Create a lockfile and obtain a lock.
 	lock, err := lockfile.New(glpath)
 	if err != nil {
-		return fmt.Errorf("failed to create lock: %v", err)
+		err = fmt.Errorf("failed to create lockfile: %w", err)
+		return
 	}
 	if err = obtainLock(lock); err != nil {
 		return
@@ -105,6 +107,7 @@ func ActivateSnapshot(vm *api.VM) (err error) {
 	// "0 8388608 snapshot /dev/{loop0,mapper/ignite-<uid>-base} /dev/loop1 P 8"
 	dmTable := []byte(fmt.Sprintf("0 %d snapshot %s %s P 8", overlayLoopSize, basePath, overlayLoop.Path()))
 
+	// setup the main boot device
 	if err = runDMSetup(device, dmTable); err != nil {
 		return
 	}

@@ -25,7 +25,8 @@ func StartVM(vm *api.VM, debug bool) error {
 	RemoveVMContainer(inspectResult)
 
 	// Setup the snapshot overlay filesystem
-	if err := dmlegacy.ActivateSnapshot(vm); err != nil {
+	snapshotDevPath, err := dmlegacy.ActivateSnapshot(vm)
+	if err != nil {
 		return err
 	}
 
@@ -70,7 +71,7 @@ func StartVM(vm *api.VM, debug bool) error {
 			runtime.BindBoth("/dev/mapper/control"), // This enables containerized Ignite to remove its own dm snapshot
 			runtime.BindBoth("/dev/net/tun"),        // Needed for creating TAP adapters
 			runtime.BindBoth("/dev/kvm"),            // Pass through virtualization support
-			runtime.BindBoth(vm.SnapshotDev()),      // The block device to boot from
+			runtime.BindBoth(snapshotDevPath),       // The block device to boot from
 		},
 		StopTimeout:  constants.STOP_TIMEOUT + constants.IGNITE_TIMEOUT,
 		PortBindings: vm.Spec.Network.Ports, // Add the port mappings to Docker
