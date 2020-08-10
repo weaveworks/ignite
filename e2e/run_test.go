@@ -1,12 +1,3 @@
-//
-// This is the e2e package to run tests for Ignite
-// Currently, we do local e2e tests only
-// we have to wait until the CI setup to allow Ignite to run with sudo and in a KVM environment.
-//
-// How to run tests:
-// sudo IGNITE_E2E_HOME=$PWD $(which go) test ./e2e/. -v -count 1 -run Test
-//
-
 package e2e
 
 import (
