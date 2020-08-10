@@ -36,7 +36,11 @@ func (ld *loopDevice) Size512K() (uint64, error) {
 
 // dmsetup uses stdin to read multiline tables, this is a helper function for that
 func runDMSetup(name string, table []byte) error {
-	cmd := exec.Command("dmsetup", "create", name)
+	cmd := exec.Command(
+		"dmsetup", "create",
+		"--verifyudev", // if udevd is not running, dmsetup will manage the device node in /dev/mapper
+		name,
+	)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		return err
@@ -52,7 +56,7 @@ func runDMSetup(name string, table []byte) error {
 
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("command %q exited with %q: %v", cmd.Args, out, err)
+		return fmt.Errorf("command %q exited with %q: %w", cmd.Args, out, err)
 	}
 
 	return nil

@@ -9,7 +9,8 @@ import (
 func DeactivateSnapshot(vm *api.VM) error {
 	dmArgs := []string{
 		"remove",
-		vm.SnapshotDev(),
+		"--verifyudev", // if udevd is not running, dmsetup will manage the device node in /dev/mapper
+		util.NewPrefixer().Prefix(vm.GetUID()),
 	}
 
 	// If the base device is visible in "dmsetup", we should remove it
