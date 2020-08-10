@@ -2,9 +2,10 @@ package dmlegacy
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
+	"regexp"
 	"strings"
 	"text/tabwriter"
 
@@ -14,7 +15,10 @@ import (
 
 const (
 	mountOptions = "rw,relatime"
-	uuidPath     = "/dev/disk/by-uuid"
+)
+
+var (
+	blkidUUIDRegex = regexp.MustCompile("UUID=\"([^ ]*)\"")
 )
 
 type fstabEntry struct {
@@ -91,33 +95,19 @@ func populateFstab(vm *api.VM, mountPoint string) error {
 	return writer.Flush()
 }
 
-func getUUID(devPath string) (uuid string, err error) {
-	var files []os.FileInfo
-	if files, err = ioutil.ReadDir(uuidPath); err != nil {
-		return
+func getUUID(devPath string) (string, error) {
+	// running blkid requires root
+	// we parse the output with regex because the `-o value -s UUID` format flags are not portable (ex: Alpine Linux)
+	cmd := exec.Command("blkid", devPath)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("command %q exited with %q: %w", cmd.Args, out, err)
 	}
 
-	for _, fi := range files {
-		if fi.Mode()&os.ModeSymlink == 0 {
-			continue // Skip all non-symlinks
-		}
-
-		// Resolve the symbolic link
-		var link string
-		if link, err = os.Readlink(path.Join(uuidPath, fi.Name())); err != nil {
-			return
-		}
-
-		// Make the link target absolute and compare with the given path
-		if path.Join(uuidPath, link) == devPath {
-			uuid = fi.Name() // The UUID is the filename of the symbolic link
-			break
-		}
+	uuidMatch := blkidUUIDRegex.FindStringSubmatch(string(out))
+	if len(uuidMatch) > 1 {
+		return uuidMatch[1], nil
 	}
 
-	if len(uuid) == 0 {
-		err = fmt.Errorf("no UUID found for device %q, verify it has a filesystem", devPath)
-	}
-
-	return
+	return "", fmt.Errorf("command %q with output %q did not return a disk UUID", cmd.Args, out)
 }
