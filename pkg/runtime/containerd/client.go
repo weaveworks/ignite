@@ -552,7 +552,7 @@ func withDevices(devices []*runtime.Bind) oci.SpecOpts {
 				Allow:  true,
 			})
 			s.Linux.Devices = append(s.Linux.Devices, specs.LinuxDevice{
-				Path:  dev.HostPath,
+				Path:  dev.ContainerPath, // dev.HostPath is irrelevant for the container Spec -- major,minor is the primary key
 				Type:  devType,
 				Major: major,
 				Minor: minor,
