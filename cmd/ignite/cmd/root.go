@@ -12,16 +12,12 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/imgcmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/kerncmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
-	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
-	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/config"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
-	"github.com/weaveworks/ignite/pkg/network"
 	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/providers/ignite"
-	"github.com/weaveworks/ignite/pkg/runtime"
 	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
 	"github.com/weaveworks/ignite/pkg/util"
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
@@ -59,48 +55,8 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 			// Create the directories needed for running
 			util.GenericCheckErr(util.CreateDirectories())
 
-			var configFilePath string
-
-			// If an ignite config flag is set, use it as the config file, else check
-			// if the global config file exists.
-			// If a config file path is passed, configure ignite using it.
-			if configPath != "" {
-				configFilePath = configPath
-			} else {
-				// Check the default config location.
-				if _, err := os.Stat(constants.IGNITE_CONFIG_FILE); !os.IsNotExist(err) {
-					log.Debugf("Found default ignite configuration file %s", constants.IGNITE_CONFIG_FILE)
-					configFilePath = constants.IGNITE_CONFIG_FILE
-				}
-			}
-
-			if configFilePath != "" {
-				log.Debugf("Using ignite configuration file %s", configFilePath)
-				var err error
-				providers.ComponentConfig, err = getConfigFromFile(configFilePath)
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				// Set providers runtime and network plugin if found in config
-				// and not set explicitly via flags.
-				if providers.ComponentConfig.Spec.Runtime != "" && providers.RuntimeName == "" {
-					providers.RuntimeName = providers.ComponentConfig.Spec.Runtime
-				}
-				if providers.ComponentConfig.Spec.NetworkPlugin != "" && providers.NetworkPluginName == "" {
-					providers.NetworkPluginName = providers.ComponentConfig.Spec.NetworkPlugin
-				}
-			} else {
-				log.Debugln("Using ignite default configurations")
-			}
-
-			// Set the default runtime and network-plugin if it's not set by
-			// now.
-			if providers.RuntimeName == "" {
-				providers.RuntimeName = runtime.RuntimeContainerd
-			}
-			if providers.NetworkPluginName == "" {
-				providers.NetworkPluginName = network.PluginCNI
+			if err := config.ApplyConfiguration(configPath); err != nil {
+				log.Fatal(err)
 			}
 
 			// Populate the providers after flags have been parsed
@@ -172,23 +128,4 @@ func addGlobalFlags(fs *pflag.FlagSet) {
 // AddQuietFlag adds the quiet flag to a flagset
 func AddQuietFlag(fs *pflag.FlagSet) {
 	fs.BoolVarP(&logs.Quiet, "quiet", "q", logs.Quiet, "The quiet mode allows for machine-parsable output by printing only IDs")
-}
-
-// getConfigFromFile reads a config file and returns ignite configuration.
-func getConfigFromFile(configPath string) (*api.Configuration, error) {
-	componentConfig := &api.Configuration{}
-
-	// TODO: Fix libgitops DecodeFileInto to not allow empty files.
-	if err := scheme.Serializer.DecodeFileInto(configPath, componentConfig); err != nil {
-		return nil, err
-	}
-
-	// Ensure the read configuration is valid. If a file contains Kind and
-	// APIVersion, it's a valid config file. Empty file is invalid.
-	// NOTE: This is a workaround for libgitops allowing decode of empty file.
-	if componentConfig.Kind == "" || componentConfig.APIVersion == "" {
-		return nil, fmt.Errorf("invalid config file, Kind and APIVersion must be set")
-	}
-
-	return componentConfig, nil
 }
