@@ -47,6 +47,8 @@ status:
   running: true
 ```
 
+**NOTE:** `uid` must be set. VM configurations without uid are ignored.
+
 For a more complete example repository configuration, see [luxas/ignite-gitops](https://github.com/luxas/ignite-gitops)
 
 After you have [installed Ignite](installation.md), you can do the following:
@@ -60,5 +62,56 @@ you need to set up SSH authentication and use the SSH clone URL for now.
 
 Ignite will now search that repo for suitable JSON/YAML files, and apply their state locally.
 You should see `my-vm` starting up in `ignite ps`. To enter the VM, run `ignite ssh my-vm`.
+
+### Using a local git repo for testing
+
+Create a new directory and initialize it as a bare git repo. For ignited to
+push updates to the git repo, the repo must be created as a bare git repo.
+
+```console
+$ mkdir ~/ignite-gitops
+$ cd ~/ignite-gitops
+$ git init --bare
+$ ls
+HEAD  branches  config  description  hooks  info  objects  refs
+```
+
+Clone this git repo and add the sample VM configuration:
+
+```console
+$ git clone file:///home/user/ignite-gitops ignite-gitops-clone
+Cloning into 'ignite-gitops-clone'...
+warning: You appear to have cloned an empty repository.
+$ cd ignite-gitops-clone
+$ git remote -v
+origin	file:///home/user/ignite-gitops (fetch)
+origin	file:///home/user/ignite-gitops (push)
+$ # Create my-vm.yaml, commit and push.
+```
+
+Run ignited against the bare git repo:
+
+```console
+$ sudo ignited gitops file:///home/user/ignite-gitops
+INFO[0000] Starting GitOps loop for repo at "file:///home/user/ignite-gitops"
+INFO[0000] Whenever changes are pushed to the target branch, Ignite will apply the desired state locally
+INFO[0000] Initializing the Git repo...
+INFO[0000] Running in read-write mode, will commit back current status to the repo
+INFO[0000] Starting the commit loop...
+INFO[0000] Starting the checkout loop...
+INFO[0000] Starting to clone the repository file:///home/user/ignite-gitops with timeout 1m0s
+INFO[0000] New commit observed on branch "master": 7095d3603649792f44110cc5cf7deb0ded897e4b. User initiated: true
+INFO[0003] Creating VM "599615df99804ae8" with name "my-vm"...
+INFO[0004] Starting VM "599615df99804ae8" with name "my-vm"...
+INFO[0004] Networking is handled by "cni"
+INFO[0004] Started Firecracker VM "599615df99804ae8" in a container with ID "ignite-599615df99804ae8"
+...
+INFO[0030] A new commit with the actual state has been created and pushed to the origin: "186a8eb6eced5843480d4a10872db071ecc76439"
+INFO[0030] New commit observed on branch "master": 186a8eb6eced5843480d4a10872db071ecc76439. User initiated: false
+...
+```
+
+**NOTE:** Root permission may be required to push updates to the main repo
+because ignited pushes git updates as root.
 
 Please refer to [docs/declarative-config.md](declarative-config.md) for the full API reference.

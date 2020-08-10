@@ -5,10 +5,11 @@ import (
 	"os"
 
 	"github.com/lithammer/dedent"
-	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
+	"github.com/weaveworks/ignite/pkg/config"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
 	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
@@ -18,7 +19,10 @@ import (
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
 )
 
-var logLevel = logrus.InfoLevel
+var logLevel = log.InfoLevel
+
+// Ignite config file path flag variable.
+var configPath string
 
 // NewIgnitedCommand returns the root command for ignited
 func NewIgnitedCommand(in io.Reader, out, err io.Writer) *cobra.Command {
@@ -28,6 +32,10 @@ func NewIgnitedCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// Set the desired logging level, now that the flags are parsed
 			logs.Logger.SetLevel(logLevel)
+
+			if err := config.ApplyConfiguration(configPath); err != nil {
+				log.Fatal(err)
+			}
 
 			// Populate the providers after flags have been parsed
 			if err := providers.Populate(ignite.Providers); err != nil {
@@ -55,4 +63,5 @@ func addGlobalFlags(fs *pflag.FlagSet) {
 	logflag.LogLevelFlagVar(fs, &logLevel)
 	runtimeflag.RuntimeVar(fs, &providers.RuntimeName)
 	networkflag.NetworkPluginVar(fs, &providers.NetworkPluginName)
+	fs.StringVar(&configPath, "ignite-config", "", "Ignite configuration path; refer to the 'Ignite Configuration' docs for more details")
 }
