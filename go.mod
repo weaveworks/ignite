@@ -59,6 +59,6 @@ require (
 	golang.org/x/sys v0.0.0-20200610111108-226ff32320da
 	gotest.tools v2.2.0+incompatible
 	k8s.io/apimachinery v0.18.3
-	k8s.io/kube-openapi v0.0.0-20200615155156-dffdd1682719
+	k8s.io/kube-openapi v0.0.0-20200727223308-4c7aaf529f79
 	sigs.k8s.io/yaml v1.2.0
 )

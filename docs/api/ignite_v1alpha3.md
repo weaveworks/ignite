@@ -33,6 +33,7 @@
   - [type Kernel](#Kernel)
   - [type KernelSpec](#KernelSpec)
   - [type KernelStatus](#KernelStatus)
+  - [type Network](#Network)
   - [type OCIImageSource](#OCIImageSource)
   - [type Pool](#Pool)
   - [type PoolDevice](#PoolDevice)
@@ -144,7 +145,7 @@ type BlockDeviceVolume struct {
 
 BlockDeviceVolume defines a block device on the host
 
-## <a name="Configuration">type</a> [Configuration](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=9017:9160#L245)
+## <a name="Configuration">type</a> [Configuration](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=9231:9374#L252)
 
 ``` go
 type Configuration struct {
@@ -158,7 +159,7 @@ type Configuration struct {
 Configuration represents the ignite runtime configuration.
 +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-## <a name="ConfigurationSpec">type</a> [ConfigurationSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=9217:9460#L253)
+## <a name="ConfigurationSpec">type</a> [ConfigurationSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=9431:9674#L260)
 
 ``` go
 type ConfigurationSpec struct {
@@ -261,6 +262,17 @@ type KernelStatus struct {
 
 KernelStatus describes the status of a kernel
 
+## <a name="Network">type</a> [Network](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=8608:8744#L235)
+
+``` go
+type Network struct {
+    Plugin      igniteNetwork.PluginName `json:"plugin"`
+    IPAddresses meta.IPAddresses         `json:"ipAddresses"`
+}
+```
+
+Network specifies the VM’s network information.
+
 ## <a name="OCIImageSource">type</a> [OCIImageSource](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=1194:1426#L36)
 
 ``` go
@@ -355,11 +367,12 @@ type PoolStatus struct {
 
 PoolStatus defines the Pool’s current status
 
-## <a name="Runtime">type</a> [Runtime](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=8456:8502#L229)
+## <a name="Runtime">type</a> [Runtime](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=8456:8555#L229)
 
 ``` go
 type Runtime struct {
-    ID string `json:"id"`
+    ID   string             `json:"id"`
+    Name igniteRuntime.Name `json:"name"`
 }
 ```
 
@@ -475,16 +488,16 @@ type VMSpec struct {
 
 VMSpec describes the configuration of a VM
 
-## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=8543:8882#L234)
+## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=8785:9096#L241)
 
 ``` go
 type VMStatus struct {
-    Running     bool             `json:"running"`
-    Runtime     *Runtime         `json:"runtime,omitempty"`
-    StartTime   *runtime.Time    `json:"startTime,omitempty"`
-    IPAddresses meta.IPAddresses `json:"ipAddresses,omitempty"`
-    Image       OCIImageSource   `json:"image"`
-    Kernel      OCIImageSource   `json:"kernel"`
+    Running   bool           `json:"running"`
+    Runtime   *Runtime       `json:"runtime,omitempty"`
+    StartTime *runtime.Time  `json:"startTime,omitempty"`
+    Network   *Network       `json:"network,omitempty"`
+    Image     OCIImageSource `json:"image"`
+    Kernel    OCIImageSource `json:"kernel"`
 }
 ```
 

@@ -86,7 +86,7 @@ func Ps(po *psOptions) error {
 	o.Write("VM ID", "IMAGE", "KERNEL", "SIZE", "CPUS", "MEMORY", "CREATED", "STATUS", "IPS", "PORTS", "NAME")
 	for _, vm := range filteredVMs {
 		o.Write(vm.GetUID(), vm.Spec.Image.OCI, vm.Spec.Kernel.OCI,
-			vm.Spec.DiskSize, vm.Spec.CPUs, vm.Spec.Memory, formatCreated(vm), formatStatus(vm), vm.Status.IPAddresses,
+			vm.Spec.DiskSize, vm.Spec.CPUs, vm.Spec.Memory, formatCreated(vm), formatStatus(vm), vm.Status.Network.IPAddresses,
 			vm.Spec.Network.Ports, vm.GetName())
 	}
 

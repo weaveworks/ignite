@@ -48,6 +48,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.Kernel":            schema_pkg_apis_ignite_v1alpha3_Kernel(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.KernelSpec":        schema_pkg_apis_ignite_v1alpha3_KernelSpec(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.KernelStatus":      schema_pkg_apis_ignite_v1alpha3_KernelStatus(ref),
+		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.Network":           schema_pkg_apis_ignite_v1alpha3_Network(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.OCIImageSource":    schema_pkg_apis_ignite_v1alpha3_OCIImageSource(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.Pool":              schema_pkg_apis_ignite_v1alpha3_Pool(ref),
 		"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.PoolDevice":        schema_pkg_apis_ignite_v1alpha3_PoolDevice(ref),
@@ -1119,6 +1120,39 @@ func schema_pkg_apis_ignite_v1alpha3_KernelStatus(ref common.ReferenceCallback) 
 	}
 }
 
+func schema_pkg_apis_ignite_v1alpha3_Network(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "Network specifies the VM's network information.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"plugin": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"ipAddresses": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "byte",
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"plugin", "ipAddresses"},
+			},
+		},
+	}
+}
+
 func schema_pkg_apis_ignite_v1alpha3_OCIImageSource(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -1308,8 +1342,14 @@ func schema_pkg_apis_ignite_v1alpha3_Runtime(ref common.ReferenceCallback) commo
 							Format: "",
 						},
 					},
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
-				Required: []string{"id"},
+				Required: []string{"id", "name"},
 			},
 		},
 	}
@@ -1556,17 +1596,9 @@ func schema_pkg_apis_ignite_v1alpha3_VMStatus(ref common.ReferenceCallback) comm
 							Ref: ref("github.com/weaveworks/libgitops/pkg/runtime.Time"),
 						},
 					},
-					"ipAddresses": {
+					"network": {
 						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Type:   []string{"string"},
-										Format: "byte",
-									},
-								},
-							},
+							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.Network"),
 						},
 					},
 					"image": {
@@ -1584,7 +1616,7 @@ func schema_pkg_apis_ignite_v1alpha3_VMStatus(ref common.ReferenceCallback) comm
 			},
 		},
 		Dependencies: []string{
-			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.OCIImageSource", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.Runtime", "github.com/weaveworks/libgitops/pkg/runtime.Time"},
+			"github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.Network", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.OCIImageSource", "github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.Runtime", "github.com/weaveworks/libgitops/pkg/runtime.Time"},
 	}
 }
 

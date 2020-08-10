@@ -63,7 +63,7 @@ func TestInspect(t *testing.T) {
 
 			err = Inspect(iop)
 			if (err != nil) != rt.err {
-				t.Errorf("expected error %t, actual: %v", rt.err, err)
+				t.Fatalf("expected error %t, actual: %v", rt.err, err)
 			}
 
 			w.Close()
@@ -79,7 +79,7 @@ func TestInspect(t *testing.T) {
 			goldenFilePath := fmt.Sprintf("testdata%c%s", filepath.Separator, rt.golden)
 
 			// Update the golden file if needed.
-			if *update {
+			if !rt.err && *update {
 				t.Log("update inspect golden files")
 				if err := ioutil.WriteFile(goldenFilePath, buf.Bytes(), 0644); err != nil {
 					t.Fatalf("failed to update inspect golden file: %s: %v", goldenFilePath, err)
@@ -95,7 +95,7 @@ func TestInspect(t *testing.T) {
 				}
 
 				if !bytes.Equal(buf.Bytes(), wantOutput) {
-					t.Errorf("expected output to be:\n%v\ngot output:\n%v", wantOutput, buf.Bytes())
+					t.Errorf("expected output to be:\n%v\ngot output:\n%v", string(wantOutput), buf.String())
 				}
 			}
 		})
