@@ -32,15 +32,10 @@ func CleanupVM(vm *api.VM) error {
 	// Inspect the container before trying to stop it and it gets auto-removed
 	inspectResult, _ := providers.Runtime.InspectContainer(util.NewPrefixer().Prefix(vm.GetUID()))
 
-	// If the VM is running, try to kill it first so we don't leave dangling containers
-	if vm.Running() {
-		if err := StopVM(vm, true, true); err != nil {
+	// If the VM is running, try to kill it first so we don't leave dangling containers. Otherwise, try to cleanup VM networking.
+	if err := StopVM(vm, true, true); err != nil {
+		if vm.Running() {
 			return err
-		}
-	} else {
-		// Try to cleanup VM networking
-		if err := removeNetworking(util.NewPrefixer().Prefix(vm.GetUID()), false); err != nil {
-			log.Warnf("Failed to cleanup networking for stopped container %s %q: %v", vm.GetKind(), vm.GetUID(), err)
 		}
 	}
 
@@ -77,43 +72,51 @@ func RemoveVMContainer(result *runtime.ContainerInspectResult) {
 	_ = providers.Runtime.RemoveContainer(result.ID)
 }
 
-// StopVM stops or kills a VM
+// StopVM removes networking of the given VM and stops or kills it
 func StopVM(vm *api.VM, kill, silent bool) error {
 	var err error
 	container := util.NewPrefixer().Prefix(vm.GetUID())
 	action := "stop"
 
+	if !vm.Running() && !logs.Quiet {
+		log.Warnf("VM %q is not running but trying to cleanup networking for stopped container\n", vm.GetUID())
+	}
+
 	// Remove VM networking
-	if err = removeNetworking(util.NewPrefixer().Prefix(vm.GetUID()), true); err != nil {
+	if err = removeNetworking(util.NewPrefixer().Prefix(vm.GetUID())); err != nil {
+		log.Warnf("Failed to cleanup networking for stopped container %s %q: %v", vm.GetKind(), vm.GetUID(), err)
+
 		return err
 	}
 
-	// Stop or kill the VM container
-	if kill {
-		action = "kill"
-		err = providers.Runtime.KillContainer(container, signalSIGQUIT) // TODO: common constant for SIGQUIT
-	} else {
-		err = providers.Runtime.StopContainer(container, nil)
-	}
+	if vm.Running() {
+		// Stop or kill the VM container
+		if kill {
+			action = "kill"
+			err = providers.Runtime.KillContainer(container, signalSIGQUIT) // TODO: common constant for SIGQUIT
+		} else {
+			err = providers.Runtime.StopContainer(container, nil)
+		}
 
-	if err != nil {
-		return fmt.Errorf("failed to %s container for %s %q: %v", action, vm.GetKind(), vm.GetUID(), err)
-	}
+		if err != nil {
+			return fmt.Errorf("failed to %s container for %s %q: %v", action, vm.GetKind(), vm.GetUID(), err)
+		}
 
-	if silent {
-		return nil
-	}
+		if silent {
+			return nil
+		}
 
-	if logs.Quiet {
-		fmt.Println(vm.GetUID())
-	} else {
-		log.Infof("Stopped %s with name %q and ID %q", vm.GetKind(), vm.GetName(), vm.GetUID())
+		if logs.Quiet {
+			fmt.Println(vm.GetUID())
+		} else {
+			log.Infof("Stopped %s with name %q and ID %q", vm.GetKind(), vm.GetName(), vm.GetUID())
+		}
 	}
 
 	return nil
 }
 
-func removeNetworking(containerID string, isRunning bool) error {
+func removeNetworking(containerID string) error {
 	log.Infof("Removing the container with ID %q from the %q network", containerID, providers.NetworkPlugin.Name())
-	return providers.NetworkPlugin.RemoveContainerNetwork(containerID, isRunning)
+	return providers.NetworkPlugin.RemoveContainerNetwork(containerID)
 }

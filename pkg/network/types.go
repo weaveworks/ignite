@@ -21,7 +21,7 @@ type Plugin interface {
 	SetupContainerNetwork(containerID string, portmappings ...meta.PortMapping) (*Result, error)
 
 	// RemoveContainerNetwork is the method called before a container using the network plugin can be deleted
-	RemoveContainerNetwork(containerID string, isRunning bool) error
+	RemoveContainerNetwork(containerID string) error
 }
 
 type Result struct {
