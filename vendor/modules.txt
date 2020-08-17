@@ -615,7 +615,7 @@ k8s.io/apimachinery/third_party/forked/golang/json
 k8s.io/apimachinery/third_party/forked/golang/reflect
 # k8s.io/klog v1.0.0
 k8s.io/klog
-# k8s.io/kube-openapi v0.0.0-20200727223308-4c7aaf529f79 => k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c
+# k8s.io/kube-openapi v0.0.0-20200811211545-daf3cbb84823 => k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c
 ## explicit
 k8s.io/kube-openapi/pkg/common
 k8s.io/kube-openapi/pkg/util/proto
