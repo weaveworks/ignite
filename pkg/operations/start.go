@@ -124,20 +124,14 @@ func StartVM(vm *api.VM, debug bool) error {
 	}
 
 	// Set the container ID for the VM
-	vm.Status.Runtime = &api.Runtime{
-		ID:   containerID,
-		Name: providers.RuntimeName,
-	}
+	vm.Status.Runtime.ID = containerID
+	vm.Status.Runtime.Name = providers.RuntimeName
 
 	// Set the start time for the VM
 	startTime := apiruntime.Timestamp()
 	vm.Status.StartTime = &startTime
+	vm.Status.Network.Plugin = providers.NetworkPluginName
 
-	if vm.Status.Network == nil {
-		vm.Status.Network = &api.Network{
-			Plugin: providers.NetworkPluginName,
-		}
-	}
 	// Append non-loopback runtime IP addresses of the VM to its state
 	for _, addr := range result.Addresses {
 		if !addr.IP.IsLoopback() {

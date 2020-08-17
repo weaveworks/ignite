@@ -33,4 +33,5 @@ func SetObjectDefaults_VM(in *VM) {
 	SetDefaults_VMSpec(&in.Spec)
 	SetDefaults_VMSandboxSpec(&in.Spec.Sandbox)
 	SetDefaults_VMKernelSpec(&in.Spec.Kernel)
+	SetDefaults_VMStatus(&in.Status)
 }

@@ -134,7 +134,7 @@ func copyToOverlay(vm *api.VM) (err error) {
 	}
 
 	ip := net.IP{127, 0, 0, 1}
-	if vm.Status.Network != nil && len(vm.Status.Network.IPAddresses) > 0 {
+	if len(vm.Status.Network.IPAddresses) > 0 {
 		ip = vm.Status.Network.IPAddresses[0]
 	}
 
