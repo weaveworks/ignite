@@ -176,13 +176,14 @@ func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
 			return nil, false, fmt.Errorf("failed to get interface %q by name: %v", iface.Name, err)
 		}
 
-		delAddr, err := netlink.ParseAddr(addr.String())
-		if err != nil {
-			return nil, false, fmt.Errorf("failed to parse address from stringified IP %q: %v", addr.String(), err)
+		delAddr := &netlink.Addr{
+			IPNet: &net.IPNet{
+				IP:   ip,
+				Mask: mask,
+			},
 		}
-
 		if err = netlink.AddrDel(link, delAddr); err != nil {
-			return nil, false, fmt.Errorf("failed to remove address from interface %q: %v", iface.Name, err)
+			return nil, false, fmt.Errorf("failed to remove address %q from interface %q: %v", delAddr, iface.Name, err)
 		}
 
 		log.Infof("Moving IP address %s (%s) from container to VM", ip.String(), maskString(mask))
