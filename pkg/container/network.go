@@ -74,7 +74,7 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 		}
 
 		// Try to transfer the address from the container to the DHCP server
-		ipNet, _, err := takeAddress(&iface)
+		ipNet, gw, _, err := takeAddress(&iface)
 		if err != nil {
 			// Log the problem, but don't quit the function here as there might be other good interfaces
 			log.Errorf("Parsing interface %q failed: %v", iface.Name, err)
@@ -93,9 +93,8 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 			continue
 		}
 
-		// Gateway for now is just x.x.x.1 TODO: Better detection
-		dhcpIface.GatewayIP = &net.IP{ipNet.IP[0], ipNet.IP[1], ipNet.IP[2], 1}
 		dhcpIface.VMIPNet = ipNet
+		dhcpIface.GatewayIP = gw
 
 		*dhcpIfaces = append(*dhcpIfaces, *dhcpIface)
 
@@ -141,12 +140,12 @@ func bridge(iface *net.Interface) (*DHCPInterface, error) {
 	}, nil
 }
 
-// takeAddress removes the first address of an interface and returns it
-func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
+// takeAddress removes the first address of an interface and returns it and the appropriate gateway
+func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, bool, error) {
 	addrs, err := iface.Addrs()
 	if err != nil || addrs == nil || len(addrs) == 0 {
 		// set the bool to true so the caller knows to retry
-		return nil, true, fmt.Errorf("interface %q has no address", iface.Name)
+		return nil, nil, true, fmt.Errorf("interface %q has no address", iface.Name)
 	}
 
 	for _, addr := range addrs {
@@ -173,7 +172,19 @@ func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
 
 		link, err := netlink.LinkByName(iface.Name)
 		if err != nil {
-			return nil, false, fmt.Errorf("failed to get interface %q by name: %v", iface.Name, err)
+			return nil, nil, false, fmt.Errorf("failed to get interface %q by name: %v", iface.Name, err)
+		}
+
+		var gw *net.IP
+		routes, err := netlink.RouteList(link, netlink.FAMILY_ALL)
+		if err != nil {
+			return nil, nil, false, fmt.Errorf("failed to get default gateway for interface %q: %v", iface.Name, err)
+		}
+		for _, rt := range routes {
+			if rt.Gw != nil {
+				gw = &rt.Gw
+				break
+			}
 		}
 
 		delAddr := &netlink.Addr{
@@ -183,18 +194,18 @@ func takeAddress(iface *net.Interface) (*net.IPNet, bool, error) {
 			},
 		}
 		if err = netlink.AddrDel(link, delAddr); err != nil {
-			return nil, false, fmt.Errorf("failed to remove address %q from interface %q: %v", delAddr, iface.Name, err)
+			return nil, nil, false, fmt.Errorf("failed to remove address %q from interface %q: %v", delAddr, iface.Name, err)
 		}
 
-		log.Infof("Moving IP address %s (%s) from container to VM", ip.String(), maskString(mask))
+		log.Infof("Moving IP address %s (%s) with gateway %s from container to VM", ip.String(), maskString(mask), gw.String())
 
 		return &net.IPNet{
 			IP:   ip,
 			Mask: mask,
-		}, false, nil
+		}, gw, false, nil
 	}
 
-	return nil, false, fmt.Errorf("interface %s has no valid addresses", iface.Name)
+	return nil, nil, false, fmt.Errorf("interface %s has no valid addresses", iface.Name)
 }
 
 // createTAPAdapter creates a new TAP device with the given name
