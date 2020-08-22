@@ -2,11 +2,12 @@ package e2e
 
 import (
 	"fmt"
-	"os/exec"
 	"strings"
 	"testing"
 
 	"gotest.tools/assert"
+
+	"github.com/weaveworks/ignite/e2e/util"
 )
 
 func TestVMExecInteractive(t *testing.T) {
@@ -14,47 +15,35 @@ func TestVMExecInteractive(t *testing.T) {
 
 	vmName := "e2e_test_ignite_exec_interactive"
 
-	runCmd := exec.Command(
-		igniteBin,
-		"run", "--name="+vmName,
-		"--ssh",
-		"weaveworks/ignite-ubuntu",
-	)
-	runOut, runErr := runCmd.CombinedOutput()
+	igniteCmd := util.NewCommand(t, igniteBin)
 
-	defer func() {
-		rmvCmd := exec.Command(
-			igniteBin,
-			"rm", "-f", vmName,
-		)
-		rmvOut, rmvErr := rmvCmd.CombinedOutput()
-		assert.Check(t, rmvErr, fmt.Sprintf("vm removal: \n%q\n%s", rmvCmd.Args, rmvOut))
-	}()
+	defer igniteCmd.New().
+		With("rm", "-f", vmName).
+		Run()
 
-	assert.Check(t, runErr, fmt.Sprintf("vm run: \n%q\n%s", runCmd.Args, runOut))
+	igniteCmd.New().
+		With("run", "--name="+vmName).
+		With(util.DefaultVMImage).
+		With("--ssh").
+		Run()
 
 	// Pass input data from host and write to a file inside the VM.
 	remoteFileName := "afile.txt"
 	inputContent := "foooo..."
 	input := strings.NewReader(inputContent)
 
-	execCmd := exec.Command(
-		igniteBin,
-		"exec", vmName,
-		"tee", remoteFileName,
-	)
-	execCmd.Stdin = input
-
-	execOut, execErr := execCmd.CombinedOutput()
-	assert.Check(t, execErr, fmt.Sprintf("exec: \n%q\n%s", execCmd.Args, execOut))
+	igniteExec := igniteCmd.New().
+		With("exec", vmName).
+		With("tee", remoteFileName)
+	igniteExec.Cmd.Stdin = input
+	igniteExec.Run()
 
 	// Check the file content inside the VM.
-	catCmd := exec.Command(
-		igniteBin,
-		"exec", vmName,
-		"cat", remoteFileName,
-	)
-	catOut, catErr := catCmd.CombinedOutput()
-	assert.Check(t, catErr, fmt.Sprintf("cat: \n%q\n%s", catCmd.Args, catOut))
+	catExec := igniteCmd.New().
+		With("exec", vmName).
+		With("cat", remoteFileName)
+
+	catOut, catErr := catExec.Cmd.CombinedOutput()
+	assert.Check(t, catErr, fmt.Sprintf("cat: \n%q\n%s", catExec.Cmd, catOut))
 	assert.Equal(t, string(catOut), inputContent, fmt.Sprintf("unexpected file content on host:\n\t(WNT): %q\n\t(GOT): %q", inputContent, string(catOut)))
 }

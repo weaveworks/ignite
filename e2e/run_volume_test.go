@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"gotest.tools/assert"
+
+	"github.com/weaveworks/ignite/e2e/util"
 )
 
 // runVolume is a helper for testing volume persistence
@@ -67,99 +69,64 @@ func runVolume(t *testing.T, vmName, runtime, networkPlugin string) {
 		assert.Check(t, detachLoopErr, fmt.Sprintf("loop detach: \n%q\n%s", detachLoopCmd.Args, detachLoopOut))
 	}()
 
+	igniteCmd := util.NewCommand(t, igniteBin)
+
+	// Clean-up the following VM.
+	defer igniteCmd.New().
+		WithRuntime(runtime).
+		WithNetwork(networkPlugin).
+		With("rm", "-f", vmName).
+		Run()
+
 	// Run a vm with the loop-device mounted as a volume @ /my-vol
-	runCmd := exec.Command(
-		igniteBin,
-		"--runtime="+runtime,
-		"--network-plugin="+networkPlugin,
-		"--volumes="+loopPath+":/my-vol",
-		"run", "--name="+vmName,
-		"weaveworks/ignite-ubuntu",
-		"--ssh",
-	)
-	runOut, runErr := runCmd.CombinedOutput()
-
-	defer func() {
-		rmvCmd := exec.Command(
-			igniteBin,
-			"--runtime="+runtime,
-			"--network-plugin="+networkPlugin,
-			"rm", "-f", vmName,
-		)
-		rmvOut, rmvErr := rmvCmd.CombinedOutput()
-		assert.Check(t, rmvErr, fmt.Sprintf("vm removal: \n%q\n%s", rmvCmd.Args, rmvOut))
-	}()
-
-	assert.Check(t, runErr, fmt.Sprintf("vm run: \n%q\n%s", runCmd.Args, runOut))
-	if runErr != nil {
-		return
-	}
+	igniteCmd.New().
+		WithRuntime(runtime).
+		WithNetwork(networkPlugin).
+		With("run").
+		With("--name=" + vmName).
+		With("--ssh").
+		With("--volumes=" + loopPath + ":/my-vol").
+		With(util.DefaultVMImage).
+		Run()
 
 	// Touch a file in /my-vol
-	touchCmd := exec.Command(
-		igniteBin,
-		"--runtime="+runtime,
-		"--network-plugin="+networkPlugin,
-		"exec", vmName,
-		"touch", "/my-vol/hello-world",
-	)
-	touchOut, touchErr := touchCmd.CombinedOutput()
-	assert.Check(t, touchErr, fmt.Sprintf("touch: \n%q\n%s", touchCmd.Args, touchOut))
-	if touchErr != nil {
-		return
-	}
+	igniteCmd.New().
+		With("exec", vmName).
+		With("touch", "/my-vol/hello-world").
+		Run()
 
-	// Stop the vm
-	stopCmd := exec.Command(
-		igniteBin,
-		"--runtime="+runtime,
-		"--network-plugin="+networkPlugin,
-		"stop", vmName,
-	)
-	stopOut, stopErr := stopCmd.CombinedOutput()
-	assert.Check(t, stopErr, fmt.Sprintf("vm stop: \n%q\n%s", stopCmd.Args, stopOut))
-	if stopErr != nil {
-		return
-	}
+	// Stop the vm without force.
+	igniteCmd.New().
+		WithRuntime(runtime).
+		WithNetwork(networkPlugin).
+		With("stop", vmName).
+		Run()
+
+	secondVMName := vmName + "_2"
+
+	// Clean-up the following VM.
+	defer igniteCmd.New().
+		WithRuntime(runtime).
+		WithNetwork(networkPlugin).
+		With("rm", "-f", secondVMName).
+		Run()
 
 	// Start another vm so we can check my-vol
-	run2Cmd := exec.Command(
-		igniteBin,
-		"--runtime="+runtime,
-		"--network-plugin="+networkPlugin,
-		"--volumes="+loopPath+":/my-vol",
-		"run", "--name="+vmName+"_2",
-		"weaveworks/ignite-ubuntu",
-		"--ssh",
-	)
-	run2Out, run2Err := run2Cmd.CombinedOutput()
-
-	defer func() {
-		rmv2Cmd := exec.Command(
-			igniteBin,
-			"--runtime="+runtime,
-			"--network-plugin="+networkPlugin,
-			"rm", "-f", vmName+"_2",
-		)
-		rmv2Out, rmv2Err := rmv2Cmd.CombinedOutput()
-		assert.Check(t, rmv2Err, fmt.Sprintf("vm removal: \n%q\n%s", rmv2Cmd.Args, rmv2Out))
-	}()
-
-	assert.Check(t, run2Err, fmt.Sprintf("vm run: \n%q\n%s", run2Cmd.Args, run2Out))
-	if run2Err != nil {
-		return
-	}
+	igniteCmd.New().
+		WithRuntime(runtime).
+		WithNetwork(networkPlugin).
+		With("run").
+		With("--name=" + secondVMName).
+		With("--ssh").
+		With("--volumes=" + loopPath + ":/my-vol").
+		With(util.DefaultVMImage).
+		Run()
 
 	// Stat the file in /my-vol using the new vm
-	stat2Cmd := exec.Command(
-		igniteBin,
-		"--runtime="+runtime,
-		"--network-plugin="+networkPlugin,
-		"exec", vmName+"_2",
-		"stat", "/my-vol/hello-world",
-	)
-	stat2Out, stat2Err := stat2Cmd.CombinedOutput()
-	assert.Check(t, stat2Err, fmt.Sprintf("stat2: \n%q\n%s", stat2Cmd.Args, stat2Out))
+	igniteCmd.New().
+		With("exec", secondVMName).
+		With("stat", "/my-vol/hello-world").
+		Run()
 }
 
 func TestVolumeWithDockerAndDockerBridge(t *testing.T) {
