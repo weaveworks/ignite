@@ -39,8 +39,10 @@ ignite vm run <OCI image> [flags]
   -l, --label stringArray                 Set a label (foo=bar)
       --memory size                       Amount of RAM to allocate for the VM (default 512.0 MB)
   -n, --name string                       Specify the name
+      --network-plugin plugin             Network plugin to use. Available options are: [cni docker-bridge] (default cni)
   -p, --ports strings                     Map host ports to VM ports
       --require-name                      Require VM name to be passed, no name generation
+      --runtime runtime                   Container runtime to use. Available options are: [docker containerd] (default containerd)
       --sandbox-image oci-image           Specify an OCI image for the VM sandbox (default weaveworks/ignite:dev)
   -s, --size size                         VM filesystem size, for example 5GB or 2048MB (default 4.0 GB)
       --ssh[=<path>]                      Enable SSH for the VM. If <path> is given, it will be imported as the public key. If just '--ssh' is specified, a new keypair will be generated. (default is unset, which disables SSH access to the VM)
@@ -50,11 +52,9 @@ ignite vm run <OCI image> [flags]
 ### Options inherited from parent commands
 
 ```
-      --ignite-config string    Ignite configuration path; refer to the 'Ignite Configuration' docs for more details
-      --log-level loglevel      Specify the loglevel for the program (default info)
-      --network-plugin plugin   Network plugin to use. Available options are: [cni docker-bridge] (default cni)
-  -q, --quiet                   The quiet mode allows for machine-parsable output by printing only IDs
-      --runtime runtime         Container runtime to use. Available options are: [docker containerd] (default containerd)
+      --ignite-config string   Ignite configuration path; refer to the 'Ignite Configuration' docs for more details
+      --log-level loglevel     Specify the loglevel for the program (default info)
+  -q, --quiet                  The quiet mode allows for machine-parsable output by printing only IDs
 ```
 
 ### SEE ALSO
