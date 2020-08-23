@@ -5,6 +5,7 @@ import (
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
+	"github.com/weaveworks/ignite/pkg/config"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/providers"
 )
@@ -58,6 +59,11 @@ func Rm(ro *rmOptions) error {
 		// If the VM is running, but we haven't enabled force-mode, return an error
 		if vm.Running() && !ro.Force {
 			return fmt.Errorf("%s is running", vm.GetUID())
+		}
+
+		// Set the runtime and network-plugin providers from the VM status.
+		if err := config.SetAndPopulateProviders(vm.Status.Runtime.Name, vm.Status.Network.Plugin); err != nil {
+			return err
 		}
 
 		// This will first kill the VM container, and then remove it

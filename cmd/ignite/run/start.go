@@ -8,6 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/weaveworks/ignite/pkg/apis/ignite"
+	"github.com/weaveworks/ignite/pkg/config"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/preflight/checkers"
@@ -43,6 +44,11 @@ func Start(so *startOptions) error {
 	// Check if the given VM is already running
 	if so.vm.Running() {
 		return fmt.Errorf("VM %q is already running", so.vm.GetUID())
+	}
+
+	// Set the runtime and network-plugin providers from the VM status.
+	if err := config.SetAndPopulateProviders(so.vm.Status.Runtime.Name, so.vm.Status.Network.Plugin); err != nil {
+		return err
 	}
 
 	ignoredPreflightErrors := sets.NewString(util.ToLower(so.StartFlags.IgnoredPreflightErrors)...)

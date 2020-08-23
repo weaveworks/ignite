@@ -7,8 +7,12 @@ import (
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
+	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
+	"github.com/weaveworks/ignite/pkg/providers"
+	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
 	"github.com/weaveworks/ignite/pkg/version"
 )
 
@@ -80,4 +84,7 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	cmdutil.OCIImageRefVar(fs, &cf.VM.Spec.Sandbox.OCI, "sandbox-image", "Specify an OCI image for the VM sandbox")
 	cmdutil.SSHVar(fs, &cf.SSH)
 	cmdutil.VolumeVarP(fs, &cf.VM.Spec.Storage, "volumes", "v", "Expose block devices from the host inside the VM")
+
+	runtimeflag.RuntimeVar(fs, &providers.RuntimeName)
+	networkflag.NetworkPluginVar(fs, &providers.NetworkPluginName)
 }

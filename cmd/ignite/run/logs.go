@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	"github.com/weaveworks/ignite/pkg/config"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -23,6 +24,11 @@ func Logs(lo *logsOptions) error {
 	// Check if the VM is running
 	if !lo.vm.Running() {
 		return fmt.Errorf("VM %q is not running", lo.vm.GetUID())
+	}
+
+	// Set the runtime and network-plugin providers from the VM status.
+	if err := config.SetAndPopulateProviders(lo.vm.Status.Runtime.Name, lo.vm.Status.Network.Plugin); err != nil {
+		return err
 	}
 
 	// Fetch the VM logs

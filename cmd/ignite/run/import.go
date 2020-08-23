@@ -3,6 +3,7 @@ package run
 import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/config"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/providers"
@@ -10,6 +11,11 @@ import (
 )
 
 func ImportImage(source string) (image *api.Image, err error) {
+	// Populate the runtime provider.
+	if err := config.SetAndPopulateProviders(providers.RuntimeName, providers.NetworkPluginName); err != nil {
+		return nil, err
+	}
+
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {
 		return
@@ -27,6 +33,11 @@ func ImportImage(source string) (image *api.Image, err error) {
 }
 
 func ImportKernel(source string) (kernel *api.Kernel, err error) {
+	// Populate the runtime provider.
+	if err := config.SetAndPopulateProviders(providers.RuntimeName, providers.NetworkPluginName); err != nil {
+		return nil, err
+	}
+
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {
 		return

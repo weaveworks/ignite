@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/config"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/operations"
@@ -55,6 +56,15 @@ func (cf *CreateFlags) NewCreateOptions(args []string, fs *flag.FlagSet) (*creat
 	// If component config is in use, set the VMDefaults on the base VM.
 	if providers.ComponentConfig != nil {
 		baseVM.Spec = providers.ComponentConfig.Spec.VMDefaults
+	}
+
+	// Set the runtime and network-plugin on the VM. This overrides the global
+	// config.
+	baseVM.Status.Runtime.Name = providers.RuntimeName
+	baseVM.Status.Network.Plugin = providers.NetworkPluginName
+	// Populate the runtime and network-plugin providers.
+	if err := config.SetAndPopulateProviders(providers.RuntimeName, providers.NetworkPluginName); err != nil {
+		return nil, err
 	}
 
 	// Set the passed image argument on the new VM spec.

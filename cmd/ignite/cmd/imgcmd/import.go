@@ -5,8 +5,12 @@ import (
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
+	"github.com/weaveworks/ignite/pkg/providers"
+	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
 )
 
 // NewCmdImport imports a new VM image
@@ -27,5 +31,11 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 			}())
 		},
 	}
+
+	addImportFlags(cmd.Flags())
 	return cmd
+}
+
+func addImportFlags(fs *pflag.FlagSet) {
+	runtimeflag.RuntimeVar(fs, &providers.RuntimeName)
 }
