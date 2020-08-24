@@ -150,6 +150,8 @@ spec:
   cpus: 2
   diskSize: 3GB
   memory: 800MB
+status:
+  running: true
 EOF
 ```
 
