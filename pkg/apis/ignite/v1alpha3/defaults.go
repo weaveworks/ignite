@@ -85,3 +85,12 @@ func calcMetadataDevSize(obj *PoolSpec) meta.Size {
 
 	return meta.NewSizeFromBytes(48 * obj.DataSize.Bytes() / obj.AllocationSize.Bytes()).Min(maxSize).Max(minSize)
 }
+
+func SetDefaults_VMStatus(obj *VMStatus) {
+	if obj.Runtime == nil {
+		obj.Runtime = &Runtime{}
+	}
+	if obj.Network == nil {
+		obj.Network = &Network{}
+	}
+}

@@ -23,6 +23,7 @@
   - [func SetDefaults\_VMSandboxSpec(obj
     \*VMSandboxSpec)](#SetDefaults_VMSandboxSpec)
   - [func SetDefaults\_VMSpec(obj \*VMSpec)](#SetDefaults_VMSpec)
+  - [func SetDefaults\_VMStatus(obj \*VMStatus)](#SetDefaults_VMStatus)
   - [type BlockDeviceVolume](#BlockDeviceVolume)
   - [type Configuration](#Configuration)
   - [type ConfigurationSpec](#ConfigurationSpec)
@@ -133,6 +134,12 @@ func SetDefaults_VMSandboxSpec(obj *VMSandboxSpec)
 
 ``` go
 func SetDefaults_VMSpec(obj *VMSpec)
+```
+
+## <a name="SetDefaults_VMStatus">func</a> [SetDefaults\_VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/defaults.go?s=2390:2430#L89)
+
+``` go
+func SetDefaults_VMStatus(obj *VMStatus)
 ```
 
 ## <a name="BlockDeviceVolume">type</a> [BlockDeviceVolume](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=7717:7777#L203)
