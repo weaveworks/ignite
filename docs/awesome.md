@@ -35,6 +35,7 @@ using, mentioning or buidling on top of Ignite.
 
 ## Projects
 
+- [KubeFire: Manage Kubernetes clusters by Ignite](https://github.com/innobead/kubefire) by David Ko
 - [Virtual Kubelet provider for Ignite](https://github.com/chanwit/vkignite) by Chanwit Kaewkasi
 - [ignite-ci: Ignite and Ansible](https://gitlab.com/neith00/ignite-ci) by Jean-Alexis Lauricella
 - [LF Edge Virtualization Engine; possible user](https://github.com/lf-edge/eve/blob/master/docs/CONTAINERS.md)
