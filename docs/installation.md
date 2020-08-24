@@ -42,6 +42,8 @@ KVM acceleration can be used
 
 With this kind of output, you're ready to go!
 
+Alternatively if you want to run this on AWS EC2, use Amazon Linux v2 (https://aws.amazon.com/amazon-linux-2/) and ensure you use a baremetal instance, like the r series like say r5.metal (https://aws.amazon.com/ec2/instance-types/). 
+
 ## Installing dependencies
 
 Ignite has a few dependencies (read more in this [doc](dependencies.md)).
@@ -61,6 +63,14 @@ CentOS:
 ```bash
 yum install -y e2fsprogs openssh-clients git
 which containerd || ( yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo && yum install -y containerd.io )
+    # Install containerd if it's not present
+```
+
+Amazon Linux 2
+
+```bash
+yum install -y e2fsprogs openssh-clients git 
+which containerd || amazon-linux-extras enable docker && yum install -y containerd
     # Install containerd if it's not present
 ```
 
