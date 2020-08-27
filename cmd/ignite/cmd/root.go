@@ -43,7 +43,7 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 
 			// TODO Some commands do not need to check root
 			// Currently it seems to be only ignite version that does not require root
-			if cmd.Name() == "version" && cmd.Parent().Name() == "ignite" {
+			if isNonRootCommand(cmd.Name(), cmd.Parent().Name()) {
 				return
 			}
 
@@ -115,6 +115,19 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	root.AddCommand(NewCmdStop(os.Stdout))
 	root.AddCommand(versioncmd.NewCmdVersion(os.Stdout))
 	return root
+}
+
+func isNonRootCommand(cmd string, parentCmd string) bool {
+	if parentCmd != "ignite" {
+		return false
+	}
+
+	switch cmd {
+	case "version", "help", "image", "kernel", "completion", "inspect", "ps":
+		return true
+	}
+
+	return false
 }
 
 func addGlobalFlags(fs *pflag.FlagSet) {
