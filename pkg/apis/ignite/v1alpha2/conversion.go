@@ -16,6 +16,10 @@ func Convert_v1alpha2_VMStatus_To_ignite_VMStatus(in *VMStatus, out *ignite.VMSt
 		return err
 	}
 
+	if out.Network == nil {
+		out.Network = &ignite.Network{}
+	}
+
 	// Set IPAddresses to the new position, under Network block.
 	out.Network.IPAddresses = in.IPAddresses
 
