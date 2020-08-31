@@ -34,6 +34,7 @@ require (
 	github.com/gogo/googleapis v1.3.2 // indirect
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 	github.com/gorilla/mux v1.7.4 // indirect
+	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/krolaw/dhcp4 v0.0.0-20190909130307-a50d88189771
 	github.com/lithammer/dedent v1.1.0
 	github.com/miekg/dns v1.1.29
@@ -54,9 +55,10 @@ require (
 	github.com/vishvananda/netlink v1.1.0
 	github.com/weaveworks/libgitops v0.0.0-20200611103311-2c871bbbbf0c
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/net v0.0.0-20200625001655-4c5254603344 // indirect
+	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208 // indirect
 	golang.org/x/sys v0.0.0-20200610111108-226ff32320da
+	golang.org/x/text v0.3.3 // indirect
 	gotest.tools v2.2.0+incompatible
 	k8s.io/apimachinery v0.18.3
 	k8s.io/kube-openapi v0.0.0-20200811211545-daf3cbb84823

@@ -1,13 +1,13 @@
 package e2e
 
 import (
-	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"testing"
 
 	"gotest.tools/assert"
+
+	"github.com/weaveworks/ignite/e2e/util"
 )
 
 var (
@@ -20,27 +20,22 @@ var (
 func runWithRuntimeAndNetworkPlugin(t *testing.T, vmName, runtime, networkPlugin string) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
-	runCmd := exec.Command(
-		igniteBin,
-		"--runtime="+runtime,
-		"--network-plugin="+networkPlugin,
-		"run", "--name="+vmName,
-		"weaveworks/ignite-ubuntu",
-	)
-	runOut, runErr := runCmd.CombinedOutput()
+	igniteCmd := util.NewCommand(t, igniteBin)
 
-	defer func() {
-		rmvCmd := exec.Command(
-			igniteBin,
-			"--runtime="+runtime,
-			"--network-plugin="+networkPlugin,
-			"rm", "-f", vmName,
-		)
-		rmvOut, rmvErr := rmvCmd.CombinedOutput()
-		assert.Check(t, rmvErr, fmt.Sprintf("vm removal: \n%q\n%s", rmvCmd.Args, rmvOut))
-	}()
+	defer igniteCmd.New().
+		WithRuntime(runtime).
+		WithNetwork(networkPlugin).
+		With("rm", "-f").
+		With(vmName).
+		Run()
 
-	assert.Check(t, runErr, fmt.Sprintf("vm run: \n%q\n%s", runCmd.Args, runOut))
+	igniteCmd.New().
+		WithRuntime(runtime).
+		WithNetwork(networkPlugin).
+		With("run").
+		With("--name=" + vmName).
+		With(util.DefaultVMImage).
+		Run()
 }
 
 func TestIgniteRunWithDockerAndDockerBridge(t *testing.T) {
@@ -75,41 +70,26 @@ func TestIgniteRunWithContainerdAndCNI(t *testing.T) {
 func runCurl(t *testing.T, vmName, runtime, networkPlugin string) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
-	runCmd := exec.Command(
-		igniteBin,
-		"--runtime="+runtime,
-		"--network-plugin="+networkPlugin,
-		"run", "--name="+vmName,
-		"weaveworks/ignite-ubuntu",
-		"--ssh",
-	)
-	runOut, runErr := runCmd.CombinedOutput()
+	igniteCmd := util.NewCommand(t, igniteBin)
 
-	defer func() {
-		rmvCmd := exec.Command(
-			igniteBin,
-			"--runtime="+runtime,
-			"--network-plugin="+networkPlugin,
-			"rm", "-f", vmName,
-		)
-		rmvOut, rmvErr := rmvCmd.CombinedOutput()
-		assert.Check(t, rmvErr, fmt.Sprintf("vm removal: \n%q\n%s", rmvCmd.Args, rmvOut))
-	}()
+	defer igniteCmd.New().
+		WithRuntime(runtime).
+		WithNetwork(networkPlugin).
+		With("rm", "-f", vmName).
+		Run()
 
-	assert.Check(t, runErr, fmt.Sprintf("vm run: \n%q\n%s", runCmd.Args, runOut))
-	if runErr != nil {
-		return
-	}
+	igniteCmd.New().
+		WithRuntime(runtime).
+		WithNetwork(networkPlugin).
+		With("run", "--name="+vmName).
+		With(util.DefaultVMImage).
+		With("--ssh").
+		Run()
 
-	curlCmd := exec.Command(
-		igniteBin,
-		"--runtime="+runtime,
-		"--network-plugin="+networkPlugin,
-		"exec", vmName,
-		"curl", "google.com",
-	)
-	curlOut, curlErr := curlCmd.CombinedOutput()
-	assert.Check(t, curlErr, fmt.Sprintf("curl: \n%q\n%s", curlCmd.Args, curlOut))
+	igniteCmd.New().
+		With("exec", vmName).
+		With("curl", "google.com").
+		Run()
 }
 
 func TestCurlWithDockerAndDockerBridge(t *testing.T) {

@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"strings"
 	"testing"
 
 	"gotest.tools/assert"
 
+	"github.com/weaveworks/ignite/e2e/util"
 	"github.com/weaveworks/ignite/pkg/constants"
 )
 
@@ -169,41 +169,32 @@ spec:
 
 			vmName := "e2e_test_ignite_config_file"
 
+			igniteCmd := util.NewCommand(t, igniteBin)
+
 			// Create a VM with the ignite config file.
 			// NOTE: Set a sandbox-image to have deterministic results.
-			runArgs := []string{
-				"run", "--name=" + vmName,
-				"weaveworks/ignite-ubuntu",
-				"--ignite-config=" + file.Name(),
-				"--sandbox-image=weaveworks/ignite:dev",
-			}
+			vmRun := igniteCmd.New().
+				With("run", "--name="+vmName).
+				With("--sandbox-image=weaveworks/ignite:dev").
+				With("--ignite-config=" + file.Name()).
+				With(util.DefaultVMImage)
 
 			// Append VM config if provided.
 			if vmConfigFileName != "" {
-				runArgs = append(runArgs, "--config="+vmConfigFileName)
+				vmRun = vmRun.With("--config=" + vmConfigFileName)
 			}
 
 			// Append the args to the run args for override flags.
-			runArgs = append(runArgs, rt.args...)
-			runCmd := exec.Command(
-				igniteBin,
-				runArgs...,
-			)
-			_, err = runCmd.CombinedOutput()
+			vmRun = vmRun.With(rt.args...)
 
+			_, err = vmRun.Cmd.CombinedOutput()
 			if err == nil {
 				// Delete the VM only when the creation succeeds, with the
 				// config file.
-				defer func() {
-					rmvCmd := exec.Command(
-						igniteBin,
-						"rm", "-f", vmName,
-						"--ignite-config="+file.Name(),
-					)
-
-					rmvOut, rmvErr := rmvCmd.CombinedOutput()
-					assert.Check(t, rmvErr, fmt.Sprintf("vm removal: \n%q\n%s", rmvCmd.Args, rmvOut))
-				}()
+				defer igniteCmd.New().
+					With("rm", "-f", vmName).
+					With("--ignite-config=" + file.Name()).
+					Run()
 
 				// Check if run failure was expected.
 				if (err != nil) != rt.err {
@@ -213,14 +204,15 @@ spec:
 
 			if !rt.err {
 				// Query VM properties.
-				psCmd := exec.Command(
-					igniteBin,
-					"ps",
-					"--filter={{.ObjectMeta.Name}}="+vmName,
+				psArgs := []string{
+					"--filter={{.ObjectMeta.Name}}=" + vmName,
 					"--template='{{.Spec.Memory}} {{.Spec.CPUs}} {{.Spec.DiskSize}} {{.Spec.Image.OCI}} {{.Spec.Sandbox.OCI}} {{.Spec.Kernel.OCI}} {{.Spec.SSH}}'",
-				)
-				psOut, psErr := psCmd.CombinedOutput()
-				assert.Check(t, psErr, fmt.Sprintf("ps: \n%q\n%s", psCmd.Args, psOut))
+				}
+				psCmd := igniteCmd.New().
+					With("ps").
+					With(psArgs...)
+				psOut, psErr := psCmd.Cmd.CombinedOutput()
+				assert.Check(t, psErr, fmt.Sprintf("ps: \n%q\n%s", psCmd.Cmd, psOut))
 				got := strings.TrimSpace(string(psOut))
 				assert.Equal(t, got, rt.wantVMProperties, fmt.Sprintf("unexpected VM properties:\n\t(WNT): %q\n\t(GOT): %q", rt.wantVMProperties, got))
 			}
