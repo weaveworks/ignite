@@ -17,7 +17,7 @@ Everything apart from above, is not supported, and out of scope.
 - `sysctl net.ipv4.ip_forward=1`
 - loaded kernel loop module:
   - If your kernel loads the loop module - `modprobe -v loop`
-  - If the loop module is built in - `grep 'loop' /lib/modules/`uname -r`/modules.builtin`
+  - If the loop module is built in - `grep 'loop' /lib/modules/$(uname -r)/modules.builtin`
 - Optional: `sysctl net.bridge.bridge-nf-call-iptables=0`
   - set to 0 to ignore Host iptables rules for bridges
   - set to 1 to apply Host iptables rules to bridges (common with container network policies)
