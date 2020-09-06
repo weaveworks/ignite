@@ -93,6 +93,6 @@ func patchStopped(vm *api.VM) error {
 		vm.status.startTime = nil
 	*/
 
-	patch := []byte(`{"status":{"running":false,"ipAddresses":null,"runtime":null,"startTime":null}}`)
+	patch := []byte(`{"status":{"running":false,"network":null,"runtime":null,"startTime":null}}`)
 	return patchutil.NewPatcher(scheme.Serializer).ApplyOnFile(constants.IGNITE_SPAWN_VM_FILE_PATH, patch, vm.GroupVersionKind())
 }

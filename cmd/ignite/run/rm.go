@@ -61,9 +61,12 @@ func Rm(ro *rmOptions) error {
 			return fmt.Errorf("%s is running", vm.GetUID())
 		}
 
-		// Set the runtime and network-plugin providers from the VM status.
-		if err := config.SetAndPopulateProviders(vm.Status.Runtime.Name, vm.Status.Network.Plugin); err != nil {
-			return err
+		// Runtime and network info are present only when the VM is running.
+		if vm.Running() {
+			// Set the runtime and network-plugin providers from the VM status.
+			if err := config.SetAndPopulateProviders(vm.Status.Runtime.Name, vm.Status.Network.Plugin); err != nil {
+				return err
+			}
 		}
 
 		// This will first kill the VM container, and then remove it

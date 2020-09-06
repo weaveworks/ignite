@@ -20,28 +20,31 @@ const (
 
 // DeleteVM removes the specified VM from the Client and performs a cleanup
 func DeleteVM(c *client.Client, vm *api.VM) error {
-	if err := c.VMs().Delete(vm.GetUID()); err != nil {
+	if err := CleanupVM(vm); err != nil {
 		return err
 	}
 
-	return CleanupVM(vm)
+	return c.VMs().Delete(vm.GetUID())
 }
 
 // CleanupVM removes the resources of the given VM
 func CleanupVM(vm *api.VM) error {
-	// Inspect the container before trying to stop it and it gets auto-removed
-	inspectResult, _ := providers.Runtime.InspectContainer(util.NewPrefixer().Prefix(vm.GetUID()))
+	// Runtime information is available only when the VM is running.
+	if vm.Running() {
+		// Inspect the container before trying to stop it and it gets auto-removed
+		inspectResult, _ := providers.Runtime.InspectContainer(util.NewPrefixer().Prefix(vm.GetUID()))
 
-	// If the VM is running, try to kill it first so we don't leave dangling containers. Otherwise, try to cleanup VM networking.
-	if err := StopVM(vm, true, true); err != nil {
-		if vm.Running() {
-			return err
+		// If the VM is running, try to kill it first so we don't leave dangling containers. Otherwise, try to cleanup VM networking.
+		if err := StopVM(vm, true, true); err != nil {
+			if vm.Running() {
+				return err
+			}
 		}
-	}
 
-	// Remove the VM container if it exists
-	// TODO should this function return a proper error?
-	RemoveVMContainer(inspectResult)
+		// Remove the VM container if it exists
+		// TODO should this function return a proper error?
+		RemoveVMContainer(inspectResult)
+	}
 
 	// After removing the VM container, if the Snapshot Device is still there, clean up
 	if _, err := os.Stat(vm.SnapshotDev()); err == nil {
