@@ -73,8 +73,6 @@ func runVolume(t *testing.T, vmName, runtime, networkPlugin string) {
 
 	// Clean-up the following VM.
 	defer igniteCmd.New().
-		WithRuntime(runtime).
-		WithNetwork(networkPlugin).
 		With("rm", "-f", vmName).
 		Run()
 
@@ -97,8 +95,6 @@ func runVolume(t *testing.T, vmName, runtime, networkPlugin string) {
 
 	// Stop the vm without force.
 	igniteCmd.New().
-		WithRuntime(runtime).
-		WithNetwork(networkPlugin).
 		With("stop", vmName).
 		Run()
 
@@ -106,8 +102,6 @@ func runVolume(t *testing.T, vmName, runtime, networkPlugin string) {
 
 	// Clean-up the following VM.
 	defer igniteCmd.New().
-		WithRuntime(runtime).
-		WithNetwork(networkPlugin).
 		With("rm", "-f", secondVMName).
 		Run()
 
