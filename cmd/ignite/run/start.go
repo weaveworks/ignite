@@ -12,6 +12,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/operations"
 	"github.com/weaveworks/ignite/pkg/preflight/checkers"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
 	"golang.org/x/crypto/ssh"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -45,6 +46,12 @@ func Start(so *startOptions) error {
 	if so.vm.Running() {
 		return fmt.Errorf("VM %q is already running", so.vm.GetUID())
 	}
+
+	// In case the runtime and network-plugin is specified explicitly at start,
+	// set the runtime and network-plugin on the VM. This overrides the global
+	// config and config on the VM object, if any.
+	so.vm.Status.Runtime.Name = providers.RuntimeName
+	so.vm.Status.Network.Plugin = providers.NetworkPluginName
 
 	// Set the runtime and network-plugin providers from the VM status.
 	if err := config.SetAndPopulateProviders(so.vm.Status.Runtime.Name, so.vm.Status.Network.Plugin); err != nil {

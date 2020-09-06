@@ -8,6 +8,9 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
+	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
+	"github.com/weaveworks/ignite/pkg/providers"
+	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
 )
 
 // NewCmdStart starts a VM
@@ -36,6 +39,13 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 	}
 
 	addStartFlags(cmd.Flags(), sf)
+
+	// NOTE: Since the run command combines the create and start command flags,
+	// to avoid redefining runtime and network flag in run command, they are
+	// defined separately here.
+	runtimeflag.RuntimeVar(cmd.Flags(), &providers.RuntimeName)
+	networkflag.NetworkPluginVar(cmd.Flags(), &providers.NetworkPluginName)
+
 	return cmd
 }
 

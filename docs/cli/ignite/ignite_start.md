@@ -21,6 +21,8 @@ ignite start <vm> [flags]
   -h, --help                              help for start
       --ignore-preflight-checks strings   A list of checks whose errors will be shown as warnings. Example: 'BinaryInPath,Port,ExistingFile'. Value 'all' ignores errors from all checks.
   -i, --interactive                       Attach to the VM after starting
+      --network-plugin plugin             Network plugin to use. Available options are: [cni docker-bridge] (default cni)
+      --runtime runtime                   Container runtime to use. Available options are: [docker containerd] (default containerd)
 ```
 
 ### Options inherited from parent commands
