@@ -41,13 +41,13 @@ type CreateFlags struct {
 	RequireName bool
 }
 
-type createOptions struct {
+type CreateOptions struct {
 	*CreateFlags
 	image  *api.Image
 	kernel *api.Kernel
 }
 
-func (cf *CreateFlags) NewCreateOptions(args []string, fs *flag.FlagSet) (*createOptions, error) {
+func (cf *CreateFlags) NewCreateOptions(args []string, fs *flag.FlagSet) (*CreateOptions, error) {
 	// Create a new base VM and configure it by combining the component config,
 	// VM config file and flags.
 	baseVM := providers.Client.VMs().New()
@@ -92,7 +92,7 @@ func (cf *CreateFlags) NewCreateOptions(args []string, fs *flag.FlagSet) (*creat
 		return nil, err
 	}
 
-	co := &createOptions{CreateFlags: cf}
+	co := &CreateOptions{CreateFlags: cf}
 
 	// Get the image, or import it if it doesn't exist.
 	var err error
@@ -215,7 +215,7 @@ func applyVMFlagOverrides(baseVM *api.VM, cf *CreateFlags, fs *flag.FlagSet) err
 	return err
 }
 
-func Create(co *createOptions) (err error) {
+func Create(co *CreateOptions) (err error) {
 	// Generate a random UID and Name
 	if err = metadata.SetNameAndUID(co.VM, providers.Client); err != nil {
 		return

@@ -15,14 +15,14 @@ type RmkFlags struct {
 	Force bool
 }
 
-type rmkOptions struct {
+type RmkOptions struct {
 	*RmkFlags
 	kernels []*api.Kernel
 	allVMs  []*api.VM
 }
 
-func (rf *RmkFlags) NewRmkOptions(kernelMatches []string) (*rmkOptions, error) {
-	ro := &rmkOptions{RmkFlags: rf}
+func (rf *RmkFlags) NewRmkOptions(kernelMatches []string) (*RmkOptions, error) {
+	ro := &RmkOptions{RmkFlags: rf}
 
 	for _, match := range kernelMatches {
 		if kernel, err := providers.Client.Kernels().Find(filter.NewIDNameFilter(match)); err == nil {
@@ -41,7 +41,7 @@ func (rf *RmkFlags) NewRmkOptions(kernelMatches []string) (*rmkOptions, error) {
 	return ro, nil
 }
 
-func Rmk(ro *rmkOptions) error {
+func Rmk(ro *RmkOptions) error {
 	for _, kernel := range ro.kernels {
 		for _, vm := range ro.allVMs {
 			kernelUID, err := lookup.KernelUIDForVM(vm, providers.Client)
@@ -54,7 +54,7 @@ func Rmk(ro *rmkOptions) error {
 			if kernelUID == kernel.GetUID() {
 				if ro.Force {
 					// Force-kill and remove the VM used by this kernel
-					if err := Rm(&rmOptions{
+					if err := Rm(&RmOptions{
 						&RmFlags{Force: true},
 						[]*api.VM{vm},
 					}); err != nil {

@@ -18,20 +18,20 @@ type PsFlags struct {
 	TemplateFormat string
 }
 
-type psOptions struct {
+type PsOptions struct {
 	*PsFlags
 	allVMs []*api.VM
 }
 
-// NewPsOptions constructs and returns psOptions.
-func (pf *PsFlags) NewPsOptions() (po *psOptions, err error) {
-	po = &psOptions{PsFlags: pf}
+// NewPsOptions constructs and returns PsOptions.
+func (pf *PsFlags) NewPsOptions() (po *PsOptions, err error) {
+	po = &PsOptions{PsFlags: pf}
 	po.allVMs, err = providers.Client.VMs().FindAll(filter.NewVMFilterAll("", po.All))
 	return
 }
 
-// Ps filters and renders the VMs based on the psOptions.
-func Ps(po *psOptions) error {
+// Ps filters and renders the VMs based on the PsOptions.
+func Ps(po *PsOptions) error {
 	var filters *filter.MultipleMetaFilter
 	var err error
 	var filtering bool

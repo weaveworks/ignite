@@ -7,17 +7,17 @@ import (
 	"github.com/weaveworks/libgitops/pkg/filter"
 )
 
-type imagesOptions struct {
+type ImagesOptions struct {
 	allImages []*api.Image
 }
 
-func NewImagesOptions() (io *imagesOptions, err error) {
-	io = &imagesOptions{}
+func NewImagesOptions() (io *ImagesOptions, err error) {
+	io = &ImagesOptions{}
 	io.allImages, err = providers.Client.Images().FindAll(filter.NewAllFilter())
 	return
 }
 
-func Images(io *imagesOptions) error {
+func Images(io *ImagesOptions) error {
 	o := util.NewOutput()
 	defer o.Flush()
 

@@ -54,7 +54,7 @@ func TestInspect(t *testing.T) {
 				t.Fatalf("failed to create test vm: %v", err)
 			}
 
-			iop := &inspectOptions{InspectFlags: rt.inspectFlags, object: runtime.Object(vm)}
+			iop := &InspectOptions{InspectFlags: rt.inspectFlags, object: runtime.Object(vm)}
 
 			// Run inspect and capture stdout.
 			oldStdout := os.Stdout
