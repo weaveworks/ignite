@@ -11,6 +11,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/network"
 	"github.com/weaveworks/ignite/pkg/providers"
+	"github.com/weaveworks/ignite/pkg/providers/ignite"
 	"github.com/weaveworks/ignite/pkg/runtime"
 )
 
@@ -78,4 +79,11 @@ func getConfigFromFile(configPath string) (*api.Configuration, error) {
 	}
 
 	return componentConfig, nil
+}
+
+// SetAndPopulateProviders sets and populates the providers.
+func SetAndPopulateProviders(runtimeName runtime.Name, networkPlugin network.PluginName) error {
+	providers.RuntimeName = runtimeName
+	providers.NetworkPluginName = networkPlugin
+	return providers.Populate(ignite.Providers)
 }

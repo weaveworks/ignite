@@ -23,8 +23,6 @@ func runWithRuntimeAndNetworkPlugin(t *testing.T, vmName, runtime, networkPlugin
 	igniteCmd := util.NewCommand(t, igniteBin)
 
 	defer igniteCmd.New().
-		WithRuntime(runtime).
-		WithNetwork(networkPlugin).
 		With("rm", "-f").
 		With(vmName).
 		Run()
@@ -73,8 +71,6 @@ func runCurl(t *testing.T, vmName, runtime, networkPlugin string) {
 	igniteCmd := util.NewCommand(t, igniteBin)
 
 	defer igniteCmd.New().
-		WithRuntime(runtime).
-		WithNetwork(networkPlugin).
 		With("rm", "-f", vmName).
 		Run()
 

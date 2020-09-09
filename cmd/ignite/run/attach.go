@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	"github.com/weaveworks/ignite/pkg/config"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
 )
@@ -25,6 +26,11 @@ func Attach(ao *AttachOptions) error {
 	// Check if the VM is running
 	if ao.checkRunning && !ao.vm.Running() {
 		return fmt.Errorf("VM %q is not running", ao.vm.GetUID())
+	}
+
+	// Set the runtime and network-plugin providers from the VM status.
+	if err := config.SetAndPopulateProviders(ao.vm.Status.Runtime.Name, ao.vm.Status.Network.Plugin); err != nil {
+		return err
 	}
 
 	// Print the ID before attaching

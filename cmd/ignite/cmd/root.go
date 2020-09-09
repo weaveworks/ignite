@@ -15,10 +15,8 @@ import (
 	"github.com/weaveworks/ignite/pkg/config"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
-	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/providers/ignite"
-	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
 	"github.com/weaveworks/ignite/pkg/util"
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
 )
@@ -133,8 +131,6 @@ func isNonRootCommand(cmd string, parentCmd string) bool {
 func addGlobalFlags(fs *pflag.FlagSet) {
 	AddQuietFlag(fs)
 	logflag.LogLevelFlagVar(fs, &logLevel)
-	runtimeflag.RuntimeVar(fs, &providers.RuntimeName)
-	networkflag.NetworkPluginVar(fs, &providers.NetworkPluginName)
 	fs.StringVar(&configPath, "ignite-config", "", "Ignite configuration path; refer to the 'Ignite Configuration' docs for more details")
 }
 
