@@ -9,18 +9,18 @@ type StopFlags struct {
 	Kill bool
 }
 
-type stopOptions struct {
+type StopOptions struct {
 	*StopFlags
 	vms []*api.VM
 }
 
-func (sf *StopFlags) NewStopOptions(vmMatches []string) (so *stopOptions, err error) {
-	so = &stopOptions{StopFlags: sf}
+func (sf *StopFlags) NewStopOptions(vmMatches []string) (so *StopOptions, err error) {
+	so = &StopOptions{StopFlags: sf}
 	so.vms, err = getVMsForMatches(vmMatches)
 	return
 }
 
-func Stop(so *stopOptions) error {
+func Stop(so *StopOptions) error {
 	for _, vm := range so.vms {
 		// Stop the VM, and optionally kill it
 		if err := operations.StopVM(vm, so.Kill, false); err != nil {

@@ -7,17 +7,17 @@ import (
 	"github.com/weaveworks/libgitops/pkg/filter"
 )
 
-type kernelsOptions struct {
+type KernelsOptions struct {
 	allKernels []*api.Kernel
 }
 
-func NewKernelsOptions() (ko *kernelsOptions, err error) {
-	ko = &kernelsOptions{}
+func NewKernelsOptions() (ko *KernelsOptions, err error) {
+	ko = &KernelsOptions{}
 	ko.allKernels, err = providers.Client.Kernels().FindAll(filter.NewAllFilter())
 	return
 }
 
-func Kernels(ko *kernelsOptions) error {
+func Kernels(ko *KernelsOptions) error {
 	o := util.NewOutput()
 	defer o.Flush()
 

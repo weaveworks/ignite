@@ -11,15 +11,15 @@ type ExecFlags struct {
 	Tty          bool
 }
 
-type execOptions struct {
+type ExecOptions struct {
 	*ExecFlags
 	vm      *api.VM
 	command []string
 }
 
-// NewExecOptions constructs and returns an execOptions.
-func (ef *ExecFlags) NewExecOptions(vmMatch string, command ...string) (eo *execOptions, err error) {
-	eo = &execOptions{
+// NewExecOptions constructs and returns an ExecOptions.
+func (ef *ExecFlags) NewExecOptions(vmMatch string, command ...string) (eo *ExecOptions, err error) {
+	eo = &ExecOptions{
 		ExecFlags: ef,
 		command:   command,
 	}
@@ -28,7 +28,7 @@ func (ef *ExecFlags) NewExecOptions(vmMatch string, command ...string) (eo *exec
 	return
 }
 
-// Exec executes command in a VM based on the provided execOptions.
-func Exec(eo *execOptions) error {
+// Exec executes command in a VM based on the provided ExecOptions.
+func Exec(eo *ExecOptions) error {
 	return runSSH(eo.vm, eo.IdentityFile, eo.command, eo.Tty, eo.Timeout)
 }

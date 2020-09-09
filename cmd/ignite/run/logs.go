@@ -9,17 +9,17 @@ import (
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
-type logsOptions struct {
+type LogsOptions struct {
 	vm *api.VM
 }
 
-func NewLogsOptions(vmMatch string) (lo *logsOptions, err error) {
-	lo = &logsOptions{}
+func NewLogsOptions(vmMatch string) (lo *LogsOptions, err error) {
+	lo = &LogsOptions{}
 	lo.vm, err = getVMForMatch(vmMatch)
 	return
 }
 
-func Logs(lo *logsOptions) error {
+func Logs(lo *LogsOptions) error {
 	// Check if the VM is running
 	if !lo.vm.Running() {
 		return fmt.Errorf("VM %q is not running", lo.vm.GetUID())

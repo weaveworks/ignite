@@ -15,14 +15,14 @@ type RmiFlags struct {
 	Force bool
 }
 
-type rmiOptions struct {
+type RmiOptions struct {
 	*RmiFlags
 	images []*api.Image
 	allVMs []*api.VM
 }
 
-func (rf *RmiFlags) NewRmiOptions(imageMatches []string) (*rmiOptions, error) {
-	ro := &rmiOptions{RmiFlags: rf}
+func (rf *RmiFlags) NewRmiOptions(imageMatches []string) (*RmiOptions, error) {
+	ro := &RmiOptions{RmiFlags: rf}
 
 	for _, match := range imageMatches {
 		if image, err := providers.Client.Images().Find(filter.NewIDNameFilter(match)); err == nil {
@@ -41,7 +41,7 @@ func (rf *RmiFlags) NewRmiOptions(imageMatches []string) (*rmiOptions, error) {
 	return ro, nil
 }
 
-func Rmi(ro *rmiOptions) error {
+func Rmi(ro *RmiOptions) error {
 	for _, image := range ro.images {
 		for _, vm := range ro.allVMs {
 			imageUID, err := lookup.ImageUIDForVM(vm, providers.Client)
@@ -54,7 +54,7 @@ func Rmi(ro *rmiOptions) error {
 			if imageUID == image.GetUID() {
 				if ro.Force {
 					// Force-kill and remove the VM used by this image
-					if err := Rm(&rmOptions{
+					if err := Rm(&RmOptions{
 						&RmFlags{Force: true},
 						[]*api.VM{vm},
 					}); err != nil {

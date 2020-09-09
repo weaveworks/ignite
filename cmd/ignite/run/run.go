@@ -9,30 +9,30 @@ type RunFlags struct {
 	*StartFlags
 }
 
-type runOptions struct {
-	*createOptions
-	*startOptions
+type RunOptions struct {
+	*CreateOptions
+	*StartOptions
 }
 
-func (rf *RunFlags) NewRunOptions(args []string, fs *flag.FlagSet) (*runOptions, error) {
+func (rf *RunFlags) NewRunOptions(args []string, fs *flag.FlagSet) (*RunOptions, error) {
 	co, err := rf.NewCreateOptions(args, fs)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: We should be able to use the constructor here instead...
-	so := &startOptions{
+	so := &StartOptions{
 		StartFlags: rf.StartFlags,
-		attachOptions: &attachOptions{
+		AttachOptions: &AttachOptions{
 			checkRunning: false,
 		},
 	}
 
-	return &runOptions{co, so}, nil
+	return &RunOptions{co, so}, nil
 }
 
-func Run(ro *runOptions) error {
-	if err := Create(ro.createOptions); err != nil {
+func Run(ro *RunOptions) error {
+	if err := Create(ro.CreateOptions); err != nil {
 		return err
 	}
 
@@ -40,5 +40,5 @@ func Run(ro *runOptions) error {
 	// TODO: This is pretty bad, fix this
 	ro.vm = ro.VM
 
-	return Start(ro.startOptions)
+	return Start(ro.StartOptions)
 }

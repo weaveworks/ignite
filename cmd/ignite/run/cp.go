@@ -29,7 +29,7 @@ type CPFlags struct {
 	IdentityFile string
 }
 
-type cpOptions struct {
+type CpOptions struct {
 	*CPFlags
 	vm            *api.VM
 	source        string
@@ -48,8 +48,8 @@ const (
 )
 
 // NewCPOptions parses the command inputs and returns a copy option.
-func (cf *CPFlags) NewCPOptions(source string, dest string) (co *cpOptions, err error) {
-	co = &cpOptions{CPFlags: cf}
+func (cf *CPFlags) NewCPOptions(source string, dest string) (co *CpOptions, err error) {
+	co = &CpOptions{CPFlags: cf}
 
 	// Identify the direction of copy from the source and destination.
 	// If the source contains <file path> and destination contains
@@ -95,7 +95,7 @@ func (cf *CPFlags) NewCPOptions(source string, dest string) (co *cpOptions, err 
 
 // CP connects to a VM and copies files between the host and the VM based on the
 // copy options.
-func CP(co *cpOptions) error {
+func CP(co *CpOptions) error {
 	// Check if the VM is running
 	if !co.vm.Running() {
 		return fmt.Errorf("VM %q is not running", co.vm.GetUID())

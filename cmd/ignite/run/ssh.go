@@ -31,20 +31,20 @@ type SSHFlags struct {
 	Tty          bool
 }
 
-type sshOptions struct {
+type SshOptions struct {
 	*SSHFlags
 	vm *api.VM
 }
 
 // NewSSHOptions returns ssh options for a given VM.
-func (sf *SSHFlags) NewSSHOptions(vmMatch string) (so *sshOptions, err error) {
-	so = &sshOptions{SSHFlags: sf}
+func (sf *SSHFlags) NewSSHOptions(vmMatch string) (so *SshOptions, err error) {
+	so = &SshOptions{SSHFlags: sf}
 	so.vm, err = getVMForMatch(vmMatch)
 	return
 }
 
 // SSH starts a ssh session as per the provided ssh options.
-func SSH(so *sshOptions) error {
+func SSH(so *SshOptions) error {
 	return runSSH(so.vm, so.IdentityFile, []string{}, so.Tty, so.Timeout)
 }
 

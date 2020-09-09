@@ -122,7 +122,7 @@ func TestPs(t *testing.T) {
 				vms = append(vms, vm)
 			}
 
-			psop := &psOptions{PsFlags: rt.psFlags, allVMs: vms}
+			psop := &PsOptions{PsFlags: rt.psFlags, allVMs: vms}
 
 			// Run vm list and capture stdout.
 			oldStdout := os.Stdout

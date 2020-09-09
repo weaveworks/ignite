@@ -22,12 +22,12 @@ type StartFlags struct {
 	IgnoredPreflightErrors []string
 }
 
-type startOptions struct {
+type StartOptions struct {
 	*StartFlags
-	*attachOptions
+	*AttachOptions
 }
 
-func (sf *StartFlags) NewStartOptions(vmMatch string) (*startOptions, error) {
+func (sf *StartFlags) NewStartOptions(vmMatch string) (*StartOptions, error) {
 	ao, err := NewAttachOptions(vmMatch)
 	if err != nil {
 		return nil, err
@@ -36,10 +36,10 @@ func (sf *StartFlags) NewStartOptions(vmMatch string) (*startOptions, error) {
 	// Disable running check as it takes a while for ignite-spawn to update the state
 	ao.checkRunning = false
 
-	return &startOptions{sf, ao}, nil
+	return &StartOptions{sf, ao}, nil
 }
 
-func Start(so *startOptions) error {
+func Start(so *StartOptions) error {
 	// Check if the given VM is already running
 	if so.vm.Running() {
 		return fmt.Errorf("VM %q is already running", so.vm.GetUID())
@@ -63,7 +63,7 @@ func Start(so *startOptions) error {
 
 	// If starting interactively, attach after starting
 	if so.Interactive {
-		return Attach(so.attachOptions)
+		return Attach(so.AttachOptions)
 	}
 	return nil
 }

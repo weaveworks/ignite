@@ -19,17 +19,17 @@ type InspectFlags struct {
 	TemplateFormat string
 }
 
-type inspectOptions struct {
+type InspectOptions struct {
 	*InspectFlags
 	object runtime.Object
 }
 
-// NewInspectOptions constructs and returns inspectOptions with the given kind
+// NewInspectOptions constructs and returns InspectOptions with the given kind
 // and object ID.
-func (i *InspectFlags) NewInspectOptions(k, objectMatch string) (*inspectOptions, error) {
+func (i *InspectFlags) NewInspectOptions(k, objectMatch string) (*InspectOptions, error) {
 	var err error
 	var kind runtime.Kind
-	io := &inspectOptions{InspectFlags: i}
+	io := &InspectOptions{InspectFlags: i}
 
 	switch strings.ToLower(k) {
 	case api.KindImage.Lower():
@@ -50,8 +50,8 @@ func (i *InspectFlags) NewInspectOptions(k, objectMatch string) (*inspectOptions
 }
 
 // Inspect renders the result of inspect in different formats based on the
-// inspectOptions.
-func Inspect(io *inspectOptions) error {
+// InspectOptions.
+func Inspect(io *InspectOptions) error {
 	var b []byte
 	var err error
 
