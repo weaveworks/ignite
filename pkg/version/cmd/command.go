@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/spf13/cobra"
-	igniteruntime "github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/util"
 	"github.com/weaveworks/ignite/pkg/version"
 	"sigs.k8s.io/yaml"
@@ -14,9 +13,8 @@ import (
 
 // versionData provides the version information of ignite.
 type versionData struct {
-	Ignite      version.Info       `json:"igniteVersion"`
-	Firecracker version.Info       `json:"firecrackerVersion"`
-	Runtime     igniteruntime.Name `json:"runtime"`
+	Ignite      version.Info `json:"igniteVersion"`
+	Firecracker version.Info `json:"firecrackerVersion"`
 }
 
 // NewCmdVersion provides the version information of ignite
@@ -41,14 +39,12 @@ func RunVersion(out io.Writer, output string) error {
 	v := versionData{
 		Ignite:      version.GetIgnite(),
 		Firecracker: version.GetFirecracker(),
-		Runtime:     version.GetCurrentRuntime(),
 	}
 
 	switch output {
 	case "":
 		fmt.Fprintf(out, "Ignite version: %#v\n", v.Ignite)
 		fmt.Fprintf(out, "Firecracker version: %s\n", v.Firecracker.String())
-		fmt.Fprintf(out, "Runtime: %v\n", v.Runtime)
 	case "short":
 		fmt.Fprintf(out, "%s\n", v.Ignite.GitVersion)
 	case "yaml":
