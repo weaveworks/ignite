@@ -7,6 +7,10 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	flag "github.com/spf13/pflag"
+	"golang.org/x/crypto/ssh"
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	"github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/config"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -14,8 +18,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/preflight/checkers"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
-	"golang.org/x/crypto/ssh"
-	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 type StartFlags struct {
@@ -41,17 +43,21 @@ func (sf *StartFlags) NewStartOptions(vmMatch string) (*StartOptions, error) {
 	return &StartOptions{sf, ao}, nil
 }
 
-func Start(so *StartOptions) error {
+func Start(so *StartOptions, fs *flag.FlagSet) error {
 	// Check if the given VM is already running
 	if so.vm.Running() {
 		return fmt.Errorf("VM %q is already running", so.vm.GetUID())
 	}
 
-	// In case the runtime and network-plugin is specified explicitly at start,
-	// set the runtime and network-plugin on the VM. This overrides the global
-	// config and config on the VM object, if any.
-	so.vm.Status.Runtime.Name = providers.RuntimeName
-	so.vm.Status.Network.Plugin = providers.NetworkPluginName
+	// In case the runtime and network-plugin are specified explicitly at
+	// start, set the runtime and network-plugin on the VM. This overrides the
+	// global config and config on the VM object, if any.
+	if fs.Changed("runtime") {
+		so.vm.Status.Runtime.Name = providers.RuntimeName
+	}
+	if fs.Changed("network-plugin") {
+		so.vm.Status.Network.Plugin = providers.NetworkPluginName
+	}
 
 	// Set the runtime and network-plugin providers from the VM status.
 	if err := config.SetAndPopulateProviders(so.vm.Status.Runtime.Name, so.vm.Status.Network.Plugin); err != nil {

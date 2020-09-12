@@ -33,7 +33,7 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 					return err
 				}
 
-				return run.Start(so)
+				return run.Start(so, cmd.Flags())
 			}())
 		},
 	}
