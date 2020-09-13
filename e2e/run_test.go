@@ -39,7 +39,7 @@ func runWithRuntimeAndNetworkPlugin(t *testing.T, vmName, runtime, networkPlugin
 func TestIgniteRunWithDockerAndDockerBridge(t *testing.T) {
 	runWithRuntimeAndNetworkPlugin(
 		t,
-		"e2e_test_ignite_run_docker_and_docker_bridge",
+		"e2e-test-ignite-run-docker-and-docker-bridge",
 		"docker",
 		"docker-bridge",
 	)
@@ -48,7 +48,7 @@ func TestIgniteRunWithDockerAndDockerBridge(t *testing.T) {
 func TestIgniteRunWithDockerAndCNI(t *testing.T) {
 	runWithRuntimeAndNetworkPlugin(
 		t,
-		"e2e_test_ignite_run_docker_and_cni",
+		"e2e-test-ignite-run-docker-and-cni",
 		"docker",
 		"cni",
 	)
@@ -57,7 +57,7 @@ func TestIgniteRunWithDockerAndCNI(t *testing.T) {
 func TestIgniteRunWithContainerdAndCNI(t *testing.T) {
 	runWithRuntimeAndNetworkPlugin(
 		t,
-		"e2e_test_ignite_run_containerd_and_cni",
+		"e2e-test-ignite-run-containerd-and-cni",
 		"containerd",
 		"cni",
 	)
@@ -91,7 +91,7 @@ func runCurl(t *testing.T, vmName, runtime, networkPlugin string) {
 func TestCurlWithDockerAndDockerBridge(t *testing.T) {
 	runCurl(
 		t,
-		"e2e_test_curl_docker_and_docker_bridge",
+		"e2e-test-curl-docker-and-docker-bridge",
 		"docker",
 		"docker-bridge",
 	)
@@ -100,7 +100,7 @@ func TestCurlWithDockerAndDockerBridge(t *testing.T) {
 func TestCurlWithDockerAndCNI(t *testing.T) {
 	runCurl(
 		t,
-		"e2e_test_curl_docker_and_cni",
+		"e2e-test-curl-docker-and-cni",
 		"docker",
 		"cni",
 	)
@@ -109,7 +109,7 @@ func TestCurlWithDockerAndCNI(t *testing.T) {
 func TestCurlWithContainerdAndCNI(t *testing.T) {
 	runCurl(
 		t,
-		"e2e_test_curl_containerd_and_cni",
+		"e2e-test-curl-containerd-and-cni",
 		"containerd",
 		"cni",
 	)

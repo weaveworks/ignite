@@ -59,7 +59,7 @@ func runVMLifecycle(t *testing.T, vmName, runtime, networkPlugin string) {
 func TestVMLifecycleWithDockerAndDockerBridge(t *testing.T) {
 	runVMLifecycle(
 		t,
-		"e2e_test_vm_lifecycle_docker_and_docker_bridge",
+		"e2e-test-vm-lifecycle-docker-and-docker-bridge",
 		"docker",
 		"docker-bridge",
 	)
@@ -68,7 +68,7 @@ func TestVMLifecycleWithDockerAndDockerBridge(t *testing.T) {
 func TestVMLifecycleWithDockerAndCNI(t *testing.T) {
 	runVMLifecycle(
 		t,
-		"e2e_test_vm_lifecycle_docker_and_cni",
+		"e2e-test-vm-lifecycle-docker-and-cni",
 		"docker",
 		"cni",
 	)
@@ -77,7 +77,7 @@ func TestVMLifecycleWithDockerAndCNI(t *testing.T) {
 func TestVMLifecycleWithContainerdAndCNI(t *testing.T) {
 	runVMLifecycle(
 		t,
-		"e2e_test_vm_lifecycle_containerd_and_cni",
+		"e2e-test-vm-lifecycle-containerd-and-cni",
 		"containerd",
 		"cni",
 	)
@@ -88,7 +88,7 @@ func TestVMLifecycleWithContainerdAndCNI(t *testing.T) {
 func TestVMProviderSwitch(t *testing.T) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
-	vmName := "e2e_test_vm_providers_switch"
+	vmName := "e2e-test-vm-providers-switch"
 
 	igniteCmd := util.NewCommand(t, igniteBin)
 

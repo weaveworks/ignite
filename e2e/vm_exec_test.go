@@ -13,7 +13,7 @@ import (
 func TestVMExecInteractive(t *testing.T) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
-	vmName := "e2e_test_ignite_exec_interactive"
+	vmName := "e2e-test-ignite-exec-interactive"
 
 	igniteCmd := util.NewCommand(t, igniteBin)
 
