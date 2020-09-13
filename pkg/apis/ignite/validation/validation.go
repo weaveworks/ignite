@@ -7,11 +7,13 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/util"
+	"k8s.io/apimachinery/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 )
 
 // ValidateVM validates a VM object and collects all encountered errors
 func ValidateVM(obj *api.VM) (allErrs field.ErrorList) {
+	allErrs = append(allErrs, ValidateVMName(obj.GetName(), field.NewPath("metadata.name"))...)
 	allErrs = append(allErrs, RequireOCIImageRef(&obj.Spec.Image.OCI, field.NewPath(".spec.image.oci"))...)
 	allErrs = append(allErrs, RequireOCIImageRef(&obj.Spec.Kernel.OCI, field.NewPath(".spec.kernel.oci"))...)
 	allErrs = append(allErrs, ValidateFileMappings(&obj.Spec.CopyFiles, field.NewPath(".spec.copyFiles"))...)
@@ -25,6 +27,16 @@ func ValidateVM(obj *api.VM) (allErrs field.ErrorList) {
 func RequireOCIImageRef(ref *meta.OCIImageRef, fldPath *field.Path) (allErrs field.ErrorList) {
 	if ref.IsUnset() {
 		allErrs = append(allErrs, field.Required(fldPath, "the OCI reference is mandatory"))
+	}
+
+	return
+}
+
+// ValidateVMName validates the VM name.
+func ValidateVMName(name string, fldPath *field.Path) (allErrs field.ErrorList) {
+	errs := validation.IsDNS1123Subdomain(name)
+	for _, e := range errs {
+		allErrs = append(allErrs, field.Invalid(fldPath, name, e))
 	}
 
 	return
