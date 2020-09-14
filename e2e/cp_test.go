@@ -57,11 +57,11 @@ func TestCopyFileFromHostToVM(t *testing.T) {
 		content []byte
 	}{
 		{
-			name:    "file_with_content",
+			name:    "file-with-content",
 			content: []byte("some example file content"),
 		},
 		{
-			name:    "empty_file",
+			name:    "empty-file",
 			content: []byte(""),
 		},
 	}
@@ -83,7 +83,7 @@ func TestCopyFileFromHostToVM(t *testing.T) {
 				t.Errorf("failed to close file: %v", err)
 			}
 
-			vmName := "e2e_test_copy_to_vm_" + rt.name
+			vmName := "e2e-test-copy-to-vm-" + rt.name
 			runCopyFilesToVM(
 				t,
 				vmName,
@@ -119,7 +119,7 @@ func TestCopySymlinkedFileFromHostToVM(t *testing.T) {
 	}
 	defer os.Remove(newName)
 
-	vmName := "e2e_test_copy_symlink_to_vm"
+	vmName := "e2e-test-copy-symlink-to-vm"
 
 	runCopyFilesToVM(
 		t,
@@ -133,7 +133,7 @@ func TestCopySymlinkedFileFromHostToVM(t *testing.T) {
 func TestCopyFileFromVMToHost(t *testing.T) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
-	vmName := "e2e_test_copy_file_from_vm_to_host"
+	vmName := "e2e-test-copy-file-from-vm-to-host"
 
 	igniteCmd := util.NewCommand(t, igniteBin)
 
@@ -202,7 +202,7 @@ func TestCopyDirectoryFromHostToVM(t *testing.T) {
 		t.Errorf("failed to close file: %v", err)
 	}
 
-	vmName := "e2e_test_copy_dir_to_vm"
+	vmName := "e2e-test-copy-dir-to-vm"
 	source := dir
 	dest := fmt.Sprintf("%s:%s", vmName, source)
 
@@ -249,7 +249,7 @@ func TestCopyDirectoryFromHostToVM(t *testing.T) {
 func TestCopyDirectoryFromVMToHost(t *testing.T) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
-	vmName := "e2e_test_copy_dir_from_vm_to_host"
+	vmName := "e2e-test-copy-dir-from-vm-to-host"
 
 	igniteCmd := util.NewCommand(t, igniteBin)
 

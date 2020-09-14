@@ -98,7 +98,7 @@ func runVolume(t *testing.T, vmName, runtime, networkPlugin string) {
 		With("stop", vmName).
 		Run()
 
-	secondVMName := vmName + "_2"
+	secondVMName := vmName + "-2"
 
 	// Clean-up the following VM.
 	defer igniteCmd.New().
@@ -128,7 +128,7 @@ func TestVolumeWithDockerAndDockerBridge(t *testing.T) {
 	t.Skip("SKIPPING\nThis test fails to stop the VM within docker\nTODO: https://github.com/weaveworks/ignite/issues/658")
 	runVolume(
 		t,
-		"e2e_test_volume_docker_and_docker_bridge",
+		"e2e-test-volume-docker-and-docker-bridge",
 		"docker",
 		"docker-bridge",
 	)
@@ -137,7 +137,7 @@ func TestVolumeWithDockerAndDockerBridge(t *testing.T) {
 func TestVolumeWithDockerAndCNI(t *testing.T) {
 	runVolume(
 		t,
-		"e2e_test_volume_docker_and_cni",
+		"e2e-test-volume-docker-and-cni",
 		"docker",
 		"cni",
 	)
@@ -146,7 +146,7 @@ func TestVolumeWithDockerAndCNI(t *testing.T) {
 func TestVolumeWithContainerdAndCNI(t *testing.T) {
 	runVolume(
 		t,
-		"e2e_test_volume_containerd_and_cni",
+		"e2e-test-volume-containerd-and-cni",
 		"containerd",
 		"cni",
 	)

@@ -167,7 +167,7 @@ spec:
 				assert.NilError(t, vmConfigFile.Close())
 			}
 
-			vmName := "e2e_test_ignite_config_file"
+			vmName := "e2e-test-ignite-config-file"
 
 			igniteCmd := util.NewCommand(t, igniteBin)
 
