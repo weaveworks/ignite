@@ -137,7 +137,7 @@ func TestVMProviderSwitch(t *testing.T) {
 func TestVMStartNonDefaultProvider(t *testing.T) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
-	vmName := "e2e_test_vm_start_non_default_providers"
+	vmName := "e2e-test-vm-start-non-default-providers"
 
 	igniteCmd := util.NewCommand(t, igniteBin)
 
