@@ -23,7 +23,7 @@ install:
   curl -sSL https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz | sudo tar -xz -C /opt/cni/bin
 
 before_script:
-- make ignite ignite-spawn bin/amd64/Dockerfile GO_MAKE_TARGET=local
+- make ignite ignite-spawn ignited bin/amd64/Dockerfile GO_MAKE_TARGET=local
 
 script:
 - make test
