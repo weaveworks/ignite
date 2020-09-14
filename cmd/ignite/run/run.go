@@ -31,7 +31,7 @@ func (rf *RunFlags) NewRunOptions(args []string, fs *flag.FlagSet) (*RunOptions,
 	return &RunOptions{co, so}, nil
 }
 
-func Run(ro *RunOptions) error {
+func Run(ro *RunOptions, fs *flag.FlagSet) error {
 	if err := Create(ro.CreateOptions); err != nil {
 		return err
 	}
@@ -40,5 +40,5 @@ func Run(ro *RunOptions) error {
 	// TODO: This is pretty bad, fix this
 	ro.vm = ro.VM
 
-	return Start(ro.StartOptions)
+	return Start(ro.StartOptions, fs)
 }

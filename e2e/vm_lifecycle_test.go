@@ -1,6 +1,8 @@
 package e2e
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/weaveworks/ignite/e2e/util"
@@ -130,4 +132,42 @@ func TestVMProviderSwitch(t *testing.T) {
 		With("exec", vmName).
 		With("curl", "google.com").
 		Run()
+}
+
+func TestVMStartNonDefaultProvider(t *testing.T) {
+	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
+
+	vmName := "e2e_test_vm_start_non_default_providers"
+
+	igniteCmd := util.NewCommand(t, igniteBin)
+
+	wantInspect := "docker docker-bridge"
+
+	// Clean-up the following VM.
+	defer igniteCmd.New().
+		With("rm", "-f", vmName).
+		Run()
+
+	// Create VM.
+	igniteCmd.New().
+		WithRuntime("docker").
+		WithNetwork("docker-bridge").
+		With("create").
+		With(util.DefaultVMImage).
+		With("--name=" + vmName).
+		Run()
+
+	// Start the VM.
+	igniteCmd.New().
+		With("start", vmName).
+		Run()
+
+	// Inspect the VM runtime and network-plugin.
+	inspect := igniteCmd.New().
+		With("inspect", "vm", vmName).
+		With("-t", "{{.Status.Runtime.Name}} {{.Status.Network.Plugin}}")
+	inspectOut, inspectErr := inspect.Cmd.CombinedOutput()
+	assert.Check(t, inspectErr, fmt.Sprintf("cmd: \n%q\n%s", inspect.Cmd, inspectOut))
+	gotInspect := strings.TrimSpace(string(inspectOut))
+	assert.Equal(t, gotInspect, wantInspect, fmt.Sprintf("unexpected VM properties:\n\t(WNT): %q\n\t(GOT): %q", wantInspect, gotInspect))
 }
