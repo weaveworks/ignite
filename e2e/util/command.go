@@ -61,6 +61,12 @@ func (c *Command) WithNetwork(arg string) *Command {
 	return c.With("--network-plugin=" + arg)
 }
 
+// Dir sets the command execution directory.
+func (c *Command) Dir(path string) *Command {
+	c.Cmd.Dir = path
+	return c
+}
+
 // Run executes the command and performs an error check. It results in fatal
 // exit of the test if an error is encountered. In order to continue the test
 // on encountering an error, call Command.Cmd.CombinedOutput() or the
