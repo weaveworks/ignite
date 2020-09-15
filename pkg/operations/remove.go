@@ -6,6 +6,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
 	"github.com/weaveworks/ignite/pkg/dmlegacy/cleanup"
 	"github.com/weaveworks/ignite/pkg/logs"
@@ -86,7 +87,7 @@ func StopVM(vm *api.VM, kill, silent bool) error {
 	}
 
 	// Remove VM networking
-	if err = removeNetworking(util.NewPrefixer().Prefix(vm.GetUID())); err != nil {
+	if err = removeNetworking(util.NewPrefixer().Prefix(vm.GetUID()), vm.Spec.Network.Ports...); err != nil {
 		log.Warnf("Failed to cleanup networking for stopped container %s %q: %v", vm.GetKind(), vm.GetUID(), err)
 
 		return err
@@ -119,7 +120,7 @@ func StopVM(vm *api.VM, kill, silent bool) error {
 	return nil
 }
 
-func removeNetworking(containerID string) error {
+func removeNetworking(containerID string, portmappings ...meta.PortMapping) error {
 	log.Infof("Removing the container with ID %q from the %q network", containerID, providers.NetworkPlugin.Name())
-	return providers.NetworkPlugin.RemoveContainerNetwork(containerID)
+	return providers.NetworkPlugin.RemoveContainerNetwork(containerID, portmappings...)
 }
