@@ -26,10 +26,6 @@ func TestPortmapCleanup(t *testing.T) {
 
 	igniteCmd := util.NewCommand(t, igniteBin)
 
-	defer igniteCmd.New().
-		With("rm", "-f", vmName).
-		Run()
-
 	igniteCmd.New().
 		WithNetwork("cni").
 		With("run").
