@@ -40,7 +40,7 @@ func TestPortmapCleanup(t *testing.T) {
 			igniteBin,
 			"rm", "-f", vmName,
 		)
-		rmvCmd.Run()
+		_ = rmvCmd.Run()
 	}()
 
 	// Get the VM ID
@@ -88,6 +88,6 @@ func grepIPTables(search string) ([]byte, error) {
 	defer pipe.Close()
 
 	grepCmd.Stdin = pipe
-	natCmd.Start()
+	_ = natCmd.Start()
 	return grepCmd.Output()
 }
