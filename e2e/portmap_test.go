@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/weaveworks/ignite/e2e/util"
 	"gotest.tools/assert"
 )
 
@@ -23,48 +24,38 @@ func TestPortmapCleanup(t *testing.T) {
 	vmName := "e2e_test_ignite_portmap"
 	mappedPort := 4242
 
-	runCmd := exec.Command(
-		igniteBin,
-		"run", "--name="+vmName,
-		"--ssh",
-		"--ports",
-		fmt.Sprintf("%d:%d", mappedPort, mappedPort),
-		"weaveworks/ignite-ubuntu",
-	)
-	runOut, runErr := runCmd.CombinedOutput()
-	assert.Check(t, runErr, fmt.Sprintf("vm run: \n%q\n%s", runCmd.Args, runOut))
+	igniteCmd := util.NewCommand(t, igniteBin)
 
-	defer func() {
-		rmvCmd := exec.Command(
-			"sudo",
-			igniteBin,
-			"rm", "-f", vmName,
-		)
-		_ = rmvCmd.Run()
-	}()
+	defer igniteCmd.New().
+		With("rm", "-f", vmName).
+		Run()
+
+	igniteCmd.New().
+		With("run").
+		With("--name=" + vmName).
+		With("--ssh").
+		With("--ports=" + fmt.Sprintf("%d:%d", mappedPort, mappedPort)).
+		With(util.DefaultVMImage).
+		Run()
 
 	// Get the VM ID
-	idCmd := exec.Command(
-		"ignite",
-		"ps",
-		"--filter",
-		fmt.Sprintf("{{.ObjectMeta.Name}}=%s", vmName),
-		"--quiet",
-	)
-	idOut, idErr := idCmd.CombinedOutput()
-	assert.Check(t, idErr, fmt.Sprintf("vm id: \n%q\n%s", idCmd.Args, idOut))
+	idCmd := igniteCmd.New().
+		With("ps").
+		With("--filter").
+		With(fmt.Sprintf("{{.ObjectMeta.Name}}=%s", vmName)).
+		With("--quiet")
+
+	idOut, idErr := idCmd.Cmd.CombinedOutput()
+	assert.Check(t, idErr, fmt.Sprintf("vm id not found: \n%q\n%s", idCmd.Cmd, idOut))
 	vmID := string(idOut[:len(idOut)-2])
 
 	// Check that the IPtable rules are installed
 	grepOut, grepErr := grepIPTables(vmID)
 	assert.NilError(t, grepErr, fmt.Sprintf("unable to match iptable rules:\n %s", grepOut))
 
-	rmvCmd := exec.Command(
-		igniteBin,
-		"rm", "-f", vmName,
-	)
-	rmvOut, rmvErr := rmvCmd.CombinedOutput()
-	assert.Check(t, rmvErr, fmt.Sprintf("vm removal: \n%q\n%s", rmvCmd.Args, rmvOut))
+	igniteCmd.New().
+		With("rm", "-f", vmName).
+		Run()
 
 	// Check that the IPtable rules are removed
 	grepOut, grepErr = grepIPTables(vmID)
