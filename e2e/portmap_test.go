@@ -21,7 +21,7 @@ import (
 func TestPortmapCleanup(t *testing.T) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
-	vmName := "e2e_test_ignite_portmap"
+	vmName := "e2e_test_ignite_portmap_cleanup"
 	mappedPort := 4242
 
 	igniteCmd := util.NewCommand(t, igniteBin)
@@ -31,6 +31,7 @@ func TestPortmapCleanup(t *testing.T) {
 		Run()
 
 	igniteCmd.New().
+		WithNetwork("cni").
 		With("run").
 		With("--name=" + vmName).
 		With("--ssh").
