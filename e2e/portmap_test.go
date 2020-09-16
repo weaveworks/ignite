@@ -21,7 +21,7 @@ import (
 func TestPortmapCleanup(t *testing.T) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
-	vmName := "e2e_test_ignite_portmap_cleanup"
+	vmName := "e2e-test-ignite-portmap-cleanup"
 	mappedPort := 4242
 
 	igniteCmd := util.NewCommand(t, igniteBin)
