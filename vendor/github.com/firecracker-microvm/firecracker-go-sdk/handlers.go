@@ -119,40 +119,44 @@ var StartVMMHandler = Handler{
 	},
 }
 
-// CreateLogFilesHandler is a named handler that will create the fifo log files
-var CreateLogFilesHandler = Handler{
-	Name: CreateLogFilesHandlerName,
-	Fn: func(ctx context.Context, m *Machine) error {
-		logFifoPath := m.Cfg.LogFifo
-		metricsFifoPath := m.Cfg.MetricsFifo
-
-		if len(logFifoPath) == 0 || len(metricsFifoPath) == 0 {
-			// logging is disabled
-			return nil
-		}
-
-		if err := createFifos(logFifoPath, metricsFifoPath); err != nil {
-			m.logger.Errorf("Unable to set up logging: %s", err)
+func createFifoOrFile(ctx context.Context, m *Machine, fifo, path string) error {
+	if len(fifo) > 0 {
+		if err := createFifo(fifo); err != nil {
 			return err
 		}
 
 		m.cleanupFuncs = append(m.cleanupFuncs,
 			func() error {
-				if err := os.Remove(logFifoPath); !os.IsNotExist(err) {
-					return err
-				}
-				return nil
-			},
-			func() error {
-				if err := os.Remove(metricsFifoPath); !os.IsNotExist(err) {
+				if err := os.Remove(fifo); !os.IsNotExist(err) {
 					return err
 				}
 				return nil
 			},
 		)
+	} else if len(path) > 0 {
+		file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+		if err != nil {
+			return err
+		}
+		file.Close()
+	}
+	return nil
+}
+
+// CreateLogFilesHandler is a named handler that will create the fifo log files
+var CreateLogFilesHandler = Handler{
+	Name: CreateLogFilesHandlerName,
+	Fn: func(ctx context.Context, m *Machine) error {
+		if err := createFifoOrFile(ctx, m, m.Cfg.MetricsFifo, m.Cfg.MetricsPath); err != nil {
+			return err
+		}
+
+		if err := createFifoOrFile(ctx, m, m.Cfg.LogFifo, m.Cfg.LogPath); err != nil {
+			return err
+		}
 
 		if m.Cfg.FifoLogWriter != nil {
-			if err := m.captureFifoToFile(ctx, m.logger, logFifoPath, m.Cfg.FifoLogWriter); err != nil {
+			if err := m.captureFifoToFile(ctx, m.logger, m.Cfg.LogFifo, m.Cfg.FifoLogWriter); err != nil {
 				m.logger.Warnf("captureFifoToFile() returned %s. Continuing anyway.", err)
 			}
 		}
@@ -169,6 +173,9 @@ var BootstrapLoggingHandler = Handler{
 	Name: BootstrapLoggingHandlerName,
 	Fn: func(ctx context.Context, m *Machine) error {
 		if err := m.setupLogging(ctx); err != nil {
+			return err
+		}
+		if err := m.setupMetrics(ctx); err != nil {
 			return err
 		}
 		m.logger.Debugf("setup logging: success")

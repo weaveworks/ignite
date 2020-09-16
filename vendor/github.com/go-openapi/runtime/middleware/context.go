@@ -305,6 +305,12 @@ func (c *Context) BindValidRequest(request *http.Request, route *MatchedRoute, b
 
 	// check and validate the response format
 	if len(res) == 0 {
+		// if the route does not provide Produces and a default contentType could not be identified
+		// based on a body, typical for GET and DELETE requests, then default contentType to.
+		if len(route.Produces) == 0 && requestContentType == "" {
+			requestContentType = "*/*"
+		}
+
 		if str := NegotiateContentType(request, route.Produces, requestContentType); str == "" {
 			res = append(res, errors.InvalidResponseFormat(request.Header.Get(runtime.HeaderAccept), route.Produces))
 		}
@@ -559,6 +565,26 @@ func (c *Context) Respond(rw http.ResponseWriter, r *http.Request, produces []st
 	}
 
 	c.api.ServeErrorFor(route.Operation.ID)(rw, r, errors.New(http.StatusInternalServerError, "can't produce response"))
+}
+
+func (c *Context) APIHandlerSwaggerUI(builder Builder) http.Handler {
+	b := builder
+	if b == nil {
+		b = PassthroughBuilder
+	}
+
+	var title string
+	sp := c.spec.Spec()
+	if sp != nil && sp.Info != nil && sp.Info.Title != "" {
+		title = sp.Info.Title
+	}
+
+	swaggerUIOpts := SwaggerUIOpts{
+		BasePath: c.BasePath(),
+		Title:    title,
+	}
+
+	return Spec("", c.spec.Raw(), SwaggerUI(swaggerUIOpts, c.RoutesHandler(b)))
 }
 
 // APIHandler returns a handler to serve the API, this includes a swagger spec, router and the contract defined in the swagger spec

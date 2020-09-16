@@ -121,7 +121,7 @@ commands should now be available:
 ```console
 $ ignite version
 Ignite version: version.Info{Major:"0", Minor:"8", GitVersion:"v0.8.0", GitCommit:"...", GitTreeState:"clean", BuildDate:"...", GoVersion:"...", Compiler:"gc", Platform:"linux/amd64"}
-Firecracker version: v0.21.1
+Firecracker version: v0.22.1
 Runtime: containerd
 ```
 

@@ -291,7 +291,7 @@ type routeEntry struct {
 	Parameters     map[string]spec.Parameter
 	Handler        http.Handler
 	Formats        strfmt.Registry
-	Binder         *untypedRequestBinder
+	Binder         *UntypedRequestBinder
 	Authenticators RouteAuthenticators
 	Authorizer     runtime.Authorizer
 }
@@ -429,7 +429,7 @@ func (d *defaultRouteBuilder) AddRoute(method, path string, operation *spec.Oper
 			Producers:      d.api.ProducersFor(normalizeOffers(produces)),
 			Parameters:     parameters,
 			Formats:        d.api.Formats(),
-			Binder:         newUntypedRequestBinder(parameters, d.spec.Spec(), d.api.Formats()),
+			Binder:         NewUntypedRequestBinder(parameters, d.spec.Spec(), d.api.Formats()),
 			Authenticators: d.buildAuthenticators(operation),
 			Authorizer:     d.api.Authorizer(),
 		})

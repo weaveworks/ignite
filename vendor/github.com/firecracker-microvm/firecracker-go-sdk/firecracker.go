@@ -94,6 +94,25 @@ func (f *Client) PutLogger(ctx context.Context, logger *models.Logger, opts ...P
 	return f.client.Operations.PutLogger(loggerParams)
 }
 
+// PutMetricsOpt is a functional option to be used for the PutMetrics API in
+// setting any additional optional fields.
+type PutMetricsOpt func(*ops.PutMetricsParams)
+
+// PutMetrics is a wrapper for the swagger generated client to make calling of
+// the API easier.
+func (f *Client) PutMetrics(ctx context.Context, metrics *models.Metrics, opts ...PutMetricsOpt) (*ops.PutMetricsNoContent, error) {
+	timeout, cancel := context.WithTimeout(ctx, time.Duration(f.firecrackerRequestTimeout)*time.Millisecond)
+	defer cancel()
+
+	params := ops.NewPutMetricsParamsWithContext(timeout)
+	params.SetBody(metrics)
+	for _, opt := range opts {
+		opt(params)
+	}
+
+	return f.client.Operations.PutMetrics(params)
+}
+
 // PutMachineConfigurationOpt is a functional option to be used for the
 // PutMachineConfiguration API in setting any additional optional fields.
 type PutMachineConfigurationOpt func(*ops.PutMachineConfigurationParams)

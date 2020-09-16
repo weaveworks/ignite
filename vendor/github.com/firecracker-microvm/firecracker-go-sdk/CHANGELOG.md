@@ -1,3 +1,13 @@
+# 0.22.0
+* Since firecracker-microvm/firecracker#2125, `cargo build` doesn't build jailer by default. (#263)
+* Fix Benchmark Goroutine (#259)
+* Jailer configuration API cleanup and improved logging with Debug log level (#255)
+* Firecracker is internally has an instance ID, but the SDK didn't have the way to configure the ID. This change connects Config.VMID to the instance ID. (#253)
+* Fixed error that was not being test against in `TestWait` (#251)
+* Fixes issue where socket path may not be defined since the config file has yet to be loaded (#230)
+* Fixed error that was not being test against in `TestNewPlugin` (#225)
+* Download Firecracker 0.21.1 and its jailer from Makefile (#218)
+
 # 0.21.0
 * Fixes default jailer socket and seccomp filters to be compatible with firecracker-v0.21.0 (#176)
 * Fixes signal handling goroutine leak (#204)
