@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install goimports
-        run: go get golang.org/x/tools/cmd/goimports
       - name: Update dependencies
-        run: make go-autogen
+        run: |
+          go get golang.org/x/tools/cmd/goimports \
+          && make go-autogen
       - name: Create pull request
         id: cpr
         uses: peter-evans/create-pull-request@v3.4.0
