@@ -21,6 +21,7 @@ jobs:
       - name: Update dependencies
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
+          export GOPATH=$(go env GOPATH)
           make go-autogen
       - name: Create pull request
         id: cpr
