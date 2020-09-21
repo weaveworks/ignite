@@ -1,0 +1,30 @@
+name: Update go dependencies
+
+on:
+  workflow_dispatch:
+    # Enable manual trigger of this action.
+
+  schedule:
+    # Run once every day. This will result in a PR the day updates are
+    # available. If the PR isn't merged, the action will run again the next day
+    # and pushes the changes to the same PR branch, updating the existing PR.
+    - cron: '0 0 * * *'
+
+jobs:
+  update-go-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Update dependencies
+        run: make go-autogen
+      - name: Create pull request
+        id: cpr
+        uses: peter-evans/create-pull-request@v3.4.0
+        with:
+          commit-message: "[automated] Update go dependencies"
+          branch: go-deps-patch
+          delete-branch: true
+          title: "[automated] Update go dependencies"
+      - name: Pull request info
+        run: |
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"

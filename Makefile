@@ -219,29 +219,27 @@ api-doc:
 autogen:
 	$(MAKE) go-make TARGETS="go-autogen"
 
-go-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen /go/bin/openapi-gen
+go-autogen:
 	# Let the boilerplate be empty
 	touch /tmp/boilerplate
-	# Need to do this, otherwise go mod thinks the state is dirty (for some reason)
-	go mod vendor
 
-	/go/bin/deepcopy-gen \
+	go run -mod=vendor ./vendor/k8s.io/code-generator/cmd/deepcopy-gen \
 		--input-dirs ${API_DIRS} \
 		--bounding-dirs ${APIS_DIR} \
 		-O zz_generated.deepcopy \
 		-h /tmp/boilerplate 
 
-	/go/bin/defaulter-gen \
+	go run -mod=vendor ./vendor/k8s.io/code-generator/cmd/defaulter-gen \
 		--input-dirs ${API_DIRS} \
 		-O zz_generated.defaults \
 		-h /tmp/boilerplate
 
-	/go/bin/conversion-gen \
+	go run -mod=vendor ./vendor/k8s.io/code-generator/cmd/conversion-gen \
 		--input-dirs ${API_DIRS} \
 		-O zz_generated.conversion \
 		-h /tmp/boilerplate
 
-	/go/bin/openapi-gen \
+	go run -mod=vendor ./vendor/k8s.io/kube-openapi/cmd/openapi-gen \
 		--input-dirs ${API_DIRS} \
 		--output-package ${PROJECT}/pkg/openapi \
 		--report-filename pkg/openapi/violations.txt \
@@ -249,12 +247,6 @@ go-autogen: /go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen /g
 	
 	# These commands modify the env a bit, clean up after us too
 	$(MAKE) tidy
-
-/go/bin/deepcopy-gen /go/bin/defaulter-gen /go/bin/conversion-gen: /go/bin/%: vendor
-	go get k8s.io/code-generator/cmd/$*
-
-/go/bin/openapi-gen:
-	go get k8s.io/kube-openapi/cmd/openapi-gen
 
 godoc2md: bin/cache/go/bin/godoc2md
 bin/cache/go/bin/godoc2md:
