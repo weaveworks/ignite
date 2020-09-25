@@ -1,0 +1,54 @@
+name: Publish OS Image
+
+on:
+  workflow_dispatch:
+    # Enable manual trigger of this action.
+    inputs:
+      arch:
+        description: Platform architecture (amd64, arm64).
+        default: amd64
+        required: true
+      what:
+        description: WHAT OS image build argument (one of amazon-kernel, amazonlinux, alpine, opensuse, ubuntu, centos, kubeadm)
+        required: true
+      release:
+        description: RELEASE OS image build argument (latest or specific version of OS)
+        default: latest
+        required: true
+      user:
+        description: Container registry user.
+        default: weaveworks
+        required: true
+
+env:
+  # Set all the env vars for OS image build make target.
+  GOARCH: ${{ github.event.inputs.arch }}
+  DOCKER_USER: ${{ github.event.inputs.user }}
+  WHAT: ${{ github.event.inputs.what }}
+  RELEASE: ${{ github.event.inputs.release }}
+  # Final image name: weaveworks/ignite-ubuntu:latest
+  IMAGE_NAME: ${{ github.event.inputs.user }}/ignite-${{ github.event.inputs.what }}:${{ github.event.inputs.release }}
+
+jobs:
+  build-os-image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build image ${{ env.IMAGE_NAME }} for ${{ env.GOARCH }}
+        run: |
+          cd images
+          make build
+      - name: Log into Container Registry
+        # NOTE: Create a PAT with `read:packages` and `write:packages` scopes
+        # and save it as an Actions secret `CR_PAT`.
+        # Create another Actions secret `CR_HOST` with the value as the
+        # container registry host name, e.g.: docker.io, ghcr.io, gcr.io
+        run: echo "${{ secrets.CR_PAT }}" | docker login "${{ secrets.CR_HOST }}" -u ${{ github.actor }} --password-stdin
+      - name: Push image to Container Registry
+        run: |
+          IMAGE_URL=${{ secrets.CR_HOST }}/${{ env.IMAGE_NAME }}
+          # Change all uppercase to lowercase
+          IMAGE_URL=$(echo $IMAGE_URL | tr '[A-Z]' '[a-z]')
+          echo IMAGE=$IMAGE_URL
+          docker tag ${{ env.IMAGE_NAME }} $IMAGE_URL
+          docker push $IMAGE_URL
