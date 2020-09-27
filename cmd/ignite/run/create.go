@@ -77,6 +77,11 @@ func (cf *CreateFlags) NewCreateOptions(args []string, fs *flag.FlagSet) (*Creat
 		baseVM.Spec.Image.OCI = ociRef
 	}
 
+	// Generate a VM name and UID if not set yet.
+	if err := metadata.SetNameAndUID(baseVM, providers.Client); err != nil {
+		return nil, err
+	}
+
 	// Apply the VM config on the base VM, if a VM config is given.
 	if len(cf.ConfigFile) != 0 {
 		if err := applyVMConfigFile(baseVM, cf.ConfigFile); err != nil {
