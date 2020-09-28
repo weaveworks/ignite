@@ -5,8 +5,3 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-  # Maintain dependencies for gomod
-  - package-ecosystem: "gomod"
-    directory: "/"
-    schedule:
-      interval: "daily"
