@@ -55,7 +55,7 @@ require (
 	github.com/weaveworks/libgitops v0.0.0-20200611103311-2c871bbbbf0c
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/sys v0.0.0-20200610111108-226ff32320da
-	golang.org/x/tools v0.0.0-20200918232735-d647fc253266 // indirect
+	golang.org/x/tools v0.0.0-20200925191224-5d1fdd8fa346 // indirect
 	gotest.tools v2.2.0+incompatible
 	k8s.io/apimachinery v0.18.3
 	k8s.io/code-generator v0.19.2
