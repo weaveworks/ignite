@@ -15,7 +15,7 @@ require (
 	github.com/alessio/shellescape v1.2.2
 	github.com/c2h5oh/datasize v0.0.0-20200112174442-28bbd4740fee
 	github.com/containerd/cgroups v0.0.0-20200407151229-7fc7a507c04c // indirect
-	github.com/containerd/console v1.0.0
+	github.com/containerd/console v1.0.1
 	github.com/containerd/containerd v1.3.3
 	github.com/containerd/continuity v0.0.0-20200228182428-0f16d7a0959c // indirect
 	github.com/containerd/go-cni v0.0.0-20200107172653-c154a49e2c75
@@ -54,7 +54,7 @@ require (
 	github.com/vishvananda/netlink v1.1.0
 	github.com/weaveworks/libgitops v0.0.0-20200611103311-2c871bbbbf0c
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/sys v0.0.0-20200610111108-226ff32320da
+	golang.org/x/sys v0.0.0-20200916030750-2334cc1a136f
 	golang.org/x/tools v0.0.0-20200918232735-d647fc253266 // indirect
 	gotest.tools v2.2.0+incompatible
 	k8s.io/apimachinery v0.18.3
