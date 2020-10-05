@@ -1,0 +1,42 @@
+name: Build binaries
+
+on:
+  workflow_dispatch:
+    # Enable manual trigger of this action.
+    inputs:
+      GOARCH:
+        description: GOARCH build environment variable.
+        default: amd64
+        required: true
+      repository:
+        description: Git repository to checkout for building.
+        default: weaveworks/ignite
+        required: true
+      ref:
+        description: Git branch, tag or SHA to checkout.
+        default: master
+        required: true
+
+env:
+  GOARCH: ${{ github.event.inputs.GOARCH }}
+
+jobs:
+  build-binaries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: ${{ github.event.inputs.repository }}
+          ref: ${{ github.event.inputs.ref }}
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.14.2'
+      - name: Build binaries for ${{ env.GOARCH }}
+        run: make ignite ignite-spawn ignited bin/${{ env.GOARCH }}/Dockerfile GO_MAKE_TARGET=local GOARCH=${{ env.GOARCH }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.GOARCH }} binaries
+          path: |
+            bin/${{ env.GOARCH }}/ignite
+            bin/${{ env.GOARCH }}/ignited
+            bin/${{ env.GOARCH }}/ignite-spawn
