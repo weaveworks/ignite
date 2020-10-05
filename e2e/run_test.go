@@ -1,8 +1,10 @@
 package e2e
 
 import (
+	"fmt"
 	"os"
 	"path"
+	"strings"
 	"testing"
 
 	"gotest.tools/assert"
@@ -113,4 +115,35 @@ func TestCurlWithContainerdAndCNI(t *testing.T) {
 		"containerd",
 		"cni",
 	)
+}
+
+func TestRunWithoutName(t *testing.T) {
+	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
+
+	igniteCmd := util.NewCommand(t, igniteBin)
+
+	labelKey := "testName"
+	labelVal := t.Name()
+
+	// Create VM with label to be able to identify the created VM without name.
+	igniteCmd.New().
+		With("run").
+		With(util.DefaultVMImage).
+		With("--label", fmt.Sprintf("%s=%s", labelKey, labelVal)).
+		Run()
+
+	// List the VM with label and get the VM name.
+	psCmd := igniteCmd.New().
+		With("ps").
+		With("--filter={{.ObjectMeta.Labels}}=~" + labelKey + ":" + labelVal).
+		With("--template={{.ObjectMeta.Name}}")
+	psOut, psErr := psCmd.Cmd.CombinedOutput()
+	assert.Check(t, psErr, fmt.Sprintf("ps: \n%q\n%s", psCmd.Cmd, psOut))
+	vmName := strings.TrimSpace(string(psOut))
+
+	// Delete the VM.
+	igniteCmd.New().
+		With("rm", "-f").
+		With(vmName).
+		Run()
 }
