@@ -8,7 +8,7 @@ on:
     # Run once every day. This will result in a PR the day updates are
     # available. If the PR isn't merged, the action will run again the next day
     # and pushes the changes to the same PR branch, updating the existing PR.
-    - cron: '0 0 * * *'
+    - cron: '0 0 * * 3'
 
 jobs:
   update-go-deps:
