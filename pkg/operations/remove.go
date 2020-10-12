@@ -8,7 +8,7 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/client"
-	"github.com/weaveworks/ignite/pkg/dmlegacy/cleanup"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/logs"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/runtime"
@@ -50,7 +50,7 @@ func CleanupVM(vm *api.VM) error {
 	// After removing the VM container, if the Snapshot Device is still there, clean up
 	if _, err := os.Stat(vm.SnapshotDev()); err == nil {
 		// try remove it again with DeactivateSnapshot
-		if err := cleanup.DeactivateSnapshot(vm); err != nil {
+		if err := dmlegacy.DeactivateSnapshot(vm); err != nil {
 			return err
 		}
 	}

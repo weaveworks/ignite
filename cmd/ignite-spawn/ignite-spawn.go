@@ -10,7 +10,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/container"
-	dmcleanup "github.com/weaveworks/ignite/pkg/dmlegacy/cleanup"
+	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/prometheus"
 	"github.com/weaveworks/ignite/pkg/util"
 	patchutil "github.com/weaveworks/libgitops/pkg/util/patch"
@@ -60,7 +60,7 @@ func StartVM(vm *api.VM) (err error) {
 	defer util.DeferErr(&err, func() error { return patchStopped(vm) })
 
 	// Remove the snapshot overlay post-run, which also removes the detached backing loop devices
-	defer util.DeferErr(&err, func() error { return dmcleanup.DeactivateSnapshot(vm) })
+	defer util.DeferErr(&err, func() error { return dmlegacy.DeactivateSnapshot(vm) })
 
 	// Remove the Prometheus socket post-run
 	defer util.DeferErr(&err, func() error { return os.Remove(metricsSocket) })
