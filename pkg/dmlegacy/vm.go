@@ -10,10 +10,10 @@ import (
 	"path/filepath"
 
 	log "github.com/sirupsen/logrus"
+
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
-	"github.com/weaveworks/ignite/pkg/dmlegacy/cleanup"
 	"github.com/weaveworks/ignite/pkg/operations/lookup"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -87,7 +87,7 @@ func copyToOverlay(vm *api.VM) (err error) {
 	if err != nil {
 		return
 	}
-	defer util.DeferErr(&err, func() error { return cleanup.DeactivateSnapshot(vm) })
+	defer util.DeferErr(&err, func() error { return DeactivateSnapshot(vm) })
 
 	mp, err := util.Mount(vm.SnapshotDev())
 	if err != nil {
