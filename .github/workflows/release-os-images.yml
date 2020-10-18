@@ -1,0 +1,158 @@
+name: Release OS images
+
+on:
+  workflow_dispatch:
+    # Enable manual trigger of this action.
+    inputs:
+      user:
+        description: Container registry user.
+        default: weaveworks
+        required: true
+
+env:
+  DOCKER_USER: ${{ github.event.inputs.user }}
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-latest
+    env:
+      WHAT: ubuntu
+      IS_MANIFEST_LIST: 1
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to container registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.io
+          username: ${{ secrets.CR_USER }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build ubuntu 18.04 amd64 image
+        env:
+          GOARCH: amd64
+          RELEASE: 18.04
+        run: cd images && make build
+      - name: Build ubuntu 18.04 arm64 image
+        env:
+          GOARCH: arm64
+          RELEASE: 18.04
+        run: cd images && make build
+      - name: Update manifest list for ubuntu 18.04
+        env:
+          RELEASE: 18.04
+        run: cd images && make push
+      - name: Build ubuntu 20.04 amd64 image
+        env:
+          GOARCH: amd64
+          RELEASE: 20.04
+        run: cd images && make build
+      - name: Build ubuntu 20.04 arm64 image
+        env:
+          GOARCH: arm64
+          RELEASE: 20.04
+        run: cd images && make build
+      - name: Update manifest list for ubuntu 20.04
+        env:
+          RELEASE: 20.04
+        run: cd images && make push
+
+  centos:
+    runs-on: ubuntu-latest
+    env:
+      WHAT: centos
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to container registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.io
+          username: ${{ secrets.CR_USER }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build and push centos 7 image
+        env:
+          RELEASE: 7
+        run: cd images && make build && make push
+      - name: Build and push centos 8 image
+        env:
+          RELEASE: 8
+        run: cd images && make build && make push
+
+  amazonlinux:
+    runs-on: ubuntu-latest
+    env:
+      WHAT: amazonlinux
+      RELEASE: 2
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to container registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.io
+          username: ${{ secrets.CR_USER }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build image
+        run: cd images && make build && make push
+
+  opensuse:
+    runs-on: ubuntu-latest
+    env:
+      WHAT: opensuse
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to container registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.io
+          username: ${{ secrets.CR_USER }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build opensuse leap image
+        env:
+          RELEASE: leap
+        run: cd images && make build && make push
+      - name: Build opensuse tumbleweed image
+        env:
+          RELEASE: tumbleweed
+        run: cd images && make build && make push
+
+  kubeadm:
+    runs-on: ubuntu-latest
+    env:
+      WHAT: kubeadm
+      IS_MANIFEST_LIST: 1
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to container registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.io
+          username: ${{ secrets.CR_USER }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build kubeadm v1.18.3 amd64 image
+        env:
+          GOARCH: amd64
+          RELEASE: v1.18.3
+        run: cd images && make build
+      - name: Build kubeadm v1.18.3 arm64 image
+        env:
+          GOARCH: arm64
+          RELEASE: v1.18.3
+        run: cd images && make build
+      - name: Update manifest list for kubeadm v1.18.3
+        env:
+          RELEASE: v1.18.3
+        run: cd images && make push
+
+  # aline:
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     WHAT: alpine
+  #     RELEASE: latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Login to container registry
+  #       uses: docker/login-action@v1
+  #         with:
+  #         registry: docker.io
+  #         username: ${{ secrets.CR_USER }}
+  #         password: ${{ secrets.CR_PAT }}
+  #     - name: Build image
+  #       run: cd images && make build
