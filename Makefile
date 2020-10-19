@@ -211,7 +211,7 @@ api-doc:
 	$(DOCKER) run -it --rm \
 		-v $(shell pwd):/data \
 		-u $(shell id -u):$(shell id -g) \
-		pandoc/core \
+		pandoc/core:2.10 `# TODO: let's try bumping this image tag in 2021` \
 			--from markdown \
 			--to gfm \
 			bin/tmp/${GROUP_VERSION}.md > docs/api/${GROUP_VERSION}.md
