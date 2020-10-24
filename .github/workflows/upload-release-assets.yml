@@ -1,0 +1,42 @@
+name: Upload release assets
+
+on:
+  workflow_dispatch:
+    # Enable manual trigger of this action.
+    inputs:
+      tag:
+        description: Git tag to checkout.
+        required: true
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set tag name env var.
+        run: echo "REL_TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.REL_TAG }}
+      - name: Login to container registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.io
+          username: ${{ secrets.CR_USER }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build binaries and push sandbox image
+        run: make release
+      - name: Prepare assets
+        run: |
+          mkdir -p release
+          cp bin/releases/${{ env.REL_TAG }}/amd64/ignite release/ignite-amd64
+          cp bin/releases/${{ env.REL_TAG }}/amd64/ignited release/ignited-amd64
+          cp bin/releases/${{ env.REL_TAG }}/arm64/ignite release/ignite-arm64
+          cp bin/releases/${{ env.REL_TAG }}/arm64/ignited release/ignited-arm64
+      - name: Upload assets
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ env.REL_TAG }}
+          file_glob: true
+          file: release/*
+          overwrite: true
