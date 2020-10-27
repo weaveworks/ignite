@@ -1,0 +1,92 @@
+name: Release kernel images
+
+on:
+  workflow_dispatch:
+    # Enable manual trigger of this action.
+    inputs:
+      kernel1:
+        description: Kernel 1 version.
+        default: 4.14.182
+        required: true
+      kernel2:
+        description: Kernel 2 version.
+        default: 4.19.125
+        required: true
+      kernel3:
+        description: Kernel 3 version.
+        default: 5.4.43
+        required: true
+
+defaults:
+  run:
+    working-directory: images/kernel
+
+jobs:
+  kernel1:
+    runs-on: ubuntu-latest
+    env:
+      KERNEL_VERSIONS: ${{ github.event.inputs.kernel1 }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to container registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.io
+          username: ${{ secrets.CR_USER }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build kernel for amd64
+        env:
+          GOARCH: amd64
+        run: make
+      - name: Build kernel for arm64
+        env:
+          GOARCH: arm64
+        run: make
+      - name: Push images
+        run: make push
+
+  kernel2:
+    runs-on: ubuntu-latest
+    env:
+      KERNEL_VERSIONS: ${{ github.event.inputs.kernel2 }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to container registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.io
+          username: ${{ secrets.CR_USER }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build kernel for amd64
+        env:
+          GOARCH: amd64
+        run: make
+      - name: Build kernel for arm64
+        env:
+          GOARCH: arm64
+        run: make
+      - name: Push images
+        run: make push
+
+  kernel3:
+    runs-on: ubuntu-latest
+    env:
+      KERNEL_VERSIONS: ${{ github.event.inputs.kernel3 }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to container registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.io
+          username: ${{ secrets.CR_USER }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build kernel for amd64
+        env:
+          GOARCH: amd64
+        run: make
+      - name: Build kernel for arm64
+        env:
+          GOARCH: arm64
+        run: make
+      - name: Push images
+        run: make push
