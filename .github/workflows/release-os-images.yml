@@ -1,0 +1,38 @@
+name: Release OS images
+
+on:
+  workflow_dispatch:
+    # Enable manual trigger of this action.
+    inputs:
+      user:
+        description: Container registry user.
+        default: weaveworks
+        required: true
+      version:
+        description: ignite version used for image tags.
+        required: true
+
+env:
+  DOCKER_USER: ${{ github.event.inputs.user }}
+  VERSION: ${{ github.event.inputs.version }}
+
+defaults:
+  run:
+    working-directory: images
+
+jobs:
+  image-build-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        what: [alpine, amazon-kernel, amazonlinux, centos, kubeadm, opensuse, ubuntu]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to container registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.io
+          username: ${{ secrets.CR_USER }}
+          password: ${{ secrets.CR_PAT }}
+      - run: make OP=build build-${{ matrix.what }}
+      - run: make OP=push build-${{ matrix.what }}
