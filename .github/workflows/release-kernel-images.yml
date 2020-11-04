@@ -1,0 +1,32 @@
+name: Release kernel images
+
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: images/kernel
+
+jobs:
+  kernel:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: [ 4.14.182, 4.19.125, 5.4.43 ]
+    env:
+      KERNEL_VERSIONS: ${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to container registry
+        uses: docker/login-action@v1
+        with:
+          registry: docker.io
+          username: ${{ secrets.CR_USER }}
+          password: ${{ secrets.CR_PAT }}
+      - run: make
+        env:
+          GOARCH: amd64
+      - run: make
+        env:
+          GOARCH: arm64
+      - run: make push
