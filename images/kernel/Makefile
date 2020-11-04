@@ -25,10 +25,10 @@ CTR := $(DOCKER) run -i --rm \
 		linuxkit/containerd:751de142273e1b5d2d247d2832d654ab92e907bc \
 		ctr
 
-# Check https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/refs/ for updates
 REGISTRY?=weaveworks
 IMAGE_NAME?=${REGISTRY}/ignite-kernel
-KERNEL_VERSIONS ?= 4.14.182 4.19.125 5.4.43
+# Check https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/refs/ for updates
+KERNEL_VERSIONS ?= 4.14.182 4.19.125 5.4.43  # If you update this, please keep the .github/workflows/release-kernel-images.yml matrix up to date
 GOARCH?=amd64
 GOARCH_LIST = amd64 arm64
 
