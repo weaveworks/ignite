@@ -2,6 +2,8 @@
 
 KERNEL_BUILDER_IMAGE=luxas/kernel-builder:gcc-7
 
+DOCKER_TTY="${DOCKER_TTY:+"-t"}"
+
 if [[ $# != 2 ]]; then
     echo "Usage: $0 [FROM] [TO]"
     exit 1
@@ -22,7 +24,7 @@ if [[ ${FROM} != ${TO} ]]; then
 fi
 
 docker pull ${KERNEL_BUILDER_IMAGE}
-docker run -it \
+docker run -i ${DOCKER_TTY} \
     ${ARCH_PARAMETER} \
 	-v $(pwd)/${TO}:/tmp/.config \
     ${KERNEL_BUILDER_IMAGE} /bin/bash -c "\

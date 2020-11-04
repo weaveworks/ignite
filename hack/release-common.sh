@@ -1,12 +1,14 @@
 #!/bin/bash
 
+DOCKER_TTY="${DOCKER_TTY:+"-t"}"
+
 if [[ ! -f bin/gren_token ]]; then
     echo "File bin/gren_token is needed; should contain a Github token with repo access"
     exit 1
 fi
 
 run_gren() {
-    docker run -it \
+    docker run -i ${DOCKER_TTY} \
         -v $(pwd):/data \
         -w /data \
         -u $(id -u):$(id -g) \
