@@ -8,12 +8,14 @@ on:
         description: Git tag to checkout.
         required: true
 
+env:
+  DOCKER_TTY: ""  # using `docker run -t` seems to not work in github actions, maybe related to https://github.com/actions/runner/issues/241
+  REL_TAG: ${{ github.event.inputs.tag }}
+
 jobs:
   build-and-upload:
     runs-on: ubuntu-latest
     steps:
-      - name: Set tag name env var.
-        run: echo "REL_TAG=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
           ref: ${{ env.REL_TAG }}
