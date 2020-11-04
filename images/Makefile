@@ -141,18 +141,37 @@ push-all: build-all
 	$(MAKE) OP=push build-all
 
 
-build-all:
-	$(MAKE) ${OP} WHAT=amazon-kernel
-	$(MAKE) ${OP} WHAT=amazonlinux    RELEASE=2                                        IS_LATEST=true
+build-all: build-alpine build-amazon-kernel build-amazonlinux build-centos build-kubeadm build-opensuse build-ubuntu
+
+build-alpine:
+ifeq ($(OP),build)
+	pushd alpine; \
+		${MAKE} alpine.tar; \
+	popd;
+endif
 	$(MAKE) ${OP} WHAT=alpine
+
+build-amazon-kernel:
+	$(MAKE) ${OP} WHAT=amazon-kernel
+
+build-amazonlinux:
+	$(MAKE) ${OP} WHAT=amazonlinux    RELEASE=2                                        IS_LATEST=true
+
+build-centos:
+	$(MAKE) ${OP} WHAT=centos         RELEASE=7
+	$(MAKE) ${OP} WHAT=centos         RELEASE=8                                        IS_LATEST=true
+
+build-kubeadm:
+	$(MAKE) ${OP} WHAT=kubeadm        RELEASE=v1.18.3  BINARY_REF=release/stable-1.18  IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=arm64
+	$(MAKE) ${OP} WHAT=kubeadm        RELEASE=v1.18.3  BINARY_REF=release/stable-1.18  IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=amd64
+
+build-opensuse:
 	$(MAKE) ${OP} WHAT=opensuse       RELEASE=leap                                     IS_LATEST=true
 	$(MAKE) ${OP} WHAT=opensuse       RELEASE=tumbleweed
+
+build-ubuntu:
 	$(MAKE) ${OP} WHAT=ubuntu         RELEASE=16.04                                                    IS_MANIFEST_LIST=0
 	$(MAKE) ${OP} WHAT=ubuntu         RELEASE=18.04                                                    IS_MANIFEST_LIST=1  GOARCH=arm64
 	$(MAKE) ${OP} WHAT=ubuntu         RELEASE=18.04                                                    IS_MANIFEST_LIST=1  GOARCH=amd64
 	$(MAKE) ${OP} WHAT=ubuntu         RELEASE=20.04                                    IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=arm64
 	$(MAKE) ${OP} WHAT=ubuntu         RELEASE=20.04                                    IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=amd64
-	$(MAKE) ${OP} WHAT=centos         RELEASE=7
-	$(MAKE) ${OP} WHAT=centos         RELEASE=8                                        IS_LATEST=true
-	$(MAKE) ${OP} WHAT=kubeadm        RELEASE=v1.18.3  BINARY_REF=release/stable-1.18  IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=arm64
-	$(MAKE) ${OP} WHAT=kubeadm        RELEASE=v1.18.3  BINARY_REF=release/stable-1.18  IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=amd64
