@@ -27,6 +27,7 @@ CTR := $(DOCKER) run -i --rm \
 
 REGISTRY?=weaveworks
 IMAGE_NAME?=${REGISTRY}/ignite-kernel
+KERNEL_BUILDER_NAME=${REGISTRY}/ignite-kernel-builder
 # Check https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/refs/ for updates
 KERNEL_VERSIONS ?= 4.14.182 4.19.125 5.4.43  # If you update this, please keep the .github/workflows/release-kernel-images.yml matrix up to date
 GOARCH?=amd64
@@ -44,17 +45,21 @@ endif
 
 all: build
 
+kernel-builder:
+	$(DOCKER) build -t ${KERNEL_BUILDER_NAME}:dev \
+		-f builder/Dockerfile .
+
 upgrade: $(addprefix upgrade-,$(KERNEL_VERSIONS))
 	./patch-config.sh
 	for file in generated/*; do \
 		./upgrade-config.sh $$file $$file; done
 
-upgrade-%:
+upgrade-%: kernel-builder
 	for file in upstream/*; do \
 		./upgrade-config.sh $$file versioned/$$(basename $$file)-$*; done
 
 build: $(addprefix build-,$(KERNEL_VERSIONS))
-build-%:
+build-%: kernel-builder
 	$(DOCKER) build -t $(IMAGE_NAME):$*-${GOARCH} \
 		--build-arg KERNEL_VERSION=$* \
 		--build-arg ARCH=${KERNEL_ARCH} \

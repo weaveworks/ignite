@@ -1,14 +1,11 @@
-FROM luxas/kernel-builder:gcc-7 AS builder
+FROM weaveworks/ignite-kernel-builder:dev AS builder
 
-# Install crosscompilers for non-amd64 arches
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        binutils-multiarch \
-        gcc-7-aarch64-linux-gnu && \
-	ln -s /usr/bin/aarch64-linux-gnu-gcc-7 /usr/bin/aarch64-linux-gnu-gcc
-
-# Fetch the latest tags from the linux kernel repo 
-RUN git fetch --tags
+# Set up environment variables
+ENV CCACHE_DIR=/ccache       \
+    SRC_DIR=/usr/src         \
+    DIST_DIR=/dist           \
+    LINUX_DIR=/usr/src/linux \
+    LINUX_REPO_URL=git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
 
 ARG KERNEL_VERSION
 ARG KERNEL_EXTRA
@@ -17,9 +14,13 @@ ARG ARCH
 ARG GOARCH
 ARG ARCH_MAKE_PARAMS
 
-# Checkout the desired kernel version and make sure the environment is clean
-RUN git checkout v${KERNEL_VERSION} && \
-    make clean && make mrproper
+# Clone the desired kernel version and make sure the environment is clean
+RUN mkdir -p ${SRC_DIR} ${CCACHE_DIR} ${DIST_DIR} && \
+    git clone --depth 1 --branch v${KERNEL_VERSION} ${LINUX_REPO_URL} ${LINUX_DIR} && \
+    cd ${LINUX_DIR} && make clean && make mrproper
+
+# Change workdir to run all the build commands from LINUX_DIR.
+WORKDIR ${LINUX_DIR}
 
 COPY generated/config-${GOARCH}-${KERNEL_VERSION}${KERNEL_EXTRA} .config
 
