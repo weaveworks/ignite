@@ -49,6 +49,10 @@ kernel-builder:
 	$(DOCKER) build -t ${KERNEL_BUILDER_NAME}:dev \
 		-f builder/Dockerfile .
 
+fc-upstream:
+	curl -L https://raw.githubusercontent.com/firecracker-microvm/firecracker/master/resources/microvm-kernel-x86_64.config > upstream/config-amd64
+	curl -L https://raw.githubusercontent.com/firecracker-microvm/firecracker/master/resources/microvm-kernel-arm64.config > upstream/config-arm64
+
 upgrade: $(addprefix upgrade-,$(KERNEL_VERSIONS))
 	./patch-config.sh
 	for file in generated/*; do \
