@@ -25,7 +25,7 @@ fi
 
 gh_prs() {
   hub pr list -s closed \
-    --format "_commits_%sm_%sB_%sH_commits_ %l - %t ([%i](%U), [%au](https://github.com/%au))%n"
+    --format "_commits_%sm_%sH_commits_ %l - %t ([%i](%U), [%au](https://github.com/%au))%n"
 }
 
 git_shas_since() {
