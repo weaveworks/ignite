@@ -7,9 +7,11 @@ module.exports = {
     "groupBy": {
         "New Features": ["kind/feature"],
         "API Changes": ["kind/api-change"],
-        "Enhancements": ["kind/enhancement"],
+        "Enhancements": ["kind/enhancement", "area/ux"],
         "Bug Fixes": ["kind/bug"],
         "Documentation": ["kind/documentation"],
+        "Testing": ["area/testing"],
+        "Releasing": ["area/releasing"],
         "No category": ["closed"]
     },
     "changelogFilename": "docs/releases/next.md",

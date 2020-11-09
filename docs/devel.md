@@ -52,7 +52,7 @@ make -C images WHAT=centos
 - Update documentation for the latest version (like https://github.com/weaveworks/ignite/pull/378)
 - Make sure your git remote `upstream` points to `git@github.com:weaveworks/ignite.git`, and `origin` to `git@github.com:<user>/ignite.git`
 - Get a Github API token with `repo` access, and put it in `bin/gren_token` for automatic release note generation
-- Make sure you have access to push to the `weaveworks/ignite*` repositories to Docker Hub
+- Make sure you're part of the Ignite DockerHub Team so you have access to push to the `weaveworks/ignite*` repositories
 
 ## Releasing a minor version
 

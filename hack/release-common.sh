@@ -35,27 +35,33 @@ gen_changelog_md() {
     # Generate docs/releases/next.md based of GH release notes
     run_gren "changelog"
     # Add the new release and existing ones to the changelog
-    cat docs/releases/${FULL_VERSION}.md docs/releases/next.md >> ${file}
+    cat "docs/releases/${FULL_VERSION}.md" docs/releases/next.md >> ${file}
     # Remove the temporary file
     rm docs/releases/next.md
 }
 
 write_changelog() {
-    # Build the gren image
-    docker build -t ignite-relnotes hack/relnotes
-
     # Generate the changelog draft
-    if [[ ! -f docs/releases/${FULL_VERSION}.md ]]; then
-        # Push the tag provisionally, we'll later update it
-        echo "Tagging the current commit ${FULL_VERSION} temporarily in order to run gren..."
-        git tag -f ${FULL_VERSION}
+    if [[ ! -f "docs/releases/${FULL_VERSION}.md" ]]; then
+        # Build the gren image
+        docker build -t ignite-relnotes hack/relnotes
+
+        # Push a temporary changlog-tag (we'll delete this)
+        CHANGELOG_TAG="changelog-tmp-${FULL_VERSION}"
+
+        echo "Tagging the current commit ${CHANGELOG_TAG} temporarily in order to run gren..."
+        git tag -f "${CHANGELOG_TAG}"
         git push upstream --tags -f
 
-        echo "Creating a changelog for PRs between tags ${FULL_VERSION}..${PREVIOUS_TAG}"
-        run_gren "changelog --generate --tags=${FULL_VERSION}..${PREVIOUS_TAG}"
-        mv docs/releases/next.md docs/releases/${FULL_VERSION}.md
+        echo "Creating a changelog for PRs between tags ${CHANGELOG_TAG}..${PREVIOUS_TAG}"
+        run_gren "changelog --generate --tags=${CHANGELOG_TAG}..${PREVIOUS_TAG}"
+
+        git push --delete upstream "${CHANGELOG_TAG}"
+        git tag --delete "${CHANGELOG_TAG}"
+
+        mv docs/releases/next.md "docs/releases/${FULL_VERSION}.md"
         # Add an extra newline in the end of the changelog
-        echo "" >> docs/releases/${FULL_VERSION}.md
+        echo "" >> "docs/releases/${FULL_VERSION}.md"
     fi
 
     read -p "Please manually fixup the changelog file now. Continue? [y/N] " confirm
@@ -72,8 +78,8 @@ write_changelog() {
         exit 1
     fi
 
-    git add -A
-    git commit -m "Release ${FULL_VERSION}"
+    git add "docs/releases/${FULL_VERSION}.md" "CHANGELOG.md"
+    git commit -m "Document ${FULL_VERSION} change log"
 }
 
 build_push_release_artifacts() {
