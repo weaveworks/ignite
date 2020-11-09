@@ -1,6 +1,7 @@
 #!/bin/bash
 
-KERNEL_BUILDER_IMAGE=luxas/kernel-builder:gcc-7
+KERNEL_BUILDER_IMAGE=weaveworks/ignite-kernel-builder:dev
+LINUX_REPO_URL=git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
 
 DOCKER_TTY="${DOCKER_TTY:+"-t"}"
 
@@ -23,12 +24,12 @@ if [[ ${FROM} != ${TO} ]]; then
     cp ${FROM} ${TO}
 fi
 
-docker pull ${KERNEL_BUILDER_IMAGE}
-docker run -i ${DOCKER_TTY} \
+docker run --rm -i ${DOCKER_TTY} \
     ${ARCH_PARAMETER} \
 	-v $(pwd)/${TO}:/tmp/.config \
     ${KERNEL_BUILDER_IMAGE} /bin/bash -c "\
-        git checkout v${VERSION} && \
+        git clone --depth 1 --branch v${VERSION} ${LINUX_REPO_URL} linux && \
+        cd linux &&
         make clean && make mrproper && cp /tmp/.config . && \
         make EXTRAVERSION="" LOCALVERSION= olddefconfig && \
         cp .config /tmp/.config"
