@@ -24,6 +24,7 @@ jobs:
   image-build-push:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         what: [alpine, amazon-kernel, amazonlinux, centos, kubeadm, opensuse, ubuntu]
     steps:
