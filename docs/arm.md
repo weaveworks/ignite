@@ -30,7 +30,7 @@ We don't know of a built-in way to install containerd on Gentoo, but you can ext
 
 CNI may be installed with the normal instructions.
 Just remember to change the architecture to `arm64`.
-The minimum CNI version supported is `v0.8.5`.
+The minimum CNI version supported is `v0.8.7`.
 
 ## Ignite
 
