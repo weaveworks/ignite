@@ -30,6 +30,8 @@ const (
 	defaultJailerBin  = "jailer"
 
 	rootfsFolderName = "root"
+
+	defaultSocketPath = "/run/firecracker.socket"
 )
 
 var (
@@ -288,7 +290,14 @@ func jail(ctx context.Context, m *Machine, cfg *Config) error {
 		jailerWorkspaceDir = filepath.Join(defaultJailerPath, filepath.Base(cfg.JailerCfg.ExecFile), cfg.JailerCfg.ID, rootfsFolderName)
 	}
 
-	cfg.SocketPath = filepath.Join(jailerWorkspaceDir, "run", "firecracker.socket")
+	var machineSocketPath string
+	if cfg.SocketPath != "" {
+		machineSocketPath = cfg.SocketPath
+	} else {
+		machineSocketPath = defaultSocketPath
+	}
+
+	cfg.SocketPath = filepath.Join(jailerWorkspaceDir, machineSocketPath)
 
 	stdout := cfg.JailerCfg.Stdout
 	if stdout == nil {
@@ -310,6 +319,7 @@ func jail(ctx context.Context, m *Machine, cfg *Config) error {
 		WithDaemonize(cfg.JailerCfg.Daemonize).
 		WithFirecrackerArgs(
 			"--seccomp-level", cfg.SeccompLevel.String(),
+			"--api-sock", machineSocketPath,
 		).
 		WithStdout(stdout).
 		WithStderr(stderr)
@@ -335,17 +345,9 @@ func jail(ctx context.Context, m *Machine, cfg *Config) error {
 	return nil
 }
 
-func linkFileToRootFS(cfg *JailerConfig, dst, src string) error {
-	if err := os.Link(src, dst); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // LinkFilesHandler creates a new link files handler that will link files to
 // the rootfs
-func LinkFilesHandler(rootfs, kernelImageFileName string) Handler {
+func LinkFilesHandler(kernelImageFileName string) Handler {
 	return Handler{
 		Name: LinkFilesToRootFSHandlerName,
 		Fn: func(ctx context.Context, m *Machine) error {
@@ -353,11 +355,18 @@ func LinkFilesHandler(rootfs, kernelImageFileName string) Handler {
 				return ErrMissingJailerConfig
 			}
 
+			// assemble the path to the jailed root folder on the host
+			rootfs := filepath.Join(
+				m.Cfg.JailerCfg.ChrootBaseDir,
+				filepath.Base(m.Cfg.JailerCfg.ExecFile),
+				m.Cfg.JailerCfg.ID,
+				rootfsFolderName,
+			)
+
 			// copy kernel image to root fs
-			if err := linkFileToRootFS(
-				m.Cfg.JailerCfg,
-				filepath.Join(rootfs, kernelImageFileName),
+			if err := os.Link(
 				m.Cfg.KernelImagePath,
+				filepath.Join(rootfs, kernelImageFileName),
 			); err != nil {
 				return err
 			}
@@ -366,10 +375,9 @@ func LinkFilesHandler(rootfs, kernelImageFileName string) Handler {
 			if m.Cfg.InitrdPath != "" {
 				initrdFilename := filepath.Base(m.Cfg.InitrdPath)
 				// copy initrd to root fs
-				if err := linkFileToRootFS(
-					m.Cfg.JailerCfg,
-					filepath.Join(rootfs, initrdFilename),
+				if err := os.Link(
 					m.Cfg.InitrdPath,
+					filepath.Join(rootfs, initrdFilename),
 				); err != nil {
 					return err
 				}
@@ -380,10 +388,9 @@ func LinkFilesHandler(rootfs, kernelImageFileName string) Handler {
 				hostPath := StringValue(drive.PathOnHost)
 				driveFileName := filepath.Base(hostPath)
 
-				if err := linkFileToRootFS(
-					m.Cfg.JailerCfg,
-					filepath.Join(rootfs, driveFileName),
+				if err := os.Link(
 					hostPath,
+					filepath.Join(rootfs, driveFileName),
 				); err != nil {
 					return err
 				}
@@ -402,10 +409,9 @@ func LinkFilesHandler(rootfs, kernelImageFileName string) Handler {
 				}
 
 				fileName := filepath.Base(*fifoPath)
-				if err := linkFileToRootFS(
-					m.Cfg.JailerCfg,
-					filepath.Join(rootfs, fileName),
+				if err := os.Link(
 					*fifoPath,
+					filepath.Join(rootfs, fileName),
 				); err != nil {
 					return err
 				}
@@ -431,9 +437,8 @@ type NaiveChrootStrategy struct {
 }
 
 // NewNaiveChrootStrategy returns a new NaivceChrootStrategy
-func NewNaiveChrootStrategy(rootfs, kernelImagePath string) NaiveChrootStrategy {
+func NewNaiveChrootStrategy(kernelImagePath string) NaiveChrootStrategy {
 	return NaiveChrootStrategy{
-		Rootfs:          rootfs,
 		KernelImagePath: kernelImagePath,
 	}
 }
@@ -450,7 +455,7 @@ func (s NaiveChrootStrategy) AdaptHandlers(handlers *Handlers) error {
 
 	handlers.FcInit = handlers.FcInit.AppendAfter(
 		CreateLogFilesHandlerName,
-		LinkFilesHandler(filepath.Join(s.Rootfs, rootfsFolderName), filepath.Base(s.KernelImagePath)),
+		LinkFilesHandler(filepath.Base(s.KernelImagePath)),
 	)
 
 	return nil

@@ -116,7 +116,10 @@ func (v *validation) contentType() {
 }
 
 func (v *validation) responseFormat() {
-	if str, rCtx := v.context.ResponseFormat(v.request, v.route.Produces); str == "" {
+	// if the route provides values for Produces and no format could be identify then return an error.
+	// if the route does not specify values for Produces then treat request as valid since the API designer
+	// choose not to specify the format for responses.
+	if str, rCtx := v.context.ResponseFormat(v.request, v.route.Produces); str == "" && len(v.route.Produces) > 0 {
 		v.request = rCtx
 		v.result = append(v.result, errors.InvalidResponseFormat(v.request.Header.Get(runtime.HeaderAccept), v.route.Produces))
 	}

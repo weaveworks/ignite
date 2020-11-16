@@ -22,13 +22,13 @@ require (
 	github.com/containerd/go-runc v0.0.0-20200220073739-7016d3ce2328 // indirect
 	github.com/containerd/ttrpc v1.0.0 // indirect
 	github.com/containerd/typeurl v1.0.0 // indirect
-	github.com/containernetworking/plugins v0.8.5
+	github.com/containernetworking/plugins v0.8.7
 	github.com/containers/image v3.0.2+incompatible
 	github.com/coreos/go-iptables v0.4.5
 	github.com/docker/docker v1.4.2-0.20200203170920-46ec8731fbce
 	github.com/docker/go-connections v0.4.0
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
-	github.com/firecracker-microvm/firecracker-go-sdk v0.21.1-0.20200312220944-e6eaff81c885
+	github.com/firecracker-microvm/firecracker-go-sdk v0.22.0
 	github.com/freddierice/go-losetup v0.0.0-20170407175016-fc9adea44124
 	github.com/go-openapi/spec v0.19.8
 	github.com/gogo/googleapis v1.3.2 // indirect
@@ -46,10 +46,10 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.11.0
 	github.com/prometheus/client_golang v1.5.1
-	github.com/sirupsen/logrus v1.6.0
+	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2 // indirect
 	github.com/vishvananda/netlink v1.1.0
 	github.com/weaveworks/libgitops v0.0.0-20200611103311-2c871bbbbf0c

@@ -14,4 +14,4 @@
 package firecracker
 
 // Version represents the current version of the SDK.
-const Version = "0.21.0"
+const Version = "0.22.0"

@@ -50,9 +50,9 @@ files will be sought from `/etc/cni/conf.d` and CNI plugins will be sought under
 must be specified in a configuration file at this time.
 
 It's currently highly recommended to use CNI configuration that includes
-[tc-redirect-tap](cni/Makefile) as a chained plugin. This will allow you to
-adapt pre-existing CNI plugins/configuration to a tap device usable by a
-Firecracker VM.
+[tc-redirect-tap](https://github.com/awslabs/tc-redirect-tap) as a chained plugin.
+This will allow you to adapt pre-existing CNI plugins/configuration to a tap device
+usable by a Firecracker VM.
 
 #### Example
 
@@ -85,9 +85,8 @@ and the
 [`ptp`](https://github.com/containernetworking/plugins/tree/master/plugins/main/ptp), 
 [`host-local`](https://github.com/containernetworking/plugins/tree/master/plugins/ipam/host-local),
 [`firewall`](https://github.com/containernetworking/plugins/tree/master/plugins/meta/firewall),
-and [`tc-redirect-tap`](cni/Makefile)
-CNI plugin binaries installed under `/opt/cni/bin`, you can specify, in the Go SDK API, 
-a `Machine` with the following `NetworkInterface`:
+and `tc-redirect-tap` CNI plugin binaries installed under `/opt/cni/bin`, you can specify,
+in the Go SDK API, a `Machine` with the following `NetworkInterface`:
 ```go
 {
   NetworkInterfaces: []firecracker.NetworkInterface{{

@@ -32,6 +32,9 @@ import (
 // swagger:model InstanceInfo
 type InstanceInfo struct {
 
+	// Application name.
+	AppName string `json:"app_name,omitempty"`
+
 	// MicroVM / instance ID.
 	// Required: true
 	ID *string `json:"id"`

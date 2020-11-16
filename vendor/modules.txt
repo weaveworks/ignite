@@ -27,7 +27,7 @@ github.com/PuerkitoBio/urlesc
 # github.com/alessio/shellescape v1.2.2
 ## explicit
 github.com/alessio/shellescape
-# github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496
+# github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535
 github.com/asaskevich/govalidator
 # github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
@@ -118,19 +118,21 @@ github.com/containerd/ttrpc
 # github.com/containerd/typeurl v1.0.0
 ## explicit
 github.com/containerd/typeurl
-# github.com/containernetworking/cni v0.7.2-0.20190807151350-8c6c47d1c7fc
+# github.com/containernetworking/cni v0.8.0
 github.com/containernetworking/cni/libcni
 github.com/containernetworking/cni/pkg/invoke
 github.com/containernetworking/cni/pkg/types
 github.com/containernetworking/cni/pkg/types/020
 github.com/containernetworking/cni/pkg/types/current
+github.com/containernetworking/cni/pkg/utils
 github.com/containernetworking/cni/pkg/version
-# github.com/containernetworking/plugins v0.8.5
+# github.com/containernetworking/plugins v0.8.7
 ## explicit
 github.com/containernetworking/plugins/pkg/ip
 github.com/containernetworking/plugins/pkg/ns
 github.com/containernetworking/plugins/pkg/utils
 github.com/containernetworking/plugins/pkg/utils/hwaddr
+github.com/containernetworking/plugins/pkg/utils/sysctl
 # github.com/containers/image v3.0.2+incompatible
 ## explicit
 github.com/containers/image/docker/reference
@@ -185,7 +187,7 @@ github.com/emirpasic/gods/lists/arraylist
 github.com/emirpasic/gods/trees
 github.com/emirpasic/gods/trees/binaryheap
 github.com/emirpasic/gods/utils
-# github.com/firecracker-microvm/firecracker-go-sdk v0.21.1-0.20200312220944-e6eaff81c885
+# github.com/firecracker-microvm/firecracker-go-sdk v0.22.0
 ## explicit
 github.com/firecracker-microvm/firecracker-go-sdk
 github.com/firecracker-microvm/firecracker-go-sdk/client
@@ -254,18 +256,18 @@ github.com/go-git/go-git/v5/utils/merkletrie/internal/frame
 github.com/go-git/go-git/v5/utils/merkletrie/noder
 # github.com/go-logr/logr v0.2.0
 github.com/go-logr/logr
-# github.com/go-openapi/analysis v0.19.5
+# github.com/go-openapi/analysis v0.19.10
 github.com/go-openapi/analysis
 github.com/go-openapi/analysis/internal
-# github.com/go-openapi/errors v0.19.3
+# github.com/go-openapi/errors v0.19.7
 github.com/go-openapi/errors
 # github.com/go-openapi/jsonpointer v0.19.3
 github.com/go-openapi/jsonpointer
 # github.com/go-openapi/jsonreference v0.19.3
 github.com/go-openapi/jsonreference
-# github.com/go-openapi/loads v0.19.4
+# github.com/go-openapi/loads v0.19.5
 github.com/go-openapi/loads
-# github.com/go-openapi/runtime v0.19.11
+# github.com/go-openapi/runtime v0.19.22
 github.com/go-openapi/runtime
 github.com/go-openapi/runtime/client
 github.com/go-openapi/runtime/logger
@@ -279,13 +281,13 @@ github.com/go-openapi/runtime/security
 github.com/go-openapi/spec
 # github.com/go-openapi/strfmt v0.19.5
 github.com/go-openapi/strfmt
-# github.com/go-openapi/swag v0.19.7
+# github.com/go-openapi/swag v0.19.9
 github.com/go-openapi/swag
-# github.com/go-openapi/validate v0.19.8
+# github.com/go-openapi/validate v0.19.11
 github.com/go-openapi/validate
 # github.com/go-stack/stack v1.8.0
 github.com/go-stack/stack
-# github.com/gofrs/uuid v3.2.0+incompatible
+# github.com/gofrs/uuid v3.3.0+incompatible
 github.com/gofrs/uuid
 # github.com/gogo/googleapis v1.3.2
 ## explicit
@@ -335,8 +337,6 @@ github.com/jbenet/go-context/io
 github.com/json-iterator/go
 # github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd
 github.com/kevinburke/ssh_config
-# github.com/konsorten/go-windows-terminal-sequences v1.0.3
-github.com/konsorten/go-windows-terminal-sequences
 # github.com/kr/fs v0.1.0
 github.com/kr/fs
 # github.com/krolaw/dhcp4 v0.0.0-20190909130307-a50d88189771
@@ -346,7 +346,7 @@ github.com/krolaw/dhcp4/conn
 # github.com/lithammer/dedent v1.1.0
 ## explicit
 github.com/lithammer/dedent
-# github.com/mailru/easyjson v0.7.0
+# github.com/mailru/easyjson v0.7.1
 github.com/mailru/easyjson/buffer
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
@@ -358,7 +358,7 @@ github.com/miekg/dns
 # github.com/mitchellh/go-homedir v1.1.0
 ## explicit
 github.com/mitchellh/go-homedir
-# github.com/mitchellh/mapstructure v1.1.2
+# github.com/mitchellh/mapstructure v1.3.2
 github.com/mitchellh/mapstructure
 # github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd
 github.com/modern-go/concurrent
@@ -417,7 +417,7 @@ github.com/safchain/ethtool
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/shurcooL/sanitized_anchor_name v1.0.0
 github.com/shurcooL/sanitized_anchor_name
-# github.com/sirupsen/logrus v1.6.0
+# github.com/sirupsen/logrus v1.7.0
 ## explicit
 github.com/sirupsen/logrus
 # github.com/spf13/cobra v1.0.0
@@ -427,7 +427,7 @@ github.com/spf13/cobra/doc
 # github.com/spf13/pflag v1.0.5
 ## explicit
 github.com/spf13/pflag
-# github.com/stretchr/testify v1.5.1
+# github.com/stretchr/testify v1.6.1
 ## explicit
 github.com/stretchr/testify/assert
 # github.com/syndtr/gocapability v0.0.0-20180916011248-d98352740cb2
@@ -458,9 +458,10 @@ github.com/weaveworks/libgitops/pkg/util/sync
 github.com/weaveworks/libgitops/pkg/util/watcher
 # github.com/xanzy/ssh-agent v0.2.1
 github.com/xanzy/ssh-agent
-# go.mongodb.org/mongo-driver v1.1.2
+# go.mongodb.org/mongo-driver v1.3.4
 go.mongodb.org/mongo-driver/bson
 go.mongodb.org/mongo-driver/bson/bsoncodec
+go.mongodb.org/mongo-driver/bson/bsonoptions
 go.mongodb.org/mongo-driver/bson/bsonrw
 go.mongodb.org/mongo-driver/bson/bsontype
 go.mongodb.org/mongo-driver/bson/primitive
@@ -585,8 +586,10 @@ google.golang.org/grpc/tap
 gopkg.in/inf.v0
 # gopkg.in/warnings.v0 v0.1.2
 gopkg.in/warnings.v0
-# gopkg.in/yaml.v2 v2.2.8
+# gopkg.in/yaml.v2 v2.3.0
 gopkg.in/yaml.v2
+# gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
+gopkg.in/yaml.v3
 # gotest.tools v2.2.0+incompatible
 ## explicit
 gotest.tools/assert
