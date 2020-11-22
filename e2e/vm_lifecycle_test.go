@@ -171,3 +171,33 @@ func TestVMStartNonDefaultProvider(t *testing.T) {
 	gotInspect := strings.TrimSpace(string(inspectOut))
 	assert.Equal(t, gotInspect, wantInspect, fmt.Sprintf("unexpected VM properties:\n\t(WNT): %q\n\t(GOT): %q", wantInspect, gotInspect))
 }
+
+func TestVMStopStartDefaultProviders(t *testing.T) {
+	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
+
+	vmName := "e2e-test-vm-stop-start-default-providers"
+
+	igniteCmd := util.NewCommand(t, igniteBin)
+
+	// Clean-up the following VM.
+	defer igniteCmd.New().
+		With("rm", "-f", vmName).
+		Run()
+
+	// Run the VM.
+	igniteCmd.New().
+		With("run").
+		With(util.DefaultVMImage).
+		With("--name=" + vmName).
+		Run()
+
+	// Stop the VM.
+	igniteCmd.New().
+		With("stop", vmName).
+		Run()
+
+	// Start the VM.
+	igniteCmd.New().
+		With("start", vmName).
+		Run()
+}
