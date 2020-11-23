@@ -49,6 +49,15 @@ func Start(so *StartOptions, fs *flag.FlagSet) error {
 		return fmt.Errorf("VM %q is already running", so.vm.GetUID())
 	}
 
+	// Stopped VMs don't contain the runtime and network information. Set the
+	// default runtime and network from the providers if empty.
+	if so.vm.Status.Runtime.Name == "" {
+		so.vm.Status.Runtime.Name = providers.RuntimeName
+	}
+	if so.vm.Status.Network.Plugin == "" {
+		so.vm.Status.Network.Plugin = providers.NetworkPluginName
+	}
+
 	// In case the runtime and network-plugin are specified explicitly at
 	// start, set the runtime and network-plugin on the VM. This overrides the
 	// global config and config on the VM object, if any.
