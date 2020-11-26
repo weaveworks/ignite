@@ -1,6 +1,6 @@
 SHELL:=/bin/bash
 # Set the command for running `docker`
-# -- allows user to override for things like sudo usage or container images 
+# -- allows user to override for things like sudo usage or container images
 DOCKER := docker
 # Set the first containerd.sock that successfully stats -- fallback to the docker4mac default
 CONTAINERD_SOCK := $(shell \
@@ -141,7 +141,7 @@ push-all: build-all
 	$(MAKE) OP=push build-all
 
 
-build-all: build-alpine build-amazon-kernel build-amazonlinux build-centos build-kubeadm build-opensuse build-ubuntu
+build-all: build-alpine build-amazon-kernel build-amazonlinux build-centos build-k3s build-kubeadm build-opensuse build-ubuntu
 
 build-alpine:
 ifeq ($(OP),build)
@@ -160,6 +160,9 @@ build-amazonlinux:
 build-centos:
 	$(MAKE) ${OP} WHAT=centos         RELEASE=7
 	$(MAKE) ${OP} WHAT=centos         RELEASE=8                                        IS_LATEST=true
+
+build-k3s:
+	$(MAKE) ${OP} WHAT=k3s            RELEASE=v1.0.1                                   IS_LATEST=true
 
 build-kubeadm:
 	$(MAKE) ${OP} WHAT=kubeadm        RELEASE=v1.18.3  BINARY_REF=release/stable-1.18  IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=arm64
