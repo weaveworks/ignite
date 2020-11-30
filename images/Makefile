@@ -1,6 +1,6 @@
 SHELL:=/bin/bash
 # Set the command for running `docker`
-# -- allows user to override for things like sudo usage or container images 
+# -- allows user to override for things like sudo usage or container images
 DOCKER := docker
 # Set the first containerd.sock that successfully stats -- fallback to the docker4mac default
 CONTAINERD_SOCK := $(shell \
@@ -32,14 +32,15 @@ DOCKER_USER?=weaveworks
 VERSION?=$(shell git describe HEAD --tags)
 RELEASE?=latest
 FULL_IMAGE_NAME=${DOCKER_USER}/ignite-${WHAT}:${TAG}
-RELEASE_IMAGE_NAME=${DOCKER_USER}/ignite-${WHAT}:${RELEASE}
+escaped_RELEASE:=$(subst +,-,$(RELEASE))
+RELEASE_IMAGE_NAME=${DOCKER_USER}/ignite-${WHAT}:${escaped_RELEASE}
 LATEST_IMAGE_NAME=${DOCKER_USER}/ignite-${WHAT}:latest
 
 GOARCH?=amd64
 GOARCH_LIST=amd64 arm64
 # Set this flag to build a multiarch image
 IS_MANIFEST_LIST?=0
-TAG:=${RELEASE}$(if $(strip $(VERSION)),-${VERSION})
+TAG:=${escaped_RELEASE}$(if $(strip $(VERSION)),-${VERSION})
 OP:=build
 
 TMPDIR?=/tmp
@@ -141,7 +142,7 @@ push-all: build-all
 	$(MAKE) OP=push build-all
 
 
-build-all: build-alpine build-amazon-kernel build-amazonlinux build-centos build-kubeadm build-opensuse build-ubuntu
+build-all: build-alpine build-amazon-kernel build-amazonlinux build-centos build-k3s build-kubeadm build-opensuse build-ubuntu
 
 build-alpine:
 ifeq ($(OP),build)
@@ -160,6 +161,9 @@ build-amazonlinux:
 build-centos:
 	$(MAKE) ${OP} WHAT=centos         RELEASE=7
 	$(MAKE) ${OP} WHAT=centos         RELEASE=8                                        IS_LATEST=true
+
+build-k3s:
+	$(MAKE) ${OP} WHAT=k3s            RELEASE=v1.19.4+k3s1                             IS_LATEST=true
 
 build-kubeadm:
 	$(MAKE) ${OP} WHAT=kubeadm        RELEASE=v1.18.3  BINARY_REF=release/stable-1.18  IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=arm64
