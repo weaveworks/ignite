@@ -29,7 +29,7 @@ ignite run weaveworks/ignite-kubeadm:latest \
     --name master-0
 
 # Get the IP address of the initial master, for the kubeadm join command below
-export MASTER_IP=$($ignite inspect vm master-0 | jq -r ".status.ipAddresses[0]")
+export MASTER_IP=$(ignite inspect vm master-0 | jq -r ".status.network.ipAddresses[0]")
 ```
 
 Initialize it with `kubeadm` using `ignite exec`:
