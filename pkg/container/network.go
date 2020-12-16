@@ -176,6 +176,7 @@ func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, bool, error) {
 		}
 
 		var gw *net.IP
+		gwString := "<nil>"
 		routes, err := netlink.RouteList(link, netlink.FAMILY_ALL)
 		if err != nil {
 			return nil, nil, false, fmt.Errorf("failed to get default gateway for interface %q: %v", iface.Name, err)
@@ -183,6 +184,7 @@ func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, bool, error) {
 		for _, rt := range routes {
 			if rt.Gw != nil {
 				gw = &rt.Gw
+				gwString = gw.String()
 				break
 			}
 		}
@@ -197,7 +199,7 @@ func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, bool, error) {
 			return nil, nil, false, fmt.Errorf("failed to remove address %q from interface %q: %v", delAddr, iface.Name, err)
 		}
 
-		log.Infof("Moving IP address %s (%s) with gateway %s from container to VM", ip.String(), maskString(mask), gw.String())
+		log.Infof("Moving IP address %s (%s) with gateway %s from container to VM", ip.String(), maskString(mask), gwString)
 
 		return &net.IPNet{
 			IP:   ip,
