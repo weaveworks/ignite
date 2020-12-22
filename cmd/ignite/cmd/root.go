@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/kerncmd"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/vmcmd"
 	"github.com/weaveworks/ignite/pkg/config"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
 	"github.com/weaveworks/ignite/pkg/providers"
@@ -132,6 +133,7 @@ func addGlobalFlags(fs *pflag.FlagSet) {
 	AddQuietFlag(fs)
 	logflag.LogLevelFlagVar(fs, &logLevel)
 	fs.StringVar(&configPath, "ignite-config", "", "Ignite configuration path; refer to the 'Ignite Configuration' docs for more details")
+	fs.StringVar(&util.StandardPrefix, "id-prefix", constants.IGNITE_PREFIX, "Prefix string for identifiers and names")
 }
 
 // AddQuietFlag adds the quiet flag to a flagset
