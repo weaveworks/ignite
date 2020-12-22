@@ -150,9 +150,11 @@ type Prefixer struct {
 	separator string
 }
 
+var StandardPrefix = constants.IGNITE_PREFIX
+
 func NewPrefixer() *Prefixer {
 	return &Prefixer{
-		prefix:    constants.IGNITE_PREFIX,
+		prefix:    StandardPrefix,
 		separator: "-",
 	}
 }
