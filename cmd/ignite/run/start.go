@@ -151,7 +151,7 @@ func waitForSSH(vm *ignite.VM, dialSeconds, sshTimeout int) error {
 	sshConn, err := ssh.Dial("tcp", addr, config)
 	if err != nil {
 		if strings.Contains(err.Error(), "unable to authenticate") {
-			// we connected to the ssh server and recieved the expected failure
+			// we connected to the ssh server and received the expected failure
 			return nil
 		}
 		return err

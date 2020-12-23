@@ -264,7 +264,7 @@ func (plugin *cniNetworkPlugin) cleanupBridges(containerID string) error {
 		return teardownErrs[0]
 	}
 	if len(teardownErrs) > 0 {
-		return fmt.Errorf("Errors occured cleaning up bridges: %v", teardownErrs)
+		return fmt.Errorf("Errors occurred cleaning up bridges: %v", teardownErrs)
 	}
 
 	return nil

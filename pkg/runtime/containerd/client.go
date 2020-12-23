@@ -82,7 +82,7 @@ func statContainerdSocket() (string, error) {
 
 // getNewestAvailableContainerdRuntime returns the newest possible runtime for the shims available in the PATH.
 // If no shim is found, the legacy Linux V1 runtime is returned along with an error.
-// Use of this function couples ignite to the PATH and mount namespace of containerd which is undesireable.
+// Use of this function couples ignite to the PATH and mount namespace of containerd which is undesirable.
 //
 // TODO(stealthybox): PR CheckRuntime() to containerd libraries instead of using exec.LookPath()
 func getNewestAvailableContainerdRuntime() (string, error) {

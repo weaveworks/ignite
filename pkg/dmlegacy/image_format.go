@@ -22,7 +22,7 @@ import (
 
 const (
 	blockSize       = 4096   // Block size to use for the ext4 filesystems, this is the default
-	minimumBaseSize = 500000 // Mimimum size of the base image, ~ half a megabyte.
+	minimumBaseSize = 500000 // Minimum size of the base image, ~ half a megabyte.
 )
 
 // CreateImageFilesystem creates an ext4 filesystem in a file, containing the files from the source
