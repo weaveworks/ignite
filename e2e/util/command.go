@@ -13,8 +13,8 @@ const (
 )
 
 // Command is an ignite command execution helper. It takes a binary and the
-// arguments to run with the binary. It provides a chaining methods to
-// fascilitate easy construction of the command.
+// arguments to run with the binary. It provides chaining methods to
+// facilitate easy construction of the command.
 type Command struct {
 	bin string
 	T   *testing.T
