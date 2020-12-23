@@ -15,6 +15,7 @@ TODO: ignited documentation
 
 ```
   -h, --help                    help for ignited
+      --id-prefix string        Prefix string for identifiers and names (default "ignite")
       --ignite-config string    Ignite configuration path; refer to the 'Ignite Configuration' docs for more details
       --log-level loglevel      Specify the loglevel for the program (default info)
       --network-plugin plugin   Network plugin to use. Available options are: [cni docker-bridge] (default cni)
