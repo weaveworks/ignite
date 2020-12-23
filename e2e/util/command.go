@@ -72,6 +72,7 @@ func (c *Command) Dir(path string) *Command {
 // on encountering an error, call Command.Cmd.CombinedOutput() or the
 // appropriate method to execute the command separately.
 func (c *Command) Run() {
+	c.T.Helper()
 	out, err := c.Cmd.CombinedOutput()
 	assert.Check(c.T, err, fmt.Sprintf("cmd: \n%q\n%s", c.Cmd, out))
 	if err != nil {
