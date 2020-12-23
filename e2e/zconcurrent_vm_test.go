@@ -24,6 +24,7 @@ func TestConcurrentVMCreation(t *testing.T) {
 		cmds = append(
 			cmds,
 			util.NewCommand(t, igniteBin).
+				PassThrough().
 				With("run").
 				With("--name="+name).
 				With("--ssh").
