@@ -2,7 +2,6 @@ package dm
 
 import (
 	"fmt"
-	"os/exec"
 	"path"
 
 	log "github.com/sirupsen/logrus"
@@ -145,22 +144,8 @@ func (d *Device) Import(src source.Source) (*util.MountPoint, error) {
 		return nil, err
 	}
 
-	tarCmd := exec.Command("tar", "-x", "-C", mountPoint.Path)
-	reader, err := src.Reader()
+	err = source.TarExtract(src, mountPoint.Path)
 	if err != nil {
-		return nil, err
-	}
-
-	tarCmd.Stdin = reader
-	if err := tarCmd.Start(); err != nil {
-		return nil, err
-	}
-
-	if err := tarCmd.Wait(); err != nil {
-		return nil, err
-	}
-
-	if err := src.Cleanup(); err != nil {
 		return nil, err
 	}
 
