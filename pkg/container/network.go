@@ -6,6 +6,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -118,17 +119,17 @@ func bridge(iface *net.Interface) (*DHCPInterface, error) {
 
 	eth, err := netlink.LinkByIndex(iface.Index)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "LinkByIndex")
 	}
 
 	tuntap, err := createTAPAdapter(tapName)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "createTAPAdapter")
 	}
 
 	bridge, err := createBridge(bridgeName)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "createBridge")
 	}
 
 	if err := setMaster(bridge, tuntap, eth); err != nil {
@@ -229,7 +230,7 @@ func createBridge(bridgeName string) (*netlink.Bridge, error) {
 	// the lowest address of an attached device, hence change over time.
 	mac, err := randomMAC()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "creating random MAC")
 	}
 	la.HardwareAddr = mac
 
@@ -263,14 +264,14 @@ func randomMAC() (net.HardwareAddr, error) {
 	mac[0] = (mac[0] & 0xFE) | 0x02
 
 	return net.HardwareAddr(mac), nil
-		}
+}
 
 func setMaster(master netlink.Link, links ...netlink.Link) error {
 	masterIndex := master.Attrs().Index
 
 	for _, link := range links {
 		if err := netlink.LinkSetMasterByIndex(link, masterIndex); err != nil {
-			return err
+			return errors.Wrapf(err, "setMaster %s %s", master.Attrs().Name, link.Attrs().Name)
 		}
 	}
 
