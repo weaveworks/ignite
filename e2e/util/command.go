@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"testing"
 
@@ -64,6 +65,13 @@ func (c *Command) WithNetwork(arg string) *Command {
 // Dir sets the command execution directory.
 func (c *Command) Dir(path string) *Command {
 	c.Cmd.Dir = path
+	return c
+}
+
+// PassThrough makes output from the command go to the same place as this process.
+func (c *Command) PassThrough() *Command {
+	c.Cmd.Stderr = os.Stderr
+	c.Cmd.Stdout = os.Stdout
 	return c
 }
 
