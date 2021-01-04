@@ -13,8 +13,8 @@ const (
 )
 
 // Command is an ignite command execution helper. It takes a binary and the
-// arguments to run with the binary. It provides a chaining methods to
-// fascilitate easy construction of the command.
+// arguments to run with the binary. It provides chaining methods to
+// facilitate easy construction of the command.
 type Command struct {
 	bin string
 	T   *testing.T
@@ -72,6 +72,7 @@ func (c *Command) Dir(path string) *Command {
 // on encountering an error, call Command.Cmd.CombinedOutput() or the
 // appropriate method to execute the command separately.
 func (c *Command) Run() {
+	c.T.Helper()
 	out, err := c.Cmd.CombinedOutput()
 	assert.Check(c.T, err, fmt.Sprintf("cmd: \n%q\n%s", c.Cmd, out))
 	if err != nil {
