@@ -43,6 +43,7 @@ ignite create <OCI image> [flags]
   -l, --label stringArray         Set a label (foo=bar)
       --memory size               Amount of RAM to allocate for the VM (default 512.0 MB)
   -n, --name string               Specify the name
+      --name-prefix string        Prefix string for identifiers and names (default ignite)
       --network-plugin plugin     Network plugin to use. Available options are: [cni docker-bridge] (default cni)
   -p, --ports strings             Map host ports to VM ports
       --require-name              Require VM name to be passed, no name generation
@@ -56,7 +57,6 @@ ignite create <OCI image> [flags]
 ### Options inherited from parent commands
 
 ```
-      --id-prefix string       Prefix string for identifiers and names (default "ignite")
       --ignite-config string   Ignite configuration path; refer to the 'Ignite Configuration' docs for more details
       --log-level loglevel     Specify the loglevel for the program (default info)
   -q, --quiet                  The quiet mode allows for machine-parsable output by printing only IDs
