@@ -47,8 +47,8 @@ func ApplyConfiguration(configPath string) error {
 		if providers.ComponentConfig.Spec.NetworkPlugin != "" && providers.NetworkPluginName == "" {
 			providers.NetworkPluginName = providers.ComponentConfig.Spec.NetworkPlugin
 		}
-		if providers.ComponentConfig.Spec.NamePrefix != "" {
-			util.StandardPrefix = providers.ComponentConfig.Spec.NamePrefix
+		if providers.ComponentConfig.Spec.NamePrefix != "" && util.NamePrefix == "" {
+			util.NamePrefix = providers.ComponentConfig.Spec.NamePrefix
 		}
 	} else {
 		log.Debugln("Using ignite default configurations")
@@ -61,6 +61,9 @@ func ApplyConfiguration(configPath string) error {
 	}
 	if providers.NetworkPluginName == "" {
 		providers.NetworkPluginName = network.PluginCNI
+	}
+	if util.NamePrefix == "" {
+		util.NamePrefix = constants.IGNITE_PREFIX
 	}
 
 	return nil
