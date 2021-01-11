@@ -21,6 +21,7 @@ ignite start <vm> [flags]
   -h, --help                              help for start
       --ignore-preflight-checks strings   A list of checks whose errors will be shown as warnings. Example: 'BinaryInPath,Port,ExistingFile'. Value 'all' ignores errors from all checks.
   -i, --interactive                       Attach to the VM after starting
+      --name-prefix string                Prefix string for identifiers and names (default ignite)
       --network-plugin plugin             Network plugin to use. Available options are: [cni docker-bridge] (default cni)
       --runtime runtime                   Container runtime to use. Available options are: [docker containerd] (default containerd)
 ```
@@ -28,7 +29,6 @@ ignite start <vm> [flags]
 ### Options inherited from parent commands
 
 ```
-      --id-prefix string       Prefix string for identifiers and names (default "ignite")
       --ignite-config string   Ignite configuration path; refer to the 'Ignite Configuration' docs for more details
       --log-level loglevel     Specify the loglevel for the program (default info)
   -q, --quiet                  The quiet mode allows for machine-parsable output by printing only IDs
