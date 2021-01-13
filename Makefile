@@ -192,7 +192,7 @@ test-in-docker:
 
 # Run tests that require root.
 root-test:
-	sudo $(shell which go) test -mod=vendor -v $(TEST_REQUIRES_ROOT_PACKAGES) -count=$(TEST_COUNT)
+	sudo -E $(shell which go) test -mod=vendor -v $(TEST_REQUIRES_ROOT_PACKAGES) -count=$(TEST_COUNT)
 
 graph:
 	hack/graph.sh
@@ -278,7 +278,7 @@ bin/docs/builder-image.tar:
 e2e: build-all e2e-nobuild
 
 e2e-nobuild:
-	sudo IGNITE_E2E_HOME=$(shell pwd) \
+	sudo -E IGNITE_E2E_HOME=$(shell pwd) \
 		$(shell which go) test \
 		$(TEST_E2E_PACKAGES) -v -mod=vendor \
 		-count $(E2E_COUNT) \
