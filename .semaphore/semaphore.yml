@@ -1,0 +1,35 @@
+version: v1.0
+name: CI Build
+
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu1804
+
+blocks:
+  - name: Run tests
+    task:
+      env_vars:
+      - name: GIMME_GO_VERSION
+        value: "1.14.2"
+      jobs:
+      - name: Tests
+        commands:
+          - eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | bash)" # install specific go version
+          - |
+            # https://ignite.readthedocs.io/en/latest/installation.html
+            sudo apt-get install -y cpu-checker
+            sudo apt-get install -y --no-install-recommends dmsetup openssh-client git binutils
+            # Install containerd if it's not present -- prevents breaking docker-ce installations
+            sudo which containerd || sudo apt-get install -y --no-install-recommends containerd
+          - kvm-ok
+          - |
+            export CNI_VERSION=v0.8.7
+            export ARCH=$([ $(uname -m) = "x86_64" ] && echo amd64 || echo arm64)
+            sudo mkdir -p /opt/cni/bin
+            curl -sSL https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz | sudo tar -xz -C /opt/cni/bin
+          - checkout
+          - make ignite ignite-spawn ignited bin/amd64/Dockerfile GO_MAKE_TARGET=local
+          - make test
+          - make root-test
+          - make e2e-nobuild  # this depends on Semaphore CI's support for nested virtualization
