@@ -81,6 +81,7 @@ func runVolume(t *testing.T, vmName, runtime, networkPlugin string) {
 		WithRuntime(runtime).
 		WithNetwork(networkPlugin).
 		With("run").
+		With("--debug"). // work around https://github.com/weaveworks/ignite/issues/679 (leaves dead container after)
 		With("--name=" + vmName).
 		With("--ssh").
 		With("--volumes=" + loopPath + ":/my-vol").
@@ -110,6 +111,7 @@ func runVolume(t *testing.T, vmName, runtime, networkPlugin string) {
 		WithRuntime(runtime).
 		WithNetwork(networkPlugin).
 		With("run").
+		With("--debug"). // work around https://github.com/weaveworks/ignite/issues/679 (leaves dead container after)
 		With("--name=" + secondVMName).
 		With("--ssh").
 		With("--volumes=" + loopPath + ":/my-vol").
@@ -124,8 +126,6 @@ func runVolume(t *testing.T, vmName, runtime, networkPlugin string) {
 }
 
 func TestVolumeWithDockerAndDockerBridge(t *testing.T) {
-	// TODO: https://github.com/weaveworks/ignite/issues/658
-	t.Skip("SKIPPING\nThis test fails to stop the VM within docker\nTODO: https://github.com/weaveworks/ignite/issues/658")
 	runVolume(
 		t,
 		"e2e-test-volume-docker-and-docker-bridge",

@@ -26,6 +26,7 @@ func runVMLifecycle(t *testing.T, vmName, runtime, networkPlugin string) {
 		WithRuntime(runtime).
 		WithNetwork(networkPlugin).
 		With("run").
+		With("--debug"). // work around https://github.com/weaveworks/ignite/issues/679 (leaves dead container after)
 		With("--name=" + vmName).
 		With("--ssh").
 		With(util.DefaultVMImage).
