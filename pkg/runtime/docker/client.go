@@ -175,21 +175,35 @@ func (dc *dockerClient) RunContainer(image meta.OCIImageRef, config *runtime.Con
 }
 
 func (dc *dockerClient) StopContainer(container string, timeout *time.Duration) error {
+	// Start waiting before we do the stop, to avoid race
+	errC, readyC := make(chan error), make(chan struct{})
+	go func() {
+		errC <- dc.waitForContainer(container, cont.WaitConditionNotRunning, &readyC)
+	}()
+	<-readyC // wait until removal detection has started
+
 	if err := dc.client.ContainerStop(context.Background(), container, timeout); err != nil {
 		return err
 	}
 
 	// Wait for the container to be stopped
-	return dc.waitForContainer(container, cont.WaitConditionNotRunning, nil)
+	return <-errC
 }
 
 func (dc *dockerClient) KillContainer(container, signal string) error {
+	// Start waiting before we do the kill, to avoid race
+	errC, readyC := make(chan error), make(chan struct{})
+	go func() {
+		errC <- dc.waitForContainer(container, cont.WaitConditionNotRunning, &readyC)
+	}()
+	<-readyC // wait until removal detection has started
+
 	if err := dc.client.ContainerKill(context.Background(), container, signal); err != nil {
 		return err
 	}
 
 	// Wait for the container to be killed
-	return dc.waitForContainer(container, cont.WaitConditionNotRunning, nil)
+	return <-errC
 }
 
 func (dc *dockerClient) RemoveContainer(container string) error {
