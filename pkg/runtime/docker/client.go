@@ -245,7 +245,7 @@ func (dc *dockerClient) waitForContainer(container string, condition cont.WaitCo
 			return fmt.Errorf("failed to wait for container %q: %s", container, result.Error.Message)
 		}
 	case err := <-errC:
-		return err
+		return fmt.Errorf("error waiting for container %q: %w", container, err)
 	}
 
 	return nil
