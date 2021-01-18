@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/util"
 )
 
 // NewCmdStop stops VMs
@@ -47,4 +48,5 @@ func NewCmdStop(out io.Writer) *cobra.Command {
 
 func addStopFlags(fs *pflag.FlagSet, sf *run.StopFlags) {
 	fs.BoolVarP(&sf.Kill, "force-kill", "f", false, "Force kill the VM")
+	cmdutil.AddNamePrefixFlag(fs, &util.NamePrefix)
 }
