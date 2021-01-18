@@ -124,8 +124,6 @@ func runVolume(t *testing.T, vmName, runtime, networkPlugin string) {
 }
 
 func TestVolumeWithDockerAndDockerBridge(t *testing.T) {
-	// TODO: https://github.com/weaveworks/ignite/issues/658
-	t.Skip("SKIPPING\nThis test fails to stop the VM within docker\nTODO: https://github.com/weaveworks/ignite/issues/658")
 	runVolume(
 		t,
 		"e2e-test-volume-docker-and-docker-bridge",
