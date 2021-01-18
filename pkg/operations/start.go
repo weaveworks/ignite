@@ -45,7 +45,11 @@ func StartVM(vm *api.VM, debug bool) error {
 	}
 
 	config := &runtime.ContainerConfig{
-		Cmd:    []string{fmt.Sprintf("--log-level=%s", logs.Logger.Level.String()), vm.GetUID().String()},
+		Cmd: []string{
+			fmt.Sprintf("--log-level=%s", logs.Logger.Level.String()),
+			fmt.Sprintf("--name-prefix=%s", util.NamePrefix),
+			vm.GetUID().String(),
+		},
 		Labels: map[string]string{"ignite.name": vm.GetName()},
 		Binds: []*runtime.Bind{
 			{
