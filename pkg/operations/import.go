@@ -1,14 +1,11 @@
 package operations
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
 
-	containerderr "github.com/containerd/containerd/errdefs"
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
@@ -138,30 +135,10 @@ func importKernel(c *client.Client, ociRef meta.OCIImageRef) (*api.Kernel, error
 			return nil, err
 		}
 
-		// Get the tar stream reader for the source OCI image
-		reader, err := dockerSource.Reader()
+		// Extract only the /boot and /lib directories of the tar stream into the tempDir
+		err = source.TarExtract(dockerSource, tempDir, "boot", "lib/modules")
 		if err != nil {
 			return nil, err
-		}
-		defer reader.Close()
-
-		// Extract only the /boot and /lib directories of the tar stream into the tempDir
-		tarCmd := exec.Command("tar", "-x", "-C", tempDir, "boot", "lib/modules")
-		tarCmd.Stdin = reader
-		if err := tarCmd.Start(); err != nil {
-			return nil, err
-		}
-
-		if err := tarCmd.Wait(); err != nil {
-			return nil, err
-		}
-
-		// Remove the temporary container
-		if err := dockerSource.Cleanup(); err != nil {
-			// Ignore the cleanup error if the resource no longer exists.
-			if !errors.Is(err, containerderr.ErrNotFound) {
-				return nil, err
-			}
 		}
 
 		// Locate the kernel file in the temporary directory
