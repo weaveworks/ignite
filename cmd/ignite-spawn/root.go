@@ -6,6 +6,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -27,6 +29,10 @@ func RunIgniteSpawn() {
 		usage()
 	}
 
+	if util.NamePrefix == "" {
+		util.NamePrefix = constants.IGNITE_PREFIX
+	}
+
 	util.GenericCheckErr(func() error {
 		vm, err := decodeVM(fs.Args()[0])
 		if err != nil {
@@ -38,10 +44,11 @@ func RunIgniteSpawn() {
 }
 
 func usage() {
-	util.GenericCheckErr(fmt.Errorf("usage: ignite-spawn [--log-level <level>] <vm>"))
+	util.GenericCheckErr(fmt.Errorf("usage: ignite-spawn [--log-level <level>] [--name-prefix <prefix>] <vm>"))
 }
 
 func addGlobalFlags(fs *pflag.FlagSet) {
 	// TODO: Add a version flag
 	logflag.LogLevelFlagVar(fs, &logLevel)
+	cmdutil.AddNamePrefixFlag(fs, &util.NamePrefix)
 }
