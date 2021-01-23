@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"unicode"
 
-	containerderr "github.com/containerd/containerd/errdefs"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
@@ -87,26 +85,9 @@ func addFiles(img *api.Image, src source.Source) (err error) {
 		return execErr
 	})
 
-	tarCmd := exec.Command("tar", "-x", "-C", tempDir)
-	reader, err := src.Reader()
+	err = source.TarExtract(src, tempDir)
 	if err != nil {
 		return
-	}
-
-	tarCmd.Stdin = reader
-	if err = tarCmd.Start(); err != nil {
-		return
-	}
-
-	if err = tarCmd.Wait(); err != nil {
-		return
-	}
-
-	if err = src.Cleanup(); err != nil {
-		// Ignore the cleanup error if the resource no longer exists.
-		if !errors.Is(err, containerderr.ErrNotFound) {
-			return
-		}
 	}
 
 	err = setupResolvConf(tempDir)
