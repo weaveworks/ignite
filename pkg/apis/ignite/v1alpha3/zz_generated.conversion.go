@@ -360,7 +360,7 @@ func autoConvert_v1alpha3_ConfigurationSpec_To_ignite_ConfigurationSpec(in *Conf
 	if err := Convert_v1alpha3_VMSpec_To_ignite_VMSpec(&in.VMDefaults, &out.VMDefaults, s); err != nil {
 		return err
 	}
-	out.NamePrefix = in.NamePrefix
+	out.IDPrefix = in.IDPrefix
 	return nil
 }
 
@@ -375,7 +375,7 @@ func autoConvert_ignite_ConfigurationSpec_To_v1alpha3_ConfigurationSpec(in *igni
 	if err := Convert_ignite_VMSpec_To_v1alpha3_VMSpec(&in.VMDefaults, &out.VMDefaults, s); err != nil {
 		return err
 	}
-	out.NamePrefix = in.NamePrefix
+	out.IDPrefix = in.IDPrefix
 	return nil
 }
 

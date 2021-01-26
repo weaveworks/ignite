@@ -23,7 +23,7 @@ ignite vm stop <vm>... [flags]
 ```
   -f, --force-kill           Force kill the VM
   -h, --help                 help for stop
-      --name-prefix string   Prefix string for identifiers and names (default ignite)
+      --id-prefix string   Prefix string for identifiers and names (default ignite)
 ```
 
 ### Options inherited from parent commands

@@ -43,5 +43,5 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 func addRmFlags(fs *pflag.FlagSet, rf *run.RmFlags) {
 	cmdutil.AddForceFlag(fs, &rf.Force)
 	cmdutil.AddConfigFlag(fs, &rf.ConfigFile)
-	cmdutil.AddNamePrefixFlag(fs, &util.NamePrefix)
+	cmdutil.AddIDPrefixFlag(fs, &util.IDPrefix)
 }

@@ -12,11 +12,11 @@ func AddNameFlag(fs *pflag.FlagSet, name *string) {
 	fs.StringVarP(name, "name", "n", *name, "Specify the name")
 }
 
-func AddNamePrefixFlag(fs *pflag.FlagSet, namePrefix *string) {
+func AddIDPrefixFlag(fs *pflag.FlagSet, idPrefix *string) {
 	// Note that the flag default is printed for good UX, but it's not implemented by pflag
 	// We have our own defaulting ComponentConfig logic
-	fs.StringVar(namePrefix, "name-prefix", "",
-		fmt.Sprintf("Prefix string for identifiers and names (default %v)", constants.IGNITE_PREFIX))
+	fs.StringVar(idPrefix, "id-prefix", "",
+		fmt.Sprintf("Prefix string for system identifiers (default %v)", constants.IGNITE_PREFIX))
 }
 
 func AddConfigFlag(fs *pflag.FlagSet, configFile *string) {
