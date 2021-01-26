@@ -17,8 +17,7 @@ ignite kill <vm>... [flags]
 ### Options
 
 ```
-  -h, --help                 help for kill
-      --id-prefix string   Prefix string for identifiers and names (default ignite)
+  -h, --help   help for kill
 ```
 
 ### Options inherited from parent commands
