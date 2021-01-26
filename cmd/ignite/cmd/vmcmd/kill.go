@@ -5,10 +5,8 @@ import (
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/util"
 )
 
 // NewCmdKill kills running VMs
@@ -34,10 +32,5 @@ func NewCmdKill(out io.Writer) *cobra.Command {
 		},
 	}
 
-	addKillFlags(cmd.Flags())
 	return cmd
-}
-
-func addKillFlags(fs *pflag.FlagSet) {
-	cmdutil.AddIDPrefixFlag(fs, &util.IDPrefix)
 }
