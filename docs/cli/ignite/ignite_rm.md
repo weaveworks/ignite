@@ -18,10 +18,9 @@ ignite rm <vm>... [flags]
 ### Options
 
 ```
-      --config string        Specify a path to a file with the API resources you want to pass
-  -f, --force                Force this operation. Warning, use of this mode may have unintended consequences.
-  -h, --help                 help for rm
-      --id-prefix string   Prefix string for identifiers and names (default ignite)
+      --config string   Specify a path to a file with the API resources you want to pass
+  -f, --force           Force this operation. Warning, use of this mode may have unintended consequences.
+  -h, --help            help for rm
 ```
 
 ### Options inherited from parent commands
