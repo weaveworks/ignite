@@ -60,6 +60,7 @@ func (cf *CreateFlags) NewCreateOptions(args []string, fs *flag.FlagSet) (*Creat
 
 	// Set the runtime and network-plugin on the VM. This overrides the global
 	// config.
+	baseVM.Status.IDPrefix = util.IDPrefix
 	baseVM.Status.Runtime.Name = providers.RuntimeName
 	baseVM.Status.Network.Plugin = providers.NetworkPluginName
 	// Populate the runtime and network-plugin providers.
