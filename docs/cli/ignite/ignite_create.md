@@ -38,12 +38,12 @@ ignite create <OCI image> [flags]
   -f, --copy-files strings        Copy files/directories from the host to the created VM
       --cpus uint                 VM vCPU count, 1 or even numbers between 1 and 32 (default 1)
   -h, --help                      help for create
+      --id-prefix string          Prefix string for system identifiers (default ignite)
       --kernel-args string        Set the command line for the kernel (default "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp")
   -k, --kernel-image oci-image    Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules (default weaveworks/ignite-kernel:4.19.125)
   -l, --label stringArray         Set a label (foo=bar)
       --memory size               Amount of RAM to allocate for the VM (default 512.0 MB)
   -n, --name string               Specify the name
-      --id-prefix string        Prefix string for identifiers and names (default ignite)
       --network-plugin plugin     Network plugin to use. Available options are: [cni docker-bridge] (default cni)
   -p, --ports strings             Map host ports to VM ports
       --require-name              Require VM name to be passed, no name generation

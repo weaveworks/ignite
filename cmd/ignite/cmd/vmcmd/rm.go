@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/cmd/ignite/run"
-	"github.com/weaveworks/ignite/pkg/util"
 )
 
 // NewCmdRm removes VMs
@@ -43,5 +42,4 @@ func NewCmdRm(out io.Writer) *cobra.Command {
 func addRmFlags(fs *pflag.FlagSet, rf *run.RmFlags) {
 	cmdutil.AddForceFlag(fs, &rf.Force)
 	cmdutil.AddConfigFlag(fs, &rf.ConfigFile)
-	cmdutil.AddIDPrefixFlag(fs, &util.IDPrefix)
 }
