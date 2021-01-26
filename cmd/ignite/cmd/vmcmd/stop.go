@@ -48,5 +48,5 @@ func NewCmdStop(out io.Writer) *cobra.Command {
 
 func addStopFlags(fs *pflag.FlagSet, sf *run.StopFlags) {
 	fs.BoolVarP(&sf.Kill, "force-kill", "f", false, "Force kill the VM")
-	cmdutil.AddNamePrefixFlag(fs, &util.NamePrefix)
+	cmdutil.AddIDPrefixFlag(fs, &util.IDPrefix)
 }

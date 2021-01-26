@@ -29,8 +29,8 @@ func RunIgniteSpawn() {
 		usage()
 	}
 
-	if util.NamePrefix == "" {
-		util.NamePrefix = constants.IGNITE_PREFIX
+	if util.IDPrefix == "" {
+		util.IDPrefix = constants.IGNITE_PREFIX
 	}
 
 	util.GenericCheckErr(func() error {
@@ -44,11 +44,11 @@ func RunIgniteSpawn() {
 }
 
 func usage() {
-	util.GenericCheckErr(fmt.Errorf("usage: ignite-spawn [--log-level <level>] [--name-prefix <prefix>] <vm>"))
+	util.GenericCheckErr(fmt.Errorf("usage: ignite-spawn [--log-level <level>] [--id-prefix <prefix>] <vm>"))
 }
 
 func addGlobalFlags(fs *pflag.FlagSet) {
 	// TODO: Add a version flag
 	logflag.LogLevelFlagVar(fs, &logLevel)
-	cmdutil.AddNamePrefixFlag(fs, &util.NamePrefix)
+	cmdutil.AddIDPrefixFlag(fs, &util.IDPrefix)
 }

@@ -173,7 +173,7 @@ type ConfigurationSpec struct {
     Runtime       igniteRuntime.Name       `json:"runtime,omitempty"`
     NetworkPlugin igniteNetwork.PluginName `json:"networkPlugin,omitempty"`
     VMDefaults    VMSpec                   `json:"vmDefaults,omitempty"`
-    NamePrefix    string                   `json:"namePrefix,omitempty"`
+    IDPrefix    string                   `json:"idPrefix,omitempty"`
 }
 ```
 

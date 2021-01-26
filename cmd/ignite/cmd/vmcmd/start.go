@@ -42,11 +42,11 @@ func NewCmdStart(out io.Writer) *cobra.Command {
 	addStartFlags(cmd.Flags(), sf)
 
 	// NOTE: Since the run command combines the create and start command flags,
-	// to avoid redefining runtime, network, and name-prefix flags in the run command,
+	// to avoid redefining runtime, network, and id-prefix flags in the run command,
 	// they are defined separately here, and re-used from addCreateFlags.
 	runtimeflag.RuntimeVar(cmd.Flags(), &providers.RuntimeName)
 	networkflag.NetworkPluginVar(cmd.Flags(), &providers.NetworkPluginName)
-	cmdutil.AddNamePrefixFlag(cmd.Flags(), &util.NamePrefix)
+	cmdutil.AddIDPrefixFlag(cmd.Flags(), &util.IDPrefix)
 
 	return cmd
 }

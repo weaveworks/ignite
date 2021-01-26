@@ -150,13 +150,13 @@ type Prefixer struct {
 	separator string
 }
 
-// NamePrefix is used for vm, container, and snapshot file/device names
+// IDPrefix is used for vm, container, and snapshot file/device names
 // It's set by the ComponentConfig and Flag override logic and should default to `constants.IGNITE_PREFIX`
-var NamePrefix string
+var IDPrefix string
 
 func NewPrefixer() *Prefixer {
 	return &Prefixer{
-		prefix:    NamePrefix,
+		prefix:    IDPrefix,
 		separator: "-",
 	}
 }

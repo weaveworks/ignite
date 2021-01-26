@@ -65,6 +65,6 @@ func addGlobalFlags(fs *pflag.FlagSet) {
 	logflag.LogLevelFlagVar(fs, &logLevel)
 	runtimeflag.RuntimeVar(fs, &providers.RuntimeName)
 	networkflag.NetworkPluginVar(fs, &providers.NetworkPluginName)
-	cmdutil.AddNamePrefixFlag(fs, &util.NamePrefix)
+	cmdutil.AddIDPrefixFlag(fs, &util.IDPrefix)
 	fs.StringVar(&configPath, "ignite-config", "", "Ignite configuration path; refer to the 'Ignite Configuration' docs for more details")
 }

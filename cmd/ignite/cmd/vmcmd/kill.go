@@ -39,5 +39,5 @@ func NewCmdKill(out io.Writer) *cobra.Command {
 }
 
 func addKillFlags(fs *pflag.FlagSet) {
-	cmdutil.AddNamePrefixFlag(fs, &util.NamePrefix)
+	cmdutil.AddIDPrefixFlag(fs, &util.IDPrefix)
 }

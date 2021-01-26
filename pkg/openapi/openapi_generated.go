@@ -921,7 +921,7 @@ func schema_pkg_apis_ignite_v1alpha3_ConfigurationSpec(ref common.ReferenceCallb
 							Ref: ref("github.com/weaveworks/ignite/pkg/apis/ignite/v1alpha3.VMSpec"),
 						},
 					},
-					"namePrefix": {
+					"idPrefix": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
