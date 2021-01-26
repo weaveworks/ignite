@@ -32,6 +32,7 @@ ignite run <OCI image> [flags]
       --cpus uint                         VM vCPU count, 1 or even numbers between 1 and 32 (default 1)
   -d, --debug                             Debug mode, keep container after VM shutdown
   -h, --help                              help for run
+      --id-prefix string                  Prefix string for system identifiers (default ignite)
       --ignore-preflight-checks strings   A list of checks whose errors will be shown as warnings. Example: 'BinaryInPath,Port,ExistingFile'. Value 'all' ignores errors from all checks.
   -i, --interactive                       Attach to the VM after starting
       --kernel-args string                Set the command line for the kernel (default "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp")
@@ -39,7 +40,6 @@ ignite run <OCI image> [flags]
   -l, --label stringArray                 Set a label (foo=bar)
       --memory size                       Amount of RAM to allocate for the VM (default 512.0 MB)
   -n, --name string                       Specify the name
-      --id-prefix string                Prefix string for identifiers and names (default ignite)
       --network-plugin plugin             Network plugin to use. Available options are: [cni docker-bridge] (default cni)
   -p, --ports strings                     Map host ports to VM ports
       --require-name                      Require VM name to be passed, no name generation
