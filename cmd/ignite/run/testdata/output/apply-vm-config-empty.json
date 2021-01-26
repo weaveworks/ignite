@@ -43,6 +43,7 @@
     "kernel": {
       "id": null,
       "size": "0B"
-    }
+    },
+    "idPrefix": ""
   }
 }
