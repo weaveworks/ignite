@@ -54,8 +54,8 @@ require (
 	github.com/vishvananda/netlink v1.1.0
 	github.com/weaveworks/libgitops v0.0.0-20200611103311-2c871bbbbf0c
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f
-	golang.org/x/tools v0.0.0-20210108195828-e2f9c7f1fc8e // indirect
+	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4
+	golang.org/x/tools v0.1.0 // indirect
 	gotest.tools v2.2.0+incompatible
 	k8s.io/apimachinery v0.18.3
 	k8s.io/code-generator v0.19.2
