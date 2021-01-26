@@ -245,6 +245,7 @@ type VMStatus struct {
 	Network   *Network       `json:"network,omitempty"`
 	Image     OCIImageSource `json:"image"`
 	Kernel    OCIImageSource `json:"kernel"`
+	IDPrefix  string         `json:"idPrefix"`
 }
 
 // Configuration represents the ignite runtime configuration.
