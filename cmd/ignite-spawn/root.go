@@ -6,7 +6,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
-	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
@@ -29,6 +28,7 @@ func RunIgniteSpawn() {
 		usage()
 	}
 
+	// there is no default value so this should be initialized if the VM has no status prefix already (backwards-compat)
 	if util.IDPrefix == "" {
 		util.IDPrefix = constants.IGNITE_PREFIX
 	}
@@ -37,6 +37,11 @@ func RunIgniteSpawn() {
 		vm, err := decodeVM(fs.Args()[0])
 		if err != nil {
 			return err
+		}
+
+		// guard against no status -- otherwise override default
+		if vm.Status.IDPrefix != "" {
+			util.IDPrefix = vm.Status.IDPrefix
 		}
 
 		return StartVM(vm)
@@ -50,5 +55,4 @@ func usage() {
 func addGlobalFlags(fs *pflag.FlagSet) {
 	// TODO: Add a version flag
 	logflag.LogLevelFlagVar(fs, &logLevel)
-	cmdutil.AddIDPrefixFlag(fs, &util.IDPrefix)
 }
