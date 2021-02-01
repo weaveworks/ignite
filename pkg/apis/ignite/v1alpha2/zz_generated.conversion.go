@@ -855,6 +855,7 @@ func autoConvert_ignite_VMStatus_To_v1alpha2_VMStatus(in *ignite.VMStatus, out *
 	if err := Convert_ignite_OCIImageSource_To_v1alpha2_OCIImageSource(&in.Kernel, &out.Kernel, s); err != nil {
 		return err
 	}
+	// WARNING: in.IDPrefix requires manual conversion: does not exist in peer-type
 	return nil
 }
 
