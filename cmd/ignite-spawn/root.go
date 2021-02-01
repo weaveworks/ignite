@@ -38,7 +38,7 @@ func RunIgniteSpawn() {
 }
 
 func usage() {
-	util.GenericCheckErr(fmt.Errorf("usage: ignite-spawn [--log-level <level>] <vm>"))
+	util.GenericCheckErr(fmt.Errorf("usage: ignite-spawn [--log-level <level>] [--id-prefix <prefix>] <vm>"))
 }
 
 func addGlobalFlags(fs *pflag.FlagSet) {
