@@ -17,7 +17,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/providers/ignite"
 	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
-	"github.com/weaveworks/ignite/pkg/util"
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
 )
 
@@ -65,6 +64,6 @@ func addGlobalFlags(fs *pflag.FlagSet) {
 	logflag.LogLevelFlagVar(fs, &logLevel)
 	runtimeflag.RuntimeVar(fs, &providers.RuntimeName)
 	networkflag.NetworkPluginVar(fs, &providers.NetworkPluginName)
-	cmdutil.AddIDPrefixFlag(fs, &util.IDPrefix)
+	cmdutil.AddIDPrefixFlag(fs, &providers.IDPrefix)
 	fs.StringVar(&configPath, "ignite-config", "", "Ignite configuration path; refer to the 'Ignite Configuration' docs for more details")
 }

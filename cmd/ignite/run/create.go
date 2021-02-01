@@ -58,9 +58,9 @@ func (cf *CreateFlags) NewCreateOptions(args []string, fs *flag.FlagSet) (*Creat
 		baseVM.Spec = providers.ComponentConfig.Spec.VMDefaults
 	}
 
-	// Set the runtime and network-plugin on the VM. This overrides the global
-	// config.
-	baseVM.Status.IDPrefix = util.IDPrefix
+	// Initialize the VM's Prefixer
+	baseVM.Status.IDPrefix = providers.IDPrefix
+	// Set the runtime and network-plugin on the VM, then override the global config.
 	baseVM.Status.Runtime.Name = providers.RuntimeName
 	baseVM.Status.Network.Plugin = providers.NetworkPluginName
 	// Populate the runtime and network-plugin providers.
