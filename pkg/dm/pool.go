@@ -6,11 +6,13 @@ import (
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
 var (
-	poolName = util.NewPrefixer().Prefix("pool")
+	defaultDMPrefixer = util.NewPrefixer(constants.IGNITE_PREFIX)
+	poolName          = defaultDMPrefixer.Prefix("pool")
 )
 
 type Pool struct {

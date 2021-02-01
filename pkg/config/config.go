@@ -13,7 +13,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/providers/ignite"
 	"github.com/weaveworks/ignite/pkg/runtime"
-	"github.com/weaveworks/ignite/pkg/util"
 )
 
 // ApplyConfiguration merges the given configurations with the default ignite
@@ -47,8 +46,8 @@ func ApplyConfiguration(configPath string) error {
 		if providers.ComponentConfig.Spec.NetworkPlugin != "" && providers.NetworkPluginName == "" {
 			providers.NetworkPluginName = providers.ComponentConfig.Spec.NetworkPlugin
 		}
-		if providers.ComponentConfig.Spec.IDPrefix != "" && util.IDPrefix == "" {
-			util.IDPrefix = providers.ComponentConfig.Spec.IDPrefix
+		if providers.ComponentConfig.Spec.IDPrefix != "" && providers.IDPrefix == "" {
+			providers.IDPrefix = providers.ComponentConfig.Spec.IDPrefix
 		}
 	} else {
 		log.Debugln("Using ignite default configurations")
@@ -62,8 +61,8 @@ func ApplyConfiguration(configPath string) error {
 	if providers.NetworkPluginName == "" {
 		providers.NetworkPluginName = network.PluginCNI
 	}
-	if util.IDPrefix == "" {
-		util.IDPrefix = constants.IGNITE_PREFIX
+	if providers.IDPrefix == "" {
+		providers.IDPrefix = constants.IGNITE_PREFIX
 	}
 
 	return nil
