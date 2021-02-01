@@ -13,7 +13,6 @@ import (
 	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
 	"github.com/weaveworks/ignite/pkg/providers"
 	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
-	"github.com/weaveworks/ignite/pkg/util"
 	"github.com/weaveworks/ignite/pkg/version"
 )
 
@@ -88,5 +87,5 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 
 	runtimeflag.RuntimeVar(fs, &providers.RuntimeName)
 	networkflag.NetworkPluginVar(fs, &providers.NetworkPluginName)
-	cmdutil.AddIDPrefixFlag(fs, &util.IDPrefix)
+	cmdutil.AddIDPrefixFlag(fs, &providers.IDPrefix)
 }

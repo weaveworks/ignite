@@ -169,6 +169,6 @@ func remove(vm *api.VM) error {
 // TODO: Quick hack to get the current state of the VM,
 // as the update via the storage overwrites the previous state
 func currentState(vm *api.VM) bool {
-	_, err := providers.Runtime.InspectContainer(util.NewPrefixer().Prefix(vm.GetUID()))
+	_, err := providers.Runtime.InspectContainer(vm.PrefixedID())
 	return err == nil
 }
