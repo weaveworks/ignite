@@ -9,6 +9,10 @@ import (
 	"github.com/weaveworks/libgitops/pkg/storage"
 )
 
+// IDPrefix is used for vm, container, and snapshot file/device names
+// It's set by the ComponentConfig and Flag override logic and should default to `constants.IGNITE_PREFIX`
+var IDPrefix string
+
 // NetworkPluginName binds to the global flag to select the network plugin
 // The default network plugin is "cni"
 var NetworkPluginName network.PluginName

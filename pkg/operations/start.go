@@ -21,7 +21,7 @@ import (
 
 func StartVM(vm *api.VM, debug bool) error {
 	// Inspect the VM container and remove it if it exists
-	inspectResult, _ := providers.Runtime.InspectContainer(util.NewPrefixer().Prefix(vm.GetUID()))
+	inspectResult, _ := providers.Runtime.InspectContainer(vm.PrefixedID())
 	RemoveVMContainer(inspectResult)
 
 	// Setup the snapshot overlay filesystem
@@ -103,7 +103,7 @@ func StartVM(vm *api.VM, debug bool) error {
 	}
 
 	// Run the VM container in Docker
-	containerID, err := providers.Runtime.RunContainer(vm.Spec.Sandbox.OCI, config, util.NewPrefixer().Prefix(vm.GetUID()), vm.GetUID().String())
+	containerID, err := providers.Runtime.RunContainer(vm.Spec.Sandbox.OCI, config, vm.PrefixedID(), vm.GetUID().String())
 	if err != nil {
 		return fmt.Errorf("failed to start container for VM %q: %v", vm.GetUID(), err)
 	}
