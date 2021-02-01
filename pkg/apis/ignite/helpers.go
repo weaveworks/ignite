@@ -19,9 +19,25 @@ func (vm *VM) SetKernel(kernel *Kernel) {
 	vm.Status.Kernel = kernel.Status.OCISource
 }
 
+// NewPrefixer returns a util.Prefixer specific to the VM
+func (vm *VM) NewPrefixer() *util.Prefixer {
+	if vm.Status.IDPrefix == "" {
+		// default for backwards compatibility /w previous VM's with no status set
+		// note, we need to be careful that the VM.Status.IDPrefix is set as soon as possible
+		// to avoid non-matching prefixedID's
+		return util.NewPrefixer(constants.IGNITE_PREFIX)
+	}
+	return util.NewPrefixer(vm.Status.IDPrefix)
+}
+
+// PrefixedID returns the VM's prefixed ID for system references
+func (vm *VM) PrefixedID() string {
+	return vm.NewPrefixer().Prefix(vm.GetUID())
+}
+
 // SnapshotDev returns the path where the (legacy) DM snapshot exists
 func (vm *VM) SnapshotDev() string {
-	return path.Join("/dev/mapper", util.NewPrefixer().Prefix(vm.GetUID()))
+	return path.Join("/dev/mapper", vm.PrefixedID())
 }
 
 // Running returns true if the VM is running, otherwise false

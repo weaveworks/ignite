@@ -150,9 +150,11 @@ type Prefixer struct {
 	separator string
 }
 
-func NewPrefixer() *Prefixer {
+// NewPrefixer returns an immutable prefixer for a specific purpose
+// ex: idPrefix is used to prefix vm, container, and snapshot file/device names
+func NewPrefixer(idPrefix string) *Prefixer {
 	return &Prefixer{
-		prefix:    constants.IGNITE_PREFIX,
+		prefix:    idPrefix,
 		separator: "-",
 	}
 }
