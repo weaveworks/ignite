@@ -245,6 +245,7 @@ type VMStatus struct {
 	Network   *Network       `json:"network,omitempty"`
 	Image     OCIImageSource `json:"image"`
 	Kernel    OCIImageSource `json:"kernel"`
+	IDPrefix  string         `json:"idPrefix"`
 }
 
 // Configuration represents the ignite runtime configuration.
@@ -261,4 +262,5 @@ type ConfigurationSpec struct {
 	Runtime       igniteRuntime.Name       `json:"runtime,omitempty"`
 	NetworkPlugin igniteNetwork.PluginName `json:"networkPlugin,omitempty"`
 	VMDefaults    VMSpec                   `json:"vmDefaults,omitempty"`
+	IDPrefix      string                   `json:"idPrefix,omitempty"`
 }

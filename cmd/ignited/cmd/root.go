@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	"github.com/weaveworks/ignite/pkg/config"
 	"github.com/weaveworks/ignite/pkg/logs"
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
@@ -63,5 +64,6 @@ func addGlobalFlags(fs *pflag.FlagSet) {
 	logflag.LogLevelFlagVar(fs, &logLevel)
 	runtimeflag.RuntimeVar(fs, &providers.RuntimeName)
 	networkflag.NetworkPluginVar(fs, &providers.NetworkPluginName)
+	cmdutil.AddIDPrefixFlag(fs, &providers.IDPrefix)
 	fs.StringVar(&configPath, "ignite-config", "", "Ignite configuration path; refer to the 'Ignite Configuration' docs for more details")
 }

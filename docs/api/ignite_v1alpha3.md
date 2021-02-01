@@ -166,13 +166,14 @@ type Configuration struct {
 Configuration represents the ignite runtime configuration.
 +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-## <a name="ConfigurationSpec">type</a> [ConfigurationSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=9431:9674#L260)
+## <a name="ConfigurationSpec">type</a> [ConfigurationSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=9431:9744#L260)
 
 ``` go
 type ConfigurationSpec struct {
     Runtime       igniteRuntime.Name       `json:"runtime,omitempty"`
     NetworkPlugin igniteNetwork.PluginName `json:"networkPlugin,omitempty"`
     VMDefaults    VMSpec                   `json:"vmDefaults,omitempty"`
+    IDPrefix    string                   `json:"idPrefix,omitempty"`
 }
 ```
 
