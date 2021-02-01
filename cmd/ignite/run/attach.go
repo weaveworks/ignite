@@ -6,7 +6,6 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/config"
 	"github.com/weaveworks/ignite/pkg/providers"
-	"github.com/weaveworks/ignite/pkg/util"
 )
 
 // checkRunning can be used to skip the running check, this is used by Start and Run
@@ -37,7 +36,7 @@ func Attach(ao *AttachOptions) error {
 	fmt.Println(ao.vm.GetUID())
 
 	// Attach to the VM in Docker
-	if err := providers.Runtime.AttachContainer(util.NewPrefixer().Prefix(ao.vm.GetUID())); err != nil {
+	if err := providers.Runtime.AttachContainer(ao.vm.PrefixedID()); err != nil {
 		return fmt.Errorf("failed to attach to container for VM %s: %v", ao.vm.GetUID(), err)
 	}
 

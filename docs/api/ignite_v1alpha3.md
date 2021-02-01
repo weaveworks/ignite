@@ -152,7 +152,7 @@ type BlockDeviceVolume struct {
 
 BlockDeviceVolume defines a block device on the host
 
-## <a name="Configuration">type</a> [Configuration](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=9231:9374#L252)
+## <a name="Configuration">type</a> [Configuration](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=9275:9418#L253)
 
 ``` go
 type Configuration struct {
@@ -166,13 +166,14 @@ type Configuration struct {
 Configuration represents the ignite runtime configuration.
 +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-## <a name="ConfigurationSpec">type</a> [ConfigurationSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=9431:9674#L260)
+## <a name="ConfigurationSpec">type</a> [ConfigurationSpec](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=9475:9786#L261)
 
 ``` go
 type ConfigurationSpec struct {
     Runtime       igniteRuntime.Name       `json:"runtime,omitempty"`
     NetworkPlugin igniteNetwork.PluginName `json:"networkPlugin,omitempty"`
     VMDefaults    VMSpec                   `json:"vmDefaults,omitempty"`
+    IDPrefix      string                   `json:"idPrefix,omitempty"`
 }
 ```
 
@@ -495,7 +496,7 @@ type VMSpec struct {
 
 VMSpec describes the configuration of a VM
 
-## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=8785:9096#L241)
+## <a name="VMStatus">type</a> [VMStatus](https://github.com/weaveworks/ignite/tree/master/pkg/apis/ignite/v1alpha3/types.go?s=8785:9140#L241)
 
 ``` go
 type VMStatus struct {
@@ -505,6 +506,7 @@ type VMStatus struct {
     Network   *Network       `json:"network,omitempty"`
     Image     OCIImageSource `json:"image"`
     Kernel    OCIImageSource `json:"kernel"`
+    IDPrefix  string         `json:"idPrefix"`
 }
 ```
 
