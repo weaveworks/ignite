@@ -67,7 +67,7 @@ func TestIgniteRunWithContainerdAndCNI(t *testing.T) {
 
 // runCurl is a helper for testing network connectivity
 // vmName should be unique for each test
-func runCurl(t *testing.T, vmName, runtime, networkPlugin string) {
+func runCurl(t *testing.T, vmName, runtime, networkPlugin string, extraRunArgs []string) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
 	igniteCmd := util.NewCommand(t, igniteBin)
@@ -82,6 +82,7 @@ func runCurl(t *testing.T, vmName, runtime, networkPlugin string) {
 		With("run", "--name="+vmName).
 		With(util.DefaultVMImage).
 		With("--ssh").
+		With(extraRunArgs...).
 		Run()
 
 	igniteCmd.New().
@@ -96,6 +97,7 @@ func TestCurlWithDockerAndDockerBridge(t *testing.T) {
 		"e2e-test-curl-docker-and-docker-bridge",
 		"docker",
 		"docker-bridge",
+		[]string{},
 	)
 }
 
@@ -105,6 +107,7 @@ func TestCurlWithDockerAndCNI(t *testing.T) {
 		"e2e-test-curl-docker-and-cni",
 		"docker",
 		"cni",
+		[]string{},
 	)
 }
 
@@ -114,6 +117,37 @@ func TestCurlWithContainerdAndCNI(t *testing.T) {
 		"e2e-test-curl-containerd-and-cni",
 		"containerd",
 		"cni",
+		[]string{},
+	)
+}
+
+func TestIDPrefixCurlWithDockerAndDockerBridge(t *testing.T) {
+	runCurl(
+		t,
+		"e2e-test-curl-docker-and-docker-bridge",
+		"docker",
+		"docker-bridge",
+		[]string{"--id-prefix=e2e"},
+	)
+}
+
+func TestIDPrefixCurlWithDockerAndCNI(t *testing.T) {
+	runCurl(
+		t,
+		"e2e-test-curl-docker-and-cni",
+		"docker",
+		"cni",
+		[]string{"--id-prefix=e2e"},
+	)
+}
+
+func TestIDPrefixCurlWithContainerdAndCNI(t *testing.T) {
+	runCurl(
+		t,
+		"e2e-test-curl-containerd-and-cni",
+		"containerd",
+		"cni",
+		[]string{"--id-prefix=e2e"},
 	)
 }
 
