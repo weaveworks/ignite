@@ -15,7 +15,8 @@ import (
 
 type Device struct {
 	*api.PoolDevice
-	pool *Pool
+	prefixer *util.Prefixer
+	pool     *Pool
 
 	// These flags are for filesystem and snapshot creation
 	mkfs   bool
@@ -168,7 +169,7 @@ func (d *Device) Import(src source.Source) (*util.MountPoint, error) {
 }
 
 func (d *Device) name(id meta.DMID) string {
-	return util.NewPrefixer().Prefix(id.String())
+	return d.prefixer.Prefix(id.String())
 }
 
 func (d *Device) Path() string {
