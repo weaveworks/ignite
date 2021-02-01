@@ -32,6 +32,7 @@ ignite vm run <OCI image> [flags]
       --cpus uint                         VM vCPU count, 1 or even numbers between 1 and 32 (default 1)
   -d, --debug                             Debug mode, keep container after VM shutdown
   -h, --help                              help for run
+      --id-prefix string                  Prefix string for system identifiers (default ignite)
       --ignore-preflight-checks strings   A list of checks whose errors will be shown as warnings. Example: 'BinaryInPath,Port,ExistingFile'. Value 'all' ignores errors from all checks.
   -i, --interactive                       Attach to the VM after starting
       --kernel-args string                Set the command line for the kernel (default "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp")

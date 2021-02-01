@@ -1,6 +1,8 @@
 package cmdutil
 
 import (
+	"fmt"
+
 	"github.com/spf13/pflag"
 	"github.com/weaveworks/ignite/pkg/constants"
 )
@@ -8,6 +10,13 @@ import (
 // This file contains a collection of common flag adders
 func AddNameFlag(fs *pflag.FlagSet, name *string) {
 	fs.StringVarP(name, "name", "n", *name, "Specify the name")
+}
+
+func AddIDPrefixFlag(fs *pflag.FlagSet, idPrefix *string) {
+	// Note that the flag default is printed for good UX, but it's not implemented by pflag
+	// We have our own defaulting ComponentConfig logic
+	fs.StringVar(idPrefix, "id-prefix", "",
+		fmt.Sprintf("Prefix string for system identifiers (default %v)", constants.IGNITE_PREFIX))
 }
 
 func AddConfigFlag(fs *pflag.FlagSet, configFile *string) {
