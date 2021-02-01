@@ -20,7 +20,7 @@ const snapshotLockFileName = "ignite-snapshot.lock"
 // ActivateSnapshot sets up the snapshot with devicemapper so that it is active and can be used.
 // It returns the path of the bootable snapshot device.
 func ActivateSnapshot(vm *api.VM) (devicePath string, err error) {
-	device := util.NewPrefixer().Prefix(vm.GetUID())
+	device := vm.PrefixedID()
 	devicePath = vm.SnapshotDev()
 
 	// Return if the snapshot is already setup
