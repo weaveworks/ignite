@@ -17,6 +17,7 @@ spec:
     oci: foo/bar:latest
   storage: {}
 status:
+  idPrefix: ""
   image:
     id: null
     size: 0B

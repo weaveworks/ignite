@@ -7,7 +7,6 @@ import (
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/config"
 	"github.com/weaveworks/ignite/pkg/providers"
-	"github.com/weaveworks/ignite/pkg/util"
 )
 
 type LogsOptions struct {
@@ -32,7 +31,7 @@ func Logs(lo *LogsOptions) error {
 	}
 
 	// Fetch the VM logs
-	rc, err := providers.Runtime.ContainerLogs(util.NewPrefixer().Prefix(lo.vm.GetUID()))
+	rc, err := providers.Runtime.ContainerLogs(lo.vm.PrefixedID())
 	if err != nil {
 		return fmt.Errorf("failed to get logs for VM %q: %v", lo.vm.GetUID(), err)
 	}
