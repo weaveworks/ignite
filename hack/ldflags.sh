@@ -2,6 +2,11 @@
 
 # Note: This file is heavily inspired by https://github.com/kubernetes/kubernetes/blob/master/hack/lib/version.sh
 
+is_git_repo() {
+  # https://stackoverflow.com/a/2180367
+  [ -d .git ] && echo .git || git rev-parse --git-dir > /dev/null 2>&1
+}
+
 git_to_image_tag() {
   echo "${1//+/-}"
 }
@@ -12,7 +17,8 @@ get_version_vars() {
   IGNITE_KERNEL_IMAGE_NAME="${DOCKER_USER}/ignite-kernel"
 
   IGNITE_GIT_COMMIT=$(git rev-parse "HEAD^{commit}" 2>/dev/null)
-  if git_status=$(git status --porcelain 2>/dev/null) && [[ -z ${git_status} ]]; then
+
+  if (! is_git_repo) || git_status=$(git status --porcelain 2>/dev/null) && [[ -z ${git_status} ]]; then
     IGNITE_GIT_TREE_STATE="clean"
   else
     IGNITE_GIT_TREE_STATE="dirty"
