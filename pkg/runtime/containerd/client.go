@@ -281,6 +281,11 @@ func (cc *ctdClient) InspectContainer(container string) (*runtime.ContainerInspe
 		return nil, err
 	}
 
+	tStatus, err := task.Status(cc.ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	info, err := cont.Info(cc.ctx)
 	if err != nil {
 		return nil, err
@@ -289,8 +294,8 @@ func (cc *ctdClient) InspectContainer(container string) (*runtime.ContainerInspe
 	return &runtime.ContainerInspectResult{
 		ID:        info.ID,
 		Image:     info.Image, // TODO: This may be incorrect
-		Status:    "",         // TODO: This
-		IPAddress: nil,        // TODO: This, containerd only supports CNI
+		Status:    string(tStatus.Status),
+		IPAddress: nil, // TODO: This, containerd only supports CNI
 		PID:       task.Pid(),
 	}, nil
 }

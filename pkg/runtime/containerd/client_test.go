@@ -3,6 +3,7 @@ package containerd
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -81,20 +82,8 @@ func TestRunRemove(t *testing.T) {
 	//       ideally, we could pass any tempdir with any permissions here
 	assert.NilError(t, os.MkdirAll(vmDir, constants.DATA_DIR_PERM))
 
-	cfg := &runtime.ContainerConfig{
-		Cmd: []string{
-			"/bin/sh",
-			"-c",
-			"echo hello",
-		},
-		Binds: []*runtime.Bind{
-			runtime.BindBoth(vmDir),
-		},
-		Devices: []*runtime.Bind{
-			runtime.BindBoth("/dev/kvm"),
-		},
-		Labels: map[string]string{},
-	}
+	cmds := []string{"/bin/sh", "-c", "echo hello"}
+	cfg := getContainerConfig(cmds, vmDir)
 
 	taskID, err := client.RunContainer(imageName, cfg, cName, cID)
 	if err != nil {
@@ -113,8 +102,63 @@ func TestRunRemove(t *testing.T) {
 	}
 
 	// just in case the process is hung -- cleanup
+	containerCleanup(client, cName)
+}
+
+func TestInspectContainer(t *testing.T) {
+	cName := "ignite-test-foo3"
+	cID := "test-foo3"
+	vmDir := filepath.Join(constants.VM_DIR, cID)
+	assert.NilError(t, os.MkdirAll(vmDir, constants.DATA_DIR_PERM))
+
+	cmds := []string{"/bin/sh", "-c", "echo hello"}
+	cfg := getContainerConfig(cmds, vmDir)
+
+	taskID, err := client.RunContainer(imageName, cfg, cName, cID)
+	if err != nil {
+		t.Errorf("Error Running Container /w TaskID %q: %s", taskID, err)
+	} else {
+		t.Logf("TaskID: %q", taskID)
+	}
+
+	// Run inspect and check the result.
+	result, err := client.InspectContainer(cName)
+	assert.NilError(t, err)
+	assert.Equal(t, taskID, result.ID)
+	// Returns image URI - docker.io/library/busybox:latest.
+	assert.Check(t, strings.Contains(result.Image, imageName.String()))
+	assert.Equal(t, "running", result.Status)
+
+	time.Sleep(time.Second / 4)
+
+	err = client.RemoveContainer(cName)
+	if err != nil {
+		t.Errorf("Error Removing Container: %s", err)
+	}
+
+	// just in case the process is hung -- cleanup
+	containerCleanup(client, cName)
+}
+
+// containerCleanup ensures that the container is cleaned up.
+func containerCleanup(client runtime.Interface, cName string) {
+	// just in case the process is hung -- cleanup
 	client.KillContainer(cName, "SIGQUIT") //nolint:errcheck // TODO: common constant for SIGQUIT
 	client.RemoveContainer(cName)          //nolint:errcheck
+}
+
+// getContainerConfig returns a container config.
+func getContainerConfig(cmds []string, vmDir string) *runtime.ContainerConfig {
+	return &runtime.ContainerConfig{
+		Cmd: cmds,
+		Binds: []*runtime.Bind{
+			runtime.BindBoth(vmDir),
+		},
+		Devices: []*runtime.Bind{
+			runtime.BindBoth("/dev/kvm"),
+		},
+		Labels: map[string]string{},
+	}
 }
 
 func TestV2ShimRuntimesHaveBinaryNames(t *testing.T) {
