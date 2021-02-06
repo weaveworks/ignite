@@ -3,6 +3,7 @@ package run
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"text/template"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
@@ -27,6 +28,11 @@ type PsOptions struct {
 func (pf *PsFlags) NewPsOptions() (po *PsOptions, err error) {
 	po = &PsOptions{PsFlags: pf}
 	po.allVMs, err = providers.Client.VMs().FindAll(filter.NewVMFilterAll("", po.All))
+	// If the storage is uninitialized, avoid failure and continue with empty
+	// VM list.
+	if err != nil && strings.Contains(err.Error(), "no such file or directory") {
+		err = nil
+	}
 	return
 }
 
