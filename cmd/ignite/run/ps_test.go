@@ -11,8 +11,14 @@ import (
 	"time"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
+	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
+	"github.com/weaveworks/ignite/pkg/client"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/libgitops/pkg/runtime"
+	"github.com/weaveworks/libgitops/pkg/storage"
+	"github.com/weaveworks/libgitops/pkg/storage/cache"
+	"gotest.tools/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/weaveworks/ignite/pkg/util"
@@ -166,4 +172,24 @@ func TestPs(t *testing.T) {
 		})
 	}
 
+}
+
+// TestNewPsOptionsStorageNotExists tests that no error is returned if the
+// storage directory doesn't exist and NewPsOptions() succeeds with empty VM
+// list.
+func TestNewPsOptionsStorageNotExists(t *testing.T) {
+	// Path to a directory that doesn't exist.
+	dir := "/tmp/ignite-fake-storage-path"
+	storage := cache.NewCache(
+		storage.NewGenericStorage(
+			storage.NewGenericRawStorage(dir), scheme.Serializer))
+
+	// Create ignite client with the storage.
+	providers.Client = client.NewClient(storage)
+
+	// Create a new PsOptions and check result.
+	pf := &PsFlags{}
+	po, err := pf.NewPsOptions()
+	assert.NilError(t, err)
+	assert.Equal(t, 0, len(po.allVMs))
 }
