@@ -75,5 +75,5 @@ func TestVMpsWithOutdatedStatus(t *testing.T) {
 	psOutString := string(psOut)
 	// Check for the outdated status and the note about it.
 	assert.Check(t, strings.Contains(psOutString, "*Up"))
-	assert.Check(t, strings.Contains(psOutString, "NOTE: The symbol *"))
+	assert.Check(t, strings.Contains(psOutString, "The symbol *"))
 }

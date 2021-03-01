@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/filter"
 	"github.com/weaveworks/ignite/pkg/providers"
@@ -19,6 +20,7 @@ import (
 // runtimeRunningStatus is the status returned from the container runtimes when
 // the VM container is in running state.
 const runtimeRunningStatus = "running"
+const oldManifestIndicator = "*"
 
 // PsFlags contains the flags supported by ps.
 type PsFlags struct {
@@ -75,10 +77,23 @@ func Ps(po *PsOptions) error {
 		}
 	}
 
-	outdatedVMs, err := fetchLatestStatus(filteredVMs)
-	if err != nil {
-		return err
+	endWarnings := []error{}
+	outdatedVMs, errList := fetchLatestStatus(filteredVMs)
+	if len(outdatedVMs) > 0 {
+		endWarnings = append(
+			endWarnings,
+			fmt.Errorf("The symbol %s on the VM status indicates that the VM manifest on disk is not up-to-date with the actual VM status from the container runtime", oldManifestIndicator),
+		)
 	}
+	if len(errList) > 0 {
+		endWarnings = append(endWarnings, errList...)
+	}
+	defer func() {
+		// Add a note at the bottom about the old manifest indicator in the status.
+		for _, err := range endWarnings {
+			log.Warn(err)
+		}
+	}()
 
 	// If template format is specified, render the template.
 	if po.PsFlags.TemplateFormat != "" {
@@ -109,11 +124,6 @@ func Ps(po *PsOptions) error {
 			vm.Spec.Network.Ports, vm.GetName())
 	}
 
-	// Add a note at the bottom about the old manifest indicator in the status.
-	if len(outdatedVMs) > 0 {
-		o.Write("\nNOTE: The symbol * on the VM status indicates that the VM manifest on disk is not up-to-date with the actual VM status.")
-	}
-
 	return nil
 }
 
@@ -129,21 +139,23 @@ func formatCreated(vm *api.VM) string {
 }
 
 func formatStatus(vm *api.VM, outdatedVMs map[string]bool) string {
-	oldManifestIndicator := ""
+	isOld := ""
 	if _, ok := outdatedVMs[vm.Name]; ok {
-		oldManifestIndicator = "*"
-	}
-	if vm.Running() {
-		return fmt.Sprintf("%sUp %s", oldManifestIndicator, vm.Status.StartTime)
+		isOld = oldManifestIndicator
 	}
 
-	return oldManifestIndicator + "Stopped"
+	if vm.Running() {
+		return fmt.Sprintf("%sUp %s", isOld, vm.Status.StartTime)
+	}
+
+	return isOld + "Stopped"
 }
 
 // fetchLatestStatus fetches the current status the VMs, updates the VM status
 // in memory and returns a list of outdated VMs.
-func fetchLatestStatus(vms []*api.VM) (outdatedVMs map[string]bool, err error) {
+func fetchLatestStatus(vms []*api.VM) (outdatedVMs map[string]bool, errList []error) {
 	outdatedVMs = map[string]bool{}
+	errList = []error{}
 
 	// Container runtime clients. These clients are lazy initialized based on
 	// the VM's runtime.
@@ -165,16 +177,20 @@ func fetchLatestStatus(vms []*api.VM) (outdatedVMs map[string]bool, err error) {
 		switch vm.Status.Runtime.Name {
 		case runtime.RuntimeContainerd:
 			if containerdClient == nil {
+				var err error
 				containerdClient, err = containerdruntime.GetContainerdClient()
 				if err != nil {
+					errList = append(errList, err)
 					return
 				}
 			}
 			vmRuntime = containerdClient
 		case runtime.RuntimeDocker:
 			if dockerClient == nil {
+				var err error
 				dockerClient, err = dockerruntime.GetDockerClient()
 				if err != nil {
+					errList = append(errList, err)
 					return
 				}
 			}
@@ -184,8 +200,8 @@ func fetchLatestStatus(vms []*api.VM) (outdatedVMs map[string]bool, err error) {
 		// Inspect the VM container using the runtime client.
 		ir, inspectErr := vmRuntime.InspectContainer(containerID)
 		if inspectErr != nil {
-			err = errors.Wrapf(inspectErr, "failed to inspect container for VM %s", containerID)
-			return
+			errList = append(errList, errors.Wrapf(inspectErr, "failed to inspect container for VM %s", containerID))
+			continue
 		}
 
 		// Set current running based on the container status result.
