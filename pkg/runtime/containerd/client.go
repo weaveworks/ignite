@@ -666,29 +666,47 @@ func (cc *ctdClient) KillContainer(container, signal string) (err error) {
 	return
 }
 
-func (cc *ctdClient) RemoveContainer(container string) (err error) {
+func (cc *ctdClient) RemoveContainer(container string) error {
 	// Remove the container if it exists
-	var cont containerd.Container
-	var task containerd.Task
-	if cont, err = cc.client.LoadContainer(cc.ctx, container); ifFound(&err) {
-		// Load the container's task without attaching
-		if task, err = cont.Task(cc.ctx, nil); ifFound(&err) {
-			_, err = task.Delete(cc.ctx)
-		}
+	cont, contLoadErr := cc.client.LoadContainer(cc.ctx, container)
+	if errdefs.IsNotFound(contLoadErr) {
+		log.Warn(contLoadErr)
+		return nil
+	} else if contLoadErr != nil {
+		return contLoadErr
+	}
 
-		// Delete the container
-		if err == nil {
-			err = cont.Delete(cc.ctx, containerd.WithSnapshotCleanup)
-		}
-
-		// Remove the log file if it exists
-		logFile := fmt.Sprintf(logPathTemplate, container)
-		if util.FileExists(logFile) && err == nil {
-			err = os.RemoveAll(logFile)
+	// Load the container's task without attaching
+	task, taskLoadErr := cont.Task(cc.ctx, nil)
+	if errdefs.IsNotFound(taskLoadErr) {
+		log.Warn(taskLoadErr)
+	} else if taskLoadErr != nil {
+		return taskLoadErr
+	} else {
+		_, taskDeleteErr := task.Delete(cc.ctx)
+		if taskDeleteErr != nil {
+			log.Warn(taskDeleteErr)
 		}
 	}
 
-	return
+	// Delete the container
+	deleteContErr := cont.Delete(cc.ctx, containerd.WithSnapshotCleanup)
+	if errdefs.IsNotFound(contLoadErr) {
+		log.Warn(contLoadErr)
+	} else if deleteContErr != nil {
+		return deleteContErr
+	}
+
+	// Remove the log file if it exists
+	logFile := fmt.Sprintf(logPathTemplate, container)
+	if util.FileExists(logFile) {
+		logDeleteErr := os.RemoveAll(logFile)
+		if logDeleteErr != nil {
+			return logDeleteErr
+		}
+	}
+
+	return nil
 }
 
 func (cc *ctdClient) ContainerLogs(container string) (r io.ReadCloser, err error) {
@@ -785,22 +803,4 @@ func deviceType(device string, devType *string) (err error) {
 	}
 
 	return
-}
-
-// ifFound is a helper for functions returning errdefs.ErrNotFound in if-statements.
-// If in points to that error, the value is changed to nil and false is returned.
-// If in points to any other error, no change is performed and false is returned.
-// If in points to nil, no change is performed and true is returned.
-func ifFound(in *error) bool {
-	if in == nil {
-		panic("nil pointer given to ifFound")
-	}
-
-	// If the given error is an errdefs.ErrNotFound, clear it
-	if errdefs.IsNotFound(*in) {
-		*in = nil
-		return false
-	}
-
-	return *in == nil
 }
