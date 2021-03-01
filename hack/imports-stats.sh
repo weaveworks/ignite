@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 BINARIES=${@:-"ignite ignited ignite-spawn"}
 PRINT=${PRINT:-"false"}

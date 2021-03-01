@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Set up the seed node with the specified config file
 IMAGE=${IMAGE:-"weaveworks/ignite-kubeadm"}

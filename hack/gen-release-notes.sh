@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 PREVIOUS_TAG=${1}
 OPTIONAL_REF=${2}
