@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 DOCKER_TTY="${DOCKER_TTY:+"-t"}"
 

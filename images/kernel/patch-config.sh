@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # The path to where the "patch instructions" are
 PATCH_FILE="./config-patches"
