@@ -668,16 +668,15 @@ func (cc *ctdClient) KillContainer(container, signal string) (err error) {
 
 func (cc *ctdClient) RemoveContainer(container string) (err error) {
 	// Remove the container if it exists
-	var cont containerd.Container
-	var task containerd.Task
-	if cont, err = cc.client.LoadContainer(cc.ctx, container); ifFound(&err) {
+	if cont, contLoadErr := cc.client.LoadContainer(cc.ctx, container); ifFound(&contLoadErr) {
 		// Load the container's task without attaching
+		var task containerd.Task
 		if task, err = cont.Task(cc.ctx, nil); ifFound(&err) {
 			_, err = task.Delete(cc.ctx)
 		}
 
 		// Delete the container
-		if err == nil {
+		if contLoadErr == nil {
 			err = cont.Delete(cc.ctx, containerd.WithSnapshotCleanup)
 		}
 
