@@ -211,10 +211,12 @@ func applyVMFlagOverrides(baseVM *api.VM, cf *CreateFlags, fs *flag.FlagSet) err
 		baseVM.Spec.Storage = cf.VM.Spec.Storage
 	}
 
-	// Parse the --copy-files flag.
-	baseVM.Spec.CopyFiles, err = parseFileMappings(cf.CopyFiles)
-	if err != nil {
-		return err
+	if len(cf.CopyFiles) > 0 {
+		// Parse the --copy-files flag.
+		baseVM.Spec.CopyFiles, err = parseFileMappings(cf.CopyFiles)
+		if err != nil {
+			return err
+		}
 	}
 
 	if len(cf.PortMappings) > 0 {
