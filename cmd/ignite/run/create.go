@@ -211,16 +211,22 @@ func applyVMFlagOverrides(baseVM *api.VM, cf *CreateFlags, fs *flag.FlagSet) err
 		baseVM.Spec.Storage = cf.VM.Spec.Storage
 	}
 
-	// Parse the --copy-files flag.
-	baseVM.Spec.CopyFiles, err = parseFileMappings(cf.CopyFiles)
-	if err != nil {
-		return err
+	// TODO: Remove len(cf.CopyFiles) > 0 after fixing TestApplyVMFlagOverrides
+	if fs.Changed("copy-files") || len(cf.CopyFiles) > 0 {
+		// Parse the --copy-files flag.
+		baseVM.Spec.CopyFiles, err = parseFileMappings(cf.CopyFiles)
+		if err != nil {
+			return err
+		}
 	}
 
-	// Parse the given port mappings.
-	baseVM.Spec.Network.Ports, err = meta.ParsePortMappings(cf.PortMappings)
-	if err != nil {
-		return err
+	// TODO: Remove len(cf.PortMappings) > 0 after fixing TestApplyVMFlagOverrides
+	if fs.Changed("ports") || len(cf.PortMappings) > 0 {
+		// Parse the given port mappings.
+		baseVM.Spec.Network.Ports, err = meta.ParsePortMappings(cf.PortMappings)
+		if err != nil {
+			return err
+		}
 	}
 
 	// If the SSH flag was set, copy it over to the API type
