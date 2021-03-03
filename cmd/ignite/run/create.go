@@ -217,10 +217,12 @@ func applyVMFlagOverrides(baseVM *api.VM, cf *CreateFlags, fs *flag.FlagSet) err
 		return err
 	}
 
-	// Parse the given port mappings.
-	baseVM.Spec.Network.Ports, err = meta.ParsePortMappings(cf.PortMappings)
-	if err != nil {
-		return err
+	if fs.Changed("ports") {
+		// Parse the given port mappings.
+		baseVM.Spec.Network.Ports, err = meta.ParsePortMappings(cf.PortMappings)
+		if err != nil {
+			return err
+		}
 	}
 
 	// If the SSH flag was set, copy it over to the API type
