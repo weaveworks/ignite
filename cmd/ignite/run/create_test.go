@@ -187,7 +187,7 @@ func TestApplyVMFlagOverrides(t *testing.T) {
 		createFlag      *CreateFlags
 		wantCopyFiles   []api.FileMapping
 		wantPortMapping meta.PortMappings
-		wantSSH         api.SSH
+		wantSSH         *api.SSH
 		err             bool
 	}{
 		{
@@ -251,7 +251,7 @@ func TestApplyVMFlagOverrides(t *testing.T) {
 					PublicKey: "some-pub-key",
 				},
 			},
-			wantSSH: api.SSH{
+			wantSSH: &api.SSH{
 				Generate:  true,
 				PublicKey: "some-pub-key",
 			},
@@ -273,23 +273,23 @@ func TestApplyVMFlagOverrides(t *testing.T) {
 				// Check if copy files are set as expected.
 				if len(rt.wantCopyFiles) > 0 {
 					if !reflect.DeepEqual(vm.Spec.CopyFiles, rt.wantCopyFiles) {
-						t.Errorf("expected VM.Spec.CopyFiles to be %v, actual: %v", rt.wantCopyFiles, rt.createFlag.VM.Spec.CopyFiles)
+						t.Errorf("expected VM.Spec.CopyFiles to be %v, actual: %v", rt.wantCopyFiles, vm.Spec.CopyFiles)
 					}
 				} else {
 					// If the copy files map is empty, compare their sizes.
-					if len(rt.wantCopyFiles) != len(rt.createFlag.VM.Spec.CopyFiles) {
-						t.Errorf("expected VM.Spec.CopyFiles to be %v, actual: %v", rt.wantCopyFiles, rt.createFlag.VM.Spec.CopyFiles)
+					if len(rt.wantCopyFiles) != len(vm.Spec.CopyFiles) {
+						t.Errorf("expected VM.Spec.CopyFiles to be %v, actual: %v", rt.wantCopyFiles, vm.Spec.CopyFiles)
 					}
 				}
 
 				// Check if port mappings are set as expected.
-				if reflect.DeepEqual(rt.createFlag.VM.Spec.Network.Ports, rt.wantPortMapping) {
-					t.Errorf("expected VM.Spec.Network.Ports to be %v, actual: %v", rt.wantPortMapping, rt.createFlag.VM.Spec.Network.Ports)
+				if vm.Spec.Network.Ports.String() != rt.wantPortMapping.String() {
+					t.Errorf("expected VM.Spec.Network.Ports to be %s, actual: %s", rt.wantPortMapping.String(), vm.Spec.Network.Ports.String())
 				}
 
 				// Check if the SSH values are set as expected.
-				if reflect.DeepEqual(rt.createFlag.VM.Spec.SSH, rt.wantSSH) {
-					t.Errorf("expected VM.Spec.SSH to be %v, actual: %v", rt.wantSSH, rt.createFlag.VM.Spec.SSH)
+				if !reflect.DeepEqual(vm.Spec.SSH, rt.wantSSH) {
+					t.Errorf("expected VM.Spec.SSH to be %v, actual: %v", rt.wantSSH, vm.Spec.SSH)
 				}
 			}
 		})
