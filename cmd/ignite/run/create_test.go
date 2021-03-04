@@ -220,6 +220,27 @@ func TestApplyVMFlagOverrides(t *testing.T) {
 			err: true,
 		},
 		{
+			name: "copy files in baseVM",
+			createFlag: &CreateFlags{
+				VM: &api.VM{
+					Spec: api.VMSpec{
+						CopyFiles: []api.FileMapping{
+							{
+								HostPath: "/tmp/foo",
+								VMPath:   "/tmp/bar",
+							},
+						},
+					},
+				},
+			},
+			wantCopyFiles: []api.FileMapping{
+				{
+					HostPath: "/tmp/foo",
+					VMPath:   "/tmp/bar",
+				},
+			},
+		},
+		{
 			name: "valid port mapping",
 			createFlag: &CreateFlags{
 				VM:           &api.VM{},
@@ -241,6 +262,33 @@ func TestApplyVMFlagOverrides(t *testing.T) {
 				PortMappings: []string{"1.1.1.1:foo:bar"},
 			},
 			err: true,
+		},
+		{
+			name: "port mapping in base VM",
+			createFlag: &CreateFlags{
+				VM: &api.VM{
+					Spec: api.VMSpec{
+						Network: api.VMNetworkSpec{
+							Ports: meta.PortMappings{
+								{
+									BindAddress: net.IPv4(0, 0, 0, 0),
+									HostPort:    uint64(80),
+									VMPort:      uint64(80),
+									Protocol:    meta.ProtocolTCP,
+								},
+							},
+						},
+					},
+				},
+			},
+			wantPortMapping: meta.PortMappings{
+				meta.PortMapping{
+					BindAddress: net.IPv4(0, 0, 0, 0),
+					HostPort:    uint64(80),
+					VMPort:      uint64(80),
+					Protocol:    meta.ProtocolTCP,
+				},
+			},
 		},
 		{
 			name: "ssh public key set",
