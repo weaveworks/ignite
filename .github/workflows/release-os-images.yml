@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        what: [alpine, amazon-kernel, amazonlinux, centos, kubeadm, opensuse, ubuntu]
+        what: [alpine, amazon-kernel, amazonlinux, centos, kubeadm, opensuse, ubuntu, k3s]
     steps:
       - uses: actions/checkout@v2
       - name: Login to container registry
