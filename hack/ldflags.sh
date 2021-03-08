@@ -4,7 +4,7 @@
 
 is_git_repo() {
   # https://stackoverflow.com/a/2180367
-  [ -d .git ] && echo .git || git rev-parse --git-dir > /dev/null 2>&1
+  [ -d .git ] && return 0 || git rev-parse --git-dir > /dev/null 2>&1
 }
 
 git_to_image_tag() {
