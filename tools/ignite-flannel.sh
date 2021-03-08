@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash -e
 # This is a helper script to set up a standalone CNI overlay using Flannel
 # for use with Ignite VMs. See docs/networking.md for more information.
 
