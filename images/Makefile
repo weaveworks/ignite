@@ -163,7 +163,7 @@ build-centos:
 	$(MAKE) ${OP} WHAT=centos         RELEASE=8                                        IS_LATEST=true
 
 build-k3s:
-	$(MAKE) ${OP} WHAT=k3s            RELEASE=v1.19.8+k3s1                             IS_LATEST=true
+	$(MAKE) ${OP} WHAT=k3s            RELEASE=v1.20.4+k3s1                             IS_LATEST=true
 
 build-kubeadm:
 	$(MAKE) ${OP} WHAT=kubeadm        RELEASE=v1.18.3  BINARY_REF=release/stable-1.18  IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=arm64
