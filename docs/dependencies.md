@@ -58,7 +58,7 @@ With time, we aim to eliminate as many of these as possible.
 ### CNI plugins
 
 ```shell
-export CNI_VERSION=v0.8.7
+export CNI_VERSION=v0.9.1
 export ARCH=$([ $(uname -m) = "x86_64" ] && echo amd64 || echo arm64)
 curl -sSL https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-${ARCH}-${CNI_VERSION}.tgz | tar -xz -C /opt/cni/bin
 ```
