@@ -206,7 +206,7 @@ Now in a new terminal/console:
 # ignite ps
 VM ID                   IMAGE                           KERNEL                                  SIZE    CPU
 S       MEMORY          CREATED STATUS  IPS             PORTS   NAME
-rpfrdqxmffadvn6t        weaveworks/ignite-ubuntu:latest weaveworks/ignite-kernel:4.19.47        1.2 GB  1 4
+rpfrdqxmffadvn6t        weaveworks/ignite-ubuntu:latest weaveworks/ignite-kernel:4.19.178        1.2 GB  1 4
 56.0 MB 43m ago Up 39m  10.61.0.2               smoke-test
 ```
 
