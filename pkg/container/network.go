@@ -13,21 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-/*
-ip r list src 172.17.0.3
-
-ip addr del "$IP" dev eth0
-
-ip link add name br0 type bridge
-ip tuntap add dev vm0 mode tap
-
-ip link set br0 up
-ip link set vm0 up
-
-ip link set eth0 master br0
-ip link set vm0 master br0
-*/
-
 // Array of container interfaces to ignore (not forward to vm)
 var ignoreInterfaces = map[string]struct{}{
 	"lo": {},
@@ -75,7 +60,6 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 			continue
 		}
 
-		// Try to transfer the address from the container to the DHCP server
 		ipNet, gw, _, err := takeAddress(&iface)
 		if err != nil {
 			// Log the problem, but don't quit the function here as there might be other good interfaces
@@ -84,15 +68,9 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 			continue
 		}
 
-		// Bridge the Firecracker TAP interface with the container veth interface
-		dhcpIface, err := bridge(&iface)
-		if err != nil {
-			// Log the problem, but don't quit the function here as there might be other good interfaces
-			// Don't set shouldRetry here as there is no point really with retrying with this interface
-			// that seems broken/unsupported in some way.
-			log.Errorf("Bridging interface %q failed: %v", iface.Name, err)
-			// Try with the next interface
-			continue
+		dhcpIface := &DHCPInterface{
+			VMTAP:     iface.Name,
+			MACFilter: iface.HardwareAddr.String(),
 		}
 
 		dhcpIface.VMIPNet = ipNet
@@ -191,6 +169,7 @@ func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, bool, error) {
 			}
 		}
 
+		/* Not deleting address for macvtap testing
 		delAddr := &netlink.Addr{
 			IPNet: &net.IPNet{
 				IP:   ip,
@@ -200,6 +179,7 @@ func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, bool, error) {
 		if err = netlink.AddrDel(link, delAddr); err != nil {
 			return nil, nil, false, fmt.Errorf("failed to remove address %q from interface %q: %v", delAddr, iface.Name, err)
 		}
+		*/
 
 		log.Infof("Moving IP address %s (%s) with gateway %s from container to VM", ip.String(), maskString(mask), gwString)
 

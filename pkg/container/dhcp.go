@@ -33,6 +33,12 @@ func StartDHCPServers(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 
 	for i := range dhcpIfaces {
 		dhcpIface := &dhcpIfaces[i]
+
+		if dhcpIface.Bridge == "" {
+			log.Infof("Not starting DHCP server for interface %d\n", i)
+			continue
+		}
+
 		// Set the VM hostname to the VM ID
 		dhcpIface.Hostname = vm.GetUID().String()
 
