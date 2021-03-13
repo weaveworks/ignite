@@ -639,6 +639,11 @@ func (cc *ctdClient) StopContainer(container string, timeout *time.Duration) (er
 func (cc *ctdClient) KillContainer(container, signal string) (err error) {
 	cont, err := cc.client.LoadContainer(cc.ctx, container)
 	if err != nil {
+		// If the container is not found, return nil, no-op.
+		if errdefs.IsNotFound(err) {
+			log.Warn(err)
+			err = nil
+		}
 		return
 	}
 
