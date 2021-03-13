@@ -185,6 +185,11 @@ func (dc *dockerClient) StopContainer(container string, timeout *time.Duration) 
 	<-readyC // wait until removal detection has started
 
 	if err := dc.client.ContainerStop(context.Background(), container, timeout); err != nil {
+		// If the container is not found, return nil, no-op.
+		if errdefs.IsNotFound(err) {
+			log.Warn(err)
+			return nil
+		}
 		return err
 	}
 
@@ -225,6 +230,11 @@ func (dc *dockerClient) RemoveContainer(container string) error {
 
 	<-readyC // The ready channel is used to wait until removal detection has started
 	if err := dc.client.ContainerRemove(context.Background(), container, types.ContainerRemoveOptions{}); err != nil {
+		// If the container is not found, return nil, no-op.
+		if errdefs.IsNotFound(err) {
+			log.Warn(err)
+			return nil
+		}
 		return err
 	}
 
