@@ -82,7 +82,7 @@ func Ps(po *PsOptions) error {
 	if len(outdatedVMs) > 0 {
 		endWarnings = append(
 			endWarnings,
-			fmt.Errorf("The symbol %s on the VM status indicates that the VM manifest on disk is not up-to-date with the actual VM status from the container runtime", oldManifestIndicator),
+			fmt.Errorf("The symbol %s on the VM status indicates that the VM manifest on disk may not be up-to-date with the actual VM status from the container runtime", oldManifestIndicator),
 		)
 	}
 	if len(errList) > 0 {
@@ -200,6 +200,9 @@ func fetchLatestStatus(vms []*api.VM) (outdatedVMs map[string]bool, errList []er
 		// Inspect the VM container using the runtime client.
 		ir, inspectErr := vmRuntime.InspectContainer(containerID)
 		if inspectErr != nil {
+			// Failed to get the container status. Latest status can't be
+			// confirmed.
+			outdatedVMs[vm.Name] = true
 			errList = append(errList, errors.Wrapf(inspectErr, "failed to inspect container for VM %s", containerID))
 			continue
 		}
