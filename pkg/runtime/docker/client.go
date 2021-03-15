@@ -12,6 +12,8 @@ import (
 	"github.com/docker/docker/api/types/container"
 	cont "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/errdefs"
+	log "github.com/sirupsen/logrus"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/preflight"
 	"github.com/weaveworks/ignite/pkg/preflight/checkers"
@@ -183,6 +185,11 @@ func (dc *dockerClient) StopContainer(container string, timeout *time.Duration) 
 	<-readyC // wait until removal detection has started
 
 	if err := dc.client.ContainerStop(context.Background(), container, timeout); err != nil {
+		// If the container is not found, return nil, no-op.
+		if errdefs.IsNotFound(err) {
+			log.Warn(err)
+			return nil
+		}
 		return err
 	}
 
@@ -199,6 +206,11 @@ func (dc *dockerClient) KillContainer(container, signal string) error {
 	<-readyC // wait until removal detection has started
 
 	if err := dc.client.ContainerKill(context.Background(), container, signal); err != nil {
+		// If the container is not found, return nil, no-op.
+		if errdefs.IsNotFound(err) {
+			log.Warn(err)
+			return nil
+		}
 		return err
 	}
 
@@ -218,6 +230,11 @@ func (dc *dockerClient) RemoveContainer(container string) error {
 
 	<-readyC // The ready channel is used to wait until removal detection has started
 	if err := dc.client.ContainerRemove(context.Background(), container, types.ContainerRemoveOptions{}); err != nil {
+		// If the container is not found, return nil, no-op.
+		if errdefs.IsNotFound(err) {
+			log.Warn(err)
+			return nil
+		}
 		return err
 	}
 
