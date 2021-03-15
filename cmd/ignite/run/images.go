@@ -1,6 +1,8 @@
 package run
 
 import (
+	"os"
+
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -14,6 +16,11 @@ type ImagesOptions struct {
 func NewImagesOptions() (io *ImagesOptions, err error) {
 	io = &ImagesOptions{}
 	io.allImages, err = providers.Client.Images().FindAll(filter.NewAllFilter())
+	// If the storage is uninitialized, avoid failure and continue with empty
+	// image list.
+	if err != nil && os.IsNotExist(err) {
+		err = nil
+	}
 	return
 }
 
