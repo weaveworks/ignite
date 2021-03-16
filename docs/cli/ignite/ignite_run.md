@@ -36,7 +36,7 @@ ignite run <OCI image> [flags]
       --ignore-preflight-checks strings   A list of checks whose errors will be shown as warnings. Example: 'BinaryInPath,Port,ExistingFile'. Value 'all' ignores errors from all checks.
   -i, --interactive                       Attach to the VM after starting
       --kernel-args string                Set the command line for the kernel (default "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp")
-  -k, --kernel-image oci-image            Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules (default weaveworks/ignite-kernel:4.19.125)
+  -k, --kernel-image oci-image            Specify an OCI image containing the kernel at /boot/vmlinux and optionally, modules (default weaveworks/ignite-kernel:5.4.102)
   -l, --label stringArray                 Set a label (foo=bar)
       --memory size                       Amount of RAM to allocate for the VM (default 512.0 MB)
   -n, --name string                       Specify the name
