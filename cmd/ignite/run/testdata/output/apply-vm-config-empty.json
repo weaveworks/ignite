@@ -13,7 +13,7 @@
       "oci": "weaveworks/ignite:dev"
     },
     "kernel": {
-      "oci": "weaveworks/ignite-kernel:4.19.125",
+      "oci": "weaveworks/ignite-kernel:5.4.102",
       "cmdLine": "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp"
     },
     "cpus": 1,
