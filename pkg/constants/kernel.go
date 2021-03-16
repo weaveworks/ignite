@@ -14,5 +14,5 @@ const (
 	DEFAULT_KERNEL_IMAGE_NAME = "weaveworks/ignite-kernel"
 
 	// The kernel image tag to be used as the default
-	DEFAULT_KERNEL_IMAGE_TAG = "4.19.178"
+	DEFAULT_KERNEL_IMAGE_TAG = "5.4.102"
 )

@@ -47,10 +47,10 @@ machines:
       cpus: 2
       memory: 1GB
       diskSize: 5GB
-      kernel: "weaveworks/ignite-kernel:4.19.178"
+      kernel: "weaveworks/ignite-kernel:5.4.102"
 ```
 
-This Footloose API object specifies an Ignite VM with 2 vCPUs, 1GB of RAM, `weaveworks/ignite-kernel:4.19.178` kernel and 5GB of disk.
+This Footloose API object specifies an Ignite VM with 2 vCPUs, 1GB of RAM, `weaveworks/ignite-kernel:5.4.102` kernel and 5GB of disk.
 
 Given that you have [Footloose](https://github.com/weaveworks/footloose#install) and [Ignite](installation.md) installed, and the above file
 created as `footloose.yaml` in the current directory, you can run
@@ -67,7 +67,7 @@ SSH into the VM:
 
 ```console
 $ footloose ssh vm0
-Welcome to Ubuntu 18.04.2 LTS (GNU/Linux 4.19.178 x86_64)
+Welcome to Ubuntu 18.04.2 LTS (GNU/Linux 5.4.102 x86_64)
 
  * Documentation:  https://help.ubuntu.com
  * Management:     https://landscape.canonical.com

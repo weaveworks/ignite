@@ -70,7 +70,7 @@ spec:
     # Default: "console=ttyS0 reboot=k panic=1 pci=off ip=dhcp"
     cmdLine: [string]
     # Required, what OCI image to get the kernel binary (and optionally modules) from
-    # Default: weaveworks/ignite-kernel:4.19.178
+    # Default: weaveworks/ignite-kernel:5.4.102
     oci:  [OCI image reference]
   sandbox:
     # Optional, what OCI image to use as the ignite sandbox.
