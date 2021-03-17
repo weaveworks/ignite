@@ -25,13 +25,12 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) (err error) {
 
 	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(dhcpIfaces))
 	for _, dhcpIface := range dhcpIfaces {
-		log.Debug("network_if", fmt.Sprintf("%#v", dhcpIface))
-		networkInterfaces = append(networkInterfaces, firecracker.NetworkInterface{
-			StaticConfiguration: &firecracker.StaticNetworkConfiguration{
-				MacAddress:  dhcpIface.MACFilter,
-				HostDevName: dhcpIface.VMTAP,
-			},
-		})
+		sc := &firecracker.StaticNetworkConfiguration{
+			MacAddress:  dhcpIface.MACFilter,
+			HostDevName: dhcpIface.VMTAP,
+		}
+		log.Debug("network_if", fmt.Sprintf("%#v", sc))
+		networkInterfaces = append(networkInterfaces, firecracker.NetworkInterface{StaticConfiguration: sc})
 	}
 
 	vCPUCount := int64(vm.Spec.CPUs)
