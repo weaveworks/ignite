@@ -4,12 +4,15 @@ import (
 	"crypto/rand"
 	"fmt"
 	"net"
+	"os"
+	"syscall"
 	"time"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"golang.org/x/sys/unix"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -68,6 +71,21 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 			continue
 		}
 
+		link, err := netlink.LinkByName(iface.Name)
+		if err != nil {
+			log.Errorf("Failed to get details of interface %q: %v", iface.Name, err)
+			// Try with the next interface
+			continue
+		}
+		log.Infof("interface %q is %q, index %d", iface.Name, link.Type(), link.Attrs().Index)
+		//if link.Type() == "macvtap"
+		_, err = createMacvtapDevice(link)
+		if err != nil {
+			log.Errorf("Failed to create macvtap device: %v", err)
+			// Try with the next interface
+			continue
+		}
+
 		dhcpIface := &DHCPInterface{
 			VMTAP:     iface.Name,
 			MACFilter: iface.HardwareAddr.String(),
@@ -88,6 +106,36 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func createMacvtapDevice(link netlink.Link) (string, error) {
+	filename := fmt.Sprintf("/sys/devices/virtual/net/%s/macvtap/tap%d/dev", link.Attrs().Name, link.Attrs().Index)
+	file, err := os.Open(filename)
+	if err != nil {
+		return "", fmt.Errorf("Failed to open sys device %q: %v", filename, err)
+	}
+	var buf [128]byte
+	n, err := file.Read(buf[:])
+	if err != nil {
+		return "", fmt.Errorf("Failed to read from sys device %q: %v", filename, err)
+	}
+	log.Infof("interface %q is %q", link.Attrs().Name, buf[:n])
+	var maj, min uint32
+	count, err := fmt.Sscanf(string(buf[:n]), "%d:%d", &maj, &min)
+	if err != nil {
+		return "", fmt.Errorf("Failed to parse sys device %q: %v", filename, err)
+	}
+	if count != 2 {
+		return "", fmt.Errorf("Failed to extract major/minor from sys device %q", filename)
+	}
+
+	devPath := fmt.Sprintf("/dev/net/%s", link.Attrs().Name)
+	err = unix.Mknod(devPath, 0777|syscall.S_IFCHR, int(unix.Mkdev(maj, min)))
+	if err != nil {
+		return "", fmt.Errorf("Failed to create device %q: %v", devPath, err)
+	}
+
+	return devPath, nil
 }
 
 // bridge creates the TAP device and performs the bridging, returning the base configuration for a DHCP server
