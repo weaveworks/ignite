@@ -1,30 +1,20 @@
 package container
 
 import (
+	"crypto/rand"
 	"fmt"
 	"net"
+	"os"
+	"syscall"
 	"time"
 
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"golang.org/x/sys/unix"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
-
-/*
-ip r list src 172.17.0.3
-
-ip addr del "$IP" dev eth0
-
-ip link add name br0 type bridge
-ip tuntap add dev vm0 mode tap
-
-ip link set br0 up
-ip link set vm0 up
-
-ip link set eth0 master br0
-ip link set vm0 master br0
-*/
 
 // Array of container interfaces to ignore (not forward to vm)
 var ignoreInterfaces = map[string]struct{}{
@@ -73,7 +63,6 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 			continue
 		}
 
-		// Try to transfer the address from the container to the DHCP server
 		ipNet, gw, _, err := takeAddress(&iface)
 		if err != nil {
 			// Log the problem, but don't quit the function here as there might be other good interfaces
@@ -82,15 +71,24 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 			continue
 		}
 
-		// Bridge the Firecracker TAP interface with the container veth interface
-		dhcpIface, err := bridge(&iface)
+		link, err := netlink.LinkByName(iface.Name)
 		if err != nil {
-			// Log the problem, but don't quit the function here as there might be other good interfaces
-			// Don't set shouldRetry here as there is no point really with retrying with this interface
-			// that seems broken/unsupported in some way.
-			log.Errorf("Bridging interface %q failed: %v", iface.Name, err)
+			log.Errorf("Failed to get details of interface %q: %v", iface.Name, err)
 			// Try with the next interface
 			continue
+		}
+		log.Infof("interface %q is %q, index %d", iface.Name, link.Type(), link.Attrs().Index)
+		//if link.Type() == "macvtap"
+		_, err = createMacvtapDevice(link)
+		if err != nil {
+			log.Errorf("Failed to create macvtap device: %v", err)
+			// Try with the next interface
+			continue
+		}
+
+		dhcpIface := &DHCPInterface{
+			VMTAP:     iface.Name,
+			MACFilter: iface.HardwareAddr.String(),
 		}
 
 		dhcpIface.VMIPNet = ipNet
@@ -110,6 +108,36 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 	return false, nil
 }
 
+func createMacvtapDevice(link netlink.Link) (string, error) {
+	filename := fmt.Sprintf("/sys/devices/virtual/net/%s/macvtap/tap%d/dev", link.Attrs().Name, link.Attrs().Index)
+	file, err := os.Open(filename)
+	if err != nil {
+		return "", fmt.Errorf("Failed to open sys device %q: %v", filename, err)
+	}
+	var buf [128]byte
+	n, err := file.Read(buf[:])
+	if err != nil {
+		return "", fmt.Errorf("Failed to read from sys device %q: %v", filename, err)
+	}
+	log.Infof("interface %q is %q", link.Attrs().Name, buf[:n])
+	var maj, min uint32
+	count, err := fmt.Sscanf(string(buf[:n]), "%d:%d", &maj, &min)
+	if err != nil {
+		return "", fmt.Errorf("Failed to parse sys device %q: %v", filename, err)
+	}
+	if count != 2 {
+		return "", fmt.Errorf("Failed to extract major/minor from sys device %q", filename)
+	}
+
+	devPath := fmt.Sprintf("/dev/net/%s", link.Attrs().Name)
+	err = unix.Mknod(devPath, 0777|syscall.S_IFCHR, int(unix.Mkdev(maj, min)))
+	if err != nil {
+		return "", fmt.Errorf("Failed to create device %q: %v", devPath, err)
+	}
+
+	return devPath, nil
+}
+
 // bridge creates the TAP device and performs the bridging, returning the base configuration for a DHCP server
 func bridge(iface *net.Interface) (*DHCPInterface, error) {
 	tapName := constants.TAP_PREFIX + iface.Name
@@ -117,17 +145,17 @@ func bridge(iface *net.Interface) (*DHCPInterface, error) {
 
 	eth, err := netlink.LinkByIndex(iface.Index)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "LinkByIndex")
 	}
 
 	tuntap, err := createTAPAdapter(tapName)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "createTAPAdapter")
 	}
 
 	bridge, err := createBridge(bridgeName)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "createBridge")
 	}
 
 	if err := setMaster(bridge, tuntap, eth); err != nil {
@@ -189,6 +217,7 @@ func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, bool, error) {
 			}
 		}
 
+		/* Not deleting address for macvtap testing
 		delAddr := &netlink.Addr{
 			IPNet: &net.IPNet{
 				IP:   ip,
@@ -198,6 +227,7 @@ func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, bool, error) {
 		if err = netlink.AddrDel(link, delAddr); err != nil {
 			return nil, nil, false, fmt.Errorf("failed to remove address %q from interface %q: %v", delAddr, iface.Name, err)
 		}
+		*/
 
 		log.Infof("Moving IP address %s (%s) with gateway %s from container to VM", ip.String(), maskString(mask), gwString)
 
@@ -226,6 +256,14 @@ func createBridge(bridgeName string) (*netlink.Bridge, error) {
 	la := netlink.NewLinkAttrs()
 	la.Name = bridgeName
 
+	// Assign a specific mac to the bridge - if we don't do this it will adopt
+	// the lowest address of an attached device, hence change over time.
+	mac, err := randomMAC()
+	if err != nil {
+		return nil, errors.Wrap(err, "creating random MAC")
+	}
+	la.HardwareAddr = mac
+
 	// Disable MAC address age tracking. This causes issues in the container,
 	// the bridge is unable to resolve MACs from outside resulting in it never
 	// establishing the internal routes. This "optimization" is only really useful
@@ -245,45 +283,29 @@ func addLink(link netlink.Link) (err error) {
 	return
 }
 
-// This is a MAC address persistence workaround, netlink.LinkSetMaster{,ByIndex}()
-// has a bug that arbitrarily changes the MAC addresses of the bridge and virtual
-// device to be bound to it. TODO: Remove when fixed upstream
-func setMaster(master netlink.Link, links ...netlink.Link) error {
-	masterIndex := master.Attrs().Index
-	masterMAC, err := getMAC(master)
-	if err != nil {
-		return err
+func randomMAC() (net.HardwareAddr, error) {
+	mac := make([]byte, 6)
+	if _, err := rand.Read(mac); err != nil {
+		return nil, err
 	}
 
-	for _, link := range links {
-		mac, err := getMAC(link)
-		if err != nil {
-			return err
-		}
+	// In the first byte of the MAC, the 'multicast' bit should be
+	// clear and 'locally administered' bit should be set.
+	mac[0] = (mac[0] & 0xFE) | 0x02
 
-		if err = netlink.LinkSetMasterByIndex(link, masterIndex); err != nil {
-			return err
-		}
-
-		if err = netlink.LinkSetHardwareAddr(link, mac); err != nil {
-			return err
-		}
-	}
-
-	return netlink.LinkSetHardwareAddr(master, masterMAC)
+	return net.HardwareAddr(mac), nil
 }
 
-// getMAC fetches the generated MAC address for the given link
-func getMAC(link netlink.Link) (addr net.HardwareAddr, err error) {
-	// The attributes of the netlink.Link passed to this function do not contain HardwareAddr
-	// as it is expected to be generated by the networking subsystem. Thus, "reload" the Link
-	// by querying it to retrieve the generated attributes after the link has been created.
-	if link, err = netlink.LinkByIndex(link.Attrs().Index); err != nil {
-		return
+func setMaster(master netlink.Link, links ...netlink.Link) error {
+	masterIndex := master.Attrs().Index
+
+	for _, link := range links {
+		if err := netlink.LinkSetMasterByIndex(link, masterIndex); err != nil {
+			return errors.Wrapf(err, "setMaster %s %s", master.Attrs().Name, link.Attrs().Name)
+		}
 	}
 
-	addr = link.Attrs().HardwareAddr
-	return
+	return nil
 }
 
 func maskString(mask net.IPMask) string {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
@@ -19,6 +20,8 @@ import (
 func main() {
 	// Populate the providers
 	RunIgniteSpawn()
+
+	time.Sleep(time.Hour * 24)
 }
 
 func decodeVM(vmID string) (*api.VM, error) {

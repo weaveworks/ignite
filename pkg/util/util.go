@@ -24,7 +24,7 @@ func GenericCheckErr(err error) {
 		return // Don't fail if there's no error
 	}
 
-	log.Fatal(err)
+	log.Error(err)
 }
 
 func ExecuteCommand(command string, args ...string) (string, error) {

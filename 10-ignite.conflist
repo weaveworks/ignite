@@ -1,0 +1,16 @@
+{
+	"cniVersion": "0.4.0",
+	"name": "bryan",
+	"plugins": [
+		{
+			"type": "macvtap",
+			"master": "ignite0",
+			"mode"  : "bridge",
+			"mtu"   : 1500,
+			"ipam": {
+				"type": "host-local",
+				"subnet": "10.61.0.0/16"
+			}
+		}
+	]
+}
