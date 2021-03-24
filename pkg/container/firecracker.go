@@ -3,6 +3,7 @@ package container
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"os/signal"
 	"path"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/firecracker-microvm/firecracker-go-sdk"
 	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	"github.com/miekg/dns"
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -20,16 +22,32 @@ import (
 )
 
 // ExecuteFirecracker executes the firecracker process using the Go SDK
-func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) (err error) {
+func ExecuteFirecracker(vm *api.VM, dhcpIfaces []netInterface) (err error) {
 	drivePath := vm.SnapshotDev()
+
+	clientConfig, err := dns.ClientConfigFromFile("/etc/resolv.conf")
+	if err != nil {
+		return fmt.Errorf("failed to get DNS configuration: %v", err)
+	}
 
 	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(dhcpIfaces))
 	for _, dhcpIface := range dhcpIfaces {
-		sc := &firecracker.StaticNetworkConfiguration{
-			MacAddress:  dhcpIface.MACFilter,
-			HostDevName: dhcpIface.VMTAP,
+		gw := dhcpIface.GatewayIP
+		if gw == nil {
+			gw = &net.IP{dhcpIface.VMIPNet.IP[0], dhcpIface.VMIPNet.IP[1], dhcpIface.VMIPNet.IP[2], 1}
 		}
-		log.Debug("network_if", fmt.Sprintf("%#v", sc))
+
+		sc := &firecracker.StaticNetworkConfiguration{
+			MacAddress:  dhcpIface.MAC,
+			HostDevName: dhcpIface.VMTAP,
+			IPConfiguration: &firecracker.IPConfiguration{
+				IPAddr:      *dhcpIface.VMIPNet,
+				Gateway:     *gw,
+				IfName:      "eth0",
+				Nameservers: clientConfig.Servers[:2],
+			},
+		}
+		log.Debugf("network_if: %#v %#v", *sc, *sc.IPConfiguration)
 		networkInterfaces = append(networkInterfaces, firecracker.NetworkInterface{StaticConfiguration: sc})
 	}
 

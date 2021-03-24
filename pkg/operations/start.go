@@ -102,6 +102,17 @@ func StartVM(vm *api.VM, debug bool) error {
 		config.AutoRemove = true
 	}
 
+	// Before running ignite run, do:
+	// ip link add link <target-upstream-iface> name vtapignite0 type macvtap mode bridge
+	// ip link set vtapignite0 up
+	// and paste in the generated /dev/tapXX here
+	// use 11-ignite.conflist as CNI config
+
+	config.Devices = append(config.Devices, &runtime.Bind{
+		HostPath:      "/dev/tap163",   // TODO: Don't hard-code. Auto-create the macvtap interface before this and mknod.
+		ContainerPath: "/dev/net/eth0", // TODO: Support multiple ifaces?
+	})
+
 	// Run the VM container in Docker
 	containerID, err := providers.Runtime.RunContainer(vm.Spec.Sandbox.OCI, config, vm.PrefixedID(), vm.GetUID().String())
 	if err != nil {
@@ -113,6 +124,7 @@ func StartVM(vm *api.VM, debug bool) error {
 	if err != nil {
 		return err
 	}
+	log.Infof("%#v", *result)
 
 	if !logs.Quiet {
 		log.Infof("Networking is handled by %q", providers.NetworkPlugin.Name())

@@ -1,18 +1,12 @@
 package container
 
 import (
-	"crypto/rand"
 	"fmt"
 	"net"
-	"os"
-	"syscall"
 	"time"
 
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
-	"github.com/weaveworks/ignite/pkg/constants"
-	"golang.org/x/sys/unix"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -21,8 +15,15 @@ var ignoreInterfaces = map[string]struct{}{
 	"lo": {},
 }
 
-func SetupContainerNetworking() ([]DHCPInterface, error) {
-	var dhcpIfaces []DHCPInterface
+type netInterface struct {
+	VMIPNet   *net.IPNet
+	GatewayIP *net.IP
+	VMTAP     string
+	MAC       string
+}
+
+func SetupContainerNetworking() ([]netInterface, error) {
+	var dhcpIfaces []netInterface
 	interval := 1 * time.Second
 	timeout := 1 * time.Minute
 
@@ -49,7 +50,7 @@ func SetupContainerNetworking() ([]DHCPInterface, error) {
 	return dhcpIfaces, nil
 }
 
-func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
+func networkSetup(dhcpIfaces *[]netInterface) (bool, error) {
 	ifaces, err := net.Interfaces()
 	if err != nil || ifaces == nil || len(ifaces) == 0 {
 		return true, fmt.Errorf("cannot get local network interfaces: %v", err)
@@ -79,20 +80,19 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 		}
 		log.Infof("interface %q is %q, index %d", iface.Name, link.Type(), link.Attrs().Index)
 		//if link.Type() == "macvtap"
-		_, err = createMacvtapDevice(link)
+		/*_, err = createMacvtapDevice(link)
 		if err != nil {
 			log.Errorf("Failed to create macvtap device: %v", err)
 			// Try with the next interface
 			continue
-		}
+		}*/
 
-		dhcpIface := &DHCPInterface{
+		dhcpIface := &netInterface{
+			VMIPNet:   ipNet,
 			VMTAP:     iface.Name,
-			MACFilter: iface.HardwareAddr.String(),
-		}
-
-		dhcpIface.VMIPNet = ipNet
-		dhcpIface.GatewayIP = gw
+			MAC:       iface.HardwareAddr.String(),
+			GatewayIP: gw, // important! can be nil
+		} //Bridge:    iface.Name, // listen for DHCP here
 
 		*dhcpIfaces = append(*dhcpIfaces, *dhcpIface)
 
@@ -106,66 +106,6 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 	}
 
 	return false, nil
-}
-
-func createMacvtapDevice(link netlink.Link) (string, error) {
-	filename := fmt.Sprintf("/sys/devices/virtual/net/%s/macvtap/tap%d/dev", link.Attrs().Name, link.Attrs().Index)
-	file, err := os.Open(filename)
-	if err != nil {
-		return "", fmt.Errorf("Failed to open sys device %q: %v", filename, err)
-	}
-	var buf [128]byte
-	n, err := file.Read(buf[:])
-	if err != nil {
-		return "", fmt.Errorf("Failed to read from sys device %q: %v", filename, err)
-	}
-	log.Infof("interface %q is %q", link.Attrs().Name, buf[:n])
-	var maj, min uint32
-	count, err := fmt.Sscanf(string(buf[:n]), "%d:%d", &maj, &min)
-	if err != nil {
-		return "", fmt.Errorf("Failed to parse sys device %q: %v", filename, err)
-	}
-	if count != 2 {
-		return "", fmt.Errorf("Failed to extract major/minor from sys device %q", filename)
-	}
-
-	devPath := fmt.Sprintf("/dev/net/%s", link.Attrs().Name)
-	err = unix.Mknod(devPath, 0777|syscall.S_IFCHR, int(unix.Mkdev(maj, min)))
-	if err != nil {
-		return "", fmt.Errorf("Failed to create device %q: %v", devPath, err)
-	}
-
-	return devPath, nil
-}
-
-// bridge creates the TAP device and performs the bridging, returning the base configuration for a DHCP server
-func bridge(iface *net.Interface) (*DHCPInterface, error) {
-	tapName := constants.TAP_PREFIX + iface.Name
-	bridgeName := constants.BRIDGE_PREFIX + iface.Name
-
-	eth, err := netlink.LinkByIndex(iface.Index)
-	if err != nil {
-		return nil, errors.Wrap(err, "LinkByIndex")
-	}
-
-	tuntap, err := createTAPAdapter(tapName)
-	if err != nil {
-		return nil, errors.Wrap(err, "createTAPAdapter")
-	}
-
-	bridge, err := createBridge(bridgeName)
-	if err != nil {
-		return nil, errors.Wrap(err, "createBridge")
-	}
-
-	if err := setMaster(bridge, tuntap, eth); err != nil {
-		return nil, err
-	}
-
-	return &DHCPInterface{
-		VMTAP:  tapName,
-		Bridge: bridgeName,
-	}, nil
 }
 
 // takeAddress removes the first address of an interface and returns it and the appropriate gateway
@@ -240,6 +180,78 @@ func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, bool, error) {
 	return nil, nil, false, fmt.Errorf("interface %s has no valid addresses", iface.Name)
 }
 
+func maskString(mask net.IPMask) string {
+	if len(mask) < 4 {
+		return "<nil>"
+	}
+
+	return fmt.Sprintf("%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3])
+}
+
+/*func createMacvtapDevice(link netlink.Link) (string, error) {
+	/*if util.FileExists(devPath) { // don't re-create it if already exists
+		return devPath, nil
+	}*
+
+	filename := fmt.Sprintf("/sys/devices/virtual/net/%s/macvtap/tap%d/dev", link.Attrs().Name, link.Attrs().Index)
+	file, err := os.Open(filename)
+	if err != nil {
+		return "", fmt.Errorf("Failed to open sys device %q: %v", filename, err)
+	}
+	var buf [128]byte
+	n, err := file.Read(buf[:])
+	if err != nil {
+		return "", fmt.Errorf("Failed to read from sys device %q: %v", filename, err)
+	}
+	log.Infof("interface %q is %q", link.Attrs().Name, buf[:n])
+	var maj, min uint32
+	count, err := fmt.Sscanf(string(buf[:n]), "%d:%d", &maj, &min)
+	if err != nil {
+		return "", fmt.Errorf("Failed to parse sys device %q: %v", filename, err)
+	}
+	if count != 2 {
+		return "", fmt.Errorf("Failed to extract major/minor from sys device %q", filename)
+	}
+
+	devPath := fmt.Sprintf("/dev/net/%s", link.Attrs().Name)
+	if err := unix.Mknod(devPath, 0644|syscall.S_IFCHR, int(unix.Mkdev(maj, min))); err != nil {
+		log.Errorf("Failed to mknod device %q: %v", devPath, err)
+		return devPath, nil
+	}
+
+	return devPath, nil
+}
+
+// bridge creates the TAP device and performs the bridging, returning the base configuration for a DHCP server
+func bridge(iface *net.Interface) (*netInterface, error) {
+	tapName := constants.TAP_PREFIX + iface.Name
+	bridgeName := constants.BRIDGE_PREFIX + iface.Name
+
+	eth, err := netlink.LinkByIndex(iface.Index)
+	if err != nil {
+		return nil, errors.Wrap(err, "LinkByIndex")
+	}
+
+	tuntap, err := createTAPAdapter(tapName)
+	if err != nil {
+		return nil, errors.Wrap(err, "createTAPAdapter")
+	}
+
+	bridge, err := createBridge(bridgeName)
+	if err != nil {
+		return nil, errors.Wrap(err, "createBridge")
+	}
+
+	if err := setMaster(bridge, tuntap, eth); err != nil {
+		return nil, err
+	}
+
+	return &netInterface{
+		VMTAP:  tapName,
+		Bridge: bridgeName,
+	}, nil
+}
+
 // createTAPAdapter creates a new TAP device with the given name
 func createTAPAdapter(tapName string) (*netlink.Tuntap, error) {
 	la := netlink.NewLinkAttrs()
@@ -306,12 +318,4 @@ func setMaster(master netlink.Link, links ...netlink.Link) error {
 	}
 
 	return nil
-}
-
-func maskString(mask net.IPMask) string {
-	if len(mask) < 4 {
-		return "<nil>"
-	}
-
-	return fmt.Sprintf("%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3])
-}
+}*/

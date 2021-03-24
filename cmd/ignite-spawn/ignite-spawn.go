@@ -21,7 +21,7 @@ func main() {
 	// Populate the providers
 	RunIgniteSpawn()
 
-	time.Sleep(time.Hour * 24)
+	time.Sleep(24 * time.Hour)
 }
 
 func decodeVM(vmID string) (*api.VM, error) {
@@ -51,9 +51,9 @@ func StartVM(vm *api.VM) (err error) {
 	// Serve DHCP requests for those interfaces
 	// This function returns the available IP addresses that are being
 	// served over DHCP now
-	if err = container.StartDHCPServers(vm, dhcpIfaces); err != nil {
+	/*if err = container.StartDHCPServers(vm, dhcpIfaces); err != nil {
 		return
-	}
+	}*/
 
 	// Serve metrics over an unix socket in the VM's own directory
 	metricsSocket := path.Join(vm.ObjectPath(), constants.PROMETHEUS_SOCKET)
@@ -70,6 +70,8 @@ func StartVM(vm *api.VM) (err error) {
 
 	// Execute Firecracker
 	if err = container.ExecuteFirecracker(vm, dhcpIfaces); err != nil {
+		log.Errorf("runtime error for VM %q: %v", vm.GetUID(), err)
+		time.Sleep(1 * time.Hour)
 		return fmt.Errorf("runtime error for VM %q: %v", vm.GetUID(), err)
 	}
 

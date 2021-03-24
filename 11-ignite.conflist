@@ -1,0 +1,14 @@
+{
+	"cniVersion": "0.4.0",
+    "name": "lucas",
+	"plugins": [
+		{
+            "type": "host-device",
+            "device": "vtapignite0",
+            "ipam": {
+				"type": "host-local",
+				"subnet": "10.61.0.0/16"
+			}
+        }
+    ]
+}
