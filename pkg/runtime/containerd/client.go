@@ -690,7 +690,7 @@ func (cc *ctdClient) RemoveContainer(container string) error {
 	// Remove the container if it exists
 	cont, contLoadErr := cc.client.LoadContainer(cc.ctx, container)
 	if errdefs.IsNotFound(contLoadErr) {
-		log.Warn(contLoadErr)
+		log.Debug(contLoadErr)
 		return nil
 	} else if contLoadErr != nil {
 		return contLoadErr
@@ -699,20 +699,20 @@ func (cc *ctdClient) RemoveContainer(container string) error {
 	// Load the container's task without attaching
 	task, taskLoadErr := cont.Task(cc.ctx, nil)
 	if errdefs.IsNotFound(taskLoadErr) {
-		log.Warn(taskLoadErr)
+		log.Debug(taskLoadErr)
 	} else if taskLoadErr != nil {
 		return taskLoadErr
 	} else {
 		_, taskDeleteErr := task.Delete(cc.ctx)
 		if taskDeleteErr != nil {
-			log.Warn(taskDeleteErr)
+			log.Debug(taskDeleteErr)
 		}
 	}
 
 	// Delete the container
 	deleteContErr := cont.Delete(cc.ctx, containerd.WithSnapshotCleanup)
 	if errdefs.IsNotFound(contLoadErr) {
-		log.Warn(contLoadErr)
+		log.Debug(contLoadErr)
 	} else if deleteContErr != nil {
 		return deleteContErr
 	}
