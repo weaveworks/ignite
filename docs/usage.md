@@ -111,14 +111,14 @@ If no error occured, your `VM` is now running.
 
 Ignite currently manages three kinds of resources: `images`, `kernels` and `VMs`.
 The `kernels` are quite transparent, and get automatically imported from the docker
-image `weaveworks/ignite-kernel:5.4.102` by default (overridable during `create`).
+image `weaveworks/ignite-kernel:5.4.108` by default (overridable during `create`).
 
 To list the available `kernels`, enter:
 
 ```
 # ignite kernels
 KERNEL ID               NAME                                    CREATED SIZE    VERSION
-aefb459546315344        weaveworks/ignite-kernel:5.4.102        61m ago 49.0 MB 5.4.102
+aefb459546315344        weaveworks/ignite-kernel:5.4.108        61m ago 49.0 MB 5.4.108
 ```
 
 To list the imported `images`, enter:
@@ -134,7 +134,7 @@ And to list the running `VMs`, enter:
 ```
 # ignite ps
 VM ID                   IMAGE                           KERNEL                                  CREATED SIZE    CPUS    MEMORY          STATE   IPS             PORTS   NAME
-3c5fa9a18682741f        weaveworks/ignite-ubuntu:latest weaveworks/ignite-kernel:5.4.102        63m ago 4.0 GB  2       1.0 GB          Running 172.17.0.3              my-vm
+3c5fa9a18682741f        weaveworks/ignite-ubuntu:latest weaveworks/ignite-kernel:5.4.108        63m ago 4.0 GB  2       1.0 GB          Running 172.17.0.3              my-vm
 ```
 
 To list all `VMs` instead of just running ones, add the `-a` flag to `ps`.
@@ -178,7 +178,7 @@ To SSH into a `VM`, enter:
 
 ```console
 # ignite ssh my-vm
-Welcome to Ubuntu 18.04.2 LTS (GNU/Linux 5.4.102 x86_64)
+Welcome to Ubuntu 18.04.2 LTS (GNU/Linux 5.4.108 x86_64)
 ...
 root@3c5fa9a18682741f:~#
 ```
