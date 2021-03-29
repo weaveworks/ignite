@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: [ 4.14.223, 4.19.178, 5.4.102, 5.10.21 ]
+        version: [ 4.14.227, 4.19.183, 5.4.108, 5.10.25 ]
     env:
       KERNEL_VERSIONS: ${{ matrix.version }}
     steps:
