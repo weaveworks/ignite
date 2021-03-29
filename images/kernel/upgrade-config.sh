@@ -24,12 +24,18 @@ if [[ ${FROM} != ${TO} ]]; then
     cp ${FROM} ${TO}
 fi
 
+CACHE="$(pwd)/../../bin/cache"
+mkdir -p "${CACHE}/linux/"
 docker run --rm -i ${DOCKER_TTY} \
+    -u "$(id -u):$(id -g)" \
     ${ARCH_PARAMETER} \
-	-v $(pwd)/${TO}:/tmp/.config \
-    ${KERNEL_BUILDER_IMAGE} /bin/bash -c "\
-        git clone --depth 1 --branch v${VERSION} ${LINUX_REPO_URL} linux && \
-        cd linux &&
-        make clean && make mrproper && cp /tmp/.config . && \
-        make EXTRAVERSION="" LOCALVERSION= olddefconfig && \
+    -v "$(pwd)/${TO}":/tmp/.config \
+    -v "${CACHE}/linux/":/linux/ \
+    -w /linux \
+    ${KERNEL_BUILDER_IMAGE} /bin/bash -c "
+        set -xe
+        test -d ./${VERSION} || git clone --depth 1 --branch v${VERSION} ${LINUX_REPO_URL} ./${VERSION}
+        cd ./${VERSION}
+        make clean && make mrproper && cp /tmp/.config .
+        make EXTRAVERSION="" LOCALVERSION= olddefconfig
         cp .config /tmp/.config"
