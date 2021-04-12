@@ -4,7 +4,7 @@ PREVIOUS_TAG=${1}
 OPTIONAL_REF=${2}
 
 usage() {
-  echo "This script generates a starter release note document using `git` and `hub`."
+  echo "This script generates a starter release note document using 'git' and 'hub'."
   echo "It finds all of the PR's with matching commits in the git log since the indicated ref."
   echo "The PR's are link formatted with their title and author and are sorted by label."
   echo
