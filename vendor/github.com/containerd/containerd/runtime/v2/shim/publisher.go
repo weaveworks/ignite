@@ -41,6 +41,7 @@ type item struct {
 	count int
 }
 
+// NewPublisher creates a new remote events publisher
 func NewPublisher(address string) (*RemoteEventsPublisher, error) {
 	client, err := ttrpcutil.NewClient(address)
 	if err != nil {
@@ -57,6 +58,7 @@ func NewPublisher(address string) (*RemoteEventsPublisher, error) {
 	return l, nil
 }
 
+// RemoteEventsPublisher forwards events to a ttrpc server
 type RemoteEventsPublisher struct {
 	client  *ttrpcutil.Client
 	closed  chan struct{}
@@ -64,10 +66,12 @@ type RemoteEventsPublisher struct {
 	requeue chan *item
 }
 
+// Done returns a channel which closes when done
 func (l *RemoteEventsPublisher) Done() <-chan struct{} {
 	return l.closed
 }
 
+// Close closes the remote connection and closes the done channel
 func (l *RemoteEventsPublisher) Close() (err error) {
 	err = l.client.Close()
 	l.closer.Do(func() {
@@ -100,6 +104,7 @@ func (l *RemoteEventsPublisher) queue(i *item) {
 	}()
 }
 
+// Publish publishes the event by forwarding it to the configured ttrpc server
 func (l *RemoteEventsPublisher) Publish(ctx context.Context, topic string, event events.Event) error {
 	ns, err := namespaces.NamespaceRequired(ctx)
 	if err != nil {
@@ -128,9 +133,14 @@ func (l *RemoteEventsPublisher) Publish(ctx context.Context, topic string, event
 }
 
 func (l *RemoteEventsPublisher) forwardRequest(ctx context.Context, req *v1.ForwardRequest) error {
-	_, err := l.client.EventsService().Forward(ctx, req)
+	service, err := l.client.EventsService()
 	if err == nil {
-		return nil
+		fCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		_, err = service.Forward(fCtx, req)
+		cancel()
+		if err == nil {
+			return nil
+		}
 	}
 
 	if err != ttrpc.ErrClosed {
@@ -138,11 +148,20 @@ func (l *RemoteEventsPublisher) forwardRequest(ctx context.Context, req *v1.Forw
 	}
 
 	// Reconnect and retry request
-	if err := l.client.Reconnect(); err != nil {
+	if err = l.client.Reconnect(); err != nil {
 		return err
 	}
 
-	if _, err := l.client.EventsService().Forward(ctx, req); err != nil {
+	service, err = l.client.EventsService()
+	if err != nil {
+		return err
+	}
+
+	// try again with a fresh context, otherwise we may get a context timeout unexpectedly.
+	fCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	_, err = service.Forward(fCtx, req)
+	cancel()
+	if err != nil {
 		return err
 	}
 

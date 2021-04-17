@@ -662,7 +662,7 @@ func (u *IPv4) UnmarshalBSON(data []byte) error {
 	return errors.New("couldn't unmarshal bson bytes as ipv4")
 }
 
-// DeepCopyInto copies the receiver and writes its value into out.
+// DeepCopyInto copies the receiver ant writes its value into out.
 func (u *IPv4) DeepCopyInto(out *IPv4) {
 	*out = *u
 }
