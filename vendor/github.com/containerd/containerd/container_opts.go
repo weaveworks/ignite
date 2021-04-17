@@ -85,10 +85,27 @@ func WithImageName(n string) NewContainerOpts {
 	}
 }
 
-// WithContainerLabels adds the provided labels to the container
+// WithContainerLabels sets the provided labels to the container.
+// The existing labels are cleared.
+// Use WithAdditionalContainerLabels to preserve the existing labels.
 func WithContainerLabels(labels map[string]string) NewContainerOpts {
 	return func(_ context.Context, _ *Client, c *containers.Container) error {
 		c.Labels = labels
+		return nil
+	}
+}
+
+// WithAdditionalContainerLabels adds the provided labels to the container
+// The existing labels are preserved as long as they do not conflict with the added labels.
+func WithAdditionalContainerLabels(labels map[string]string) NewContainerOpts {
+	return func(_ context.Context, _ *Client, c *containers.Container) error {
+		if c.Labels == nil {
+			c.Labels = labels
+			return nil
+		}
+		for k, v := range labels {
+			c.Labels[k] = v
+		}
 		return nil
 	}
 }
@@ -226,7 +243,7 @@ func WithContainerExtension(name string, extension interface{}) NewContainerOpts
 
 		any, err := typeurl.MarshalAny(extension)
 		if err != nil {
-			if errors.Cause(err) == typeurl.ErrNotFound {
+			if errors.Is(err, typeurl.ErrNotFound) {
 				return errors.Wrapf(err, "extension %q is not registered with the typeurl package, see `typeurl.Register`", name)
 			}
 			return errors.Wrap(err, "error marshalling extension")

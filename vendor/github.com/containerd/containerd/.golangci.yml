@@ -14,8 +14,12 @@ linters:
   disable:
     - errcheck
 
+issues:
+  include:
+    - EXC0002
+
 run:
-  deadline: 2m
+  timeout: 3m
   skip-dirs:
     - api
     - design
