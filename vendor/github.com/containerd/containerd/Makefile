@@ -23,6 +23,7 @@ DESTDIR ?= /usr/local
 VERSION=$(shell git describe --match 'v[0-9]*' --dirty='.m' --always)
 REVISION=$(shell git rev-parse HEAD)$(shell if ! git diff --no-ext-diff --quiet --exit-code; then echo .m; fi)
 PACKAGE=github.com/containerd/containerd
+SHIM_CGO_ENABLED ?= 0
 
 ifneq "$(strip $(shell command -v go 2>/dev/null))" ""
 	GOOS ?= $(shell go env GOOS)
@@ -64,12 +65,26 @@ WHALE = "🇩"
 ONI = "👹"
 
 RELEASE=containerd-$(VERSION:v%=%).${GOOS}-${GOARCH}
+CRIRELEASE=cri-containerd-$(VERSION:v%=%)-${GOOS}-${GOARCH}
+CRICNIRELEASE=cri-containerd-cni-$(VERSION:v%=%)-${GOOS}-${GOARCH}
 
 PKG=github.com/containerd/containerd
 
+# Project binaries.
+COMMANDS=ctr containerd containerd-stress
+MANPAGES=ctr.8 containerd.8 containerd-config.8 containerd-config.toml.5
+
+ifdef BUILDTAGS
+    GO_BUILDTAGS = ${BUILDTAGS}
+endif
+GO_BUILDTAGS ?=
+GO_BUILDTAGS += ${DEBUG_TAGS}
+GO_TAGS=$(if $(GO_BUILDTAGS),-tags "$(GO_BUILDTAGS)",)
+GO_LDFLAGS=-ldflags '-X $(PKG)/version.Version=$(VERSION) -X $(PKG)/version.Revision=$(REVISION) -X $(PKG)/version.Package=$(PACKAGE) $(EXTRA_LDFLAGS)'
+SHIM_GO_LDFLAGS=-ldflags '-X $(PKG)/version.Version=$(VERSION) -X $(PKG)/version.Revision=$(REVISION) -X $(PKG)/version.Package=$(PACKAGE) -extldflags "-static" $(EXTRA_LDFLAGS)'
+
 # Project packages.
-PACKAGES=$(shell go list ./... | grep -v /vendor/)
-INTEGRATION_PACKAGE=${PKG}
+PACKAGES=$(shell go list ${GO_TAGS} ./... | grep -v /vendor/ | grep -v /integration)
 TEST_REQUIRES_ROOT_PACKAGES=$(filter \
     ${PACKAGES}, \
     $(shell \
@@ -85,20 +100,6 @@ ifdef SKIPTESTS
     TEST_REQUIRES_ROOT_PACKAGES:=$(filter-out ${SKIPTESTS},${TEST_REQUIRES_ROOT_PACKAGES})
 endif
 
-# Project binaries.
-COMMANDS=ctr containerd containerd-stress
-MANPAGES=ctr.1 containerd.1 containerd-config.1 containerd-config.toml.5
-
-ifdef BUILDTAGS
-    GO_BUILDTAGS = ${BUILDTAGS}
-endif
-# Build tags seccomp and apparmor are needed by CRI plugin.
-GO_BUILDTAGS ?= seccomp apparmor
-GO_BUILDTAGS += ${DEBUG_TAGS}
-GO_TAGS=$(if $(GO_BUILDTAGS),-tags "$(GO_BUILDTAGS)",)
-GO_LDFLAGS=-ldflags '-X $(PKG)/version.Version=$(VERSION) -X $(PKG)/version.Revision=$(REVISION) -X $(PKG)/version.Package=$(PACKAGE) $(EXTRA_LDFLAGS)'
-SHIM_GO_LDFLAGS=-ldflags '-X $(PKG)/version.Version=$(VERSION) -X $(PKG)/version.Revision=$(REVISION) -X $(PKG)/version.Package=$(PACKAGE) -extldflags "-static" $(EXTRA_LDFLAGS)'
-
 #Replaces ":" (*nix), ";" (windows) with newline for easy parsing
 GOPATHS=$(shell echo ${GOPATH} | tr ":" "\n" | tr ";" "\n")
 
@@ -110,16 +111,19 @@ GO_GCFLAGS=$(shell				\
 	echo "-gcflags=-trimpath=$${1}/src";	\
 	)
 
+BINARIES=$(addprefix bin/,$(COMMANDS))
+
 #include platform specific makefile
 -include Makefile.$(GOOS)
-
-BINARIES=$(addprefix bin/,$(COMMANDS))
 
 # Flags passed to `go test`
 TESTFLAGS ?= $(TESTFLAGS_RACE) $(EXTRA_TESTFLAGS)
 TESTFLAGS_PARALLEL ?= 8
 
-.PHONY: clean all AUTHORS build binaries test integration generate protos checkprotos coverage ci check help install uninstall vendor release mandir install-man genman
+OUTPUTDIR = $(join $(ROOTDIR), _output)
+CRIDIR=$(OUTPUTDIR)/cri
+
+.PHONY: clean all AUTHORS build binaries test integration generate protos checkprotos coverage ci check help install uninstall vendor release mandir install-man genman install-cri-deps cri-release cri-cni-release cri-integration bin/cri-integration.test
 .DEFAULT: default
 
 all: binaries
@@ -166,15 +170,25 @@ build: ## build the go packages
 
 test: ## run tests, except integration tests and tests that require root
 	@echo "$(WHALE) $@"
-	@go test ${TESTFLAGS} $(filter-out ${INTEGRATION_PACKAGE},${PACKAGES})
+	@go test ${TESTFLAGS} ${PACKAGES}
 
 root-test: ## run tests, except integration tests
 	@echo "$(WHALE) $@"
-	@go test ${TESTFLAGS} $(filter-out ${INTEGRATION_PACKAGE},${TEST_REQUIRES_ROOT_PACKAGES}) -test.root
+	@go test ${TESTFLAGS} ${TEST_REQUIRES_ROOT_PACKAGES} -test.root
 
 integration: ## run integration tests
 	@echo "$(WHALE) $@"
-	@go test ${TESTFLAGS} -test.root -parallel ${TESTFLAGS_PARALLEL}
+	@cd "${ROOTDIR}/integration/client" && go mod download && go test -v ${TESTFLAGS} -test.root -parallel ${TESTFLAGS_PARALLEL} .
+
+# TODO integrate cri integration bucket with coverage
+bin/cri-integration.test:
+	@echo "$(WHALE) $@"
+	@go test -c ./integration -o bin/cri-integration.test
+
+cri-integration: binaries bin/cri-integration.test ## run cri integration tests
+	@echo "$(WHALE) $@"
+	@./script/test/cri-integration.sh
+	@rm -rf bin/cri-integration.test
 
 benchmark: ## run benchmarks tests
 	@echo "$(WHALE) $@"
@@ -182,22 +196,26 @@ benchmark: ## run benchmarks tests
 
 FORCE:
 
+define BUILD_BINARY =
+@echo "$(WHALE) $@"
+@go build ${DEBUG_GO_GCFLAGS} ${GO_GCFLAGS} ${GO_BUILD_FLAGS} -o $@ ${GO_LDFLAGS} ${GO_TAGS}  ./$<
+endef
+
 # Build a binary from a cmd.
 bin/%: cmd/% FORCE
-	@echo "$(WHALE) $@${BINARY_SUFFIX}"
-	@go build ${DEBUG_GO_GCFLAGS} ${GO_GCFLAGS} ${GO_BUILD_FLAGS} -o $@${BINARY_SUFFIX} ${GO_LDFLAGS} ${GO_TAGS}  ./$<
+	$(BUILD_BINARY)
 
 bin/containerd-shim: cmd/containerd-shim FORCE # set !cgo and omit pie for a static shim build: https://github.com/golang/go/issues/17789#issuecomment-258542220
 	@echo "$(WHALE) bin/containerd-shim"
-	@CGO_ENABLED=0 go build ${GO_BUILD_FLAGS} -o bin/containerd-shim ${SHIM_GO_LDFLAGS} ${GO_TAGS} ./cmd/containerd-shim
+	@CGO_ENABLED=${SHIM_CGO_ENABLED} go build ${GO_BUILD_FLAGS} -o bin/containerd-shim ${SHIM_GO_LDFLAGS} ${GO_TAGS} ./cmd/containerd-shim
 
 bin/containerd-shim-runc-v1: cmd/containerd-shim-runc-v1 FORCE # set !cgo and omit pie for a static shim build: https://github.com/golang/go/issues/17789#issuecomment-258542220
 	@echo "$(WHALE) bin/containerd-shim-runc-v1"
-	@CGO_ENABLED=0 go build ${GO_BUILD_FLAGS} -o bin/containerd-shim-runc-v1 ${SHIM_GO_LDFLAGS} ${GO_TAGS} ./cmd/containerd-shim-runc-v1
+	@CGO_ENABLED=${SHIM_CGO_ENABLED} go build ${GO_BUILD_FLAGS} -o bin/containerd-shim-runc-v1 ${SHIM_GO_LDFLAGS} ${GO_TAGS} ./cmd/containerd-shim-runc-v1
 
 bin/containerd-shim-runc-v2: cmd/containerd-shim-runc-v2 FORCE # set !cgo and omit pie for a static shim build: https://github.com/golang/go/issues/17789#issuecomment-258542220
 	@echo "$(WHALE) bin/containerd-shim-runc-v2"
-	@CGO_ENABLED=0 go build ${GO_BUILD_FLAGS} -o bin/containerd-shim-runc-v2 ${SHIM_GO_LDFLAGS} ${GO_TAGS} ./cmd/containerd-shim-runc-v2
+	@CGO_ENABLED=${SHIM_CGO_ENABLED} go build ${GO_BUILD_FLAGS} -o bin/containerd-shim-runc-v2 ${SHIM_GO_LDFLAGS} ${GO_TAGS} ./cmd/containerd-shim-runc-v2
 
 binaries: $(BINARIES) ## build binaries
 	@echo "$(WHALE) $@"
@@ -208,16 +226,16 @@ man: mandir $(addprefix man/,$(MANPAGES))
 mandir:
 	@mkdir -p man
 
-# Kept for backwards compatability
-genman: man/containerd.1 man/ctr.1
+# Kept for backwards compatibility
+genman: man/containerd.8 man/ctr.8
 
-man/containerd.1: FORCE
+man/containerd.8: FORCE
 	@echo "$(WHALE) $@"
-	go run cmd/gen-manpages/main.go containerd man/
+	go run cmd/gen-manpages/main.go $(@F) $(@D)
 
-man/ctr.1: FORCE
+man/ctr.8: FORCE
 	@echo "$(WHALE) $@"
-	go run cmd/gen-manpages/main.go ctr man/
+	go run cmd/gen-manpages/main.go $(@F) $(@D)
 
 man/%: docs/man/%.md FORCE
 	@echo "$(WHALE) $@"
@@ -240,17 +258,66 @@ releases/$(RELEASE).tar.gz: $(BINARIES)
 	@tar -czf releases/$(RELEASE).tar.gz -C releases/$(RELEASE) bin
 	@rm -rf releases/$(RELEASE)
 
-release: $(BINARIES) releases/$(RELEASE).tar.gz
+release: releases/$(RELEASE).tar.gz
 	@echo "$(WHALE) $@"
 	@cd releases && sha256sum $(RELEASE).tar.gz >$(RELEASE).tar.gz.sha256sum
 
-cri-release: $(BINARIES) releases/$(RELEASE).tar.gz
+ifeq ($(GOOS),windows)
+install-cri-deps: $(BINARIES)
+	mkdir -p $(CRIDIR)
+	DESTDIR=$(CRIDIR) script/setup/install-cni-windows
+	cp bin/* $(CRIDIR)
+else
+install-cri-deps: $(BINARIES)
+	@rm -rf ${CRIDIR}
+	@install -d ${CRIDIR}/usr/local/bin
+	@install -D -m 755 bin/* ${CRIDIR}/usr/local/bin
+	@install -d ${CRIDIR}/opt/containerd/cluster
+	@cp -r contrib/gce ${CRIDIR}/opt/containerd/cluster/
+	@install -d ${CRIDIR}/etc/systemd/system
+	@install -m 644 containerd.service ${CRIDIR}/etc/systemd/system
+	echo "CONTAINERD_VERSION: '$(VERSION:v%=%)'" | tee ${CRIDIR}/opt/containerd/cluster/version
+
+	DESTDIR=$(CRIDIR) script/setup/install-runc
+	DESTDIR=$(CRIDIR) script/setup/install-cni
+	DESTDIR=$(CRIDIR) script/setup/install-critools
+
+	@install -d $(CRIDIR)/bin
+	@install $(BINARIES) $(CRIDIR)/bin
+endif
+
+ifeq ($(GOOS),windows)
+releases/$(CRIRELEASE).tar.gz: install-cri-deps
 	@echo "$(WHALE) $@"
-	@VERSION=$(VERSION:v%=%) script/release/release-cri
+	@cd $(CRIDIR) && tar -czf ../../releases/$(CRIRELEASE).tar.gz *
+
+releases/$(CRICNIRELEASE).tar.gz: install-cri-deps
+	@echo "$(WHALE) $@"
+	@cd $(CRIDIR) && tar -czf ../../releases/$(CRICNIRELEASE).tar.gz *
+else
+releases/$(CRIRELEASE).tar.gz: install-cri-deps
+	@echo "$(WHALE) $@"
+	@tar -czf releases/$(CRIRELEASE).tar.gz -C $(CRIDIR) etc/crictl.yaml etc/systemd usr opt/containerd
+
+releases/$(CRICNIRELEASE).tar.gz: install-cri-deps
+	@echo "$(WHALE) $@"
+	@tar -czf releases/$(CRICNIRELEASE).tar.gz -C $(CRIDIR) etc usr opt
+endif
+
+cri-release: releases/$(CRIRELEASE).tar.gz
+	@echo "$(WHALE) $@"
+	@cd releases && sha256sum $(CRIRELEASE).tar.gz >$(CRIRELEASE).tar.gz.sha256sum && ln -sf $(CRIRELEASE).tar.gz cri-containerd.tar.gz
+
+cri-cni-release: releases/$(CRICNIRELEASE).tar.gz
+	@echo "$(WHALE) $@"
+	@cd releases && sha256sum $(CRICNIRELEASE).tar.gz >$(CRICNIRELEASE).tar.gz.sha256sum && ln -sf $(CRICNIRELEASE).tar.gz cri-cni-containerd.tar.gz
 
 clean: ## clean up binaries
 	@echo "$(WHALE) $@"
 	@rm -f $(BINARIES)
+	@rm -f releases/*.tar.gz*
+	@rm -rf $(OUTPUTDIR)
+	@rm -rf bin/cri-integration.test
 
 clean-test: ## clean up debris from previously failed tests
 	@echo "$(WHALE) $@"
@@ -265,6 +332,7 @@ clean-test: ## clean up debris from previously failed tests
 	@rm -rf /run/containerd/runc/*
 	@rm -rf /run/containerd/fifo/*
 	@rm -rf /run/containerd-test/*
+	@rm -rf bin/cri-integration.test
 
 install: ## install binaries
 	@echo "$(WHALE) $@ $(BINARIES)"
@@ -279,8 +347,8 @@ uninstall:
 coverage: ## generate coverprofiles from the unit tests, except tests that require root
 	@echo "$(WHALE) $@"
 	@rm -f coverage.txt
-	@go test -i ${TESTFLAGS} $(filter-out ${INTEGRATION_PACKAGE},${PACKAGES}) 2> /dev/null
-	@( for pkg in $(filter-out ${INTEGRATION_PACKAGE},${PACKAGES}); do \
+	@go test -i ${TESTFLAGS} ${PACKAGES} 2> /dev/null
+	@( for pkg in ${PACKAGES}; do \
 		go test ${TESTFLAGS} \
 			-cover \
 			-coverprofile=profile.out \
@@ -293,8 +361,8 @@ coverage: ## generate coverprofiles from the unit tests, except tests that requi
 
 root-coverage: ## generate coverage profiles for unit tests that require root
 	@echo "$(WHALE) $@"
-	@go test -i ${TESTFLAGS} $(filter-out ${INTEGRATION_PACKAGE},${TEST_REQUIRES_ROOT_PACKAGES}) 2> /dev/null
-	@( for pkg in $(filter-out ${INTEGRATION_PACKAGE},${TEST_REQUIRES_ROOT_PACKAGES}); do \
+	@go test -i ${TESTFLAGS} ${TEST_REQUIRES_ROOT_PACKAGES} 2> /dev/null
+	@( for pkg in ${TEST_REQUIRES_ROOT_PACKAGES}; do \
 		go test ${TESTFLAGS} \
 			-cover \
 			-coverprofile=profile.out \
@@ -307,7 +375,8 @@ root-coverage: ## generate coverage profiles for unit tests that require root
 
 vendor:
 	@echo "$(WHALE) $@"
-	@vndr
+	@go mod tidy
+	@go mod vendor
 
 help: ## this help
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
