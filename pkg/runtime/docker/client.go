@@ -90,7 +90,7 @@ func (dc *dockerClient) ExportImage(image meta.OCIImageRef) (r io.ReadCloser, cl
 	config, err := dc.client.ContainerCreate(context.Background(), &container.Config{
 		Cmd:   []string{"sh"}, // We need a temporary command, this doesn't need to exist in the image
 		Image: image.Normalized(),
-	}, nil, nil, "")
+	}, nil, nil, nil, "")
 	if err != nil {
 		return
 	}
@@ -168,7 +168,7 @@ func (dc *dockerClient) RunContainer(image meta.OCIImageRef, config *runtime.Con
 		Resources: container.Resources{
 			Devices: devices,
 		},
-	}, nil, name)
+	}, nil, nil, name)
 	if err != nil {
 		return "", err
 	}
