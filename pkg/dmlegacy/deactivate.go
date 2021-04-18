@@ -4,12 +4,16 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/nightlyone/lockfile"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/util"
 )
+
+// dmsetupNotFound is the error message when dmsetup can't find a device.
+const dmsetupNotFound = "No such device or address"
 
 // DeactivateSnapshot deactivates the snapshot by removing it with dmsetup
 func DeactivateSnapshot(vm *api.VM) error {
@@ -42,6 +46,13 @@ func DeactivateSnapshot(vm *api.VM) error {
 		dmArgs = append(dmArgs, baseDev)
 	}
 
-	_, err = util.ExecuteCommand("dmsetup", dmArgs...)
-	return err
+	if _, err := util.ExecuteCommand("dmsetup", dmArgs...); err != nil {
+		// If the device is not found, it's been deleted already, return nil.
+		if strings.Contains(err.Error(), dmsetupNotFound) {
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }
