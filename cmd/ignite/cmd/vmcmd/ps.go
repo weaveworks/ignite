@@ -23,7 +23,7 @@ func NewCmdPs(out io.Writer) *cobra.Command {
 			also list VMs that are not currently running.
 			Using the -f (--filter) flag, you can give conditions VMs should fullfilled to be displayed.
 			You can filter on all the underlying fields of the VM struct, see the documentation:
-			https://ignite.readthedocs.io/en/stable/api/ignite_v1alpha3#VM.
+			https://ignite.readthedocs.io/en/stable/api/ignite_v1alpha4#VM.
 
 			Different operators can be used:
 			- "=" and "==" for the equal
