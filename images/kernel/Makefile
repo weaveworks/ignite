@@ -50,8 +50,8 @@ kernel-builder:
 		-f builder/Dockerfile .
 
 fc-upstream:
-	curl -L https://raw.githubusercontent.com/firecracker-microvm/firecracker/master/resources/microvm-kernel-x86_64.config > upstream/config-amd64
-	curl -L https://raw.githubusercontent.com/firecracker-microvm/firecracker/master/resources/microvm-kernel-arm64.config > upstream/config-arm64
+	curl -L https://raw.githubusercontent.com/firecracker-microvm/firecracker/main/resources/microvm-kernel-x86_64.config > upstream/config-amd64
+	curl -L https://raw.githubusercontent.com/firecracker-microvm/firecracker/main/resources/microvm-kernel-arm64.config > upstream/config-arm64
 
 upgrade: $(addprefix upgrade-,$(KERNEL_VERSIONS))
 	./patch-config.sh

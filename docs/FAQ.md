@@ -64,7 +64,7 @@ Docker, currently the only available container runtime usable by Ignite, is used
    natural fit.
 1. **Sandboxing the Firecracker process**: Firecracker should not be run on host without sandboxing, as per
    their security model.
-   Firecracker provides the [jailer](https://github.com/firecracker-microvm/firecracker/blob/master/docs/jailer.md)
+   Firecracker provides the [jailer](https://github.com/firecracker-microvm/firecracker/blob/main/docs/jailer.md)
    binary to do sandboxing/isolation from the host for the Firecracker process, but a container does this
    equally well, if not better.
 1. **Container Networking**: Using containers, we already know what IP to give the VM. We can integrate with

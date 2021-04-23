@@ -44,4 +44,4 @@ Some options to the kernel are specifically important for making guest software 
 Please see: [config-patches](config-patches) for what kernel configs we've changed.
 The base kernel config is the MicroVM-optimized config file from the Firecracker team.
 We're storing it in [upstream/config-amd64](upstream/config-amd64). It's available online
-at [firecracker/resources](https://github.com/firecracker-microvm/firecracker/tree/master/resources).
+at [firecracker/resources](https://github.com/firecracker-microvm/firecracker/tree/main/resources).
