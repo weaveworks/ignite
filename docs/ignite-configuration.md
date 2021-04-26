@@ -75,5 +75,5 @@ spec:
 ```
 
 You can find the full API reference for `Configuration` kind in the
-[pkg/apis/](https://github.com/weaveworks/ignite/tree/master/pkg/apis)
+[pkg/apis/](https://github.com/weaveworks/ignite/tree/main/pkg/apis)
 subfolder of the project.
