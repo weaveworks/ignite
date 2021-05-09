@@ -21,6 +21,7 @@ require (
 	github.com/containernetworking/plugins v0.8.7
 	github.com/containers/image v3.0.2+incompatible
 	github.com/coreos/go-iptables v0.4.5
+	github.com/docker/cli v0.0.0-20200130152716-5d0cf8839492
 	github.com/docker/docker v20.10.6+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/firecracker-microvm/firecracker-go-sdk v0.22.0
