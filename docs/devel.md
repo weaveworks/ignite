@@ -56,7 +56,7 @@ make -C images WHAT=centos
 
 ## Releasing a minor version
 
-- A minor version is done based off the `master` branch
+- A minor version is done based off the `main` branch
 - Set the environment variable to tell what minor version to release: `export MINOR=X`
   - If this is a prerelease, set e.g. `export EXTRA=-alpha.1`, `export EXTRA=-beta.1`, or `export EXTRA=-rc.1`
 - The script to run is `hack/minor-release.sh all`. It will:
@@ -64,7 +64,7 @@ make -C images WHAT=centos
   - Autogenerate the changelog, provisionally using [GREN](https://github.com/github-tools/github-release-notes). The script will wait for you to open an editor and manually fixup `docs/releases/v0.X.0.md`. Then proceed with `Y`, which will create the commit to be tagged `v0.X.0`
   - Create the `v0.X.0` tag using `git tag`
   - Build the release binaries to `bin/releases/v0.X.0` and push the `weaveworks/ignite:v0.X.0` images and manifest list to Docker Hub
-  - Push the tag, and latest commits to the `master` and newly-created `release-0.X` branch
+  - Push the tag, and latest commits to the `main` and newly-created `release-0.X` branch
 
 ## Releasing a patch version
 
@@ -82,7 +82,7 @@ make -C images WHAT=centos
 ## Publishing a release
 
 - Go to `Project Releases` in the Github UI, and select `Draft a new release`
-- Select the tag you've just created `v0.X.Y` from either the `master` (minor releases) or `release-0.X` branch
+- Select the tag you've just created `v0.X.Y` from either the `main` (minor releases) or `release-0.X` branch
 - Let the release title be `v0.X.Y`
 - Paste the content in `docs/releases/v0.X.Y.md` in the release description, and add installing guidelines as per the earlier releases
 - Upload the binaries in `bin/releases/v0.X.Y` named as `{ignite,ignited}-{amd64,arm64}`

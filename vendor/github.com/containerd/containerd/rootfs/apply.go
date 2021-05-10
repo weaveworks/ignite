@@ -123,13 +123,13 @@ func applyLayers(ctx context.Context, layers []Layer, chain []digest.Digest, sn 
 	)
 
 	for {
-		key = fmt.Sprintf("extract-%s %s", uniquePart(), chainID)
+		key = fmt.Sprintf(snapshots.UnpackKeyFormat, uniquePart(), chainID)
 
 		// Prepare snapshot with from parent, label as root
 		mounts, err = sn.Prepare(ctx, key, parent.String(), opts...)
 		if err != nil {
 			if errdefs.IsNotFound(err) && len(layers) > 1 {
-				if err := applyLayers(ctx, layers[:len(layers)-1], chain[:len(chain)-1], sn, a, nil, applyOpts); err != nil {
+				if err := applyLayers(ctx, layers[:len(layers)-1], chain[:len(chain)-1], sn, a, opts, applyOpts); err != nil {
 					if !errdefs.IsAlreadyExists(err) {
 						return err
 					}

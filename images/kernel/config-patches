@@ -5,13 +5,13 @@ CONFIG_DUMMY=y
 # Enable VXLAN support as a module so that e.g. Flannel works
 CONFIG_VXLAN=m
 # Enable support for soft shutdown of amd64 VMs
-# See https://github.com/firecracker-microvm/firecracker/blob/master/docs/api_requests/actions.md#sendctrlaltdel
+# See https://github.com/firecracker-microvm/firecracker/blob/main/docs/api_requests/actions.md#sendctrlaltdel
 CONFIG_KEYBOARD_ATKBD=y
 CONFIG_SERIO=y
 CONFIG_SERIO_I8042=y
 CONFIG_SERIO_LIBPS2=y
 # Make the guest's wall clock not drift
-# https://github.com/firecracker-microvm/firecracker/blob/master/FAQ.md#my-guest-wall-clock-is-drifting-how-can-i-fix-it
+# https://github.com/firecracker-microvm/firecracker/blob/main/FAQ.md#my-guest-wall-clock-is-drifting-how-can-i-fix-it
 CONFIG_PTP_1588_CLOCK=y
 CONFIG_PTP_1588_CLOCK_KVM=y
 

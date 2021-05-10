@@ -40,9 +40,6 @@ func decodeVM(vmID string) (*api.VM, error) {
 }
 
 func StartVM(vm *api.VM) (err error) {
-	// Serve metrics over an unix socket in the VM's own directory
-	metricsSocket := path.Join(vm.ObjectPath(), constants.PROMETHEUS_SOCKET)
-	serveMetrics(metricsSocket)
 
 	envVars := parseEnvVars(os.Environ())
 
@@ -58,6 +55,10 @@ func StartVM(vm *api.VM) (err error) {
 	if err = container.StartDHCPServers(vm, dhcpIfaces); err != nil {
 		return
 	}
+
+	// Serve metrics over an unix socket in the VM's own directory
+	metricsSocket := path.Join(vm.ObjectPath(), constants.PROMETHEUS_SOCKET)
+	serveMetrics(metricsSocket)
 
 	// Patches the VM object to set state to stopped, and clear IP addresses
 	defer util.DeferErr(&err, func() error { return patchStopped(vm) })

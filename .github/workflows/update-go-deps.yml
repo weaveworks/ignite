@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.14.2'
+          go-version: '1.16.3'
       - name: Update dependencies
         run: |
           export PATH=$PATH:$(go env GOPATH)/bin
@@ -25,7 +25,7 @@ jobs:
           make go-autogen
       - name: Create pull request
         id: cpr
-        uses: peter-evans/create-pull-request@v3.8.2
+        uses: peter-evans/create-pull-request@v3.9.1
         with:
           commit-message: "[automated] Update go dependencies"
           branch: go-deps-patch
