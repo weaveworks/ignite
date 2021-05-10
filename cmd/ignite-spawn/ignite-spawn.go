@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
@@ -43,8 +44,10 @@ func StartVM(vm *api.VM) (err error) {
 	metricsSocket := path.Join(vm.ObjectPath(), constants.PROMETHEUS_SOCKET)
 	serveMetrics(metricsSocket)
 
+	envVars := parseEnvVars(os.Environ())
+
 	// Setup networking inside of the container, return the available interfaces
-	fcIfaces, dhcpIfaces, err := container.SetupContainerNetworking()
+	fcIfaces, dhcpIfaces, err := container.SetupContainerNetworking(envVars)
 	if err != nil {
 		return fmt.Errorf("network setup failed: %v", err)
 	}
@@ -95,4 +98,19 @@ func patchStopped(vm *api.VM) error {
 
 	patch := []byte(`{"status":{"running":false,"network":null,"runtime":null,"startTime":null}}`)
 	return patchutil.NewPatcher(scheme.Serializer).ApplyOnFile(constants.IGNITE_SPAWN_VM_FILE_PATH, patch, vm.GroupVersionKind())
+}
+
+func parseEnvVars(vars []string) map[string]string {
+	result := make(map[string]string)
+
+	for _, arg := range vars {
+		parts := strings.Split(arg, "=")
+		if len(parts) != 2 {
+			continue
+		}
+
+		result[parts[0]] = parts[1]
+	}
+
+	return result
 }

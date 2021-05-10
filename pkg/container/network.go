@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -34,25 +35,30 @@ var ignoreInterfaces = map[string]struct{}{
 	"lo": {},
 }
 
+var (
+	maxIntfsVar     = "IGNITE_INTFS"
+	defaultMaxIntfs = 1
+)
+
 type FCInterface struct {
 	VMTAP     string
 	MACFilter string
 }
 
-func SetupContainerNetworking() ([]FCInterface, []DHCPInterface, error) {
+func SetupContainerNetworking(args map[string]string) ([]FCInterface, []DHCPInterface, error) {
 	var dhcpIfaces []DHCPInterface
 	var allIfaces []FCInterface
 
 	interval := 1 * time.Second
 	timeout := 1 * time.Minute
+	maxIntfs, err := strconv.Atoi(args[maxIntfsVar])
+	if err != nil {
+		maxIntfs = defaultMaxIntfs
+	}
 
-	// time.sleep to wait for some interface to be connected
-	log.Printf("Waiting for interfaces to be connected")
-	time.Sleep(time.Second * 10)
-
-	err := wait.PollImmediate(interval, timeout, func() (bool, error) {
+	err = wait.PollImmediate(interval, timeout, func() (bool, error) {
 		// This func returns true if it's done, and optionally an error
-		retry, err := networkSetup(&allIfaces, &dhcpIfaces)
+		retry, err := networkSetup(&allIfaces, &dhcpIfaces, maxIntfs)
 		if err == nil {
 			// We're done here
 			return true, nil
@@ -73,11 +79,13 @@ func SetupContainerNetworking() ([]FCInterface, []DHCPInterface, error) {
 	return allIfaces, dhcpIfaces, nil
 }
 
-func isIgnored(link net.Interface) bool {
+func isIgnored(link net.Interface, allIfaces *[]FCInterface) bool {
+	// ignore if in explicit ignore list
 	if _, ok := ignoreInterfaces[link.Name]; ok {
 		return true
 	}
 
+	// ignore if _not_ a veth
 	eth, err := netlink.LinkByIndex(link.Index)
 	if err != nil {
 		return true
@@ -88,7 +96,7 @@ func isIgnored(link net.Interface) bool {
 	return !ok
 }
 
-func networkSetup(allIfaces *[]FCInterface, dhcpIfaces *[]DHCPInterface) (bool, error) {
+func networkSetup(allIfaces *[]FCInterface, dhcpIfaces *[]DHCPInterface, intfNum int) (bool, error) {
 	ifaces, err := net.Interfaces()
 	if err != nil || ifaces == nil || len(ifaces) == 0 {
 		return true, fmt.Errorf("cannot get local network interfaces: %v", err)
@@ -98,12 +106,13 @@ func networkSetup(allIfaces *[]FCInterface, dhcpIfaces *[]DHCPInterface) (bool, 
 	interfacesCount := 0
 	for _, iface := range ifaces {
 		// Skip the interface if it's ignored
-		if isIgnored(iface) {
+		if isIgnored(iface, allIfaces) {
 			continue
 		}
 
 		// Try to transfer the address from the container to the DHCP server
 		ipNet, gw, noIPs, err := takeAddress(&iface)
+
 		// If interface has no IPs configured, setup tc redirect
 		if noIPs {
 			tcInterface, err := addTcRedirect(&iface)
@@ -111,7 +120,10 @@ func networkSetup(allIfaces *[]FCInterface, dhcpIfaces *[]DHCPInterface) (bool, 
 				log.Errorf("Failed to setup tc redirect %v", err)
 				continue
 			}
+
 			*allIfaces = append(*allIfaces, *tcInterface)
+			ignoreInterfaces[iface.Name] = struct{}{}
+
 			continue
 		}
 		if err != nil {
@@ -141,20 +153,22 @@ func networkSetup(allIfaces *[]FCInterface, dhcpIfaces *[]DHCPInterface) (bool, 
 			VMTAP:     dhcpIface.VMTAP,
 			MACFilter: dhcpIface.MACFilter,
 		})
+		ignoreInterfaces[iface.Name] = struct{}{}
 
 		// This is an interface we care about
 		interfacesCount++
 	}
 
 	// If there weren't any interfaces that were valid or active yet, retry the loop
-	if interfacesCount == 0 {
-		return true, fmt.Errorf("no active or valid interfaces available yet")
+	if interfacesCount < intfNum {
+		return true, fmt.Errorf("not enough active or valid interfaces available yet")
 	}
 
 	return false, nil
 }
 
 // addTcRedirect sets up tc redirect betweeb veth and tap https://github.com/awslabs/tc-redirect-tap/blob/master/internal/netlink.go
+// on WSL2 this requires `CONFIG_NET_CLS_U32=y`
 func addTcRedirect(iface *net.Interface) (*FCInterface, error) {
 
 	eth, err := netlink.LinkByIndex(iface.Index)
@@ -168,19 +182,15 @@ func addTcRedirect(iface *net.Interface) (*FCInterface, error) {
 		return nil, err
 	}
 
-	log.Printf("Adding qdisc to veth %s", eth.Attrs().Name)
 	err = addIngressQdisc(eth)
 	if err != nil {
 		return nil, err
 	}
-
-	log.Printf("Adding qdisc to veth %s", tuntap.Attrs().Name)
 	err = addIngressQdisc(tuntap)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("Adding tc filter to veth %s", eth.Attrs().Name)
 	err = addRedirectFilter(eth, tuntap)
 	if err != nil {
 		return nil, err
@@ -198,12 +208,12 @@ func addTcRedirect(iface *net.Interface) (*FCInterface, error) {
 	}, nil
 }
 
+// tc qdisc add dev $SRC_IFACE ingress
 func addIngressQdisc(link netlink.Link) error {
 	qdisc := &netlink.Ingress{
 		QdiscAttrs: netlink.QdiscAttrs{
 			LinkIndex: link.Attrs().Index,
-			//Handle:    netlink.MakeHandle(0xffff, 0),
-			Parent: netlink.HANDLE_INGRESS,
+			Parent:    netlink.HANDLE_INGRESS,
 		},
 	}
 
@@ -215,6 +225,10 @@ func addIngressQdisc(link netlink.Link) error {
 	return nil
 }
 
+// tc filter add dev $SRC_IFACE parent ffff:
+// protocol all
+// u32 match u32 0 0
+// action mirred egress mirror dev $DST_IFACE
 func addRedirectFilter(linkSrc, linkDest netlink.Link) error {
 	filter := &netlink.U32{
 		FilterAttrs: netlink.FilterAttrs{
@@ -222,15 +236,6 @@ func addRedirectFilter(linkSrc, linkDest netlink.Link) error {
 			Parent:    netlink.MakeHandle(0xffff, 0),
 			Protocol:  syscall.ETH_P_ALL,
 		},
-		//Sel: &netlink.TcU32Sel{
-		//	Keys: []netlink.TcU32Key{
-		//		{
-		//			Mask: 0x0,
-		//			Val:  0,
-		//		},
-		//	},
-		//	Flags: netlink.TC_U32_TERMINAL,
-		//},
 		Actions: []netlink.Action{
 			&netlink.MirredAction{
 				ActionAttrs: netlink.ActionAttrs{
