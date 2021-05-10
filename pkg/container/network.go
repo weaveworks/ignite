@@ -3,6 +3,8 @@ package container
 import (
 	"fmt"
 	"net"
+	"os"
+	"syscall"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -31,14 +33,25 @@ var ignoreInterfaces = map[string]struct{}{
 	"lo": {},
 }
 
-func SetupContainerNetworking() ([]DHCPInterface, error) {
+type FCInterface struct {
+	VMTAP     string
+	MACFilter string
+}
+
+func SetupContainerNetworking() ([]FCInterface, []DHCPInterface, error) {
 	var dhcpIfaces []DHCPInterface
+	var allIfaces []FCInterface
+
 	interval := 1 * time.Second
 	timeout := 1 * time.Minute
 
+	// time.sleep to wait for some interface to be connected
+	log.Printf("Waiting for interfaces to be connected")
+	time.Sleep(time.Second * 10)
+
 	err := wait.PollImmediate(interval, timeout, func() (bool, error) {
 		// This func returns true if it's done, and optionally an error
-		retry, err := networkSetup(&dhcpIfaces)
+		retry, err := networkSetup(&allIfaces, &dhcpIfaces)
 		if err == nil {
 			// We're done here
 			return true, nil
@@ -53,13 +66,28 @@ func SetupContainerNetworking() ([]DHCPInterface, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return dhcpIfaces, nil
+	return allIfaces, dhcpIfaces, nil
 }
 
-func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
+func isIgnored(link net.Interface) bool {
+	if _, ok := ignoreInterfaces[link.Name]; ok {
+		return true
+	}
+
+	eth, err := netlink.LinkByIndex(link.Index)
+	if err != nil {
+		return true
+	}
+
+	_, ok := eth.(*netlink.Veth)
+
+	return !ok
+}
+
+func networkSetup(allIfaces *[]FCInterface, dhcpIfaces *[]DHCPInterface) (bool, error) {
 	ifaces, err := net.Interfaces()
 	if err != nil || ifaces == nil || len(ifaces) == 0 {
 		return true, fmt.Errorf("cannot get local network interfaces: %v", err)
@@ -69,12 +97,22 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 	interfacesCount := 0
 	for _, iface := range ifaces {
 		// Skip the interface if it's ignored
-		if _, ok := ignoreInterfaces[iface.Name]; ok {
+		if isIgnored(iface) {
 			continue
 		}
 
 		// Try to transfer the address from the container to the DHCP server
-		ipNet, gw, _, err := takeAddress(&iface)
+		ipNet, gw, noIPs, err := takeAddress(&iface)
+		// If interface has no IPs configured, setup tc redirect
+		if noIPs {
+			tcInterface, err := addTcRedirect(&iface)
+			if err != nil {
+				log.Errorf("Failed to setup tc redirect %v", err)
+				continue
+			}
+			*allIfaces = append(*allIfaces, *tcInterface)
+			continue
+		}
 		if err != nil {
 			// Log the problem, but don't quit the function here as there might be other good interfaces
 			log.Errorf("Parsing interface %q failed: %v", iface.Name, err)
@@ -98,6 +136,11 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 
 		*dhcpIfaces = append(*dhcpIfaces, *dhcpIface)
 
+		*allIfaces = append(*allIfaces, FCInterface{
+			VMTAP:     dhcpIface.VMTAP,
+			MACFilter: dhcpIface.MACFilter,
+		})
+
 		// This is an interface we care about
 		interfacesCount++
 	}
@@ -108,6 +151,96 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 	}
 
 	return false, nil
+}
+
+// addTcRedirect sets up tc redirect betweeb veth and tap https://github.com/awslabs/tc-redirect-tap/blob/master/internal/netlink.go
+func addTcRedirect(iface *net.Interface) (*FCInterface, error) {
+
+	eth, err := netlink.LinkByIndex(iface.Index)
+	if err != nil {
+		return nil, err
+	}
+
+	tapName := constants.TAP_PREFIX + iface.Name
+	tuntap, err := createTAPAdapter(tapName)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("Adding qdisc to veth %s", eth.Attrs().Name)
+	err = addIngressQdisc(eth)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("Adding qdisc to veth %s", tuntap.Attrs().Name)
+	err = addIngressQdisc(tuntap)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("Adding tc filter to veth %s", eth.Attrs().Name)
+	err = addRedirectFilter(eth, tuntap)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("Adding tc filter to tuntap %s", tuntap.Attrs().Name)
+	err = addRedirectFilter(tuntap, eth)
+	if err != nil {
+		return nil, err
+	}
+
+	return &FCInterface{
+		VMTAP:     tapName,
+		MACFilter: eth.Attrs().HardwareAddr.String(),
+	}, nil
+}
+
+func addIngressQdisc(link netlink.Link) error {
+	qdisc := &netlink.Ingress{
+		QdiscAttrs: netlink.QdiscAttrs{
+			LinkIndex: link.Attrs().Index,
+			//Handle:    netlink.MakeHandle(0xffff, 0),
+			Parent: netlink.HANDLE_INGRESS,
+		},
+	}
+
+	if err := netlink.QdiscAdd(qdisc); err != nil {
+		if !os.IsExist(err) {
+			return err
+		}
+	}
+	return nil
+}
+
+func addRedirectFilter(linkSrc, linkDest netlink.Link) error {
+	filter := &netlink.U32{
+		FilterAttrs: netlink.FilterAttrs{
+			LinkIndex: linkSrc.Attrs().Index,
+			Parent:    netlink.MakeHandle(0xffff, 0),
+			Protocol:  syscall.ETH_P_ALL,
+		},
+		//Sel: &netlink.TcU32Sel{
+		//	Keys: []netlink.TcU32Key{
+		//		{
+		//			Mask: 0x0,
+		//			Val:  0,
+		//		},
+		//	},
+		//	Flags: netlink.TC_U32_TERMINAL,
+		//},
+		Actions: []netlink.Action{
+			&netlink.MirredAction{
+				ActionAttrs: netlink.ActionAttrs{
+					Action: netlink.TC_ACT_STOLEN,
+				},
+				MirredAction: netlink.TCA_EGRESS_MIRROR,
+				Ifindex:      linkDest.Attrs().Index,
+			},
+		},
+	}
+	return netlink.FilterAdd(filter)
 }
 
 // bridge creates the TAP device and performs the bridging, returning the base configuration for a DHCP server
@@ -207,7 +340,7 @@ func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, bool, error) {
 		}, gw, false, nil
 	}
 
-	return nil, nil, false, fmt.Errorf("interface %s has no valid addresses", iface.Name)
+	return nil, nil, true, fmt.Errorf("interface %s has no valid addresses", iface.Name)
 }
 
 // createTAPAdapter creates a new TAP device with the given name

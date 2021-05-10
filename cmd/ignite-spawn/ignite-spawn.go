@@ -39,8 +39,12 @@ func decodeVM(vmID string) (*api.VM, error) {
 }
 
 func StartVM(vm *api.VM) (err error) {
+	// Serve metrics over an unix socket in the VM's own directory
+	metricsSocket := path.Join(vm.ObjectPath(), constants.PROMETHEUS_SOCKET)
+	serveMetrics(metricsSocket)
+
 	// Setup networking inside of the container, return the available interfaces
-	dhcpIfaces, err := container.SetupContainerNetworking()
+	fcIfaces, dhcpIfaces, err := container.SetupContainerNetworking()
 	if err != nil {
 		return fmt.Errorf("network setup failed: %v", err)
 	}
@@ -52,10 +56,6 @@ func StartVM(vm *api.VM) (err error) {
 		return
 	}
 
-	// Serve metrics over an unix socket in the VM's own directory
-	metricsSocket := path.Join(vm.ObjectPath(), constants.PROMETHEUS_SOCKET)
-	serveMetrics(metricsSocket)
-
 	// Patches the VM object to set state to stopped, and clear IP addresses
 	defer util.DeferErr(&err, func() error { return patchStopped(vm) })
 
@@ -66,7 +66,7 @@ func StartVM(vm *api.VM) (err error) {
 	defer util.DeferErr(&err, func() error { return os.Remove(metricsSocket) })
 
 	// Execute Firecracker
-	if err = container.ExecuteFirecracker(vm, dhcpIfaces); err != nil {
+	if err = container.ExecuteFirecracker(vm, fcIfaces); err != nil {
 		return fmt.Errorf("runtime error for VM %q: %v", vm.GetUID(), err)
 	}
 
