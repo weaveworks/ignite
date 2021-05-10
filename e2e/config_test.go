@@ -32,7 +32,7 @@ func TestConfigFile(t *testing.T) {
 		{
 			name: "minimal valid config",
 			config: []byte(`---
-apiVersion: ignite.weave.works/v1alpha3
+apiVersion: ignite.weave.works/v1alpha4
 kind: Configuration
 `),
 			wantVMProperties: fmt.Sprintf("'512.0 MB 1 4.0 GB weaveworks/ignite-ubuntu:latest weaveworks/ignite:dev weaveworks/ignite-kernel:%s <nil>'", constants.DEFAULT_KERNEL_IMAGE_TAG),
@@ -40,7 +40,7 @@ kind: Configuration
 		{
 			name: "custom vm properties",
 			config: []byte(`---
-apiVersion: ignite.weave.works/v1alpha3
+apiVersion: ignite.weave.works/v1alpha4
 kind: Configuration
 metadata:
   name: test-config
@@ -60,7 +60,7 @@ spec:
 		{
 			name: "runtime and network config",
 			config: []byte(`---
-apiVersion: ignite.weave.works/v1alpha3
+apiVersion: ignite.weave.works/v1alpha4
 kind: Configuration
 metadata:
   name: test-config
@@ -73,7 +73,7 @@ spec:
 		{
 			name: "override properties",
 			config: []byte(`---
-apiVersion: ignite.weave.works/v1alpha3
+apiVersion: ignite.weave.works/v1alpha4
 kind: Configuration
 metadata:
   name: test-config
@@ -89,7 +89,7 @@ spec:
 		{
 			name: "vm config",
 			config: []byte(`---
-apiVersion: ignite.weave.works/v1alpha3
+apiVersion: ignite.weave.works/v1alpha4
 kind: Configuration
 metadata:
   name: test-config
@@ -100,7 +100,7 @@ spec:
     cpus: 2
 `),
 			vmConfig: []byte(`
-apiVersion: ignite.weave.works/v1alpha3
+apiVersion: ignite.weave.works/v1alpha4
 kind: VM
 spec:
   memory: "1GB"
@@ -112,7 +112,7 @@ spec:
 		{
 			name: "vm config and flags",
 			config: []byte(`---
-apiVersion: ignite.weave.works/v1alpha3
+apiVersion: ignite.weave.works/v1alpha4
 kind: Configuration
 metadata:
   name: test-config
@@ -123,7 +123,7 @@ spec:
     cpus: 2
 `),
 			vmConfig: []byte(`
-apiVersion: ignite.weave.works/v1alpha3
+apiVersion: ignite.weave.works/v1alpha4
 kind: VM
 spec:
   memory: "1GB"

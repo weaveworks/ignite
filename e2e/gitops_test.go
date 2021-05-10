@@ -65,7 +65,7 @@ func TestRunGitops(t *testing.T) {
 
 	// Write a VM config file in the cloned repo, commit and push.
 	vmConfig := []byte(`---
-apiVersion: ignite.weave.works/v1alpha3
+apiVersion: ignite.weave.works/v1alpha4
 kind: VM
 metadata:
   name: my-vm

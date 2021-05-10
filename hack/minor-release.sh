@@ -5,7 +5,7 @@ cd ${SCRIPT_DIR}/..
 
 source hack/release-common.sh
 
-git checkout master
+git checkout main
 
 FORCE=${FORCE:-0}
 GENERATED_GIT_VERSION=$(hack/ldflags.sh --version-only)
@@ -56,13 +56,13 @@ push_artifacts() {
 
 		git push upstream --tags -f
 		git push upstream ${RELEASE_BRANCH}
-		git push upstream master
+		git push upstream main
 		EOF
         exit 1
     fi
     git push upstream --tags -f
     git push upstream ${RELEASE_BRANCH}
-    git push upstream master
+    git push upstream main
 }
 
 if [[ $1 == "tidy" ]]; then

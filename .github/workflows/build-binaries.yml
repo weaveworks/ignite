@@ -14,7 +14,7 @@ on:
         required: true
       ref:
         description: Git branch, tag or SHA to checkout.
-        default: master
+        default: main
         required: true
 
 env:

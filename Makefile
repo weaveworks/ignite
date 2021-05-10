@@ -34,7 +34,7 @@ CTR := $(DOCKER) run -i --rm \
 		ctr
 UID_GID?=$(shell id -u):$(shell id -g)
 FIRECRACKER_VERSION:=$(shell cat hack/FIRECRACKER_VERSION)
-GO_VERSION=1.14.2
+GO_VERSION=1.16.3
 DOCKER_USER?=weaveworks
 IMAGE=$(DOCKER_USER)/ignite
 GIT_VERSION:=$(shell DOCKER_USER=$(DOCKER_USER) hack/ldflags.sh --version-only)
@@ -44,7 +44,7 @@ IMAGE_TAG:=$(shell IGNITE_GIT_VERSION=$(GIT_VERSION) DOCKER_USER=$(DOCKER_USER) 
 IS_DIRTY:=$(shell echo ${GIT_VERSION} | grep -c dirty)
 PROJECT = github.com/weaveworks/ignite
 APIS_DIR = ${PROJECT}/pkg/apis
-API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha2,${APIS_DIR}/ignite/v1alpha3,${APIS_DIR}/meta/v1alpha1
+API_DIRS = ${APIS_DIR}/ignite,${APIS_DIR}/ignite/v1alpha2,${APIS_DIR}/ignite/v1alpha3,${APIS_DIR}/ignite/v1alpha4,${APIS_DIR}/meta/v1alpha1
 CACHE_DIR = $(shell pwd)/bin/cache
 # Specifies if this is a CI build or not; if it is, it will save the docker image created to bin/$(GOARCH)/image.tar
 IS_CI_BUILD ?= 0
@@ -207,7 +207,7 @@ api-doc:
 	mv $(shell pwd)/pkg/apis/${GROUPVERSION}/zz_generated* bin/tmp/${GROUPVERSION}
 	$(MAKE) $(GO_MAKE_TARGET) COMMAND="godoc2md /go/src/${PROJECT}/pkg/apis/${GROUPVERSION} > bin/tmp/${GROUP_VERSION}.md"
 	sed -e "s|src/target|pkg/apis/${GROUPVERSION}|g;s|/go/src/||g" -i bin/tmp/${GROUP_VERSION}.md
-	sed -e "s|(/pkg/apis|(https://github.com/weaveworks/ignite/tree/master/pkg/apis|g" -i bin/tmp/${GROUP_VERSION}.md
+	sed -e "s|(/pkg/apis|(https://github.com/weaveworks/ignite/tree/main/pkg/apis|g" -i bin/tmp/${GROUP_VERSION}.md
 	mv bin/tmp/${GROUPVERSION}/*.go $(shell pwd)/pkg/apis/${GROUPVERSION}/
 	rm -r bin/tmp/${GROUPVERSION}
 	# Format the docs with pandoc
