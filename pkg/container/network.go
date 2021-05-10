@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/util"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -267,9 +268,16 @@ func bridge(iface *net.Interface) (*DHCPInterface, error) {
 		return nil, err
 	}
 
+	// Generate the MAC addresses for the VM's adapters
+	macAddress := make([]string, 0, 1)
+	if err := util.NewMAC(&macAddress); err != nil {
+		return nil, fmt.Errorf("failed to generate MAC addresses: %v", err)
+	}
+
 	return &DHCPInterface{
-		VMTAP:  tapName,
-		Bridge: bridgeName,
+		VMTAP:     tapName,
+		Bridge:    bridgeName,
+		MACFilter: macAddress[0],
 	}, nil
 }
 
