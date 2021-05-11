@@ -66,6 +66,7 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	// Register common flags
 	cmdutil.AddNameFlag(fs, &cf.VM.ObjectMeta.Name)
 	cmdutil.AddConfigFlag(fs, &cf.ConfigFile)
+	cmdutil.AddEnvVarsFlag(fs, &cf.EnvVars)
 
 	// Register flags bound to temporary holder values
 	fs.StringSliceVarP(&cf.PortMappings, "ports", "p", cf.PortMappings, "Map host ports to VM ports")
