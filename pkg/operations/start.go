@@ -90,6 +90,7 @@ func StartVM(vm *api.VM, debug, wait bool) error {
 		}
 		envVars = append(envVars, part)
 	}
+	config.EnvVars = envVars
 
 	// Add the volumes to the container devices
 	for _, volume := range vm.Spec.Storage.Volumes {
