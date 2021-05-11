@@ -52,7 +52,7 @@ func SetupContainerNetworking(args map[string]string) ([]FCInterface, []DHCPInte
 	interval := 1 * time.Second
 	timeout := 1 * time.Minute
 	maxIntfs, err := strconv.Atoi(args[maxIntfsVar])
-	if err != nil {
+	if err != nil || maxIntfs < 1 {
 		maxIntfs = defaultMaxIntfs
 	}
 
