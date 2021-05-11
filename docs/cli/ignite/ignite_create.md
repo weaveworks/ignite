@@ -48,6 +48,7 @@ ignite create <OCI image> [flags]
   -p, --ports strings             Map host ports to VM ports
       --require-name              Require VM name to be passed, no name generation
       --runtime runtime           Container runtime to use. Available options are: [docker containerd] (default containerd)
+      --sandbox-env-vars string   A list of comma-separated key=value pairs to pass as sandbox env vars
       --sandbox-image oci-image   Specify an OCI image for the VM sandbox (default weaveworks/ignite:dev)
   -s, --size size                 VM filesystem size, for example 5GB or 2048MB (default 4.0 GB)
       --ssh[=<path>]              Enable SSH for the VM. If <path> is given, it will be imported as the public key. If just '--ssh' is specified, a new keypair will be generated. (default is unset, which disables SSH access to the VM)
