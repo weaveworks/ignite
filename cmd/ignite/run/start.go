@@ -78,7 +78,7 @@ func Start(so *StartOptions, fs *flag.FlagSet) error {
 		return err
 	}
 
-	if err := operations.StartVM(so.vm, so.Debug); err != nil {
+	if err := operations.StartVM(so.vm, so.Debug, true); err != nil {
 		return err
 	}
 
