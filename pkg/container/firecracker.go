@@ -20,15 +20,15 @@ import (
 )
 
 // ExecuteFirecracker executes the firecracker process using the Go SDK
-func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) (err error) {
+func ExecuteFirecracker(vm *api.VM, fcIfaces []FCInterface) (err error) {
 	drivePath := vm.SnapshotDev()
 
-	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(dhcpIfaces))
-	for _, dhcpIface := range dhcpIfaces {
+	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(fcIfaces))
+	for _, intf := range fcIfaces {
 		networkInterfaces = append(networkInterfaces, firecracker.NetworkInterface{
 			StaticConfiguration: &firecracker.StaticNetworkConfiguration{
-				MacAddress:  dhcpIface.MACFilter,
-				HostDevName: dhcpIface.VMTAP,
+				MacAddress:  intf.MACFilter,
+				HostDevName: intf.VMTAP,
 			},
 		})
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
@@ -39,8 +40,11 @@ func decodeVM(vmID string) (*api.VM, error) {
 }
 
 func StartVM(vm *api.VM) (err error) {
+
+	envVars := parseEnvVars(os.Environ())
+
 	// Setup networking inside of the container, return the available interfaces
-	dhcpIfaces, err := container.SetupContainerNetworking()
+	fcIfaces, dhcpIfaces, err := container.SetupContainerNetworking(envVars)
 	if err != nil {
 		return fmt.Errorf("network setup failed: %v", err)
 	}
@@ -66,7 +70,7 @@ func StartVM(vm *api.VM) (err error) {
 	defer util.DeferErr(&err, func() error { return os.Remove(metricsSocket) })
 
 	// Execute Firecracker
-	if err = container.ExecuteFirecracker(vm, dhcpIfaces); err != nil {
+	if err = container.ExecuteFirecracker(vm, fcIfaces); err != nil {
 		return fmt.Errorf("runtime error for VM %q: %v", vm.GetUID(), err)
 	}
 
@@ -95,4 +99,19 @@ func patchStopped(vm *api.VM) error {
 
 	patch := []byte(`{"status":{"running":false,"network":null,"runtime":null,"startTime":null}}`)
 	return patchutil.NewPatcher(scheme.Serializer).ApplyOnFile(constants.IGNITE_SPAWN_VM_FILE_PATH, patch, vm.GroupVersionKind())
+}
+
+func parseEnvVars(vars []string) map[string]string {
+	result := make(map[string]string)
+
+	for _, arg := range vars {
+		parts := strings.Split(arg, "=")
+		if len(parts) != 2 {
+			continue
+		}
+
+		result[parts[0]] = parts[1]
+	}
+
+	return result
 }
