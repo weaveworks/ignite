@@ -119,7 +119,7 @@ func networkSetup(allIfaces *[]FCInterface, dhcpIfaces *[]DHCPInterface, intfNum
 
 		// If interface has no IPs configured, setup tc redirect
 		if noIPs && iface.Name != "eth0" {
-			log.Print("Interface %s has no IP, setting up tc redirect", iface.Name)
+			log.Printf("Interface %s has no IP, setting up tc redirect", iface.Name)
 			tcInterface, err := addTcRedirect(&iface)
 			if err != nil {
 				log.Errorf("Failed to setup tc redirect %v", err)
