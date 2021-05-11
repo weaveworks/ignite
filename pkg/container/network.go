@@ -57,8 +57,12 @@ func SetupContainerNetworking(args map[string]string) ([]FCInterface, []DHCPInte
 	}
 
 	err = wait.PollImmediate(interval, timeout, func() (bool, error) {
+
+		// Expected number of intfs is total maximum minus what we've found already
+		expectedIntfs := maxIntfs - len(allIfaces)
+
 		// This func returns true if it's done, and optionally an error
-		retry, err := networkSetup(&allIfaces, &dhcpIfaces, maxIntfs)
+		retry, err := networkSetup(&allIfaces, &dhcpIfaces, expectedIntfs)
 		if err == nil {
 			// We're done here
 			return true, nil
@@ -114,7 +118,8 @@ func networkSetup(allIfaces *[]FCInterface, dhcpIfaces *[]DHCPInterface, intfNum
 		ipNet, gw, noIPs, err := takeAddress(&iface)
 
 		// If interface has no IPs configured, setup tc redirect
-		if noIPs {
+		if noIPs && iface.Name != "eth0" {
+			log.Print("Interface %s has no IP, setting up tc redirect", iface.Name)
 			tcInterface, err := addTcRedirect(&iface)
 			if err != nil {
 				log.Errorf("Failed to setup tc redirect %v", err)
@@ -124,6 +129,7 @@ func networkSetup(allIfaces *[]FCInterface, dhcpIfaces *[]DHCPInterface, intfNum
 			*allIfaces = append(*allIfaces, *tcInterface)
 			ignoreInterfaces[iface.Name] = struct{}{}
 
+			interfacesCount++
 			continue
 		}
 		if err != nil {
@@ -132,7 +138,7 @@ func networkSetup(allIfaces *[]FCInterface, dhcpIfaces *[]DHCPInterface, intfNum
 			// Try with the next interface
 			continue
 		}
-
+		log.Print("IP detected, stealing ...")
 		// Bridge the Firecracker TAP interface with the container veth interface
 		dhcpIface, err := bridge(&iface)
 		if err != nil {
@@ -196,7 +202,6 @@ func addTcRedirect(iface *net.Interface) (*FCInterface, error) {
 		return nil, err
 	}
 
-	log.Printf("Adding tc filter to tuntap %s", tuntap.Attrs().Name)
 	err = addRedirectFilter(tuntap, eth)
 	if err != nil {
 		return nil, err

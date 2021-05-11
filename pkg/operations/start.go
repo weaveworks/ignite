@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -19,7 +20,7 @@ import (
 	apiruntime "github.com/weaveworks/libgitops/pkg/runtime"
 )
 
-func StartVM(vm *api.VM, debug bool) error {
+func StartVM(vm *api.VM, debug, wait bool) error {
 	// Inspect the VM container and remove it if it exists
 	inspectResult, _ := providers.Runtime.InspectContainer(vm.PrefixedID())
 	RemoveVMContainer(inspectResult)
@@ -80,6 +81,16 @@ func StartVM(vm *api.VM, debug bool) error {
 		PortBindings: vm.Spec.Network.Ports, // Add the port mappings to Docker
 	}
 
+	// Only set envVars if at least one was configured
+	var envVars []string
+	parts := strings.Split(vm.GetAnnotation((constants.IGNITE_ENV_VAR_ANNOTATION)), ",")
+	for _, part := range parts {
+		if part == "" {
+			continue
+		}
+		envVars = append(envVars, part)
+	}
+
 	// Add the volumes to the container devices
 	for _, volume := range vm.Spec.Storage.Volumes {
 		if volume.BlockDevice == nil {
@@ -122,8 +133,10 @@ func StartVM(vm *api.VM, debug bool) error {
 	// TODO: Follow-up the container here with a defer, or dedicated goroutine. We should output
 	// if it started successfully or not
 	// TODO: This is temporary until we have proper communication to the container
-	if err := waitForSpawn(vm); err != nil {
-		return err
+	if wait {
+		if err := waitForSpawn(vm); err != nil {
+			return err
+		}
 	}
 
 	// Set the container ID for the VM

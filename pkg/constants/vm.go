@@ -38,4 +38,7 @@ const (
 	// DEFAULT_SANDBOX_IMAGE_NAME is the name of the default sandbox container
 	// image to be used.
 	DEFAULT_SANDBOX_IMAGE_TAG = "dev"
+
+	// Env variable annotation key
+	IGNITE_ENV_VAR_ANNOTATION = "ignite.env.vars"
 )
