@@ -62,6 +62,45 @@ INFO[0002] Created image with ID "cae0ac317cca74ba" and name "weaveworks/ignite-
 
 Now the `weaveworks/ignite-ubuntu` image is imported and ready for VM use.
 
+### Configuring image registries
+
+Ignite's runtime configuration for image registry uses the docker client
+configuration. To add a new registry to docker client configuration, run
+`docker login <registry-address>`. This will create `$HOME/.docker/config.json`
+in the user's home directory. When ignite runs, it'll check the user's home
+directory for docker client configuration file, load the registry configuration
+if found and use it.
+
+An example of a docker client configuration file:
+
+```json
+
+{
+        "auths": {
+                "https://index.docker.io/v1/": {
+                        "auth": "<token>"
+                },
+                "gcr.io": {
+                        "auth": "<token>"
+                }
+        }
+}
+```
+
+The value of token is based on the registry provider. For `index.docker.io`,
+the token is a base64 encoded value of `<username>:<auth-token>`. For `gcr.io`,
+it's a [json key][json-key] file. Using docker
+[credential helpers][credential-helpers] also works but please ensure that the
+required credential helper program is installed to handle the credentials. If
+the docker client configuration contains `"credHelpers"` block, but the
+associated helper program isn't installed or not configured properly, ignite
+image pull will fail with errors related to the specific credential helper. In
+presence of both auth tokens and credential helpers in a configuration file,
+credential helper takes precedence.
+
+[json-key]: https://cloud.google.com/container-registry/docs/advanced-authentication#json-key
+[credential-helpers]: https://docs.docker.com/engine/reference/commandline/login/#credential-helpers
+
 ## Creating a new VM based on the imported image
 
 The `images` are read-only references of what every VM based on them should contain.
