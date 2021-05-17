@@ -2,12 +2,16 @@ package docker
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
 	"time"
 
+	refdocker "github.com/containerd/containerd/reference/docker"
+	"github.com/containerd/containerd/remotes/docker"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	cont "github.com/docker/docker/api/types/container"
@@ -18,6 +22,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/preflight"
 	"github.com/weaveworks/ignite/pkg/preflight/checkers"
 	"github.com/weaveworks/ignite/pkg/runtime"
+	"github.com/weaveworks/ignite/pkg/runtime/auth"
 	"github.com/weaveworks/ignite/pkg/util"
 )
 
@@ -47,7 +52,42 @@ func GetDockerClient() (*dockerClient, error) {
 
 func (dc *dockerClient) PullImage(image meta.OCIImageRef) (err error) {
 	var rc io.ReadCloser
-	if rc, err = dc.client.ImagePull(context.Background(), image.Normalized(), types.ImagePullOptions{}); err == nil {
+
+	opts := types.ImagePullOptions{}
+
+	// Get the domain name from the image.
+	named, err := refdocker.ParseDockerRef(image.String())
+	if err != nil {
+		return err
+	}
+	refDomain := refdocker.Domain(named)
+	// Default the host for docker.io.
+	refDomain, err = docker.DefaultHost(refDomain)
+	if err != nil {
+		return err
+	}
+
+	// Get available credentials from docker cli config.
+	authCreds, err := auth.NewAuthCreds(refDomain)
+	if err != nil {
+		return err
+	}
+	if authCreds != nil {
+		// Encode the credentials and set it in the pull options.
+		authConfig := types.AuthConfig{}
+		authConfig.Username, authConfig.Password, err = authCreds(refDomain)
+		if err != nil {
+			return err
+		}
+		encodedJSON, err := json.Marshal(authConfig)
+		if err != nil {
+			return err
+		}
+		authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+		opts.RegistryAuth = authStr
+	}
+
+	if rc, err = dc.client.ImagePull(context.Background(), image.Normalized(), opts); err == nil {
 		// Don't output the pull command
 		defer util.DeferErr(&err, rc.Close)
 		_, err = io.Copy(ioutil.Discard, rc)

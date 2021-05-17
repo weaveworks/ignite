@@ -17,6 +17,7 @@ import (
 	"github.com/weaveworks/ignite/pkg/preflight"
 	"github.com/weaveworks/ignite/pkg/resolvconf"
 	"github.com/weaveworks/ignite/pkg/runtime"
+	"github.com/weaveworks/ignite/pkg/runtime/auth"
 	"github.com/weaveworks/ignite/pkg/util"
 
 	"github.com/containerd/console"
@@ -29,6 +30,9 @@ import (
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/oci"
 	"github.com/containerd/containerd/plugin"
+	refdocker "github.com/containerd/containerd/reference/docker"
+	"github.com/containerd/containerd/remotes"
+	"github.com/containerd/containerd/remotes/docker"
 	v2shim "github.com/containerd/containerd/runtime/v2/shim"
 	"github.com/containerd/containerd/snapshots"
 	"github.com/opencontainers/go-digest"
@@ -138,9 +142,53 @@ func GetContainerdClient() (*ctdClient, error) {
 	}, nil
 }
 
+// newRemoteResolver returns a remote resolver with auth info for a given
+// host name.
+func newRemoteResolver(refHostname string) (remotes.Resolver, error) {
+	var authzOpts []docker.AuthorizerOpt
+	if authCreds, err := auth.NewAuthCreds(refHostname); err != nil {
+		return nil, err
+	} else {
+		authzOpts = append(authzOpts, docker.WithAuthCreds(authCreds))
+	}
+	authz := docker.NewDockerAuthorizer(authzOpts...)
+
+	// TODO: Add plain http option.
+	regOpts := []docker.RegistryOpt{
+		docker.WithAuthorizer(authz),
+	}
+
+	// TODO: Add option to skip verifying HTTPS cert.
+	resolverOpts := docker.ResolverOptions{
+		Hosts: docker.ConfigureDefaultRegistries(regOpts...),
+	}
+
+	resolver := docker.NewResolver(resolverOpts)
+	return resolver, nil
+}
+
 func (cc *ctdClient) PullImage(image meta.OCIImageRef) error {
 	log.Debugf("containerd: Pulling image %q", image)
-	_, err := cc.client.Pull(cc.ctx, image.Normalized(), containerd.WithPullUnpack)
+
+	// Get the domain name from the image.
+	named, err := refdocker.ParseDockerRef(image.String())
+	if err != nil {
+		return err
+	}
+	refDomain := refdocker.Domain(named)
+
+	// Create a remote resolver for the domain.
+	resolver, err := newRemoteResolver(refDomain)
+	if err != nil {
+		return err
+	}
+
+	opts := []containerd.RemoteOpt{
+		containerd.WithResolver(resolver),
+		containerd.WithPullUnpack,
+	}
+
+	_, err = cc.client.Pull(cc.ctx, image.Normalized(), opts...)
 	return err
 }
 
