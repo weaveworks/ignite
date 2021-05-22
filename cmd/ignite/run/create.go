@@ -11,7 +11,6 @@ import (
 	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/config"
-	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/dmlegacy"
 	"github.com/weaveworks/ignite/pkg/metadata"
 	"github.com/weaveworks/ignite/pkg/operations"
@@ -40,7 +39,6 @@ type CreateFlags struct {
 	ConfigFile  string
 	VM          *api.VM
 	Labels      []string
-	EnvVars     string
 	RequireName bool
 }
 
@@ -96,9 +94,6 @@ func (cf *CreateFlags) NewCreateOptions(args []string, fs *flag.FlagSet) (*Creat
 	if err := applyVMFlagOverrides(baseVM, cf, fs); err != nil {
 		return nil, err
 	}
-
-	// Save env variables
-	baseVM.SetAnnotation(constants.IGNITE_ENV_VAR_ANNOTATION, cf.EnvVars)
 
 	// If --require-name is true, VM name must be provided.
 	if cf.RequireName && len(baseVM.Name) == 0 {

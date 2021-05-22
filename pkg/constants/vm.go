@@ -39,6 +39,6 @@ const (
 	// image to be used.
 	DEFAULT_SANDBOX_IMAGE_TAG = "dev"
 
-	// Env variable annotation key
-	IGNITE_ENV_VAR_ANNOTATION = "ignite.env.vars"
+	// IGNITE_EXTRA_INTFS is the annotation key to store a list of extra interfaces
+	IGNITE_EXTRA_INTFS = "ignite.weave.works/extra-intfs"
 )

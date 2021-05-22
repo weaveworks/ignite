@@ -35,7 +35,3 @@ func AddSSHFlags(fs *pflag.FlagSet, identityFile *string, timeout *uint32) {
 	fs.StringVarP(identityFile, "identity", "i", "", "Override the vm's default identity file")
 	fs.Uint32Var(timeout, "timeout", constants.SSH_DEFAULT_TIMEOUT_SECONDS, "Timeout waiting for connection in seconds")
 }
-
-func AddEnvVarsFlag(fs *pflag.FlagSet, vars *string) {
-	fs.StringVar(vars, "sandbox-env-vars", *vars, "A list of comma-separated key=value pairs to pass as sandbox env vars")
-}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
-	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -80,17 +79,6 @@ func StartVM(vm *api.VM, debug, wait bool) error {
 		StopTimeout:  constants.STOP_TIMEOUT + constants.IGNITE_TIMEOUT,
 		PortBindings: vm.Spec.Network.Ports, // Add the port mappings to Docker
 	}
-
-	// Only set envVars if at least one was configured
-	var envVars []string
-	parts := strings.Split(vm.GetAnnotation((constants.IGNITE_ENV_VAR_ANNOTATION)), ",")
-	for _, part := range parts {
-		if part == "" {
-			continue
-		}
-		envVars = append(envVars, part)
-	}
-	config.EnvVars = envVars
 
 	// Add the volumes to the container devices
 	for _, volume := range vm.Spec.Storage.Volumes {
