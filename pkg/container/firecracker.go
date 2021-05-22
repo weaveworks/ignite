@@ -20,18 +20,8 @@ import (
 )
 
 // ExecuteFirecracker executes the firecracker process using the Go SDK
-func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) (err error) {
+func ExecuteFirecracker(vm *api.VM, fcIfaces firecracker.NetworkInterfaces) (err error) {
 	drivePath := vm.SnapshotDev()
-
-	networkInterfaces := make([]firecracker.NetworkInterface, 0, len(dhcpIfaces))
-	for _, dhcpIface := range dhcpIfaces {
-		networkInterfaces = append(networkInterfaces, firecracker.NetworkInterface{
-			StaticConfiguration: &firecracker.StaticNetworkConfiguration{
-				MacAddress:  dhcpIface.MACFilter,
-				HostDevName: dhcpIface.VMTAP,
-			},
-		})
-	}
 
 	vCPUCount := int64(vm.Spec.CPUs)
 	memSizeMib := int64(vm.Spec.Memory.MBytes())
@@ -67,7 +57,7 @@ func ExecuteFirecracker(vm *api.VM, dhcpIfaces []DHCPInterface) (err error) {
 			IsRootDevice: firecracker.Bool(true),
 			PathOnHost:   &drivePath,
 		}},
-		NetworkInterfaces: networkInterfaces,
+		NetworkInterfaces: fcIfaces,
 		MachineCfg: models.MachineConfiguration{
 			VcpuCount:  &vCPUCount,
 			MemSizeMib: &memSizeMib,

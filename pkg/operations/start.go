@@ -19,7 +19,7 @@ import (
 	apiruntime "github.com/weaveworks/libgitops/pkg/runtime"
 )
 
-func StartVM(vm *api.VM, debug bool) error {
+func StartVM(vm *api.VM, debug, wait bool) error {
 	// Inspect the VM container and remove it if it exists
 	inspectResult, _ := providers.Runtime.InspectContainer(vm.PrefixedID())
 	RemoveVMContainer(inspectResult)
@@ -122,8 +122,10 @@ func StartVM(vm *api.VM, debug bool) error {
 	// TODO: Follow-up the container here with a defer, or dedicated goroutine. We should output
 	// if it started successfully or not
 	// TODO: This is temporary until we have proper communication to the container
-	if err := waitForSpawn(vm); err != nil {
-		return err
+	if wait {
+		if err := waitForSpawn(vm); err != nil {
+			return err
+		}
 	}
 
 	// Set the container ID for the VM
