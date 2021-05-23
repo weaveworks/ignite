@@ -32,4 +32,5 @@ blocks:
           - make ignite ignite-spawn ignited bin/amd64/Dockerfile GO_MAKE_TARGET=local
           - make test
           - make root-test
+          - bash e2e/util/setup-private-registry.sh # This is required for registry auth e2e tests.
           - make e2e-nobuild  # this depends on Semaphore CI's support for nested virtualization
