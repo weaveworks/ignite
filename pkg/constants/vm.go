@@ -41,4 +41,7 @@ const (
 
 	// IGNITE_EXTRA_INTFS is the annotation key to store a list of extra interfaces
 	IGNITE_EXTRA_INTFS = "ignite.weave.works/extra-intfs"
+
+	// IGNITE_SANDBOX_ENV_VAR is the annotation key to store a list of env variables
+	IGNITE_SANDBOX_ENV_VAR = "ignite.weave.works/sanbox-env"
 )

@@ -35,7 +35,9 @@ ip link set vm0 master br0
 
 // Array of container interfaces to ignore (not forward to vm)
 var ignoreInterfaces = map[string]struct{}{
-	"lo": {},
+	"lo":    {},
+	"sit0":  {},
+	"tunl0": {},
 }
 
 var (
