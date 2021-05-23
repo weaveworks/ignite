@@ -2,9 +2,11 @@ package containerd
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -158,6 +160,17 @@ func newRemoteResolver(refHostname string, configPath string) (remotes.Resolver,
 	regOpts := []docker.RegistryOpt{
 		docker.WithAuthorizer(authz),
 	}
+
+	// TODO: Make this opt-in via a flag option.
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+	client := &http.Client{
+		Transport: tr,
+	}
+	regOpts = append(regOpts, docker.WithClient(client))
 
 	// TODO: Add option to skip verifying HTTPS cert.
 	resolverOpts := docker.ResolverOptions{
