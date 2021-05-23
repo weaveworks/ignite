@@ -361,6 +361,7 @@ func autoConvert_v1alpha4_ConfigurationSpec_To_ignite_ConfigurationSpec(in *Conf
 		return err
 	}
 	out.IDPrefix = in.IDPrefix
+	out.ClientConfigDir = in.ClientConfigDir
 	return nil
 }
 
@@ -376,6 +377,7 @@ func autoConvert_ignite_ConfigurationSpec_To_v1alpha4_ConfigurationSpec(in *igni
 		return err
 	}
 	out.IDPrefix = in.IDPrefix
+	out.ClientConfigDir = in.ClientConfigDir
 	return nil
 }
 

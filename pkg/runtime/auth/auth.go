@@ -18,9 +18,11 @@ type AuthCreds func(string) (string, string, error)
 
 // NewAuthCreds returns an AuthCreds which loads the credentials from the
 // docker client config.
-func NewAuthCreds(refHostname string) (AuthCreds, error) {
+func NewAuthCreds(refHostname string, configPath string) (AuthCreds, error) {
+	log.Debugf("runtime.auth: client config dir path: %q", configPath)
+
 	// Load does not raise an error on ENOENT
-	dockerConfigFile, err := dockercliconfig.Load("")
+	dockerConfigFile, err := dockercliconfig.Load(configPath)
 	if err != nil {
 		return nil, err
 	}

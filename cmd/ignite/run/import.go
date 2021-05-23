@@ -1,6 +1,7 @@
 package run
 
 import (
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/config"
@@ -15,6 +16,8 @@ func ImportImage(source string) (image *api.Image, err error) {
 	if err := config.SetAndPopulateProviders(providers.RuntimeName, providers.NetworkPluginName); err != nil {
 		return nil, err
 	}
+
+	cmdutil.ResolveClientConfigDir()
 
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {
@@ -37,6 +40,8 @@ func ImportKernel(source string) (kernel *api.Kernel, err error) {
 	if err := config.SetAndPopulateProviders(providers.RuntimeName, providers.NetworkPluginName); err != nil {
 		return nil, err
 	}
+
+	cmdutil.ResolveClientConfigDir()
 
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {

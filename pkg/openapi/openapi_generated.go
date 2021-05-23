@@ -1955,6 +1955,12 @@ func schema_pkg_apis_ignite_v1alpha4_ConfigurationSpec(ref common.ReferenceCallb
 							Format: "",
 						},
 					},
+					"clientConfigDir": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
