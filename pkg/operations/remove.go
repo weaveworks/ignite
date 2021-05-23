@@ -86,7 +86,7 @@ func StopVM(vm *api.VM, kill, silent bool) error {
 	}
 
 	// Remove VM networking
-	if err = removeNetworking(vm.PrefixedID(), vm.Spec.Network.Ports...); err != nil {
+	if err = removeNetworking(vm.Status.Runtime.ID, vm.Spec.Network.Ports...); err != nil {
 		log.Warnf("Failed to cleanup networking for stopped container %s %q: %v", vm.GetKind(), vm.GetUID(), err)
 
 		return err

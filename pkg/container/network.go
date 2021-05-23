@@ -3,11 +3,18 @@ package container
 import (
 	"fmt"
 	"net"
+	"os"
+	"sort"
+	"strings"
+	"syscall"
 	"time"
 
+	"github.com/firecracker-microvm/firecracker-go-sdk"
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
+	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
+	"github.com/weaveworks/ignite/pkg/util"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
@@ -28,17 +35,31 @@ ip link set vm0 master br0
 
 // Array of container interfaces to ignore (not forward to vm)
 var ignoreInterfaces = map[string]struct{}{
-	"lo": {},
+	"lo":    {},
+	"sit0":  {},
+	"tunl0": {},
 }
 
-func SetupContainerNetworking() ([]DHCPInterface, error) {
+var (
+	mainInterface = "eth0"
+)
+
+func SetupContainerNetworking(vm *api.VM) (firecracker.NetworkInterfaces, []DHCPInterface, error) {
 	var dhcpIfaces []DHCPInterface
+	var fcIfaces firecracker.NetworkInterfaces
+
+	extraIntfs := parseExtraIntfs(vm)
+
+	// total number of interfaces is at least extraIntfs + eth0
+	totalIntfNum := len(extraIntfs) + 1
+
 	interval := 1 * time.Second
-	timeout := 1 * time.Minute
+	timeout := 2 * time.Minute
 
 	err := wait.PollImmediate(interval, timeout, func() (bool, error) {
+
 		// This func returns true if it's done, and optionally an error
-		retry, err := networkSetup(&dhcpIfaces)
+		retry, err := networkSetup(&fcIfaces, &dhcpIfaces, extraIntfs, &totalIntfNum)
 		if err == nil {
 			// We're done here
 			return true, nil
@@ -53,35 +74,80 @@ func SetupContainerNetworking() ([]DHCPInterface, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return dhcpIfaces, nil
+	return fcIfaces, dhcpIfaces, nil
 }
 
-func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
-	ifaces, err := net.Interfaces()
-	if err != nil || ifaces == nil || len(ifaces) == 0 {
-		return true, fmt.Errorf("cannot get local network interfaces: %v", err)
-	}
+func filterIgnored(allIfaces []net.Interface, extraIntfs map[string]struct{}) (result []net.Interface) {
 
-	// interfacesCount counts the interfaces that are relevant to Ignite (in other words, not ignored)
-	interfacesCount := 0
-	for _, iface := range ifaces {
-		// Skip the interface if it's ignored
-		if _, ok := ignoreInterfaces[iface.Name]; ok {
+	for _, intf := range allIfaces {
+
+		// first process explicitly ignored
+		if _, ok := ignoreInterfaces[intf.Name]; ok {
 			continue
 		}
 
+		// next process extra intfs
+		if _, ok := extraIntfs[intf.Name]; ok {
+			result = append(result, intf)
+		}
+
+		// add intfs with IPs
+		addrs, _ := intf.Addrs()
+		if len(addrs) > 0 {
+			result = append(result, intf)
+		}
+
+	}
+
+	return result
+}
+
+func networkSetup(fcIfaces *firecracker.NetworkInterfaces, dhcpIfaces *[]DHCPInterface, extraIntfs map[string]struct{}, expectedIntfNum *int) (bool, error) {
+	allIfaces, err := net.Interfaces()
+	if err != nil || allIfaces == nil || len(allIfaces) == 0 {
+		return true, fmt.Errorf("cannot get local network interfaces: %v", err)
+	}
+
+	ifaces := filterIgnored(allIfaces, extraIntfs)
+	if len(ifaces) < *expectedIntfNum {
+		return true, fmt.Errorf("not enough extra interfaces connected (%d/%d), waiting", len(ifaces), *expectedIntfNum)
+	}
+
+	// Sorting interfaces to make sure eth0 is always first
+	sort.Slice(ifaces, func(i, j int) bool {
+		return ifaces[i].Name == mainInterface
+	})
+
+	for _, iface := range ifaces {
+
 		// Try to transfer the address from the container to the DHCP server
-		ipNet, gw, _, err := takeAddress(&iface)
+		ipNet, gw, noIPs, err := takeAddress(&iface)
+
 		if err != nil {
 			// Log the problem, but don't quit the function here as there might be other good interfaces
 			log.Errorf("Parsing interface %q failed: %v", iface.Name, err)
 			// Try with the next interface
 			continue
 		}
+		// If interface has no IPs configured, setup tc redirect
+		if noIPs && iface.Name != mainInterface {
+			log.Printf("Interface %s has no IP, setting up tc redirect", iface.Name)
+			tcInterface, err := addTcRedirect(&iface)
+			if err != nil {
+				log.Errorf("Failed to setup tc redirect %v", err)
+				continue
+			}
 
+			*fcIfaces = append(*fcIfaces, *tcInterface)
+			ignoreInterfaces[iface.Name] = struct{}{}
+
+			*expectedIntfNum--
+			continue
+		}
+		log.Print("IP detected, stealing ...")
 		// Bridge the Firecracker TAP interface with the container veth interface
 		dhcpIface, err := bridge(&iface)
 		if err != nil {
@@ -98,16 +164,106 @@ func networkSetup(dhcpIfaces *[]DHCPInterface) (bool, error) {
 
 		*dhcpIfaces = append(*dhcpIfaces, *dhcpIface)
 
-		// This is an interface we care about
-		interfacesCount++
+		*fcIfaces = append(*fcIfaces, firecracker.NetworkInterface{
+			StaticConfiguration: &firecracker.StaticNetworkConfiguration{
+				MacAddress:  dhcpIface.MACFilter,
+				HostDevName: dhcpIface.VMTAP,
+			},
+		})
+		ignoreInterfaces[iface.Name] = struct{}{}
+
+		*expectedIntfNum--
 	}
 
 	// If there weren't any interfaces that were valid or active yet, retry the loop
-	if interfacesCount == 0 {
-		return true, fmt.Errorf("no active or valid interfaces available yet")
+	if *expectedIntfNum > 0 {
+		return true, fmt.Errorf("still expecting %d interface(s) to be connected", *expectedIntfNum)
 	}
 
 	return false, nil
+}
+
+// addTcRedirect sets up tc redirect betweeb veth and tap https://github.com/awslabs/tc-redirect-tap/blob/master/internal/netlink.go
+// on WSL2 this requires `CONFIG_NET_CLS_U32=y`
+func addTcRedirect(iface *net.Interface) (*firecracker.NetworkInterface, error) {
+
+	eth, err := netlink.LinkByIndex(iface.Index)
+	if err != nil {
+		return nil, err
+	}
+
+	tapName := constants.TAP_PREFIX + iface.Name
+	tuntap, err := createTAPAdapter(tapName)
+	if err != nil {
+		return nil, err
+	}
+
+	err = addIngressQdisc(eth)
+	if err != nil {
+		return nil, err
+	}
+	err = addIngressQdisc(tuntap)
+	if err != nil {
+		return nil, err
+	}
+
+	err = addRedirectFilter(eth, tuntap)
+	if err != nil {
+		return nil, err
+	}
+
+	err = addRedirectFilter(tuntap, eth)
+	if err != nil {
+		return nil, err
+	}
+
+	return &firecracker.NetworkInterface{
+		StaticConfiguration: &firecracker.StaticNetworkConfiguration{
+			MacAddress:  iface.HardwareAddr.String(),
+			HostDevName: tapName,
+		},
+	}, nil
+}
+
+// tc qdisc add dev $SRC_IFACE ingress
+func addIngressQdisc(link netlink.Link) error {
+	qdisc := &netlink.Ingress{
+		QdiscAttrs: netlink.QdiscAttrs{
+			LinkIndex: link.Attrs().Index,
+			Parent:    netlink.HANDLE_INGRESS,
+		},
+	}
+
+	if err := netlink.QdiscAdd(qdisc); err != nil {
+		if !os.IsExist(err) {
+			return err
+		}
+	}
+	return nil
+}
+
+// tc filter add dev $SRC_IFACE parent ffff:
+// protocol all
+// u32 match u32 0 0
+// action mirred egress mirror dev $DST_IFACE
+func addRedirectFilter(linkSrc, linkDest netlink.Link) error {
+	filter := &netlink.U32{
+		FilterAttrs: netlink.FilterAttrs{
+			LinkIndex: linkSrc.Attrs().Index,
+			Parent:    netlink.MakeHandle(0xffff, 0),
+			Protocol:  syscall.ETH_P_ALL,
+		},
+		Actions: []netlink.Action{
+			&netlink.MirredAction{
+				ActionAttrs: netlink.ActionAttrs{
+					Action: netlink.TC_ACT_STOLEN,
+				},
+				MirredAction: netlink.TCA_EGRESS_MIRROR,
+				Ifindex:      linkDest.Attrs().Index,
+			},
+		},
+	}
+	return netlink.FilterAdd(filter)
 }
 
 // bridge creates the TAP device and performs the bridging, returning the base configuration for a DHCP server
@@ -134,9 +290,16 @@ func bridge(iface *net.Interface) (*DHCPInterface, error) {
 		return nil, err
 	}
 
+	// Generate the MAC addresses for the VM's adapters
+	macAddress := make([]string, 0, 1)
+	if err := util.NewMAC(&macAddress); err != nil {
+		return nil, fmt.Errorf("failed to generate MAC addresses: %v", err)
+	}
+
 	return &DHCPInterface{
-		VMTAP:  tapName,
-		Bridge: bridgeName,
+		VMTAP:     tapName,
+		Bridge:    bridgeName,
+		MACFilter: macAddress[0],
 	}, nil
 }
 
@@ -207,7 +370,7 @@ func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, bool, error) {
 		}, gw, false, nil
 	}
 
-	return nil, nil, false, fmt.Errorf("interface %s has no valid addresses", iface.Name)
+	return nil, nil, true, fmt.Errorf("interface %s has no valid addresses", iface.Name)
 }
 
 // createTAPAdapter creates a new TAP device with the given name
@@ -292,4 +455,22 @@ func maskString(mask net.IPMask) string {
 	}
 
 	return fmt.Sprintf("%d.%d.%d.%d", mask[0], mask[1], mask[2], mask[3])
+}
+
+// this function extracts a list of extra interfaces from VM's API definition
+// currently it's a comma-separated string stored in annotations
+func parseExtraIntfs(vm *api.VM) map[string]struct{} {
+	result := make(map[string]struct{})
+
+	parts := strings.Split(vm.GetAnnotation(constants.IGNITE_EXTRA_INTFS), ",")
+	if len(parts) < 1 || parts[0] == "" {
+		return result
+	}
+
+	for _, part := range parts {
+		result[part] = struct{}{}
+	}
+
+	return result
+
 }
