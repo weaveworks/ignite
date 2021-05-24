@@ -470,6 +470,7 @@ func (cc *ctdClient) RunContainer(image meta.OCIImageRef, config *runtime.Contai
 		oci.WithDefaultUnixDevices,
 		oci.WithTTY,
 		oci.WithImageConfigArgs(img, config.Cmd),
+		oci.WithEnv(config.EnvVars),
 		withAddedCaps(config.CapAdds),
 		withHostname(config.Hostname),
 		withMounts(config.Binds),
