@@ -14,8 +14,10 @@ import (
 )
 
 const (
-	testOSImage     = "localhost:5000/weaveworks/ignite-ubuntu:test"
-	testKernelImage = "localhost:5000/weaveworks/ignite-kernel:test"
+	httpTestOSImage      = "127.5.0.1:5080/weaveworks/ignite-ubuntu:test"
+	httpTestKernelImage  = "127.5.0.1:5080/weaveworks/ignite-kernel:test"
+	httpsTestOSImage     = "127.5.0.1:5443/weaveworks/ignite-ubuntu:test"
+	httpsTestKernelImage = "127.5.0.1:5443/weaveworks/ignite-kernel:test"
 )
 
 // client config with auth info for the registry setup in
@@ -24,21 +26,39 @@ const (
 // is updated.
 const clientConfigContent = `
 {
-        "auths": {
-                "localhost:5000": {
-                        "auth": "dGVzdHVzZXI6dGVzdHBhc3N3b3Jk"
-                }
-        }
+	"auths": {
+		"http://127.5.0.1:5080": {
+			"auth": "aHR0cF90ZXN0dXNlcjpodHRwX3Rlc3RwYXNzd29yZA=="
+		},
+		"https://127.5.0.1:5443": {
+			"auth": "aHR0cHNfdGVzdHVzZXI6aHR0cHNfdGVzdHBhc3N3b3Jk"
+		}
+	}
 }
 `
 
 func TestPullFromAuthRegistry(t *testing.T) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
+	os.Setenv("IGNITE_CONTAINERD_INSECURE_REGISTRIES", "http://127.5.0.1:5080,https://127.5.0.1:5443")
+	defer os.Unsetenv("IGNITE_CONTAINERD_INSECURE_REGISTRIES")
+
+	// Create a client config directory to use in test.
+	emptyDir, err := ioutil.TempDir("", "ignite-test")
+	assert.NilError(t, err)
+	defer os.RemoveAll(emptyDir)
+
 	// Create a client config directory to use in test.
 	ccDir, err := ioutil.TempDir("", "ignite-test")
 	assert.NilError(t, err)
 	defer os.RemoveAll(ccDir)
+
+	// Ensure the directory exists and create a config file in the
+	// directory.
+	assert.NilError(t, os.MkdirAll(ccDir, 0755))
+	configPath := filepath.Join(ccDir, "config.json")
+	assert.NilError(t, os.WriteFile(configPath, []byte(clientConfigContent), 0600))
+	defer os.Remove(configPath)
 
 	templateConfig := `---
 apiVersion: ignite.weave.works/v1alpha4
@@ -50,14 +70,14 @@ spec:
 `
 	igniteConfigContent := fmt.Sprintf(templateConfig, ccDir)
 
-	cases := []struct {
-		name               string
-		runtime            runtime.Name
-		configWithAuthPath string
-		clientConfigFlag   string
-		igniteConfig       string
-		wantErr            bool
-	}{
+	type testCase struct {
+		name             string
+		runtime          runtime.Name
+		clientConfigFlag string
+		igniteConfig     string
+		wantErr          bool
+	}
+	cases := []testCase{
 		{
 			name:    "no auth info - containerd",
 			runtime: runtime.RuntimeContainerd,
@@ -69,71 +89,62 @@ spec:
 			wantErr: true,
 		},
 		{
-			name:               "client config flag - containerd",
-			runtime:            runtime.RuntimeContainerd,
-			configWithAuthPath: ccDir,
-			clientConfigFlag:   ccDir,
+			name:             "client config flag - containerd",
+			runtime:          runtime.RuntimeContainerd,
+			clientConfigFlag: ccDir,
 		},
 		{
-			name:               "client config flag - docker",
-			runtime:            runtime.RuntimeDocker,
-			configWithAuthPath: ccDir,
-			clientConfigFlag:   ccDir,
+			name:             "client config flag - docker",
+			runtime:          runtime.RuntimeDocker,
+			clientConfigFlag: ccDir,
 		},
 		{
-			name:               "client config in ignite config - containerd",
-			runtime:            runtime.RuntimeContainerd,
-			configWithAuthPath: ccDir,
-			igniteConfig:       igniteConfigContent,
+			name:         "client config in ignite config - containerd",
+			runtime:      runtime.RuntimeContainerd,
+			igniteConfig: igniteConfigContent,
 		},
 		{
-			name:               "client config in ignite config - docker",
-			runtime:            runtime.RuntimeDocker,
-			configWithAuthPath: ccDir,
-			igniteConfig:       igniteConfigContent,
+			name:         "client config in ignite config - docker",
+			runtime:      runtime.RuntimeDocker,
+			igniteConfig: igniteConfigContent,
 		},
 		// Following sets the client config dir to a location without a valid
 		// client config file, although the client config dir in the ignite
 		// config is correct, the import fails due to bad configuration by the
 		// flag override.
 		{
-			name:               "flag override client config - containerd",
-			runtime:            runtime.RuntimeContainerd,
-			configWithAuthPath: ccDir,
-			clientConfigFlag:   "/tmp",
-			igniteConfig:       igniteConfigContent,
-			wantErr:            true,
+			name:             "flag override client config - containerd",
+			runtime:          runtime.RuntimeContainerd,
+			clientConfigFlag: emptyDir,
+			igniteConfig:     igniteConfigContent,
+			wantErr:          true,
 		},
 		{
-			name:               "flag override client config - docker",
-			runtime:            runtime.RuntimeDocker,
-			configWithAuthPath: ccDir,
-			clientConfigFlag:   "/tmp",
-			igniteConfig:       igniteConfigContent,
-			wantErr:            true,
+			name:             "flag override client config - docker",
+			runtime:          runtime.RuntimeDocker,
+			clientConfigFlag: emptyDir,
+			igniteConfig:     igniteConfigContent,
+			wantErr:          true,
 		},
-		// Following set the client config dir via flag without any actual
+		// Following sets the client config dir via flag without any actual
 		// client config. Import fails due to missing auth info in the given
 		// client config dir.
 		{
-			name:               "invalid client config - containerd",
-			runtime:            runtime.RuntimeContainerd,
-			configWithAuthPath: "",
-			clientConfigFlag:   ccDir,
-			wantErr:            true,
+			name:             "invalid client config - containerd",
+			runtime:          runtime.RuntimeContainerd,
+			clientConfigFlag: emptyDir,
+			wantErr:          true,
 		},
 		{
-			name:               "invalid client config - docker",
-			runtime:            runtime.RuntimeDocker,
-			configWithAuthPath: "",
-			clientConfigFlag:   ccDir,
-			wantErr:            true,
+			name:             "invalid client config - docker",
+			runtime:          runtime.RuntimeDocker,
+			clientConfigFlag: emptyDir,
+			wantErr:          true,
 		},
 	}
 
-	for _, rt := range cases {
-		rt := rt
-		t.Run(rt.name, func(t *testing.T) {
+	testFunc := func(rt testCase, osImage, kernelImage string) func(t *testing.T) {
+		return func(t *testing.T) {
 			igniteCmd := util.NewCommand(t, igniteBin)
 
 			// Remove images from ignite store and runtime store. Remove
@@ -141,18 +152,8 @@ spec:
 			// whole command.
 			// TODO: Improve image rm to not fail completely when there are
 			// multiple images and some are not found.
-			util.RmiCompletely(testOSImage, igniteCmd, rt.runtime)
-			util.RmiCompletely(testKernelImage, igniteCmd, rt.runtime)
-
-			// Write client config if given.
-			if len(rt.configWithAuthPath) > 0 {
-				// Ensure the directory exists and create a config file in the
-				// directory.
-				assert.NilError(t, os.MkdirAll(rt.configWithAuthPath, 0755))
-				configPath := filepath.Join(rt.configWithAuthPath, "config.json")
-				assert.NilError(t, os.WriteFile(configPath, []byte(clientConfigContent), 0600))
-				defer os.Remove(configPath)
-			}
+			util.RmiCompletely(osImage, igniteCmd, rt.runtime)
+			util.RmiCompletely(kernelImage, igniteCmd, rt.runtime)
 
 			// Write ignite config if provided.
 			var igniteConfigPath string
@@ -181,7 +182,7 @@ spec:
 
 			// Run image import.
 			_, importErr := igniteCmd.New().
-				With("image", "import", testOSImage).
+				With("image", "import", osImage).
 				With(imageImportCmdArgs...).
 				Cmd.CombinedOutput()
 			if (importErr != nil) != rt.wantErr {
@@ -190,12 +191,22 @@ spec:
 
 			// Run kernel import.
 			_, importErr = igniteCmd.New().
-				With("image", "import", testKernelImage).
+				With("image", "import", kernelImage).
 				With(imageImportCmdArgs...).
 				Cmd.CombinedOutput()
 			if (importErr != nil) != rt.wantErr {
 				t.Error("expected kernel image import to fail")
 			}
-		})
+		}
+	}
+
+	for _, rt := range cases {
+		rt := rt
+		t.Run("http_"+rt.name, testFunc(rt, httpTestOSImage, httpTestKernelImage))
+	}
+
+	for _, rt := range cases {
+		rt := rt
+		t.Run("https_"+rt.name, testFunc(rt, httpsTestOSImage, httpsTestKernelImage))
 	}
 }

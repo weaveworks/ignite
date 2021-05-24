@@ -11,9 +11,11 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
+	"github.com/docker/cli/cli/config/credentials"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/preflight"
@@ -149,27 +151,44 @@ func GetContainerdClient() (*ctdClient, error) {
 // host name.
 func newRemoteResolver(refHostname string, configPath string) (remotes.Resolver, error) {
 	var authzOpts []docker.AuthorizerOpt
-	if authCreds, err := auth.NewAuthCreds(refHostname, configPath); err != nil {
+	regOpts := []docker.RegistryOpt{}
+	insecureAllowed := false
+	client := &http.Client{}
+
+	// Allow setting insecure_registries through a client-side ENV variable.
+	// dockerconfig.json does not have a place to set this.
+	// We would have to override the parser to add a field otherwise.
+	for _, reg := range strings.Split(os.Getenv("IGNITE_CONTAINERD_INSECURE_REGISTRIES"), ",") {
+		// image hostnames don't have protocols, this is the most forgiving parsing logic.
+		if credentials.ConvertToHostname(reg) == refHostname {
+			insecureAllowed = true
+		}
+	}
+
+	if authCreds, serverAddress, err := auth.NewAuthCreds(refHostname, configPath); err != nil {
 		return nil, err
 	} else {
 		authzOpts = append(authzOpts, docker.WithAuthCreds(authCreds))
+		// Allow the dockerconfig.json to specify HTTP as a specific protocol override, defaults to HTTPS
+		if strings.HasPrefix(serverAddress, "http://") {
+			if !insecureAllowed {
+				return nil, fmt.Errorf("Registry %q uses plain HTTP, but is not in the IGNITE_CONTAINERD_INSECURE_REGISTRIES env var", serverAddress)
+			}
+			regOpts = append(regOpts, docker.WithPlainHTTP(docker.MatchAllHosts))
+		} else {
+			if insecureAllowed {
+				log.Warnf("Disabling TLS Verification for %q via IGNITE_CONTAINERD_INSECURE_REGISTRIES env var", serverAddress)
+				client.Transport = &http.Transport{
+					TLSClientConfig: &tls.Config{
+						InsecureSkipVerify: true,
+					},
+				}
+			}
+		}
 	}
 	authz := docker.NewDockerAuthorizer(authzOpts...)
 
-	// TODO: Add plain http option.
-	regOpts := []docker.RegistryOpt{
-		docker.WithAuthorizer(authz),
-	}
-
-	// TODO: Make this opt-in via a flag option.
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	}
-	client := &http.Client{
-		Transport: tr,
-	}
+	regOpts = append(regOpts, docker.WithAuthorizer(authz))
 	regOpts = append(regOpts, docker.WithClient(client))
 
 	// TODO: Add option to skip verifying HTTPS cert.
