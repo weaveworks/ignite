@@ -18,23 +18,24 @@ type AuthCreds func(string) (string, string, error)
 
 // NewAuthCreds returns an AuthCreds which loads the credentials from the
 // docker client config.
-func NewAuthCreds(refHostname string, configPath string) (AuthCreds, error) {
+func NewAuthCreds(refHostname string, configPath string) (AuthCreds, string, error) {
 	log.Debugf("runtime.auth: client config dir path: %q", configPath)
 
 	// Load does not raise an error on ENOENT
 	dockerConfigFile, err := dockercliconfig.Load(configPath)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	// DefaultHost converts "docker.io" to "registry-1.docker.io",
 	// which is wanted  by credFunc .
 	credFuncExpectedHostname, err := docker.DefaultHost(refHostname)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	var credFunc AuthCreds
+	var serverAddress string
 
 	authConfigHostnames := []string{refHostname}
 	if refHostname == "docker.io" || refHostname == "registry-1.docker.io" {
@@ -62,7 +63,7 @@ func NewAuthCreds(refHostname string, configPath string) (AuthCreds, error) {
 				} else {
 					acsaHostname := credentials.ConvertToHostname(ac.ServerAddress)
 					if acsaHostname != authConfigHostname {
-						return nil, fmt.Errorf("expected the hostname part of ac.ServerAddress (%q) to be authConfigHostname=%q, got %q",
+						return nil, "", fmt.Errorf("expected the hostname part of ac.ServerAddress (%q) to be authConfigHostname=%q, got %q",
 							ac.ServerAddress, authConfigHostname, acsaHostname)
 					}
 				}
@@ -83,12 +84,13 @@ func NewAuthCreds(refHostname string, configPath string) (AuthCreds, error) {
 					}
 					return ac.Username, ac.Password, nil
 				}
+				serverAddress = ac.ServerAddress
 				break
 			}
 		}
 	}
 	// credFunc can be nil here.
-	return credFunc, nil
+	return credFunc, serverAddress, nil
 }
 
 func isAuthConfigEmpty(ac dockercliconfigtypes.AuthConfig) bool {

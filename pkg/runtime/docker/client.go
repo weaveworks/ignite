@@ -69,7 +69,7 @@ func (dc *dockerClient) PullImage(image meta.OCIImageRef) (err error) {
 	}
 
 	// Get available credentials from docker cli config.
-	authCreds, err := auth.NewAuthCreds(refDomain, providers.ClientConfigDir)
+	authCreds, _, err := auth.NewAuthCreds(refDomain, providers.ClientConfigDir)
 	if err != nil {
 		return err
 	}
