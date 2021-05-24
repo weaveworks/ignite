@@ -17,8 +17,9 @@ ignite image import <OCI image> [flags]
 ### Options
 
 ```
-  -h, --help              help for import
-      --runtime runtime   Container runtime to use. Available options are: [docker containerd] (default containerd)
+      --client-config-dir string   Directory containing the client configuration (default ~/.docker/)
+  -h, --help                       help for import
+      --runtime runtime            Container runtime to use. Available options are: [docker containerd] (default containerd)
 ```
 
 ### Options inherited from parent commands

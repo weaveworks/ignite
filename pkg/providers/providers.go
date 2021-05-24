@@ -37,6 +37,11 @@ var Storage storage.Storage
 
 var ComponentConfig *api.Configuration
 
+// ClientConfigDir is the container runtime client configuration directory.
+// This is used during operations like image import for loading registry
+// configurations.
+var ClientConfigDir string
+
 type ProviderInitFunc func() error
 
 // Populate initializes all given providers

@@ -21,6 +21,7 @@ import (
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/preflight"
 	"github.com/weaveworks/ignite/pkg/preflight/checkers"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"github.com/weaveworks/ignite/pkg/runtime"
 	"github.com/weaveworks/ignite/pkg/runtime/auth"
 	"github.com/weaveworks/ignite/pkg/util"
@@ -68,7 +69,7 @@ func (dc *dockerClient) PullImage(image meta.OCIImageRef) (err error) {
 	}
 
 	// Get available credentials from docker cli config.
-	authCreds, err := auth.NewAuthCreds(refDomain)
+	authCreds, _, err := auth.NewAuthCreds(refDomain, providers.ClientConfigDir)
 	if err != nil {
 		return err
 	}
