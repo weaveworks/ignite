@@ -2,16 +2,20 @@ package containerd
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
+	"github.com/docker/cli/cli/config/credentials"
 	meta "github.com/weaveworks/ignite/pkg/apis/meta/v1alpha1"
 	"github.com/weaveworks/ignite/pkg/constants"
 	"github.com/weaveworks/ignite/pkg/preflight"
@@ -40,6 +44,7 @@ import (
 	imagespec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/opencontainers/runtime-spec/specs-go"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"golang.org/x/sys/unix"
 )
 
@@ -144,19 +149,47 @@ func GetContainerdClient() (*ctdClient, error) {
 
 // newRemoteResolver returns a remote resolver with auth info for a given
 // host name.
-func newRemoteResolver(refHostname string) (remotes.Resolver, error) {
+func newRemoteResolver(refHostname string, configPath string) (remotes.Resolver, error) {
 	var authzOpts []docker.AuthorizerOpt
-	if authCreds, err := auth.NewAuthCreds(refHostname); err != nil {
+	regOpts := []docker.RegistryOpt{}
+	insecureAllowed := false
+	client := &http.Client{}
+
+	// Allow setting insecure_registries through a client-side ENV variable.
+	// dockerconfig.json does not have a place to set this.
+	// We would have to override the parser to add a field otherwise.
+	for _, reg := range strings.Split(os.Getenv("IGNITE_CONTAINERD_INSECURE_REGISTRIES"), ",") {
+		// image hostnames don't have protocols, this is the most forgiving parsing logic.
+		if credentials.ConvertToHostname(reg) == refHostname {
+			insecureAllowed = true
+		}
+	}
+
+	if authCreds, serverAddress, err := auth.NewAuthCreds(refHostname, configPath); err != nil {
 		return nil, err
 	} else {
 		authzOpts = append(authzOpts, docker.WithAuthCreds(authCreds))
+		// Allow the dockerconfig.json to specify HTTP as a specific protocol override, defaults to HTTPS
+		if strings.HasPrefix(serverAddress, "http://") {
+			if !insecureAllowed {
+				return nil, fmt.Errorf("Registry %q uses plain HTTP, but is not in the IGNITE_CONTAINERD_INSECURE_REGISTRIES env var", serverAddress)
+			}
+			regOpts = append(regOpts, docker.WithPlainHTTP(docker.MatchAllHosts))
+		} else {
+			if insecureAllowed {
+				log.Warnf("Disabling TLS Verification for %q via IGNITE_CONTAINERD_INSECURE_REGISTRIES env var", serverAddress)
+				client.Transport = &http.Transport{
+					TLSClientConfig: &tls.Config{
+						InsecureSkipVerify: true,
+					},
+				}
+			}
+		}
 	}
 	authz := docker.NewDockerAuthorizer(authzOpts...)
 
-	// TODO: Add plain http option.
-	regOpts := []docker.RegistryOpt{
-		docker.WithAuthorizer(authz),
-	}
+	regOpts = append(regOpts, docker.WithAuthorizer(authz))
+	regOpts = append(regOpts, docker.WithClient(client))
 
 	// TODO: Add option to skip verifying HTTPS cert.
 	resolverOpts := docker.ResolverOptions{
@@ -178,7 +211,7 @@ func (cc *ctdClient) PullImage(image meta.OCIImageRef) error {
 	refDomain := refdocker.Domain(named)
 
 	// Create a remote resolver for the domain.
-	resolver, err := newRemoteResolver(refDomain)
+	resolver, err := newRemoteResolver(refDomain, providers.ClientConfigDir)
 	if err != nil {
 		return err
 	}
