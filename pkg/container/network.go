@@ -126,12 +126,6 @@ func networkSetup(fcIfaces *firecracker.NetworkInterfaces, dhcpIfaces *[]DHCPInt
 		// Try to transfer the address from the container to the DHCP server
 		ipNet, gw, noIPs, err := takeAddress(&iface)
 
-		if err != nil {
-			// Log the problem, but don't quit the function here as there might be other good interfaces
-			log.Errorf("Parsing interface %q failed: %v", iface.Name, err)
-			// Try with the next interface
-			continue
-		}
 		// If interface has no IPs configured, setup tc redirect
 		if noIPs && iface.Name != mainInterface {
 			log.Printf("Interface %s has no IP, setting up tc redirect", iface.Name)
@@ -147,6 +141,14 @@ func networkSetup(fcIfaces *firecracker.NetworkInterfaces, dhcpIfaces *[]DHCPInt
 			*expectedIntfNum--
 			continue
 		}
+
+		if err != nil {
+			// Log the problem, but don't quit the function here as there might be other good interfaces
+			log.Errorf("Parsing interface %q failed: %v", iface.Name, err)
+			// Try with the next interface
+			continue
+		}
+
 		log.Print("IP detected, stealing ...")
 		// Bridge the Firecracker TAP interface with the container veth interface
 		dhcpIface, err := bridge(&iface)
