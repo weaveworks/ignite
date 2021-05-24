@@ -2,9 +2,11 @@ package containerd
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -40,6 +42,7 @@ import (
 	imagespec "github.com/opencontainers/image-spec/specs-go/v1"
 	"github.com/opencontainers/runtime-spec/specs-go"
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/ignite/pkg/providers"
 	"golang.org/x/sys/unix"
 )
 
@@ -144,9 +147,9 @@ func GetContainerdClient() (*ctdClient, error) {
 
 // newRemoteResolver returns a remote resolver with auth info for a given
 // host name.
-func newRemoteResolver(refHostname string) (remotes.Resolver, error) {
+func newRemoteResolver(refHostname string, configPath string) (remotes.Resolver, error) {
 	var authzOpts []docker.AuthorizerOpt
-	if authCreds, err := auth.NewAuthCreds(refHostname); err != nil {
+	if authCreds, err := auth.NewAuthCreds(refHostname, configPath); err != nil {
 		return nil, err
 	} else {
 		authzOpts = append(authzOpts, docker.WithAuthCreds(authCreds))
@@ -157,6 +160,17 @@ func newRemoteResolver(refHostname string) (remotes.Resolver, error) {
 	regOpts := []docker.RegistryOpt{
 		docker.WithAuthorizer(authz),
 	}
+
+	// TODO: Make this opt-in via a flag option.
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+	client := &http.Client{
+		Transport: tr,
+	}
+	regOpts = append(regOpts, docker.WithClient(client))
 
 	// TODO: Add option to skip verifying HTTPS cert.
 	resolverOpts := docker.ResolverOptions{
@@ -178,7 +192,7 @@ func (cc *ctdClient) PullImage(image meta.OCIImageRef) error {
 	refDomain := refdocker.Domain(named)
 
 	// Create a remote resolver for the domain.
-	resolver, err := newRemoteResolver(refDomain)
+	resolver, err := newRemoteResolver(refDomain, providers.ClientConfigDir)
 	if err != nil {
 		return err
 	}

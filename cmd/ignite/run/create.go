@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/weaveworks/ignite/cmd/ignite/cmd/cmdutil"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/scheme"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
@@ -57,6 +58,9 @@ func (cf *CreateFlags) NewCreateOptions(args []string, fs *flag.FlagSet) (*Creat
 	if providers.ComponentConfig != nil {
 		baseVM.Spec = providers.ComponentConfig.Spec.VMDefaults
 	}
+
+	// Resolve client configuration used for pulling image if required.
+	cmdutil.ResolveClientConfigDir()
 
 	// Initialize the VM's Prefixer
 	baseVM.Status.IDPrefix = providers.IDPrefix
