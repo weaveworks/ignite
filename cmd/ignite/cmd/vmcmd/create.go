@@ -88,5 +88,5 @@ func addCreateFlags(fs *pflag.FlagSet, cf *run.CreateFlags) {
 	runtimeflag.RuntimeVar(fs, &providers.RuntimeName)
 	networkflag.NetworkPluginVar(fs, &providers.NetworkPluginName)
 	cmdutil.AddIDPrefixFlag(fs, &providers.IDPrefix)
-	cmdutil.AddClientConfigDirFlag(fs, &providers.ClientConfigDir)
+	cmdutil.AddRegistryConfigDirFlag(fs, &providers.RegistryConfigDir)
 }

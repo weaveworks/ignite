@@ -213,7 +213,7 @@ func (cc *ctdClient) PullImage(image meta.OCIImageRef) error {
 	refDomain := refdocker.Domain(named)
 
 	// Create a remote resolver for the domain.
-	resolver, err := newRemoteResolver(refDomain, providers.ClientConfigDir)
+	resolver, err := newRemoteResolver(refDomain, providers.RegistryConfigDir)
 	if err != nil {
 		return err
 	}

@@ -19,7 +19,7 @@ type AuthCreds func(string) (string, string, error)
 // NewAuthCreds returns an AuthCreds which loads the credentials from the
 // docker client config.
 func NewAuthCreds(refHostname string, configPath string) (AuthCreds, string, error) {
-	log.Debugf("runtime.auth: client config dir path: %q", configPath)
+	log.Debugf("runtime.auth: registry config dir path: %q", configPath)
 
 	// Load does not raise an error on ENOENT
 	dockerConfigFile, err := dockercliconfig.Load(configPath)

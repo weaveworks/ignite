@@ -59,8 +59,8 @@ func (cf *CreateFlags) NewCreateOptions(args []string, fs *flag.FlagSet) (*Creat
 		baseVM.Spec = providers.ComponentConfig.Spec.VMDefaults
 	}
 
-	// Resolve client configuration used for pulling image if required.
-	cmdutil.ResolveClientConfigDir()
+	// Resolve registry configuration used for pulling image if required.
+	cmdutil.ResolveRegistryConfigDir()
 
 	// Initialize the VM's Prefixer
 	baseVM.Status.IDPrefix = providers.IDPrefix

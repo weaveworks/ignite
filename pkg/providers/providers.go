@@ -37,10 +37,10 @@ var Storage storage.Storage
 
 var ComponentConfig *api.Configuration
 
-// ClientConfigDir is the container runtime client configuration directory.
+// RegistryConfigDir is the container runtime registry configuration directory.
 // This is used during operations like image import for loading registry
 // configurations.
-var ClientConfigDir string
+var RegistryConfigDir string
 
 type ProviderInitFunc func() error
 

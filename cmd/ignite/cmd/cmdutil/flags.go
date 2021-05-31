@@ -36,6 +36,6 @@ func AddSSHFlags(fs *pflag.FlagSet, identityFile *string, timeout *uint32) {
 	fs.Uint32Var(timeout, "timeout", constants.SSH_DEFAULT_TIMEOUT_SECONDS, "Timeout waiting for connection in seconds")
 }
 
-func AddClientConfigDirFlag(fs *pflag.FlagSet, dir *string) {
-	fs.StringVar(dir, "client-config-dir", "", "Directory containing the client configuration (default ~/.docker/)")
+func AddRegistryConfigDirFlag(fs *pflag.FlagSet, dir *string) {
+	fs.StringVar(dir, "registry-config-dir", "", "Directory containing the registry configuration (default ~/.docker/)")
 }
