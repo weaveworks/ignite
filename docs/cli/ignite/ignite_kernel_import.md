@@ -17,8 +17,9 @@ ignite kernel import <OCI image> [flags]
 ### Options
 
 ```
-  -h, --help              help for import
-      --runtime runtime   Container runtime to use. Available options are: [docker containerd] (default containerd)
+  -h, --help                         help for import
+      --registry-config-dir string   Directory containing the registry configuration (default ~/.docker/)
+      --runtime runtime              Container runtime to use. Available options are: [docker containerd] (default containerd)
 ```
 
 ### Options inherited from parent commands

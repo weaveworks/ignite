@@ -259,8 +259,9 @@ type Configuration struct {
 
 // ConfigurationSpec defines the ignite configuration.
 type ConfigurationSpec struct {
-	Runtime       igniteRuntime.Name       `json:"runtime,omitempty"`
-	NetworkPlugin igniteNetwork.PluginName `json:"networkPlugin,omitempty"`
-	VMDefaults    VMSpec                   `json:"vmDefaults,omitempty"`
-	IDPrefix      string                   `json:"idPrefix,omitempty"`
+	Runtime           igniteRuntime.Name       `json:"runtime,omitempty"`
+	NetworkPlugin     igniteNetwork.PluginName `json:"networkPlugin,omitempty"`
+	VMDefaults        VMSpec                   `json:"vmDefaults,omitempty"`
+	IDPrefix          string                   `json:"idPrefix,omitempty"`
+	RegistryConfigDir string                   `json:"registryConfigDir,omitempty"`
 }

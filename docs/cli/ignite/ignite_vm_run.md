@@ -42,6 +42,7 @@ ignite vm run <OCI image> [flags]
   -n, --name string                       Specify the name
       --network-plugin plugin             Network plugin to use. Available options are: [cni docker-bridge] (default cni)
   -p, --ports strings                     Map host ports to VM ports
+      --registry-config-dir string        Directory containing the registry configuration (default ~/.docker/)
       --require-name                      Require VM name to be passed, no name generation
       --runtime runtime                   Container runtime to use. Available options are: [docker containerd] (default containerd)
       --sandbox-image oci-image           Specify an OCI image for the VM sandbox (default weaveworks/ignite:dev)

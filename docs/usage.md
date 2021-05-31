@@ -64,20 +64,26 @@ Now the `weaveworks/ignite-ubuntu` image is imported and ready for VM use.
 
 ### Configuring image registries
 
-Ignite's runtime configuration for image registry uses the docker client
-configuration. To add a new registry to docker client configuration, run
+Ignite's runtime configuration for image registry uses the docker registry
+configuration. To add a new registry to docker registry configuration, run
 `docker login <registry-address>`. This will create `$HOME/.docker/config.json`
 in the user's home directory. When ignite runs, it'll check the user's home
-directory for docker client configuration file, load the registry configuration
+directory for docker registry configuration file, load the registry configuration
 if found and use it.
 
-An example of a docker client configuration file:
+!!! Note
+    On many systems, running `sudo ignite` will set the `$HOME` directory to `/root`.
+
+An example of a docker registry configuration file:
 
 ```json
 
 {
         "auths": {
                 "https://index.docker.io/v1/": {
+                        "auth": "<token>"
+                },
+                "http://localhost:5000": {
                         "auth": "<token>"
                 },
                 "gcr.io": {
@@ -92,11 +98,23 @@ the token is a base64 encoded value of `<username>:<auth-token>`. For `gcr.io`,
 it's a [json key][json-key] file. Using docker
 [credential helpers][credential-helpers] also works but please ensure that the
 required credential helper program is installed to handle the credentials. If
-the docker client configuration contains `"credHelpers"` block, but the
+the docker registry configuration contains `"credHelpers"` block, but the
 associated helper program isn't installed or not configured properly, ignite
 image pull will fail with errors related to the specific credential helper. In
 presence of both auth tokens and credential helpers in a configuration file,
 credential helper takes precedence.
+
+The `--registry-config-dir` flag can be used to override the default directory(`$HOME/.docker/`).
+This can also be done from the ignite [Configuration](./ignite-configuration).
+
+When using the `containerd` runtime to pull images, TLS verification can be disabled,
+and `http://` protocols can be specified by using the client-side `IGNITE_CONTAINERD_INSECURE_REGISTRIES`
+environment variable as a comma separate list.
+In this list, the protocol is completely ignored, because it's specified by the registry-configuration:
+
+```shell
+IGNITE_CONTAINERD_INSECURE_REGISTRIES="localhost:5000,localhost:5001,example.com,http://example.com"
+```
 
 [json-key]: https://cloud.google.com/container-registry/docs/advanced-authentication#json-key
 [credential-helpers]: https://docs.docker.com/engine/reference/commandline/login/#credential-helpers
