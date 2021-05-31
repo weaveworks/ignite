@@ -22,11 +22,11 @@ const (
 	httpsTestKernelImage = "127.5.0.1:5443/weaveworks/ignite-kernel:test"
 )
 
-// client config with auth info for the registry setup in
+// registry config with auth info for the registry setup in
 // e2e/util/setup-private-registry.sh.
 // NOTE: Update the auth token if the credentials in setup-private-registry.sh
 // is updated.
-const clientConfigContent = `
+const registryConfigContent = `
 {
 	"auths": {
 		"http://127.5.0.1:5080": {
@@ -65,21 +65,21 @@ func TestPullFromAuthRegistry(t *testing.T) {
 	os.Setenv(containerd.InsecureRegistriesEnvVar, "http://127.5.0.1:5080,https://127.5.0.1:5443")
 	defer os.Unsetenv(containerd.InsecureRegistriesEnvVar)
 
-	// Create a client config directory to use in test.
+	// Create a registry config directory to use in test.
 	emptyDir, err := ioutil.TempDir("", "ignite-test")
 	assert.NilError(t, err)
 	defer os.RemoveAll(emptyDir)
 
-	// Create a client config directory to use in test.
-	ccDir, err := ioutil.TempDir("", "ignite-test")
+	// Create a registry config directory to use in test.
+	rcDir, err := ioutil.TempDir("", "ignite-test")
 	assert.NilError(t, err)
-	defer os.RemoveAll(ccDir)
+	defer os.RemoveAll(rcDir)
 
 	// Ensure the directory exists and create a config file in the
 	// directory.
-	assert.NilError(t, os.MkdirAll(ccDir, 0755))
-	configPath := filepath.Join(ccDir, "config.json")
-	assert.NilError(t, os.WriteFile(configPath, []byte(clientConfigContent), 0600))
+	assert.NilError(t, os.MkdirAll(rcDir, 0755))
+	configPath := filepath.Join(rcDir, "config.json")
+	assert.NilError(t, os.WriteFile(configPath, []byte(registryConfigContent), 0600))
 	defer os.Remove(configPath)
 
 	templateConfig := `---
@@ -88,16 +88,16 @@ kind: Configuration
 metadata:
   name: test-config
 spec:
-  clientConfigDir: %s
+  registryConfigDir: %s
 `
-	igniteConfigContent := fmt.Sprintf(templateConfig, ccDir)
+	igniteConfigContent := fmt.Sprintf(templateConfig, rcDir)
 
 	type testCase struct {
-		name             string
-		runtime          runtime.Name
-		clientConfigFlag string
-		igniteConfig     string
-		wantErr          bool
+		name               string
+		runtime            runtime.Name
+		registryConfigFlag string
+		igniteConfig       string
+		wantErr            bool
 	}
 	cases := []testCase{
 		{
@@ -111,57 +111,57 @@ spec:
 			wantErr: true,
 		},
 		{
-			name:             "client config flag - containerd",
-			runtime:          runtime.RuntimeContainerd,
-			clientConfigFlag: ccDir,
+			name:               "registry config flag - containerd",
+			runtime:            runtime.RuntimeContainerd,
+			registryConfigFlag: rcDir,
 		},
 		{
-			name:             "client config flag - docker",
-			runtime:          runtime.RuntimeDocker,
-			clientConfigFlag: ccDir,
+			name:               "registry config flag - docker",
+			runtime:            runtime.RuntimeDocker,
+			registryConfigFlag: rcDir,
 		},
 		{
-			name:         "client config in ignite config - containerd",
+			name:         "registry config in ignite config - containerd",
 			runtime:      runtime.RuntimeContainerd,
 			igniteConfig: igniteConfigContent,
 		},
 		{
-			name:         "client config in ignite config - docker",
+			name:         "registry config in ignite config - docker",
 			runtime:      runtime.RuntimeDocker,
 			igniteConfig: igniteConfigContent,
 		},
-		// Following sets the client config dir to a location without a valid
-		// client config file, although the client config dir in the ignite
+		// Following sets the registry config dir to a location without a valid
+		// registry config file, although the registry config dir in the ignite
 		// config is correct, the import fails due to bad configuration by the
 		// flag override.
 		{
-			name:             "flag override client config - containerd",
-			runtime:          runtime.RuntimeContainerd,
-			clientConfigFlag: emptyDir,
-			igniteConfig:     igniteConfigContent,
-			wantErr:          true,
+			name:               "flag override registry config - containerd",
+			runtime:            runtime.RuntimeContainerd,
+			registryConfigFlag: emptyDir,
+			igniteConfig:       igniteConfigContent,
+			wantErr:            true,
 		},
 		{
-			name:             "flag override client config - docker",
-			runtime:          runtime.RuntimeDocker,
-			clientConfigFlag: emptyDir,
-			igniteConfig:     igniteConfigContent,
-			wantErr:          true,
+			name:               "flag override registry config - docker",
+			runtime:            runtime.RuntimeDocker,
+			registryConfigFlag: emptyDir,
+			igniteConfig:       igniteConfigContent,
+			wantErr:            true,
 		},
-		// Following sets the client config dir via flag without any actual
-		// client config. Import fails due to missing auth info in the given
-		// client config dir.
+		// Following sets the registry config dir via flag without any actual
+		// registry config. Import fails due to missing auth info in the given
+		// registry config dir.
 		{
-			name:             "invalid client config - containerd",
-			runtime:          runtime.RuntimeContainerd,
-			clientConfigFlag: emptyDir,
-			wantErr:          true,
+			name:               "invalid registry config - containerd",
+			runtime:            runtime.RuntimeContainerd,
+			registryConfigFlag: emptyDir,
+			wantErr:            true,
 		},
 		{
-			name:             "invalid client config - docker",
-			runtime:          runtime.RuntimeDocker,
-			clientConfigFlag: emptyDir,
-			wantErr:          true,
+			name:               "invalid registry config - docker",
+			runtime:            runtime.RuntimeDocker,
+			registryConfigFlag: emptyDir,
+			wantErr:            true,
 		},
 	}
 
@@ -195,8 +195,8 @@ spec:
 
 			// Construct the ignite image import command.
 			imageImportCmdArgs := []string{"--runtime", rt.runtime.String()}
-			if len(rt.clientConfigFlag) > 0 {
-				imageImportCmdArgs = append(imageImportCmdArgs, "--client-config-dir", rt.clientConfigFlag)
+			if len(rt.registryConfigFlag) > 0 {
+				imageImportCmdArgs = append(imageImportCmdArgs, "--registry-config-dir", rt.registryConfigFlag)
 			}
 			if len(igniteConfigPath) > 0 {
 				imageImportCmdArgs = append(imageImportCmdArgs, "--ignite-config", igniteConfigPath)

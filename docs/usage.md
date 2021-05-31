@@ -104,7 +104,7 @@ image pull will fail with errors related to the specific credential helper. In
 presence of both auth tokens and credential helpers in a configuration file,
 credential helper takes precedence.
 
-The `--registry-config-dir` flag can be used to override the default directory(`$HOME/.docker/config.json`).
+The `--registry-config-dir` flag can be used to override the default directory(`$HOME/.docker/`).
 This can also be done from the ignite [Configuration](./ignite-configuration).
 
 When using the `containerd` runtime to pull images, TLS verification can be disabled,

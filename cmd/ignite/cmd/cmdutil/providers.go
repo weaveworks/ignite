@@ -6,17 +6,17 @@ import (
 	"github.com/weaveworks/ignite/pkg/providers"
 )
 
-// ResolveClientConfigDir reads various configuration to resolve the client
+// ResolveRegistryConfigDir reads various configuration to resolve the registry
 // configuration directory.
-func ResolveClientConfigDir() {
+func ResolveRegistryConfigDir() {
 	if providers.ComponentConfig != nil {
-		// Set the providers client config dir from ignite configuration if
+		// Set the providers registry config dir from ignite configuration if
 		// it's empty. When it's set in the providers and in the ignite
 		// configuration, log about the override.
-		if providers.ClientConfigDir == "" {
-			providers.ClientConfigDir = providers.ComponentConfig.Spec.ClientConfigDir
-		} else if providers.ComponentConfig.Spec.ClientConfigDir != "" {
-			log.Debug("client-config-dir flag overriding the ignite configuration")
+		if providers.RegistryConfigDir == "" {
+			providers.RegistryConfigDir = providers.ComponentConfig.Spec.RegistryConfigDir
+		} else if providers.ComponentConfig.Spec.RegistryConfigDir != "" {
+			log.Debug("registry-config-dir flag overriding the ignite configuration")
 		}
 	}
 }
