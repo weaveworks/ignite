@@ -38,17 +38,24 @@ openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
     -keyout "${PRIVATE_KEY}" -out "${CERT}"
 chmod 400 "${PRIVATE_KEY}"
 
+# Use a test config directory to avoid modifying the user's default docker
+# configuration.
+DOCKER_CONFIG_DIR="$(mktemp -d)/ignite-docker-config"
+mkdir -p "${DOCKER_CONFIG_DIR}"
+
+DOCKER="docker --config=${DOCKER_CONFIG_DIR}"
+
 # Create htpasswd files.
-docker run --rm \
+${DOCKER} run --rm \
   --entrypoint htpasswd \
   httpd:2 -Bbn "${HTTP_USERNAME}" "${HTTP_PASSWORD}" > "${HTTP_REGISTRY_SECRET_PATH}/auth/htpasswd"
 
-docker run --rm \
+${DOCKER} run --rm \
   --entrypoint htpasswd \
   httpd:2 -Bbn "${HTTPS_USERNAME}" "${HTTPS_PASSWORD}" > "${HTTPS_REGISTRY_SECRET_PATH}/auth/htpasswd"
 
 # Run the registries
-docker run -d --rm \
+${DOCKER} run -d --rm \
   --name ignite-test-http-registry \
   -v "${HTTP_REGISTRY_SECRET_PATH}/auth":/auth \
   -e REGISTRY_AUTH=htpasswd \
@@ -57,7 +64,7 @@ docker run -d --rm \
   -p "${HTTP_ADDR}":5000 \
   registry:2
 
-docker run -d --rm \
+${DOCKER} run -d --rm \
   --name ignite-test-https-registry \
   -v "${HTTPS_REGISTRY_SECRET_PATH}/auth":/auth \
   -v "${HTTPS_REGISTRY_SECRET_PATH}/certs":/certs \
@@ -70,26 +77,26 @@ docker run -d --rm \
   registry:2
 
 # Login, push test images to download in tests and logout.
-docker pull "${OS_IMG}"
-docker pull "${KERNEL_IMG}"
+${DOCKER} pull "${OS_IMG}"
+${DOCKER} pull "${KERNEL_IMG}"
 
-docker tag "${OS_IMG}" "${HTTP_LOCAL_OS_IMG}"
-docker tag "${KERNEL_IMG}" "${HTTP_LOCAL_KERNEL_IMG}"
-docker tag "${OS_IMG}" "${HTTPS_LOCAL_OS_IMG}"
-docker tag "${KERNEL_IMG}" "${HTTPS_LOCAL_KERNEL_IMG}"
+${DOCKER} tag "${OS_IMG}" "${HTTP_LOCAL_OS_IMG}"
+${DOCKER} tag "${KERNEL_IMG}" "${HTTP_LOCAL_KERNEL_IMG}"
+${DOCKER} tag "${OS_IMG}" "${HTTPS_LOCAL_OS_IMG}"
+${DOCKER} tag "${KERNEL_IMG}" "${HTTPS_LOCAL_KERNEL_IMG}"
 
-docker login -u "${HTTP_USERNAME}" -p "${HTTP_PASSWORD}" "https://${HTTP_ADDR}"
-docker login -u "${HTTPS_USERNAME}" -p "${HTTPS_PASSWORD}" "https://${HTTPS_ADDR}"
+${DOCKER} login -u "${HTTP_USERNAME}" -p "${HTTP_PASSWORD}" "https://${HTTP_ADDR}"
+${DOCKER} login -u "${HTTPS_USERNAME}" -p "${HTTPS_PASSWORD}" "https://${HTTPS_ADDR}"
 
 # push in parallel, block until all finished
-docker push "${HTTP_LOCAL_OS_IMG}" &
-docker push "${HTTP_LOCAL_KERNEL_IMG}" &
-docker push "${HTTPS_LOCAL_OS_IMG}" &
-docker push "${HTTPS_LOCAL_KERNEL_IMG}" &
+${DOCKER} push "${HTTP_LOCAL_OS_IMG}" &
+${DOCKER} push "${HTTP_LOCAL_KERNEL_IMG}" &
+${DOCKER} push "${HTTPS_LOCAL_OS_IMG}" &
+${DOCKER} push "${HTTPS_LOCAL_KERNEL_IMG}" &
 wait
 
-docker logout "http://${HTTP_ADDR}"
-docker logout "https://${HTTPS_ADDR}"
+${DOCKER} logout "http://${HTTP_ADDR}"
+${DOCKER} logout "https://${HTTPS_ADDR}"
 
-docker rmi "${HTTP_LOCAL_OS_IMG}" "${HTTP_LOCAL_KERNEL_IMG}"
-docker rmi "${HTTPS_LOCAL_OS_IMG}" "${HTTPS_LOCAL_KERNEL_IMG}"
+${DOCKER} rmi "${HTTP_LOCAL_OS_IMG}" "${HTTP_LOCAL_KERNEL_IMG}"
+${DOCKER} rmi "${HTTPS_LOCAL_OS_IMG}" "${HTTPS_LOCAL_KERNEL_IMG}"
