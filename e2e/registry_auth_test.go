@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -40,6 +41,26 @@ const clientConfigContent = `
 
 func TestPullFromAuthRegistry(t *testing.T) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
+
+	// Set up the registries.
+	startRegistries := exec.Command(
+		"bash", "util/setup-private-registry.sh",
+	)
+	startOutput, startErr := startRegistries.CombinedOutput()
+	if startErr != nil {
+		t.Fatalf("failed to set up registries: %v, %s", startErr, string(startOutput))
+	}
+
+	// Stop the registries at the end.
+	stopRegistries := exec.Command(
+		"docker", "stop",
+		"ignite-test-http-registry", "ignite-test-https-registry",
+	)
+	defer func() {
+		if stopOutput, stopErr := stopRegistries.CombinedOutput(); stopErr != nil {
+			t.Fatalf("failed to stop registries: %v, %s", stopErr, string(stopOutput))
+		}
+	}()
 
 	os.Setenv(containerd.InsecureRegistriesEnvVar, "http://127.5.0.1:5080,https://127.5.0.1:5443")
 	defer os.Unsetenv(containerd.InsecureRegistriesEnvVar)
