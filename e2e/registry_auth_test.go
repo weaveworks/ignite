@@ -11,6 +11,7 @@ import (
 
 	"github.com/weaveworks/ignite/e2e/util"
 	"github.com/weaveworks/ignite/pkg/runtime"
+	"github.com/weaveworks/ignite/pkg/runtime/containerd"
 )
 
 const (
@@ -40,8 +41,8 @@ const clientConfigContent = `
 func TestPullFromAuthRegistry(t *testing.T) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
-	os.Setenv("IGNITE_CONTAINERD_INSECURE_REGISTRIES", "http://127.5.0.1:5080,https://127.5.0.1:5443")
-	defer os.Unsetenv("IGNITE_CONTAINERD_INSECURE_REGISTRIES")
+	os.Setenv(containerd.InsecureRegistriesEnvVar, "http://127.5.0.1:5080,https://127.5.0.1:5443")
+	defer os.Unsetenv(containerd.InsecureRegistriesEnvVar)
 
 	// Create a client config directory to use in test.
 	emptyDir, err := ioutil.TempDir("", "ignite-test")
@@ -186,7 +187,7 @@ spec:
 				With(imageImportCmdArgs...).
 				Cmd.CombinedOutput()
 			if (importErr != nil) != rt.wantErr {
-				t.Error("expected OS image import to fail")
+				t.Errorf("expected error %t, actual: %v", rt.wantErr, importErr)
 			}
 
 			// Run kernel import.
@@ -195,7 +196,7 @@ spec:
 				With(imageImportCmdArgs...).
 				Cmd.CombinedOutput()
 			if (importErr != nil) != rt.wantErr {
-				t.Error("expected kernel image import to fail")
+				t.Errorf("expected error %t, actual: %v", rt.wantErr, importErr)
 			}
 		}
 	}

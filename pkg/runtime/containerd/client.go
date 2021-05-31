@@ -53,6 +53,9 @@ const (
 	stopTimeoutLabel = "IgniteStopTimeout"
 	logPathTemplate  = "/tmp/%s.log"
 	resolvConfName   = "runtime.containerd.resolv.conf"
+
+	// InsecureRegistriesEnvVar helps set insecure registries.
+	InsecureRegistriesEnvVar = "IGNITE_CONTAINERD_INSECURE_REGISTRIES"
 )
 
 var (
@@ -158,7 +161,7 @@ func newRemoteResolver(refHostname string, configPath string) (remotes.Resolver,
 	// Allow setting insecure_registries through a client-side ENV variable.
 	// dockerconfig.json does not have a place to set this.
 	// We would have to override the parser to add a field otherwise.
-	for _, reg := range strings.Split(os.Getenv("IGNITE_CONTAINERD_INSECURE_REGISTRIES"), ",") {
+	for _, reg := range strings.Split(os.Getenv(InsecureRegistriesEnvVar), ",") {
 		// image hostnames don't have protocols, this is the most forgiving parsing logic.
 		if credentials.ConvertToHostname(reg) == refHostname {
 			insecureAllowed = true
@@ -172,12 +175,12 @@ func newRemoteResolver(refHostname string, configPath string) (remotes.Resolver,
 		// Allow the dockerconfig.json to specify HTTP as a specific protocol override, defaults to HTTPS
 		if strings.HasPrefix(serverAddress, "http://") {
 			if !insecureAllowed {
-				return nil, fmt.Errorf("Registry %q uses plain HTTP, but is not in the IGNITE_CONTAINERD_INSECURE_REGISTRIES env var", serverAddress)
+				return nil, fmt.Errorf("Registry %q uses plain HTTP, but is not in the %s env var", serverAddress, InsecureRegistriesEnvVar)
 			}
 			regOpts = append(regOpts, docker.WithPlainHTTP(docker.MatchAllHosts))
 		} else {
 			if insecureAllowed {
-				log.Warnf("Disabling TLS Verification for %q via IGNITE_CONTAINERD_INSECURE_REGISTRIES env var", serverAddress)
+				log.Warnf("Disabling TLS Verification for %q via %s env var", serverAddress, InsecureRegistriesEnvVar)
 				client.Transport = &http.Transport{
 					TLSClientConfig: &tls.Config{
 						InsecureSkipVerify: true,
@@ -191,7 +194,6 @@ func newRemoteResolver(refHostname string, configPath string) (remotes.Resolver,
 	regOpts = append(regOpts, docker.WithAuthorizer(authz))
 	regOpts = append(regOpts, docker.WithClient(client))
 
-	// TODO: Add option to skip verifying HTTPS cert.
 	resolverOpts := docker.ResolverOptions{
 		Hosts: docker.ConfigureDefaultRegistries(regOpts...),
 	}
