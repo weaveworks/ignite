@@ -17,7 +17,7 @@ func ImportImage(source string) (image *api.Image, err error) {
 		return nil, err
 	}
 
-	cmdutil.ResolveClientConfigDir()
+	cmdutil.ResolveRegistryConfigDir()
 
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {
@@ -41,7 +41,7 @@ func ImportKernel(source string) (kernel *api.Kernel, err error) {
 		return nil, err
 	}
 
-	cmdutil.ResolveClientConfigDir()
+	cmdutil.ResolveRegistryConfigDir()
 
 	ociRef, err := meta.NewOCIImageRef(source)
 	if err != nil {

@@ -376,7 +376,7 @@ func autoConvert_ignite_ConfigurationSpec_To_v1alpha3_ConfigurationSpec(in *igni
 		return err
 	}
 	out.IDPrefix = in.IDPrefix
-	// WARNING: in.ClientConfigDir requires manual conversion: does not exist in peer-type
+	// WARNING: in.RegistryConfigDir requires manual conversion: does not exist in peer-type
 	return nil
 }
 

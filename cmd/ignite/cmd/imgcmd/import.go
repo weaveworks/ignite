@@ -38,5 +38,5 @@ func NewCmdImport(out io.Writer) *cobra.Command {
 
 func addImportFlags(fs *pflag.FlagSet) {
 	runtimeflag.RuntimeVar(fs, &providers.RuntimeName)
-	cmdutil.AddClientConfigDirFlag(fs, &providers.ClientConfigDir)
+	cmdutil.AddRegistryConfigDirFlag(fs, &providers.RegistryConfigDir)
 }
