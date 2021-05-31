@@ -1,6 +1,8 @@
 package containerd
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -166,5 +168,84 @@ func TestV2ShimRuntimesHaveBinaryNames(t *testing.T) {
 		if v2shim.BinaryName(runtime) == "" {
 			t.Errorf("shim binary could not be found -- %q is an invalid runtime/v2/shim", runtime)
 		}
+	}
+}
+
+func TestNewRemoteResolver(t *testing.T) {
+	// Use a template for the configuration and get a registry configuration
+	// with appropriate protocol.
+	templateConfig := `
+{
+	"auths": {
+		"%s://127.5.0.1:5443": {
+			"auth": "aHR0cHNfdGVzdHVzZXI6aHR0cHNfdGVzdHBhc3N3b3Jk"
+		}
+	}
+}
+`
+	getRegistryConfigWithProtocol := func(protocol string) string {
+		return fmt.Sprintf(templateConfig, protocol)
+	}
+
+	domainRef := "127.5.0.1:5443"
+
+	cases := []struct {
+		name               string
+		insecureRegistries []string
+		registryConfig     string
+		wantErr            bool
+	}{
+		{
+			name: "invalid configuration",
+			registryConfig: `
+{ some invalid json }
+`,
+			wantErr: true,
+		},
+		{
+			name:           "valid configuration",
+			registryConfig: getRegistryConfigWithProtocol("https"),
+		},
+		{
+			name:           "http server address without insecure registries",
+			registryConfig: getRegistryConfigWithProtocol("http"),
+			wantErr:        true,
+		},
+		{
+			name:               "http server address with insecure registries",
+			insecureRegistries: []string{"127.5.0.1:5443"},
+			registryConfig:     getRegistryConfigWithProtocol("http"),
+		},
+	}
+
+	for _, rt := range cases {
+		t.Run(rt.name, func(t *testing.T) {
+			// Create directory for the registry configuration.
+			dir, err := ioutil.TempDir("", "ignite")
+			if err != nil {
+				t.Fatalf("failed to create storage for ignite: %v", err)
+			}
+			defer os.RemoveAll(dir)
+
+			// If a registry configuration content is given, write it.
+			if len(rt.registryConfig) > 0 {
+				configPath := filepath.Join(dir, "config.json")
+				writeErr := os.WriteFile(configPath, []byte(rt.registryConfig), 0600)
+				assert.NilError(t, writeErr)
+				defer os.Remove(configPath)
+			}
+
+			// If insecure registries are given, set env vars.
+			if len(rt.insecureRegistries) > 0 {
+				irValues := strings.Join(rt.insecureRegistries, ",")
+				os.Setenv(InsecureRegistriesEnvVar, irValues)
+				defer os.Unsetenv(InsecureRegistriesEnvVar)
+			}
+
+			_, rrErr := newRemoteResolver(domainRef, dir)
+			if (rrErr != nil) != rt.wantErr {
+				t.Errorf("expected error %t, actual: %v", rt.wantErr, rrErr)
+			}
+		})
 	}
 }

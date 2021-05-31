@@ -35,3 +35,7 @@ func AddSSHFlags(fs *pflag.FlagSet, identityFile *string, timeout *uint32) {
 	fs.StringVarP(identityFile, "identity", "i", "", "Override the vm's default identity file")
 	fs.Uint32Var(timeout, "timeout", constants.SSH_DEFAULT_TIMEOUT_SECONDS, "Timeout waiting for connection in seconds")
 }
+
+func AddRegistryConfigDirFlag(fs *pflag.FlagSet, dir *string) {
+	fs.StringVar(dir, "registry-config-dir", "", "Directory containing the registry configuration (default ~/.docker/)")
+}

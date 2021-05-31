@@ -37,6 +37,11 @@ var Storage storage.Storage
 
 var ComponentConfig *api.Configuration
 
+// RegistryConfigDir is the container runtime registry configuration directory.
+// This is used during operations like image import for loading registry
+// configurations.
+var RegistryConfigDir string
+
 type ProviderInitFunc func() error
 
 // Populate initializes all given providers
