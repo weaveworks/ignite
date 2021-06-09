@@ -470,7 +470,9 @@ func parseExtraIntfs(vm *api.VM) map[string]struct{} {
 	}
 
 	for _, part := range parts {
-		result[part] = struct{}{}
+		if part != "" && part != mainInterface {
+			result[part] = struct{}{}
+		}
 	}
 
 	return result
