@@ -39,8 +39,9 @@ func decodeVM(vmID string) (*api.VM, error) {
 }
 
 func StartVM(vm *api.VM) (err error) {
+
 	// Setup networking inside of the container, return the available interfaces
-	dhcpIfaces, err := container.SetupContainerNetworking()
+	fcIfaces, dhcpIfaces, err := container.SetupContainerNetworking(vm)
 	if err != nil {
 		return fmt.Errorf("network setup failed: %v", err)
 	}
@@ -66,7 +67,7 @@ func StartVM(vm *api.VM) (err error) {
 	defer util.DeferErr(&err, func() error { return os.Remove(metricsSocket) })
 
 	// Execute Firecracker
-	if err = container.ExecuteFirecracker(vm, dhcpIfaces); err != nil {
+	if err = container.ExecuteFirecracker(vm, fcIfaces); err != nil {
 		return fmt.Errorf("runtime error for VM %q: %v", vm.GetUID(), err)
 	}
 
