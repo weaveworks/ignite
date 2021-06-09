@@ -40,6 +40,7 @@ type ContainerConfig struct {
 	Cmd          []string
 	Hostname     string
 	Labels       map[string]string
+	EnvVars      []string
 	Binds        []*Bind
 	CapAdds      []string
 	Devices      []*Bind
