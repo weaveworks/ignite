@@ -4,46 +4,49 @@ import (
 	"testing"
 
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
-	"github.com/weaveworks/ignite/pkg/constants"
+	"gotest.tools/assert"
 )
 
 func TestParseExtraIntfs(t *testing.T) {
 	cases := []struct {
 		name        string
-		annotations string
-		wantIntfs   map[string]struct{}
+		annotations map[string]string
+		wantIntfs   map[string]string
 	}{
 		{
 			name:      "empty object",
-			wantIntfs: make(map[string]struct{}),
+			wantIntfs: make(map[string]string),
 		},
 		{
-			name:        "wrong annotations",
-			annotations: ",",
-			wantIntfs:   make(map[string]struct{}),
+			name: "wrong annotations",
+			annotations: map[string]string{
+				"foo":                                 "bar",
+				"ignite.weave.works/interface/":       "dhcp-bridge",
+				"ignite.weave.works/interface/eth123": "foo",
+			},
+			wantIntfs: make(map[string]string),
 		},
 		{
-			name:        "one interface",
-			annotations: "eth1",
-			wantIntfs: map[string]struct{}{
-				"eth1": {},
+			name: "one interface",
+			annotations: map[string]string{
+				"foo":                                 "bar",
+				"ignite.weave.works/interface/":       "dhcp-bridge",
+				"ignite.weave.works/interface/eth123": "tc-redirect",
+			},
+			wantIntfs: map[string]string{
+				"eth123": "tc-redirect",
 			},
 		},
 		{
-			name:        "many interfaces",
-			annotations: "eth1,eth2,,eth5,",
-			wantIntfs: map[string]struct{}{
-				"eth1": {},
-				"eth2": {},
-				"eth5": {},
+			name: "many interfaces",
+			annotations: map[string]string{
+				"foo":                                 "bar",
+				"ignite.weave.works/interface/eth0":   "dhcp-bridge",
+				"ignite.weave.works/interface/eth123": "tc-redirect",
 			},
-		},
-		{
-			name:        "many interfaces with mainInterface (eth0)",
-			annotations: "eth1,eth2,,eth0,",
-			wantIntfs: map[string]struct{}{
-				"eth1": {},
-				"eth2": {},
+			wantIntfs: map[string]string{
+				"eth0":   "dhcp-bridge",
+				"eth123": "tc-redirect",
 			},
 		},
 	}
@@ -51,23 +54,13 @@ func TestParseExtraIntfs(t *testing.T) {
 	for _, rt := range cases {
 		t.Run(rt.name, func(t *testing.T) {
 			vm := &api.VM{}
-			vm.SetAnnotation(constants.IGNITE_EXTRA_INTFS, rt.annotations)
+			for k, v := range rt.annotations {
+				vm.SetAnnotation(k, v)
+			}
 
 			parsedIntfs := parseExtraIntfs(vm)
 
-			// Check if we're not missing an interface
-			for k := range rt.wantIntfs {
-				if _, ok := parsedIntfs[k]; !ok {
-					t.Errorf("expected interface %q not found in parsed Interfaces: %q", k, parsedIntfs)
-				}
-			}
-
-			// Check if we don't have extra interfaces
-			for k := range parsedIntfs {
-				if _, ok := rt.wantIntfs[k]; !ok {
-					t.Errorf("found interface %q which was not expected", k)
-				}
-			}
+			assert.DeepEqual(t, parsedIntfs, rt.wantIntfs)
 
 		})
 	}

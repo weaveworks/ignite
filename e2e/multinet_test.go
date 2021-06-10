@@ -36,7 +36,7 @@ kind: VM
 metadata:
   name: e2e-test-vm-multinet
   annotations:
-    "ignite.weave.works/extra-intfs": "foo"
+    "ignite.weave.works/interface/foo": "tc-redirect"
 spec:
   image:
     oci: weaveworks/ignite-ubuntu
@@ -60,6 +60,7 @@ spec:
 		WithNetwork("docker-bridge").
 		With("run").
 		With("--ssh").
+		With("--debug").
 		With("--wait=false").
 		With("--config=" + vmConfigPath).
 		Run()
@@ -119,7 +120,8 @@ kind: VM
 metadata:
   name: e2e-test-vm-multinet
   annotations:
-    "ignite.weave.works/extra-intfs": "bar,foo"
+    "ignite.weave.works/interface/foo": "tc-redirect"
+    "ignite.weave.works/interface/bar": "tc-redirect"
 spec:
   image:
     oci: weaveworks/ignite-ubuntu
@@ -186,7 +188,7 @@ spec:
 
 	foundEth1Addr, _ := eth1Addr.Cmd.CombinedOutput()
 	gotEth1Addr := strings.TrimSuffix(string(foundEth1Addr), "\n")
-	assert.Check(t, strings.Contains(gotEth1Addr, fooAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", fooAddr, gotEth1Addr))
+	assert.Check(t, strings.Contains(gotEth1Addr, barAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", barAddr, gotEth1Addr))
 
 	eth2Addr := igniteCmd.New().
 		With("exec", vmName).
@@ -194,7 +196,7 @@ spec:
 
 	foundEth2Addr, _ := eth2Addr.Cmd.CombinedOutput()
 	gotEth2Addr := strings.TrimSuffix(string(foundEth2Addr), "\n")
-	assert.Check(t, strings.Contains(gotEth2Addr, barAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", barAddr, gotEth2Addr))
+	assert.Check(t, strings.Contains(gotEth2Addr, fooAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", fooAddr, gotEth2Addr))
 
 }
 
@@ -221,7 +223,8 @@ kind: VM
 metadata:
   name: e2e-test-vm-multinet
   annotations:
-    "ignite.weave.works/extra-intfs": "bar,foo"
+    "ignite.weave.works/interface/foo": "tc-redirect"
+    "ignite.weave.works/interface/bar": "tc-redirect"
 spec:
   image:
     oci: weaveworks/ignite-ubuntu
@@ -300,7 +303,7 @@ spec:
 
 	foundEth1Addr, _ := eth1Addr.Cmd.CombinedOutput()
 	gotEth1Addr := strings.TrimSuffix(string(foundEth1Addr), "\n")
-	assert.Check(t, strings.Contains(gotEth1Addr, fooAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", fooAddr, gotEth1Addr))
+	assert.Check(t, strings.Contains(gotEth1Addr, barAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", barAddr, gotEth1Addr))
 
 	eth2Addr := igniteCmd.New().
 		With("exec", vmName).
@@ -308,7 +311,7 @@ spec:
 
 	foundEth2Addr, _ := eth2Addr.Cmd.CombinedOutput()
 	gotEth2Addr := strings.TrimSuffix(string(foundEth2Addr), "\n")
-	assert.Check(t, strings.Contains(gotEth2Addr, barAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", barAddr, gotEth2Addr))
+	assert.Check(t, strings.Contains(gotEth2Addr, fooAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", fooAddr, gotEth2Addr))
 
 	eth3Addr := igniteCmd.New().
 		With("exec", vmName).
