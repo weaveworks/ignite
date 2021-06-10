@@ -23,6 +23,7 @@ ignite start <vm> [flags]
   -i, --interactive                       Attach to the VM after starting
       --network-plugin plugin             Network plugin to use. Available options are: [cni docker-bridge] (default cni)
       --runtime runtime                   Container runtime to use. Available options are: [docker containerd] (default containerd)
+  -w, --wait                              wait for VM to start (default true)
 ```
 
 ### Options inherited from parent commands

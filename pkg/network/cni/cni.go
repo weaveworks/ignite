@@ -299,7 +299,6 @@ func getIPChains(containerID string) (result []*ipChain, err error) {
 			if err != nil {
 				return
 			}
-
 			result = append(result, &ipChain{
 				ip:    stat.Source,
 				chain: stat.Target,
