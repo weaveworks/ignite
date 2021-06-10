@@ -38,4 +38,10 @@ const (
 	// DEFAULT_SANDBOX_IMAGE_NAME is the name of the default sandbox container
 	// image to be used.
 	DEFAULT_SANDBOX_IMAGE_TAG = "dev"
+
+	// IGNITE_INTERFACE_ANNOTATION is the annotation key to store a list of extra interfaces
+	IGNITE_INTERFACE_ANNOTATION = "ignite.weave.works/interface/"
+
+	// IGNITE_SANDBOX_ENV_VAR is the annotation key to store a list of env variables
+	IGNITE_SANDBOX_ENV_VAR = "ignite.weave.works/sanbox-env"
 )
