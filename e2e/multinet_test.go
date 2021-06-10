@@ -92,7 +92,7 @@ spec:
 
 	foundEth1Addr, _ := eth1Addr.Cmd.CombinedOutput()
 	gotEth1Addr := strings.TrimSuffix(string(foundEth1Addr), "\n")
-	assert.Equal(t, gotEth1Addr, fooAddr, fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", fooAddr, gotEth1Addr))
+	assert.Check(t, strings.Contains(gotEth1Addr, fooAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", fooAddr, gotEth1Addr))
 
 }
 
@@ -186,7 +186,7 @@ spec:
 
 	foundEth1Addr, _ := eth1Addr.Cmd.CombinedOutput()
 	gotEth1Addr := strings.TrimSuffix(string(foundEth1Addr), "\n")
-	assert.Equal(t, gotEth1Addr, fooAddr, fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", fooAddr, gotEth1Addr))
+	assert.Check(t, strings.Contains(gotEth1Addr, fooAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", fooAddr, gotEth1Addr))
 
 	eth2Addr := igniteCmd.New().
 		With("exec", vmName).
@@ -194,7 +194,7 @@ spec:
 
 	foundEth2Addr, _ := eth2Addr.Cmd.CombinedOutput()
 	gotEth2Addr := strings.TrimSuffix(string(foundEth2Addr), "\n")
-	assert.Equal(t, gotEth2Addr, barAddr, fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", barAddr, gotEth2Addr))
+	assert.Check(t, strings.Contains(gotEth2Addr, barAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", barAddr, gotEth2Addr))
 
 }
 
@@ -300,7 +300,7 @@ spec:
 
 	foundEth1Addr, _ := eth1Addr.Cmd.CombinedOutput()
 	gotEth1Addr := strings.TrimSuffix(string(foundEth1Addr), "\n")
-	assert.Equal(t, gotEth1Addr, fooAddr, fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", fooAddr, gotEth1Addr))
+	assert.Check(t, strings.Contains(gotEth1Addr, fooAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", fooAddr, gotEth1Addr))
 
 	eth2Addr := igniteCmd.New().
 		With("exec", vmName).
@@ -308,7 +308,7 @@ spec:
 
 	foundEth2Addr, _ := eth2Addr.Cmd.CombinedOutput()
 	gotEth2Addr := strings.TrimSuffix(string(foundEth2Addr), "\n")
-	assert.Equal(t, gotEth2Addr, barAddr, fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", barAddr, gotEth2Addr))
+	assert.Check(t, strings.Contains(gotEth2Addr, barAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", barAddr, gotEth2Addr))
 
 	eth3Addr := igniteCmd.New().
 		With("exec", vmName).

@@ -79,7 +79,15 @@ func Start(so *StartOptions, fs *flag.FlagSet) error {
 		return err
 	}
 
-	if err := operations.StartVM(so.vm, so.Debug, so.Wait); err != nil {
+	var err error
+	if so.Wait {
+		err = operations.StartVM(so.vm, so.Debug)
+	} else {
+		// Can't do much with vmChannels here, we need to return ASAP
+		_, err = operations.StartVMNonBlocking(so.vm, so.Debug)
+	}
+
+	if err != nil {
 		return err
 	}
 

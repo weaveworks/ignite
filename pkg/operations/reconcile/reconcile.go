@@ -149,7 +149,7 @@ func start(vm *api.VM) error {
 
 	log.Infof("Starting VM %q with name %q...", vm.GetUID(), vm.GetName())
 	vmStarted.Inc()
-	return operations.StartVM(vm, true, true)
+	return operations.StartVM(vm, true)
 }
 
 func stop(vm *api.VM) error {
