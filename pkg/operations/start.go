@@ -105,14 +105,12 @@ func StartVMNonBlocking(vm *api.VM, debug bool) (*VMChannels, error) {
 		PortBindings: vm.Spec.Network.Ports, // Add the port mappings to Docker
 	}
 
-	// Only set envVars if at least one was configured
 	var envVars []string
-	parts := strings.Split(vm.GetAnnotation((constants.IGNITE_SANDBOX_ENV_VAR)), ",")
-	for _, part := range parts {
-		if part == "" {
-			continue
+	for k, v := range vm.GetObjectMeta().Annotations {
+		if strings.HasPrefix(k, constants.IGNITE_SANDBOX_ENV_VAR) {
+			k := strings.TrimPrefix(k, constants.IGNITE_SANDBOX_ENV_VAR)
+			envVars = append(envVars, fmt.Sprintf("%s=%s", k, v))
 		}
-		envVars = append(envVars, part)
 	}
 	config.EnvVars = envVars
 

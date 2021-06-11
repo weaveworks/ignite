@@ -100,12 +100,12 @@ func collectInterfaces(vmIntfs map[string]string) (bool, error) {
 	}
 
 	// create a map of candidate interfaces
-	foundIntfs := make(map[string]struct{})
+	foundIntfs := make(map[string]*net.Interface)
 	for _, intf := range allIntfs {
 		if _, ok := ignoreInterfaces[intf.Name]; ok {
 			continue
 		}
-		foundIntfs[intf.Name] = struct{}{}
+		foundIntfs[intf.Name] = &intf
 
 		// default fallback behaviour to always consider intfs with an address
 		addrs, _ := intf.Addrs()
@@ -118,6 +118,18 @@ func collectInterfaces(vmIntfs map[string]string) (bool, error) {
 	for intfName, mode := range vmIntfs {
 		if _, ok := foundIntfs[intfName]; !ok {
 			return true, fmt.Errorf("interface %q (mode %q) is still not found", intfName, mode)
+		}
+
+		// for DHCP interface, we need to make sure IP and route exist
+		if mode == supportedModes.dhcp {
+			_, _, _, noIPs, err := getAddress(foundIntfs[intfName])
+			if err != nil {
+				return true, err
+			}
+
+			if noIPs {
+				return true, fmt.Errorf("IP is still not found on %q", intfName)
+			}
 		}
 	}
 	return false, nil
@@ -145,12 +157,9 @@ func networkSetup(fcIntfs *firecracker.NetworkInterfaces, dhcpIntfs *[]DHCPInter
 
 		switch vmIntfs[intfName] {
 		case supportedModes.dhcp:
-			ipNet, gw, noIPs, err := takeAddress(intf)
+			ipNet, gw, err := takeAddress(intf)
 			if err != nil {
 				return fmt.Errorf("error parsing interface %q: %s", intfName, err)
-			}
-			if noIPs {
-				return fmt.Errorf("interface %q expected to have an IP but none found", intfName)
 			}
 
 			dhcpIface, err := bridge(intf)
@@ -305,12 +314,13 @@ func bridge(iface *net.Interface) (*DHCPInterface, error) {
 	}, nil
 }
 
-// takeAddress removes the first address of an interface and returns it and the appropriate gateway
-func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, bool, error) {
+// getAddress collects the first IP and gateway information from an interface
+// in case of multiple routes over an interface, only the first one is considered
+func getAddress(iface *net.Interface) (*net.IPNet, *net.IP, netlink.Link, bool, error) {
 	addrs, err := iface.Addrs()
 	if err != nil || addrs == nil || len(addrs) == 0 {
 		// set the bool to true so the caller knows to retry
-		return nil, nil, true, fmt.Errorf("interface %q has no address", iface.Name)
+		return nil, nil, nil, true, fmt.Errorf("interface %q has no address", iface.Name)
 	}
 
 	for _, addr := range addrs {
@@ -337,42 +347,55 @@ func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, bool, error) {
 
 		link, err := netlink.LinkByName(iface.Name)
 		if err != nil {
-			return nil, nil, false, fmt.Errorf("failed to get interface %q by name: %v", iface.Name, err)
+			return nil, nil, nil, false, fmt.Errorf("failed to get interface %q by name: %v", iface.Name, err)
 		}
 
 		var gw *net.IP
-		gwString := "<nil>"
 		routes, err := netlink.RouteList(link, netlink.FAMILY_ALL)
 		if err != nil {
-			return nil, nil, false, fmt.Errorf("failed to get default gateway for interface %q: %v", iface.Name, err)
+			return nil, nil, nil, false, fmt.Errorf("failed to get default gateway for interface %q: %v", iface.Name, err)
 		}
 		for _, rt := range routes {
 			if rt.Gw != nil {
 				gw = &rt.Gw
-				gwString = gw.String()
 				break
 			}
 		}
 
-		delAddr := &netlink.Addr{
-			IPNet: &net.IPNet{
-				IP:   ip,
-				Mask: mask,
-			},
-		}
-		if err = netlink.AddrDel(link, delAddr); err != nil {
-			return nil, nil, false, fmt.Errorf("failed to remove address %q from interface %q: %v", delAddr, iface.Name, err)
-		}
-
-		log.Infof("Moving IP address %s (%s) with gateway %s from container to VM", ip.String(), maskString(mask), gwString)
-
 		return &net.IPNet{
 			IP:   ip,
 			Mask: mask,
-		}, gw, false, nil
+		}, gw, link, false, nil
 	}
 
-	return nil, nil, true, fmt.Errorf("interface %s has no valid addresses", iface.Name)
+	return nil, nil, nil, true, fmt.Errorf("interface %q has no valid addresses", iface.Name)
+}
+
+// takeAddress removes the first address of an interface and returns it and the appropriate gateway
+func takeAddress(iface *net.Interface) (*net.IPNet, *net.IP, error) {
+
+	ip, gw, link, noIPs, err := getAddress(iface)
+	if err != nil {
+		return nil, nil, err
+	}
+	if noIPs {
+		return nil, nil, fmt.Errorf("interface %q expected to have an IP but none found", iface.Name)
+	}
+
+	delAddr := &netlink.Addr{
+		IPNet: &net.IPNet{
+			IP:   ip.IP,
+			Mask: ip.Mask,
+		},
+	}
+
+	if err = netlink.AddrDel(link, delAddr); err != nil {
+		return nil, nil, fmt.Errorf("failed to remove address %q from interface %q: %v", delAddr, iface.Name, err)
+	}
+
+	log.Infof("Moving IP address %s (%s) with gateway %s from container to VM", ip.String(), maskString(ip.Mask), gw.String())
+
+	return ip, gw, nil
 }
 
 // createTAPAdapter creates a new TAP device with the given name
