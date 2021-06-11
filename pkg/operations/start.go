@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -19,20 +20,44 @@ import (
 	apiruntime "github.com/weaveworks/libgitops/pkg/runtime"
 )
 
-func StartVM(vm *api.VM, debug bool) error {
-	// Inspect the VM container and remove it if it exists
-	inspectResult, _ := providers.Runtime.InspectContainer(vm.PrefixedID())
-	RemoveVMContainer(inspectResult)
+// VMChannels can be used to get signals for different stages of VM lifecycle
+type VMChannels struct {
+	SpawnFinished chan error
+}
 
-	// Setup the snapshot overlay filesystem
-	snapshotDevPath, err := dmlegacy.ActivateSnapshot(vm)
+func StartVM(vm *api.VM, debug bool) error {
+
+	vmChans, err := StartVMNonBlocking(vm, debug)
 	if err != nil {
 		return err
 	}
 
+	if err := <-vmChans.SpawnFinished; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func StartVMNonBlocking(vm *api.VM, debug bool) (*VMChannels, error) {
+	// Inspect the VM container and remove it if it exists
+	inspectResult, _ := providers.Runtime.InspectContainer(vm.PrefixedID())
+	RemoveVMContainer(inspectResult)
+
+	// Make sure we always initialize all channels
+	vmChans := &VMChannels{
+		SpawnFinished: make(chan error),
+	}
+
+	// Setup the snapshot overlay filesystem
+	snapshotDevPath, err := dmlegacy.ActivateSnapshot(vm)
+	if err != nil {
+		return vmChans, err
+	}
+
 	kernelUID, err := lookup.KernelUIDForVM(vm, providers.Client)
 	if err != nil {
-		return err
+		return vmChans, err
 	}
 
 	vmDir := filepath.Join(constants.VM_DIR, vm.GetUID().String())
@@ -41,7 +66,7 @@ func StartVM(vm *api.VM, debug bool) error {
 	// Verify that the image containing ignite-spawn is pulled
 	// TODO: Integrate automatic pulling into pkg/runtime
 	if err := verifyPulled(vm.Spec.Sandbox.OCI); err != nil {
-		return err
+		return vmChans, err
 	}
 
 	config := &runtime.ContainerConfig{
@@ -80,6 +105,15 @@ func StartVM(vm *api.VM, debug bool) error {
 		PortBindings: vm.Spec.Network.Ports, // Add the port mappings to Docker
 	}
 
+	var envVars []string
+	for k, v := range vm.GetObjectMeta().Annotations {
+		if strings.HasPrefix(k, constants.IGNITE_SANDBOX_ENV_VAR) {
+			k := strings.TrimPrefix(k, constants.IGNITE_SANDBOX_ENV_VAR)
+			envVars = append(envVars, fmt.Sprintf("%s=%s", k, v))
+		}
+	}
+	config.EnvVars = envVars
+
 	// Add the volumes to the container devices
 	for _, volume := range vm.Spec.Storage.Volumes {
 		if volume.BlockDevice == nil {
@@ -94,7 +128,7 @@ func StartVM(vm *api.VM, debug bool) error {
 
 	// Prepare the networking for the container, for the given network plugin
 	if err := providers.NetworkPlugin.PrepareContainerSpec(config); err != nil {
-		return err
+		return vmChans, err
 	}
 
 	// If we're not debugging, remove the container post-run
@@ -105,13 +139,13 @@ func StartVM(vm *api.VM, debug bool) error {
 	// Run the VM container in Docker
 	containerID, err := providers.Runtime.RunContainer(vm.Spec.Sandbox.OCI, config, vm.PrefixedID(), vm.GetUID().String())
 	if err != nil {
-		return fmt.Errorf("failed to start container for VM %q: %v", vm.GetUID(), err)
+		return vmChans, fmt.Errorf("failed to start container for VM %q: %v", vm.GetUID(), err)
 	}
 
 	// Set up the networking
 	result, err := providers.NetworkPlugin.SetupContainerNetwork(containerID, vm.Spec.Network.Ports...)
 	if err != nil {
-		return err
+		return vmChans, err
 	}
 
 	if !logs.Quiet {
@@ -119,12 +153,8 @@ func StartVM(vm *api.VM, debug bool) error {
 		log.Infof("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
 	}
 
-	// TODO: Follow-up the container here with a defer, or dedicated goroutine. We should output
-	// if it started successfully or not
 	// TODO: This is temporary until we have proper communication to the container
-	if err := waitForSpawn(vm); err != nil {
-		return err
-	}
+	go waitForSpawn(vm, vmChans)
 
 	// Set the container ID for the VM
 	vm.Status.Runtime.ID = containerID
@@ -146,7 +176,7 @@ func StartVM(vm *api.VM, debug bool) error {
 	vm.Status.Running = true
 
 	// Write the state changes
-	return providers.Client.VMs().Set(vm)
+	return vmChans, providers.Client.VMs().Set(vm)
 }
 
 // verifyPulled pulls the ignite-spawn image if it's not present
@@ -168,7 +198,7 @@ func verifyPulled(image meta.OCIImageRef) error {
 
 // TODO: This check for the Prometheus socket file is temporary
 // until we get a proper ignite <-> ignite-spawn communication channel
-func waitForSpawn(vm *api.VM) error {
+func waitForSpawn(vm *api.VM, vmChans *VMChannels) {
 	const timeout = 10 * time.Second
 	const checkInterval = 100 * time.Millisecond
 
@@ -177,9 +207,10 @@ func waitForSpawn(vm *api.VM) error {
 		time.Sleep(checkInterval)
 
 		if util.FileExists(path.Join(vm.ObjectPath(), constants.PROMETHEUS_SOCKET)) {
-			return nil
+			vmChans.SpawnFinished <- nil
+			return
 		}
 	}
 
-	return fmt.Errorf("timeout waiting for ignite-spawn startup")
+	vmChans.SpawnFinished <- fmt.Errorf("timeout waiting for ignite-spawn startup")
 }
