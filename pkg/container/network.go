@@ -100,12 +100,18 @@ func collectInterfaces(vmIntfs map[string]string) (bool, error) {
 	}
 
 	// create a map of candidate interfaces
-	foundIntfs := make(map[string]*net.Interface)
+	foundIntfs := make(map[string]net.Interface)
 	for _, intf := range allIntfs {
 		if _, ok := ignoreInterfaces[intf.Name]; ok {
 			continue
 		}
-		foundIntfs[intf.Name] = &intf
+
+		foundIntfs[intf.Name] = intf
+
+		// If the interface is explictly defined, no changes are needed
+		if _, ok := vmIntfs[intf.Name]; ok {
+			continue
+		}
 
 		// default fallback behaviour to always consider intfs with an address
 		addrs, _ := intf.Addrs()
@@ -122,7 +128,8 @@ func collectInterfaces(vmIntfs map[string]string) (bool, error) {
 
 		// for DHCP interface, we need to make sure IP and route exist
 		if mode == supportedModes.dhcp {
-			_, _, _, noIPs, err := getAddress(foundIntfs[intfName])
+			intf := foundIntfs[intfName]
+			_, _, _, noIPs, err := getAddress(&intf)
 			if err != nil {
 				return true, err
 			}
@@ -137,13 +144,13 @@ func collectInterfaces(vmIntfs map[string]string) (bool, error) {
 
 func networkSetup(fcIntfs *firecracker.NetworkInterfaces, dhcpIntfs *[]DHCPInterface, vmIntfs map[string]string) error {
 
+	// The order in which interfaces are plugged in is intentionally deterministic
+	// All interfaces are sorted alphabetically and 'eth0' is always first
 	var keys []string
 	for k := range vmIntfs {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-
-	// making sure eth0 is always first
 	sort.Slice(keys, func(i, j int) bool {
 		return keys[i] == mainInterface
 	})
