@@ -33,18 +33,20 @@ ip link set eth0 master br0
 ip link set vm0 master br0
 */
 
-// Array of container interfaces to ignore (not forward to vm)
+// ignoreInterfaces is a Set of container interface names to ignore (not forward to vm)
 var ignoreInterfaces = map[string]struct{}{
 	"lo":    {},
 	"sit0":  {},
 	"tunl0": {},
 }
 
-var supportedModes = struct {
-	dhcp, tc string
-}{
-	dhcp: "dhcp-bridge",
-	tc:   "tc-redirect",
+const MODE_DHCP = "dhcp-bridge"
+const MODE_TC = "tc-redirect"
+
+// supportedModes is a Set of Mode strings
+var supportedModes = map[string]struct{}{
+	MODE_DHCP: {},
+	MODE_TC:   {},
 }
 
 var mainInterface = "eth0"
@@ -57,7 +59,7 @@ func SetupContainerNetworking(vm *api.VM) (firecracker.NetworkInterfaces, []DHCP
 
 	// Setting up mainInterface if not defined
 	if _, ok := vmIntfs[mainInterface]; !ok {
-		vmIntfs[mainInterface] = supportedModes.dhcp
+		vmIntfs[mainInterface] = MODE_DHCP
 	}
 
 	interval := 1 * time.Second
@@ -116,7 +118,7 @@ func collectInterfaces(vmIntfs map[string]string) (bool, error) {
 		// default fallback behaviour to always consider intfs with an address
 		addrs, _ := intf.Addrs()
 		if len(addrs) > 0 {
-			vmIntfs[intf.Name] = supportedModes.dhcp
+			vmIntfs[intf.Name] = MODE_DHCP
 		}
 	}
 
@@ -127,7 +129,7 @@ func collectInterfaces(vmIntfs map[string]string) (bool, error) {
 		}
 
 		// for DHCP interface, we need to make sure IP and route exist
-		if mode == supportedModes.dhcp {
+		if mode == MODE_DHCP {
 			intf := foundIntfs[intfName]
 			_, _, _, noIPs, err := getAddress(&intf)
 			if err != nil {
@@ -163,7 +165,7 @@ func networkSetup(fcIntfs *firecracker.NetworkInterfaces, dhcpIntfs *[]DHCPInter
 		}
 
 		switch vmIntfs[intfName] {
-		case supportedModes.dhcp:
+		case MODE_DHCP:
 			ipNet, gw, err := takeAddress(intf)
 			if err != nil {
 				return fmt.Errorf("error parsing interface %q: %s", intfName, err)
@@ -185,7 +187,7 @@ func networkSetup(fcIntfs *firecracker.NetworkInterfaces, dhcpIntfs *[]DHCPInter
 					HostDevName: dhcpIface.VMTAP,
 				},
 			})
-		case supportedModes.tc:
+		case MODE_TC:
 			tcInterface, err := addTcRedirect(intf)
 			if err != nil {
 				log.Errorf("Failed to setup tc redirect %v", err)
@@ -494,22 +496,20 @@ func maskString(mask net.IPMask) string {
 func parseExtraIntfs(vm *api.VM) map[string]string {
 	result := make(map[string]string)
 
-	for k, v := range vm.GetObjectMeta().Annotations {
-		if !strings.HasPrefix(k, constants.IGNITE_INTERFACE_ANNOTATION) {
+	for intf, mode := range vm.GetObjectMeta().Annotations {
+		if !strings.HasPrefix(intf, constants.IGNITE_INTERFACE_ANNOTATION) {
 			continue
 		}
 
-		k = strings.TrimPrefix(k, constants.IGNITE_INTERFACE_ANNOTATION)
-		if k == "" {
+		intf = strings.TrimPrefix(intf, constants.IGNITE_INTERFACE_ANNOTATION)
+		if intf == "" {
 			continue
 		}
 
-		switch v {
-		case supportedModes.dhcp:
-			result[k] = v
-		case supportedModes.tc:
-			result[k] = v
-		default:
+		if _, ok := supportedModes[mode]; ok {
+			result[intf] = mode
+		} else {
+			log.Warnf("VM specifies unrecognized mode %q for interface %q", mode, intf)
 			continue
 		}
 

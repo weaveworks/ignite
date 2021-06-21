@@ -153,17 +153,9 @@ func StartVMNonBlocking(vm *api.VM, debug bool) (*VMChannels, error) {
 		log.Infof("Started Firecracker VM %q in a container with ID %q", vm.GetUID(), containerID)
 	}
 
-	// TODO: This is temporary until we have proper communication to the container
-	go waitForSpawn(vm, vmChans)
-
 	// Set the container ID for the VM
 	vm.Status.Runtime.ID = containerID
 	vm.Status.Runtime.Name = providers.RuntimeName
-
-	// Set the start time for the VM
-	startTime := apiruntime.Timestamp()
-	vm.Status.StartTime = &startTime
-	vm.Status.Network.Plugin = providers.NetworkPluginName
 
 	// Append non-loopback runtime IP addresses of the VM to its state
 	for _, addr := range result.Addresses {
@@ -171,12 +163,21 @@ func StartVMNonBlocking(vm *api.VM, debug bool) (*VMChannels, error) {
 			vm.Status.Network.IPAddresses = append(vm.Status.Network.IPAddresses, addr.IP)
 		}
 	}
+	vm.Status.Network.Plugin = providers.NetworkPluginName
 
 	// Set the VM's status to running
 	vm.Status.Running = true
 
-	// Write the state changes
-	return vmChans, providers.Client.VMs().Set(vm)
+	// write the API object in a non-running state before we wait for spawn's network logic and firecracker
+	if err := providers.Client.VMs().Set(vm); err != nil {
+		return vmChans, err
+	}
+
+	// TODO: This is temporary until we have proper communication to the container
+	// It's best to perform any imperative changes to the VM object pointer before this go-routine starts
+	go waitForSpawn(vm, vmChans)
+
+	return vmChans, nil
 }
 
 // verifyPulled pulls the ignite-spawn image if it's not present
@@ -202,12 +203,23 @@ func waitForSpawn(vm *api.VM, vmChans *VMChannels) {
 	const timeout = 10 * time.Second
 	const checkInterval = 100 * time.Millisecond
 
-	startTime := time.Now()
-	for time.Since(startTime) < timeout {
+	timer := time.Now()
+	for time.Since(timer) < timeout {
 		time.Sleep(checkInterval)
 
 		if util.FileExists(path.Join(vm.ObjectPath(), constants.PROMETHEUS_SOCKET)) {
-			vmChans.SpawnFinished <- nil
+			// Before we write the VM, we should REALLY REALLY re-fetch the API object from storage
+			vm, err := providers.Client.VMs().Get(vm.GetUID())
+			if err != nil {
+				vmChans.SpawnFinished <- err
+			}
+
+			// Set the start time for the VM
+			startTime := apiruntime.Timestamp()
+			vm.Status.StartTime = &startTime
+
+			// Write the state changes, send any errors through the channel
+			vmChans.SpawnFinished <- providers.Client.VMs().Set(vm)
 			return
 		}
 	}

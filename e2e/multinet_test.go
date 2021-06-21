@@ -70,11 +70,11 @@ spec:
 		With("ps").
 		With("--filter").
 		With(fmt.Sprintf("{{.ObjectMeta.Name}}=%s", vmName)).
-		With("--quiet")
+		With("--template={{.ObjectMeta.UID}}")
 
 	idOut, idErr := idCmd.Cmd.CombinedOutput()
 	assert.Check(t, idErr, fmt.Sprintf("vm id not found: \n%q\n%s", idCmd.Cmd, idOut))
-	vmID := string(idOut[:len(idOut)-2])
+	vmID := strings.TrimSuffix(string(idOut), "\n")
 
 	fooAddr := "aa:ca:e9:12:34:56"
 	dockerCmd.New().
@@ -154,11 +154,11 @@ spec:
 		With("ps").
 		With("--filter").
 		With(fmt.Sprintf("{{.ObjectMeta.Name}}=%s", vmName)).
-		With("--quiet")
+		With("--template={{.ObjectMeta.UID}}")
 
 	idOut, idErr := idCmd.Cmd.CombinedOutput()
 	assert.Check(t, idErr, fmt.Sprintf("vm id not found: \n%q\n%s", idCmd.Cmd, idOut))
-	vmID := string(idOut[:len(idOut)-2])
+	vmID := strings.TrimSuffix(string(idOut), "\n")
 
 	fooAddr := "aa:ca:e9:12:34:56"
 	dockerCmd.New().
@@ -257,11 +257,11 @@ spec:
 		With("ps").
 		With("--filter").
 		With(fmt.Sprintf("{{.ObjectMeta.Name}}=%s", vmName)).
-		With("--quiet")
+		With("--template={{.ObjectMeta.UID}}")
 
 	idOut, idErr := idCmd.Cmd.CombinedOutput()
 	assert.Check(t, idErr, fmt.Sprintf("vm id not found: \n%q\n%s", idCmd.Cmd, idOut))
-	vmID := string(idOut[:len(idOut)-2])
+	vmID := strings.TrimSuffix(string(idOut), "\n")
 
 	fooAddr := "aa:ca:e9:12:34:56"
 	dockerCmd.New().
