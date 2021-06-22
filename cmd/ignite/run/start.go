@@ -22,7 +22,6 @@ import (
 
 type StartFlags struct {
 	Interactive            bool
-	Wait                   bool
 	Debug                  bool
 	IgnoredPreflightErrors []string
 }
@@ -79,20 +78,12 @@ func Start(so *StartOptions, fs *flag.FlagSet) error {
 		return err
 	}
 
-	var err error
-	if so.Wait {
-		err = operations.StartVM(so.vm, so.Debug)
-	} else {
-		// Can't do much with vmChannels here, we need to return ASAP
-		_, err = operations.StartVMNonBlocking(so.vm, so.Debug)
-	}
-
-	if err != nil {
+	if err := operations.StartVM(so.vm, so.Debug); err != nil {
 		return err
 	}
 
 	// When --ssh is enabled, wait until SSH service started on port 22 at most N seconds
-	if ssh := so.vm.Spec.SSH; ssh != nil && ssh.Generate && len(so.vm.Status.Network.IPAddresses) > 0 && so.Wait {
+	if ssh := so.vm.Spec.SSH; ssh != nil && ssh.Generate && len(so.vm.Status.Network.IPAddresses) > 0 {
 		if err := waitForSSH(so.vm, constants.SSH_DEFAULT_TIMEOUT_SECONDS, 5); err != nil {
 			return err
 		}

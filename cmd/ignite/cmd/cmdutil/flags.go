@@ -27,10 +27,6 @@ func AddInteractiveFlag(fs *pflag.FlagSet, interactive *bool) {
 	fs.BoolVarP(interactive, "interactive", "i", *interactive, "Attach to the VM after starting")
 }
 
-func AddWaitFlag(fs *pflag.FlagSet, wait *bool) {
-	fs.BoolVarP(wait, "wait", "w", true, "wait for VM to start")
-}
-
 func AddForceFlag(fs *pflag.FlagSet, force *bool) {
 	fs.BoolVarP(force, "force", "f", *force, "Force this operation. Warning, use of this mode may have unintended consequences.")
 }

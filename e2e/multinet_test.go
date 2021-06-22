@@ -2,9 +2,6 @@ package e2e
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -138,65 +135,15 @@ func TestOneExtraInterface(t *testing.T) {
 func TestMultipleInterface(t *testing.T) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
-	vmName := "e2e-test-vm-multinet"
-
 	igniteCmd := util.NewCommand(t, igniteBin)
-	dockerCmd := util.NewCommand(t, "docker")
+	dockerCmd := util.NewCommand(t, runtime.RuntimeDocker.String())
 
-	// Clone this repo in a new dir.
-	tempDir, err := ioutil.TempDir("", "ignite-multinet")
-	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
-
-	// Write a VM config with annotations
-
-	vmConfig := []byte(`---
-apiVersion: ignite.weave.works/v1alpha4
-kind: VM
-metadata:
-  name: e2e-test-vm-multinet
-  annotations:
-    "ignite.weave.works/interface/foo": "tc-redirect"
-    "ignite.weave.works/interface/bar": "tc-redirect"
-spec:
-  image:
-    oci: weaveworks/ignite-ubuntu
-  cpus: 1
-  diskSize: 3GB
-  memory: 800MB
-  ssh: true
-`)
-
-	vmConfigPath := filepath.Join(tempDir, "my-vm.yaml")
-	assert.Check(t, ioutil.WriteFile(vmConfigPath, vmConfig, 0644), "failed to write VM config")
+	vmChans, vmID := startAsyncVM(t, []string{"foo", "bar"})
 
 	// Clean-up the following VM.
 	defer igniteCmd.New().
-		With("rm", "-f", vmName).
+		With("rm", "-f", multinetVM).
 		Run()
-
-	// Run VM.
-	igniteCmd.New().
-		WithRuntime("docker").
-		WithNetwork("docker-bridge").
-		With("run").
-		With("--ssh").
-		With("--wait=false").
-		With("--config=" + vmConfigPath).
-		Run()
-
-	// Get the VM ID
-	idCmd := igniteCmd.New().
-		With("ps").
-		With("--filter").
-		With(fmt.Sprintf("{{.ObjectMeta.Name}}=%s", vmName)).
-		With("--template={{.ObjectMeta.UID}}")
-
-	idOut, idErr := idCmd.Cmd.CombinedOutput()
-	assert.Check(t, idErr, fmt.Sprintf("vm id not found: \n%q\n%s", idCmd.Cmd, idOut))
-	vmID := strings.TrimSuffix(string(idOut), "\n")
 
 	fooAddr := "aa:ca:e9:12:34:56"
 	dockerCmd.New().
@@ -220,8 +167,13 @@ spec:
 		With("ip", "link", "set", "bar", "address", barAddr).
 		Run()
 
+	// check that the VM has started before trying exec
+	if err := <-vmChans.SpawnFinished; err != nil {
+		t.Fatalf("failed to start a VM: \n%q\n", err)
+	}
+
 	eth1Addr := igniteCmd.New().
-		With("exec", vmName).
+		With("exec", multinetVM).
 		With("cat", "/sys/class/net/eth1/address")
 
 	foundEth1Addr, _ := eth1Addr.Cmd.CombinedOutput()
@@ -229,7 +181,7 @@ spec:
 	assert.Check(t, strings.Contains(gotEth1Addr, barAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", barAddr, gotEth1Addr))
 
 	eth2Addr := igniteCmd.New().
-		With("exec", vmName).
+		With("exec", multinetVM).
 		With("cat", "/sys/class/net/eth2/address")
 
 	foundEth2Addr, _ := eth2Addr.Cmd.CombinedOutput()
@@ -241,65 +193,15 @@ spec:
 func TestMultipleInterfaceImplicit(t *testing.T) {
 	assert.Assert(t, e2eHome != "", "IGNITE_E2E_HOME should be set")
 
-	vmName := "e2e-test-vm-multinet"
-
 	igniteCmd := util.NewCommand(t, igniteBin)
-	dockerCmd := util.NewCommand(t, "docker")
+	dockerCmd := util.NewCommand(t, runtime.RuntimeDocker.String())
 
-	// Clone this repo in a new dir.
-	tempDir, err := ioutil.TempDir("", "ignite-multinet")
-	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
-
-	// Write a VM config with annotations
-
-	vmConfig := []byte(`---
-apiVersion: ignite.weave.works/v1alpha4
-kind: VM
-metadata:
-  name: e2e-test-vm-multinet
-  annotations:
-    "ignite.weave.works/interface/foo": "tc-redirect"
-    "ignite.weave.works/interface/bar": "tc-redirect"
-spec:
-  image:
-    oci: weaveworks/ignite-ubuntu
-  cpus: 1
-  diskSize: 3GB
-  memory: 800MB
-  ssh: true
-`)
-
-	vmConfigPath := filepath.Join(tempDir, "my-vm.yaml")
-	assert.Check(t, ioutil.WriteFile(vmConfigPath, vmConfig, 0644), "failed to write VM config")
+	vmChans, vmID := startAsyncVM(t, []string{"foo", "bar"})
 
 	// Clean-up the following VM.
 	defer igniteCmd.New().
-		With("rm", "-f", vmName).
+		With("rm", "-f", multinetVM).
 		Run()
-
-	// Run VM.
-	igniteCmd.New().
-		WithRuntime("docker").
-		WithNetwork("docker-bridge").
-		With("run").
-		With("--ssh").
-		With("--wait=false").
-		With("--config=" + vmConfigPath).
-		Run()
-
-	// Get the VM ID
-	idCmd := igniteCmd.New().
-		With("ps").
-		With("--filter").
-		With(fmt.Sprintf("{{.ObjectMeta.Name}}=%s", vmName)).
-		With("--template={{.ObjectMeta.UID}}")
-
-	idOut, idErr := idCmd.Cmd.CombinedOutput()
-	assert.Check(t, idErr, fmt.Sprintf("vm id not found: \n%q\n%s", idCmd.Cmd, idOut))
-	vmID := strings.TrimSuffix(string(idOut), "\n")
 
 	fooAddr := "aa:ca:e9:12:34:56"
 	dockerCmd.New().
@@ -335,8 +237,13 @@ spec:
 		With("ip", "link", "set", "baz", "address", bazAddr).
 		Run()
 
+	// check that the VM has started before trying exec
+	if err := <-vmChans.SpawnFinished; err != nil {
+		t.Fatalf("failed to start a VM: \n%q\n", err)
+	}
+
 	eth1Addr := igniteCmd.New().
-		With("exec", vmName).
+		With("exec", multinetVM).
 		With("cat", "/sys/class/net/eth1/address")
 
 	foundEth1Addr, _ := eth1Addr.Cmd.CombinedOutput()
@@ -344,7 +251,7 @@ spec:
 	assert.Check(t, strings.Contains(gotEth1Addr, barAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", barAddr, gotEth1Addr))
 
 	eth2Addr := igniteCmd.New().
-		With("exec", vmName).
+		With("exec", multinetVM).
 		With("cat", "/sys/class/net/eth2/address")
 
 	foundEth2Addr, _ := eth2Addr.Cmd.CombinedOutput()
@@ -352,7 +259,7 @@ spec:
 	assert.Check(t, strings.Contains(gotEth2Addr, fooAddr), fmt.Sprintf("unexpected address found:\n\t(WNT): %q\n\t(GOT): %q", fooAddr, gotEth2Addr))
 
 	eth3Addr := igniteCmd.New().
-		With("exec", vmName).
+		With("exec", multinetVM).
 		With("cat", "/sys/class/net/eth3/address")
 
 	_, foundEth3Err := eth3Addr.Cmd.CombinedOutput()
