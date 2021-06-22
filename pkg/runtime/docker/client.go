@@ -199,6 +199,7 @@ func (dc *dockerClient) RunContainer(image meta.OCIImageRef, config *runtime.Con
 		Cmd:          config.Cmd,
 		Image:        image.Normalized(),
 		Labels:       config.Labels,
+		Env:          config.EnvVars,
 		StopTimeout:  &stopTimeout,
 	}, &container.HostConfig{
 		Binds:        binds,
