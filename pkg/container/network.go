@@ -70,7 +70,6 @@ func SetupContainerNetworking(vm *api.VM) (firecracker.NetworkInterfaces, []DHCP
 		// This func returns true if it's done, and optionally an error
 		retry, err := collectInterfaces(vmIntfs)
 
-		//
 		if err == nil {
 			// We're done here
 			return true, nil
