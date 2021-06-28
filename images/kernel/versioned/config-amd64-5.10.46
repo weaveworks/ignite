@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/x86 5.10.25 Kernel Configuration
+# Linux/x86 5.10.46 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0"
 CONFIG_CC_IS_GCC=y
@@ -1638,6 +1638,7 @@ CONFIG_BLK_DEV_RBD=m
 # NVME Support
 #
 # CONFIG_NVME_FC is not set
+# CONFIG_NVME_TCP is not set
 # CONFIG_NVME_TARGET is not set
 # end of NVME Support
 
@@ -2568,6 +2569,7 @@ CONFIG_UIO=m
 CONFIG_UIO_PDRV_GENIRQ=m
 CONFIG_UIO_DMEM_GENIRQ=m
 # CONFIG_UIO_PRUSS is not set
+# CONFIG_VFIO is not set
 CONFIG_VIRT_DRIVERS=y
 CONFIG_VIRTIO=y
 CONFIG_VIRTIO_MENU=y
