@@ -1,5 +1,15 @@
 # In this file, the recipe for patching all kernel configs (all versions & architectures) is
 
+# Enable bonding/teaming
+CONFIG_BONDING=y
+CONFIG_NET_TEAM=y
+CONFIG_NET_TEAM_MODE_BROADCAST=y
+CONFIG_NET_TEAM_MODE_ROUNDROBIN=y
+CONFIG_NET_TEAM_MODE_RANDOM=y
+CONFIG_NET_TEAM_MODE_ACTIVEBACKUP=y
+CONFIG_NET_TEAM_MODE_LOADBALANCE=y
+
+
 # For making Weave Net work
 CONFIG_DUMMY=y
 # Enable VXLAN support as a module so that e.g. Flannel works
