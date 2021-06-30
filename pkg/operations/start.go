@@ -197,11 +197,10 @@ func verifyPulled(image meta.OCIImageRef) error {
 // TODO: This check for the Prometheus socket file is temporary
 // until we get a proper ignite <-> ignite-spawn communication channel
 func waitForSpawn(vm *api.VM, vmChans *VMChannels) {
-	const timeout = 10 * time.Second
 	const checkInterval = 100 * time.Millisecond
 
 	timer := time.Now()
-	for time.Since(timer) < timeout {
+	for time.Since(timer) < constants.IGNITE_SPAWN_TIMEOUT {
 		time.Sleep(checkInterval)
 
 		if util.FileExists(path.Join(vm.ObjectPath(), constants.PROMETHEUS_SOCKET)) {

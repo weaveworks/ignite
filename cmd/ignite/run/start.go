@@ -84,7 +84,7 @@ func Start(so *StartOptions, fs *flag.FlagSet) error {
 
 	// When --ssh is enabled, wait until SSH service started on port 22 at most N seconds
 	if ssh := so.vm.Spec.SSH; ssh != nil && ssh.Generate && len(so.vm.Status.Network.IPAddresses) > 0 {
-		if err := waitForSSH(so.vm, constants.SSH_DEFAULT_TIMEOUT_SECONDS, 5); err != nil {
+		if err := waitForSSH(so.vm, constants.SSH_DEFAULT_TIMEOUT_SECONDS, constants.IGNITE_SPAWN_TIMEOUT); err != nil {
 			return err
 		}
 	}
@@ -125,7 +125,7 @@ func dialSuccess(vm *ignite.VM, seconds int) error {
 	return nil
 }
 
-func waitForSSH(vm *ignite.VM, dialSeconds, sshTimeout int) error {
+func waitForSSH(vm *ignite.VM, dialSeconds int, sshTimeout time.Duration) error {
 	if err := dialSuccess(vm, dialSeconds); err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func waitForSSH(vm *ignite.VM, dialSeconds, sshTimeout int) error {
 
 	config := &ssh.ClientConfig{
 		HostKeyCallback: certCheck.CheckHostKey,
-		Timeout:         time.Duration(sshTimeout) * time.Second,
+		Timeout:         sshTimeout,
 	}
 
 	addr := vm.Status.Network.IPAddresses[0].String() + ":22"

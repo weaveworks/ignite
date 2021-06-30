@@ -63,9 +63,8 @@ func SetupContainerNetworking(vm *api.VM) (firecracker.NetworkInterfaces, []DHCP
 	}
 
 	interval := 1 * time.Second
-	timeout := 2 * time.Minute
 
-	err := wait.PollImmediate(interval, timeout, func() (bool, error) {
+	err := wait.PollImmediate(interval, constants.IGNITE_SPAWN_TIMEOUT, func() (bool, error) {
 
 		// This func returns true if it's done, and optionally an error
 		retry, err := collectInterfaces(vmIntfs)

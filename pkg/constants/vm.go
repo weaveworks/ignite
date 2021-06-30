@@ -1,5 +1,7 @@
 package constants
 
+import "time"
+
 const (
 	// Path to directory containing a subdirectory for each VM
 	VM_DIR = DATA_DIR + "/vm"
@@ -44,4 +46,7 @@ const (
 
 	// IGNITE_SANDBOX_ENV_VAR is the annotation prefix to store a list of env variables
 	IGNITE_SANDBOX_ENV_VAR = "ignite.weave.works/sanbox-env/"
+
+	// IGNITE_SPAWN_TIMEOUT determins how long to wait for spawn to start up
+	IGNITE_SPAWN_TIMEOUT = 2 * time.Minute
 )
