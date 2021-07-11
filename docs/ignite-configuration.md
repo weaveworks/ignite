@@ -9,7 +9,7 @@ with path to the configuration file.
 Example configuration:
 
 ```yaml
-apiVersion: ignite.weave.works/v1alpha3
+apiVersion: ignite.weave.works/v1alpha4
 kind: Configuration
 metadata:
   name: test-config
@@ -57,7 +57,7 @@ DEBU[0000] Using ignite configuration file /tmp/ignite-config.yaml
 The full reference format for the `Configuration` kind is as follows:
 
 ```yaml
-apiVersion: ignite.weave.works/v1alpha3
+apiVersion: ignite.weave.works/v1alpha4
 kind: VM
 metadata:
   # Required, the name of the configuration.
@@ -72,6 +72,8 @@ spec:
     memory: [size]
     cpus: [uint64]
     ...
+  # Optional, directory containing the container registry configuration.
+  registryConfigDir: [string]
 ```
 
 You can find the full API reference for `Configuration` kind in the
