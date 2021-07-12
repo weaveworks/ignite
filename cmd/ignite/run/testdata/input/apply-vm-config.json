@@ -1,6 +1,6 @@
 {
   "kind": "VM",
-  "apiVersion": "ignite.weave.works/v1alpha3",
+  "apiVersion": "ignite.weave.works/v1alpha4",
   "spec": {
     "image": {
       "oci": "weaveworks/ignite-ubuntu"

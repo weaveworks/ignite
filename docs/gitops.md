@@ -31,7 +31,7 @@ back to the repository using the default key for it. To edit your root's git con
  Here's a sample configuration you can push to it (my-vm.yaml):
 
 ```yaml
-apiVersion: ignite.weave.works/v1alpha3
+apiVersion: ignite.weave.works/v1alpha4
 kind: VM
 metadata:
   name: my-vm
