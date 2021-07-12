@@ -195,6 +195,9 @@ func fetchLatestStatus(vms []*api.VM) (outdatedVMs map[string]bool, errList []er
 				}
 			}
 			vmRuntime = dockerClient
+		default:
+			// Skip VMs with unknown runtime
+			continue
 		}
 
 		// Inspect the VM container using the runtime client.
