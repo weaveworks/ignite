@@ -10,8 +10,8 @@ func TestNewOCIImageRef(t *testing.T) {
 		err     bool
 	}{
 		{
-			in:  "weaveworks/ignite-kernel:5.4.108",
-			out: "weaveworks/ignite-kernel:5.4.108",
+			in:  "weaveworks/ignite-kernel:5.10.51",
+			out: "weaveworks/ignite-kernel:5.10.51",
 		},
 		{
 			in:  "centos",

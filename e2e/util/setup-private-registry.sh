@@ -22,7 +22,7 @@ HTTP_ADDR="${BIND_IP}:5080"
 HTTPS_ADDR="${BIND_IP}:5443"
 
 OS_IMG="weaveworks/ignite-ubuntu:latest"
-KERNEL_IMG="weaveworks/ignite-kernel:5.4.108"
+KERNEL_IMG="weaveworks/ignite-kernel:5.10.51"
 HTTP_LOCAL_OS_IMG="${HTTP_ADDR}/weaveworks/ignite-ubuntu:test"
 HTTP_LOCAL_KERNEL_IMG="${HTTP_ADDR}/weaveworks/ignite-kernel:test"
 HTTPS_LOCAL_OS_IMG="${HTTPS_ADDR}/weaveworks/ignite-ubuntu:test"
