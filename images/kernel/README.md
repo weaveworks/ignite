@@ -17,6 +17,12 @@ This means in practice:
 - 4.14.x
 - 4.19.x
 - 5.4.x
+- 5.10.x
+
+We also publish stable channel kernels, but they are not the default.
+
+- 5.12.x
+- 5.13.x
 
 The exact patch versions may be found in the [Makefile](Makefile).
 The available versions exist in the [stable kernel git tree](https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/refs/).
