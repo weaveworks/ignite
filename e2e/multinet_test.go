@@ -24,7 +24,7 @@ import (
 var (
 	multinetVM  = "e2e-test-vm-multinet"
 	sanboxImage = "weaveworks/ignite:dev"
-	kernelImage = "weaveworks/ignite-kernel:5.4.108"
+	kernelImage = "weaveworks/ignite-kernel:5.10.51"
 	vmImage     = "weaveworks/ignite-ubuntu"
 )
 
