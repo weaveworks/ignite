@@ -2,6 +2,149 @@
 
 # Changelog
 
+## v0.10.0
+
+**Released:** 7/19/2021
+
+This release adds two major features and a new API version.
+VM annotations can be used to tell ignite another system will inject interfaces into the sandbox container's net-namespace.
+These annotations will also tell ignite to plumb those sandbox interfaces to the firecracker MicroVM using tc_redirect. ([code example](https://github.com/srl-labs/containerlab/blob/aee7bc5/runtime/ignite/iginite.go#L225-L234))
+
+```yaml
+kind: VM
+apiVersion: ignite.weave.works/v1alpha4
+metadata:
+  annotations:
+    ignite.weave.works/interface/eth0: 'dhcp-bridge'
+    ignite.weave.works/interface/eth2: 'tc-redirect'
+    ignite.weave.works/interface/eth3: 'tc-redirect'
+    ignite.weave.works/interface/macvtap-uvnrt: 'macvtap'
+    ignite.weave.works/interface/macvtap-hgfeq: 'macvtap'
+    ignite.weave.works/sandbox-env/FIRECRACKER_GO_SDK_REQUEST_TIMEOUT_MILLISECONDS: "1000"
+    ignite.weave.works/sandbox-env/FIRECRACKER_GO_SDK_INIT_TIMEOUT_SECONDS: "1"
+```
+
+It's now possible to use OS and kernel images from an authenticated private registry.
+Interface bonding is also enabled in the newest ignite kernels.
+
+New base OS images and kernels have been released with the GitHub Actions release tools.
+The default kernel has been updated from `5.4.108` to `5.10.51`.
+
+This release consists of **12** noteworthy PR's from **4** contributors.  **4** of these patches were sent by **2** external contributors.
+Thanks so much for using and contributing back to the project.
+
+Cheers to everyone who was part of shipping this release:
+- @darkowlzz
+- @juozasg
+- @networkop
+- @stealthybox
+
+
+## Installing
+
+Check out the guide here: https://ignite.rtfd.io/en/stable/installation/
+
+
+## OCI Images for this release
+
+[ignite](
+https://hub.docker.com/r/weaveworks/ignite/tags?page=1&name=v0.10.0
+) ( sandbox )  
+
+[ignite-kernel:4.14.239](
+https://hub.docker.com/r/weaveworks/ignite-kernel/tags?page=1&name=4.14.239
+) [multi-arch]
+[ignite-kernel:4.19.197](
+https://hub.docker.com/r/weaveworks/ignite-kernel/tags?page=1&name=4.19.197
+) [multi-arch]
+[ignite-kernel:5.4.133](
+https://hub.docker.com/r/weaveworks/ignite-kernel/tags?page=1&name=5.4.133
+) [multi-arch]
+[ignite-kernel:5.10.51](
+https://hub.docker.com/r/weaveworks/ignite-kernel/tags?page=1&name=5.10.51
+) [multi-arch] ( default )
+[ignite-kernel:5.12.18](
+https://hub.docker.com/r/weaveworks/ignite-kernel/tags?page=1&name=5.12.18
+) [multi-arch]
+[ignite-kernel:5.13.3](
+https://hub.docker.com/r/weaveworks/ignite-kernel/tags?page=1&name=5.13.3
+) [multi-arch]
+
+
+[ignite-amazon-kernel](
+https://hub.docker.com/r/weaveworks/ignite-amazon-kernel/tags?page=1&name=v0.10.0
+)  
+[ignite-amazonlinux](
+https://hub.docker.com/r/weaveworks/ignite-amazonlinux/tags?page=1&name=v0.10.0
+) 2  
+[ignite-alpine](
+https://hub.docker.com/r/weaveworks/ignite-alpine/tags?page=1&name=v0.10.0
+)  
+[ignite-centos](
+https://hub.docker.com/r/weaveworks/ignite-centos/tags?page=1&name=v0.10.0
+) 7, 8  
+[ignite-opensuse](
+https://hub.docker.com/r/weaveworks/ignite-opensuse/tags?page=1&name=v0.10.0
+) tumbleweed, leap  
+[ignite-ubuntu](
+https://hub.docker.com/r/weaveworks/ignite-ubuntu/tags?page=1&name=v0.10.0
+) [multi-arch] 16.04, 18.04, 20.04  
+[ignite-kubeadm](
+https://hub.docker.com/r/weaveworks/ignite-kubeadm/tags?page=1&name=v0.10.0
+) [multi-arch] v1.18.3  
+[ignite-k3s](
+https://hub.docker.com/r/weaveworks/ignite-kubeadm/tags?page=1&name=v0.10.0
+) v1.20.4  
+
+
+_________________
+
+
+## Features
+
+- Add v1alpha4 API ([#821](https://github.com/weaveworks/ignite/pull/821), [darkowlzz](https://github.com/darkowlzz))
+- Enable multiple non-IP interface to be connected via tc redirect ([#836](https://github.com/weaveworks/ignite/pull/836), [networkop](https://github.com/networkop))
+- Aligning spawn timeouts between different functions ([#850](https://github.com/weaveworks/ignite/pull/850), [networkop](https://github.com/networkop))
+- Add client config option + registry auth e2e tests ([#844](https://github.com/weaveworks/ignite/pull/844), [darkowlzz](https://github.com/darkowlzz))
+- Add loading credentials from docker cli config ([#833](https://github.com/weaveworks/ignite/pull/833), [darkowlzz](https://github.com/darkowlzz))
+
+
+## Bug Fixes
+
+- Ignore not found error while deactivating snapshot ([#823](https://github.com/weaveworks/ignite/pull/823), [darkowlzz](https://github.com/darkowlzz))
+- SIGSEGV with metadata from older version of ignite ([#854](https://github.com/weaveworks/ignite/pull/854), [juozasg](https://github.com/juozasg))
+
+
+## Kernel
+
+- kernel config updates ([#849](https://github.com/weaveworks/ignite/pull/849), [networkop](https://github.com/networkop))
+- Add 5.12 and 5.13 kernels + bump kernel patch versions ([#857](https://github.com/weaveworks/ignite/pull/857), [stealthybox](https://github.com/stealthybox))
+- Update default kernel to 5.10.51 ([#858](https://github.com/weaveworks/ignite/pull/858), [stealthybox](https://github.com/stealthybox))
+
+
+## Docs
+
+- Update docs and test data with v1alpha4 API ([#855](https://github.com/weaveworks/ignite/pull/855), [darkowlzz](https://github.com/darkowlzz))
+
+
+## Dependencies
+
+- Update go to 1.16 and package dependencies ([#822](https://github.com/weaveworks/ignite/pull/822), [darkowlzz](https://github.com/darkowlzz))
+
+
+## Automated
+
+- Update go versions in github workflows ([#834](https://github.com/weaveworks/ignite/pull/834), [darkowlzz](https://github.com/darkowlzz))
+- [automated] Update go dependencies ([#824](https://github.com/weaveworks/ignite/pull/824), [github-actions[bot]](https://github.com/github-actions[bot]))
+- [automated] Update go dependencies ([#846](https://github.com/weaveworks/ignite/pull/846), [github-actions[bot]](https://github.com/github-actions[bot]))
+- [automated] Update go dependencies ([#847](https://github.com/weaveworks/ignite/pull/847), [github-actions[bot]](https://github.com/github-actions[bot]))
+- [automated] Update go dependencies ([#856](https://github.com/weaveworks/ignite/pull/856), [github-actions[bot]](https://github.com/github-actions[bot]))
+- Bump actions/setup-python from 2.2.1 to 2.2.2 ([#837](https://github.com/weaveworks/ignite/pull/837), [dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump docker/login-action from 1 to 1.9.0 ([#841](https://github.com/weaveworks/ignite/pull/841), [dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump docker/login-action from 1.9.0 to 1.10.0 ([#848](https://github.com/weaveworks/ignite/pull/848), [dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump peter-evans/create-pull-request from 3.9.1 to 3.10.0 ([#845](https://github.com/weaveworks/ignite/pull/845), [dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump peter-evans/create-pull-request from v3.8.2 to v3.9.1 ([#835](https://github.com/weaveworks/ignite/pull/835), [dependabot[bot]](https://github.com/dependabot[bot]))
+
 ## v0.9.0
 
 **Released:** 4/12/2021

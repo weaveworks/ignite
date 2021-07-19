@@ -97,7 +97,7 @@ save it as `/usr/local/bin/ignite` and make it executable.
 To install Ignite from the command line, follow these steps:
 
 ```bash
-export VERSION=v0.9.0
+export VERSION=v0.10.0
 export GOARCH=$(go env GOARCH 2>/dev/null || echo "amd64")
 
 for binary in ignite ignited; do
@@ -120,7 +120,7 @@ commands should now be available:
 
 ```console
 $ ignite version
-Ignite version: version.Info{Major:"0", Minor:"8", GitVersion:"v0.9.0", GitCommit:"...", GitTreeState:"clean", BuildDate:"...", GoVersion:"...", Compiler:"gc", Platform:"linux/amd64"}
+Ignite version: version.Info{Major:"0", Minor:"8", GitVersion:"v0.10.0", GitCommit:"...", GitTreeState:"clean", BuildDate:"...", GoVersion:"...", Compiler:"gc", Platform:"linux/amd64"}
 Firecracker version: v0.22.4
 Runtime: containerd
 ```
