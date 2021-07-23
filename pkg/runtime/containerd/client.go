@@ -630,8 +630,8 @@ func withDevices(devices []*runtime.Bind) oci.SpecOpts {
 				return err
 			}
 
-			major := int64(unix.Major(stat.Rdev))
-			minor := int64(unix.Minor(stat.Rdev))
+			major := int64(unix.Major(uint64(stat.Rdev)))
+			minor := int64(unix.Minor(uint64(stat.Rdev)))
 
 			s.Linux.Resources.Devices = append(s.Linux.Resources.Devices, specs.LinuxDeviceCgroup{
 				Type:   devType,
