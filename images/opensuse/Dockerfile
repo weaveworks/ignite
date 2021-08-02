@@ -11,6 +11,7 @@ RUN zypper -n install \
         systemd-sysvinit \
         udev \
         sudo \
+        shadow \
         wget && \
     zypper clean --all
 
