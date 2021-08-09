@@ -630,8 +630,9 @@ func withDevices(devices []*runtime.Bind) oci.SpecOpts {
 				return err
 			}
 
+			// Cast up to uint64 from stat strut on other OS's
 			major := int64(unix.Major(uint64(stat.Rdev)))
-			minor := int64(unix.Minor(uint64(stat.Rdev)))
+			minor := int64(unix.Minor(uint64(stat.Rdev)))	
 
 			s.Linux.Resources.Devices = append(s.Linux.Resources.Devices, specs.LinuxDeviceCgroup{
 				Type:   devType,
