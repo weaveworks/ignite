@@ -54,7 +54,7 @@ const (
 
 // defaultCNIConf is a CNI configuration chain that enables VMs to access the internet (docker-bridge style)
 var defaultCNIConf = fmt.Sprintf(`{
-	"cniVersion": "0.4.0",
+	"cniVersion": "1.0.0",
 	"name": "%s",
 	"plugins": [
 		{
