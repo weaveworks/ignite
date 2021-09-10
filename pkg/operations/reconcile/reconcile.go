@@ -2,6 +2,7 @@ package reconcile
 
 import (
 	log "github.com/sirupsen/logrus"
+	"github.com/weaveworks/ignite/pkg/apis/ignite"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/apis/ignite/validation"
 	"github.com/weaveworks/ignite/pkg/client"
@@ -42,6 +43,8 @@ func ReconcileManifests(s *manifest.ManifestStorage) {
 				ObjectMeta: *upd.APIType.GetObjectMeta(),
 				Status: api.VMStatus{
 					Running: true, // TODO: Fix this in StopVM
+					Runtime: &ignite.Runtime{},
+					Network: &ignite.Network{},
 				},
 			}
 		} else {
