@@ -52,9 +52,8 @@ require (
 	github.com/weaveworks/libgitops v0.0.0-20200611103311-2c871bbbbf0c
 	go.opencensus.io v0.23.0 // indirect
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
-	golang.org/x/net v0.0.0-20210415231046-e915ea6b2b7d // indirect
-	golang.org/x/sys v0.0.0-20210510120138-977fb7262007
-	golang.org/x/tools v0.1.5 // indirect
+	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e
+	golang.org/x/tools v0.1.6 // indirect
 	google.golang.org/genproto v0.0.0-20210416161957-9910b6c460de // indirect
 	google.golang.org/grpc v1.37.0 // indirect
 	gotest.tools v2.2.0+incompatible
