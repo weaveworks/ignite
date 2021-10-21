@@ -142,7 +142,11 @@ push-all: build-all
 	$(MAKE) OP=push build-all
 
 
-build-all: build-alpine build-amazon-kernel build-amazonlinux build-centos build-k3s build-kubeadm build-opensuse build-ubuntu
+build-all: build-almalinux build-alpine build-amazon-kernel build-amazonlinux build-centos build-k3s build-kubeadm build-opensuse build-ubuntu
+
+build-almalinux:
+	$(MAKE) ${OP} WHAT=almalinux      RELEASE=8                                        IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=amd64
+	$(MAKE) ${OP} WHAT=almalinux      RELEASE=8                                        IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=arm64
 
 build-alpine:
 ifeq ($(OP),build)
