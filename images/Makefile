@@ -142,7 +142,7 @@ push-all: build-all
 	$(MAKE) OP=push build-all
 
 
-build-all: build-almalinux build-alpine build-amazon-kernel build-amazonlinux build-centos build-k3s build-kubeadm build-opensuse build-ubuntu
+build-all: build-almalinux build-alpine build-amazon-kernel build-amazonlinux build-centos build-k3s build-kubeadm build-opensuse build-rockylinux build-ubuntu
 
 build-almalinux:
 	$(MAKE) ${OP} WHAT=almalinux      RELEASE=8                                        IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=amd64
@@ -176,6 +176,10 @@ build-kubeadm:
 build-opensuse:
 	$(MAKE) ${OP} WHAT=opensuse       RELEASE=leap                                     IS_LATEST=true
 	$(MAKE) ${OP} WHAT=opensuse       RELEASE=tumbleweed
+
+build-rockylinux:
+	$(MAKE) ${OP} WHAT=rockylinux      RELEASE=8                                        IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=amd64
+	$(MAKE) ${OP} WHAT=rockylinux      RELEASE=8                                        IS_LATEST=true  IS_MANIFEST_LIST=1  GOARCH=arm64
 
 build-ubuntu:
 	$(MAKE) ${OP} WHAT=ubuntu         RELEASE=16.04                                                    IS_MANIFEST_LIST=0
