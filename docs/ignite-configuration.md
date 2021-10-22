@@ -58,7 +58,7 @@ The full reference format for the `Configuration` kind is as follows:
 
 ```yaml
 apiVersion: ignite.weave.works/v1alpha4
-kind: VM
+kind: Configuration
 metadata:
   # Required, the name of the configuration.
   name: [string]
