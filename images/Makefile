@@ -74,6 +74,7 @@ ifeq ($(IS_MANIFEST_LIST),0)
 			--build-arg RELEASE \
 			--build-arg BINARY_REF \
 			--build-arg GOARCH \
+			--build-arg DIGEST \
 			-f -\
 			-t $(FULL_IMAGE_NAME) \
 			${WHAT}
@@ -94,6 +95,7 @@ endif
 		--build-arg RELEASE \
 		--build-arg BINARY_REF \
 		--build-arg GOARCH \
+		--build-arg DIGEST \
 		-t $(FULL_IMAGE_NAME)$(ARCH_TAG) \
 		$(BUILD_TMPDIR)
 	find $(BUILD_TMPDIR)/ -mindepth 1 -delete

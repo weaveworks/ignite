@@ -4,7 +4,7 @@ FROM DOCKERARCH/almalinux:${RELEASE}
 
 # If we're building for another architecture than amd64, this let's us emulate an other platform's docker build.
 # If we're building normally, for amd64, this line is removed
-# COPY qemu-QEMUARCH-static /usr/bin/
+COPY qemu-QEMUARCH-static /usr/bin/
 
 # Shadow the bogus /etc/resolv.conf of centos:8 by copying a blank file over it
 COPY resolv.conf /etc/
