@@ -58,7 +58,7 @@ which containerd || apt-get install -y --no-install-recommends containerd
     # Install containerd if it's not present -- prevents breaking docker-ce installations
 ```
 
-CentOS:
+CentOS, AlmaLinux, Rocky Linux:
 
 ```bash
 yum install -y e2fsprogs openssh-clients git
