@@ -1,4 +1,5 @@
-FROM rockylinux/rockylinux@sha256:DIGEST
+ARG DIGEST
+FROM rockylinux/rockylinux@sha256:${DIGEST}
 
 # If we're building for another architecture than amd64, this let's us emulate an other platform's docker build.
 # If we're building normally, for amd64, this line is removed
