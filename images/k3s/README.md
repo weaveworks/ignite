@@ -30,7 +30,7 @@ We can also try to administrate the cluster from the host machine, if `kubectl` 
 ```bash
 VM_IP=$(ignite inspect vm k3s-master | jq -r ".status.network.ipAddresses[0]")
 ignite exec k3s-master -- cat /etc/rancher/k3s/k3s.yaml > kubeconfig
-sed -i'' "s/127.0.0.1/$VM_IP/" kubeconfig
+sed -i.bak "s/127.0.0.1/$VM_IP/" kubeconfig
 kubectl --kubeconfig=kubeconfig get nodes
 
 # Should list a single Master node, running the same k3s version displayed earlier
