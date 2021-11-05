@@ -14,7 +14,8 @@ set_kernel_config() {
     local FILE=${3}
     
     if grep -q "${TGT}" ${FILE}; then
-        sed -i "s/^\(${TGT}=.*\|# ${TGT} is not set\)/${TGT}=${REP}/" ${FILE}
+        sed "s/^\(${TGT}=.*\|# ${TGT} is not set\)/${TGT}=${REP}/" ${FILE} > ${FILE}.replaced
+        mv ${FILE}.replaced ${FILE}
     else
         echo "${TGT}=${REP}" >> ${FILE}
     fi
@@ -24,7 +25,8 @@ unset_kernel_config() {
     # unsets flag with the value of $1, config file as $2
     local TGT="CONFIG_${1#CONFIG_}"
     local FILE=${3}
-    sed -i "s/^${TGT}=.*/# ${TGT} is not set/" ${NEW_CONFIG_FILE}
+    sed "s/^${TGT}=.*/# ${TGT} is not set/" ${NEW_CONFIG_FILE} > ${NEW_CONFIG_FILE}.replaced
+    mv ${NEW_CONFIG_FILE}.replaced ${NEW_CONFIG_FILE}
 }
 
 patch_file() {
