@@ -54,13 +54,15 @@ fc-upstream:
 	curl -L https://raw.githubusercontent.com/firecracker-microvm/firecracker/main/resources/microvm-kernel-arm64.config > upstream/config-arm64
 
 upgrade: $(addprefix upgrade-,$(KERNEL_VERSIONS))
-	./patch-config.sh
-	for file in generated/*; do \
-		./upgrade-config.sh $$file $$file; done
 
 upgrade-%: kernel-builder
-	for file in upstream/*; do \
-		./upgrade-config.sh $$file versioned/$$(basename $$file)-$*; done
+	mkdir -p versioned generated
+	for upstream in upstream/*; do \
+		config="$$(basename $$upstream)-$*"; \
+		./upgrade-config.sh $$upstream versioned/$${config}; \
+		./patch-config.sh versioned/$${config} generated/$${config} ./config-patches; \
+		./upgrade-config.sh generated/$${config} generated/$${config}; \
+	done
 
 build: $(addprefix build-,$(KERNEL_VERSIONS))
 build-%: kernel-builder

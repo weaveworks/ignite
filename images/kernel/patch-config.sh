@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+OLD_FILE="${1}"
+NEW_FILE="${2}"
 # The path to where the "patch instructions" are
-PATCH_FILE="./config-patches"
+PATCH_FILE="${3}"
 
 # Note: set_kernel_config and unset_kernel_config are courtesy of @sakaki- on Github
 # https://github.com/sakaki-/bcm2711-kernel-bis/blob/master/conform_config.sh.
@@ -47,16 +49,12 @@ patch_file() {
     done
 }
 
-for file in ./versioned/*; do
-    old_file=${file}
-    new_file="./generated/$(basename ${file})"
-    
 
-    # Copy the old config file to the new (overwrite if present), and patch the new one in-place
-    cp ${old_file} ${new_file}
-    # Add an extra newline to the upstream file if it hasn't got it
-    # From https://backreference.org/2010/05/23/sanitizing-files-with-no-trailing-newline/
-    tail -c1 "${new_file}" | read -r _ || echo >> "${new_file}"
-    # Apply patches to the new file
-    patch_file ${new_file}
-done
+# Copy the old config file to the new (overwrite if present), and patch the new one in-place
+cp ${OLD_FILE} ${NEW_FILE}
+# Add an extra newline to the upstream file if it hasn't got it
+# From https://backreference.org/2010/05/23/sanitizing-files-with-no-trailing-newline/
+tail -c1 "${NEW_FILE}" | read -r _ || echo >> "${NEW_FILE}"
+# Apply patches to the new file
+patch_file ${NEW_FILE}
+
