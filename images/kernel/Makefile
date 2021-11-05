@@ -29,7 +29,7 @@ REGISTRY?=weaveworks
 IMAGE_NAME?=${REGISTRY}/ignite-kernel
 KERNEL_BUILDER_NAME=${REGISTRY}/ignite-kernel-builder
 # Check https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/refs/ for updates
-KERNEL_VERSIONS ?= 4.14.239 4.19.197 5.4.133 5.10.51 5.12.18 5.13.3 # If you update this, please keep the .github/workflows/release-kernel-images.yml matrix up to date
+KERNEL_VERSIONS ?= 4.14.254 4.19.215 5.4.157 5.10.77 5.14.16 # If you update this, please keep the .github/workflows/release-kernel-images.yml matrix up to date
 GOARCH?=amd64
 GOARCH_LIST = amd64 arm64
 
@@ -54,13 +54,15 @@ fc-upstream:
 	curl -L https://raw.githubusercontent.com/firecracker-microvm/firecracker/main/resources/microvm-kernel-arm64.config > upstream/config-arm64
 
 upgrade: $(addprefix upgrade-,$(KERNEL_VERSIONS))
-	./patch-config.sh
-	for file in generated/*; do \
-		./upgrade-config.sh $$file $$file; done
 
 upgrade-%: kernel-builder
-	for file in upstream/*; do \
-		./upgrade-config.sh $$file versioned/$$(basename $$file)-$*; done
+	mkdir -p versioned generated
+	for upstream in upstream/*; do \
+		config="$$(basename $$upstream)-$*"; \
+		./upgrade-config.sh $$upstream versioned/$${config}; \
+		./patch-config.sh versioned/$${config} generated/$${config} ./config-patches; \
+		./upgrade-config.sh generated/$${config} generated/$${config}; \
+	done
 
 build: $(addprefix build-,$(KERNEL_VERSIONS))
 build-%: kernel-builder

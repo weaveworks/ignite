@@ -85,7 +85,8 @@ else
 	sed "s|QEMUARCH|$(QEMUARCH)|g;s|DOCKERARCH|$(DOCKERARCH)|g" ${WHAT}/Dockerfile > $(BUILD_TMPDIR)/Dockerfile
 
 ifeq ($(GOARCH),amd64)
-	sed "/COPY qemu/d" -i $(BUILD_TMPDIR)/Dockerfile
+	sed "/COPY qemu/d" $(BUILD_TMPDIR)/Dockerfile > $(BUILD_TMPDIR)/Dockerfile.new
+	mv $(BUILD_TMPDIR)/Dockerfile.new $(BUILD_TMPDIR)/Dockerfile
 else
 	$(MAKE) -C .. qemu
 	cp ../bin/$(GOARCH)/qemu-$(QEMUARCH)-static $(BUILD_TMPDIR)
