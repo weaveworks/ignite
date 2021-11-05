@@ -21,8 +21,7 @@ This means in practice:
 
 We also publish stable channel kernels, but they are not the default.
 
-- 5.12.x
-- 5.13.x
+- 5.14.x
 
 The exact patch versions may be found in the [Makefile](Makefile).
 The available versions exist in the [stable kernel git tree](https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/refs/).
