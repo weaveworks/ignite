@@ -1,5 +1,9 @@
 # In this file, the recipe for patching all kernel configs (all versions & architectures) is
 
+# Enable wireguard
+# https://github.com/weaveworks/ignite/issues/768
+CONFIG_WIREGUARD=y
+
 # Enable bonding/teaming
 CONFIG_BONDING=y
 CONFIG_NET_TEAM=y
