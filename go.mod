@@ -18,7 +18,8 @@ require (
 	github.com/containerd/fifo v0.0.0-20210331061852-650e8a8a179d // indirect
 	github.com/containerd/go-cni v1.0.1
 	github.com/containerd/typeurl v1.0.2 // indirect
-	github.com/containernetworking/plugins v0.8.7
+	github.com/containernetworking/cni v1.0.1
+	github.com/containernetworking/plugins v1.0.1
 	github.com/containers/image v3.0.2+incompatible
 	github.com/coreos/go-iptables v0.4.5
 	github.com/docker/cli v0.0.0-20200130152716-5d0cf8839492
