@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Login to container registry
-        uses: docker/login-action@v1.10.0
+        uses: docker/login-action@v1.13.0
         with:
           registry: docker.io
           username: weaveworksigniteci
