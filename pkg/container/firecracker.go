@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/firecracker-microvm/firecracker-go-sdk"
-	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
+	"github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
@@ -61,7 +61,7 @@ func ExecuteFirecracker(vm *api.VM, fcIfaces firecracker.NetworkInterfaces) (err
 		MachineCfg: models.MachineConfiguration{
 			VcpuCount:  &vCPUCount,
 			MemSizeMib: &memSizeMib,
-			HtEnabled:  firecracker.Bool(true),
+			Smt:        firecracker.Bool(true),
 		},
 		//JailerCfg: firecracker.JailerConfig{
 		//	GID:      firecracker.Int(0),

@@ -174,7 +174,7 @@ spec:
 			// Create a VM with the ignite config file.
 			// NOTE: Set a sandbox-image to have deterministic results.
 			vmRun := igniteCmd.New().
-				With("run", "--name="+vmName).
+				With("create", "--name="+vmName).
 				With("--sandbox-image=weaveworks/ignite:dev").
 				With("--ignite-config=" + file.Name()).
 				With(util.DefaultVMImage)
@@ -205,6 +205,7 @@ spec:
 			if !rt.err {
 				// Query VM properties.
 				psArgs := []string{
+					"--all",
 					"--filter={{.ObjectMeta.Name}}=" + vmName,
 					"--template='{{.Spec.Memory}} {{.Spec.CPUs}} {{.Spec.DiskSize}} {{.Spec.Image.OCI}} {{.Spec.Sandbox.OCI}} {{.Spec.Kernel.OCI}} {{.Spec.SSH}}'",
 				}

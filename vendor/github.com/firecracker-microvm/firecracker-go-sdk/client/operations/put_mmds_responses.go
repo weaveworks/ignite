@@ -138,7 +138,7 @@ func (o *PutMmdsDefault) Code() int {
 }
 
 func (o *PutMmdsDefault) Error() string {
-	return fmt.Sprintf("[PUT /mmds][%d] PutMmds default  %+v", o._statusCode, o.Payload)
+	return fmt.Sprintf("[PUT /mmds][%d] putMmds default  %+v", o._statusCode, o.Payload)
 }
 
 func (o *PutMmdsDefault) GetPayload() *models.Error {
