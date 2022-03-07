@@ -32,7 +32,7 @@ import (
 // swagger:model Logger
 type Logger struct {
 
-	// Set the level.
+	// Set the level. The possible values are case-insensitive.
 	// Enum: [Error Warning Info Debug]
 	Level *string `json:"level,omitempty"`
 

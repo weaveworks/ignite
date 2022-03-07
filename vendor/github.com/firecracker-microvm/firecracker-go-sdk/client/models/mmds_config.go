@@ -19,9 +19,13 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"encoding/json"
+
 	strfmt "github.com/go-openapi/strfmt"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // MmdsConfig Defines the MMDS configuration.
@@ -30,10 +34,83 @@ type MmdsConfig struct {
 
 	// A valid IPv4 link-local address.
 	IPV4Address *string `json:"ipv4_address,omitempty"`
+
+	// List of the network interface IDs capable of forwarding packets to the MMDS. Network interface IDs mentioned must be valid at the time of this request. The net device model will reply to HTTP GET requests sent to the MMDS address via the interfaces mentioned. In this case, both ARP requests and TCP segments heading to `ipv4_address` are intercepted by the device model, and do not reach the associated TAP device.
+	// Required: true
+	NetworkInterfaces []string `json:"network_interfaces"`
+
+	// Enumeration indicating the MMDS version to be configured.
+	// Enum: [V1 V2]
+	Version *string `json:"version,omitempty"`
 }
 
 // Validate validates this mmds config
 func (m *MmdsConfig) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateNetworkInterfaces(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateVersion(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *MmdsConfig) validateNetworkInterfaces(formats strfmt.Registry) error {
+
+	if err := validate.Required("network_interfaces", "body", m.NetworkInterfaces); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var mmdsConfigTypeVersionPropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["V1","V2"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		mmdsConfigTypeVersionPropEnum = append(mmdsConfigTypeVersionPropEnum, v)
+	}
+}
+
+const (
+
+	// MmdsConfigVersionV1 captures enum value "V1"
+	MmdsConfigVersionV1 string = "V1"
+
+	// MmdsConfigVersionV2 captures enum value "V2"
+	MmdsConfigVersionV2 string = "V2"
+)
+
+// prop value enum
+func (m *MmdsConfig) validateVersionEnum(path, location string, value string) error {
+	if err := validate.Enum(path, location, value, mmdsConfigTypeVersionPropEnum); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *MmdsConfig) validateVersion(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Version) { // not required
+		return nil
+	}
+
+	// value enum
+	if err := m.validateVersionEnum("version", "body", *m.Version); err != nil {
+		return err
+	}
+
 	return nil
 }
 
