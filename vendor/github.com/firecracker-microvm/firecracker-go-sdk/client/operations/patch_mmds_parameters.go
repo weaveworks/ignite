@@ -28,6 +28,8 @@ import (
 	cr "github.com/go-openapi/runtime/client"
 
 	strfmt "github.com/go-openapi/strfmt"
+
+	models "github.com/firecracker-microvm/firecracker-go-sdk/client/models"
 )
 
 // NewPatchMmdsParams creates a new PatchMmdsParams object
@@ -78,7 +80,7 @@ type PatchMmdsParams struct {
 	  The MMDS data store patch JSON.
 
 	*/
-	Body interface{}
+	Body models.MmdsContentsObject
 
 	timeout    time.Duration
 	Context    context.Context
@@ -119,13 +121,13 @@ func (o *PatchMmdsParams) SetHTTPClient(client *http.Client) {
 }
 
 // WithBody adds the body to the patch mmds params
-func (o *PatchMmdsParams) WithBody(body interface{}) *PatchMmdsParams {
+func (o *PatchMmdsParams) WithBody(body models.MmdsContentsObject) *PatchMmdsParams {
 	o.SetBody(body)
 	return o
 }
 
 // SetBody adds the body to the patch mmds params
-func (o *PatchMmdsParams) SetBody(body interface{}) {
+func (o *PatchMmdsParams) SetBody(body models.MmdsContentsObject) {
 	o.Body = body
 }
 

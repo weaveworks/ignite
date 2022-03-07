@@ -33,15 +33,16 @@ import (
 type InstanceInfo struct {
 
 	// Application name.
-	AppName string `json:"app_name,omitempty"`
+	// Required: true
+	AppName *string `json:"app_name"`
 
 	// MicroVM / instance ID.
 	// Required: true
 	ID *string `json:"id"`
 
-	// The current detailed state of the Firecracker instance. This value is read-only for the control-plane.
+	// The current detailed state (Not started, Running, Paused) of the Firecracker instance. This value is read-only for the control-plane.
 	// Required: true
-	// Enum: [Uninitialized Starting Running]
+	// Enum: [Not started Running Paused]
 	State *string `json:"state"`
 
 	// MicroVM hypervisor build version.
@@ -52,6 +53,10 @@ type InstanceInfo struct {
 // Validate validates this instance info
 func (m *InstanceInfo) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateAppName(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateID(formats); err != nil {
 		res = append(res, err)
@@ -71,6 +76,15 @@ func (m *InstanceInfo) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *InstanceInfo) validateAppName(formats strfmt.Registry) error {
+
+	if err := validate.Required("app_name", "body", m.AppName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *InstanceInfo) validateID(formats strfmt.Registry) error {
 
 	if err := validate.Required("id", "body", m.ID); err != nil {
@@ -84,7 +98,7 @@ var instanceInfoTypeStatePropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["Uninitialized","Starting","Running"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["Not started","Running","Paused"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -94,14 +108,14 @@ func init() {
 
 const (
 
-	// InstanceInfoStateUninitialized captures enum value "Uninitialized"
-	InstanceInfoStateUninitialized string = "Uninitialized"
-
-	// InstanceInfoStateStarting captures enum value "Starting"
-	InstanceInfoStateStarting string = "Starting"
+	// InstanceInfoStateNotStarted captures enum value "Not started"
+	InstanceInfoStateNotStarted string = "Not started"
 
 	// InstanceInfoStateRunning captures enum value "Running"
 	InstanceInfoStateRunning string = "Running"
+
+	// InstanceInfoStatePaused captures enum value "Paused"
+	InstanceInfoStatePaused string = "Paused"
 )
 
 // prop value enum

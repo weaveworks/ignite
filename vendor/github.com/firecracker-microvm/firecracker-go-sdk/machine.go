@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -30,7 +31,7 @@ import (
 
 	"github.com/containerd/fifo"
 	"github.com/containernetworking/plugins/pkg/ns"
-	"github.com/gofrs/uuid"
+	"github.com/google/uuid"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -50,22 +51,13 @@ const (
 	defaultFirecrackerInitTimeoutSeconds = 3
 )
 
-// SeccompLevelValue represents a secure computing level type.
-type SeccompLevelValue int
+// SeccompConfig contains seccomp settings for firecracker vmm
+type SeccompConfig struct {
+	// Enabled turns on/off the seccomp filters
+	Enabled bool
 
-// secure computing levels
-const (
-	// SeccompLevelDisable is the default value.
-	SeccompLevelDisable SeccompLevelValue = iota
-	// SeccompLevelBasic prohibits syscalls not whitelisted by Firecracker.
-	SeccompLevelBasic
-	// SeccompLevelAdvanced adds further checks on some of the parameters of the
-	// allowed syscalls.
-	SeccompLevelAdvanced
-)
-
-func (level SeccompLevelValue) String() string {
-	return strconv.Itoa(int(level))
+	// Filter is a file path that contains user-provided custom filter
+	Filter string
 }
 
 // ErrAlreadyStarted signifies that the Machine has already started and cannot
@@ -150,14 +142,14 @@ type Config struct {
 	// firecracker. If not provided, the default signals will be used.
 	ForwardSignals []os.Signal
 
-	// SeccompLevel specifies whether seccomp filters should be installed and how
-	// restrictive they should be. Possible values are:
-	//
-	//	0 : (default): disabled.
-	//	1 : basic filtering. This prohibits syscalls not whitelisted by Firecracker.
-	//	2 : advanced filtering. This adds further checks on some of the
-	//			parameters of the allowed syscalls.
-	SeccompLevel SeccompLevelValue
+	// Seccomp specifies whether seccomp filters should be installed and how
+	// restrictive they should be.
+	Seccomp SeccompConfig
+
+	// MmdsAddress is IPv4 address used by guest applications when issuing requests to MMDS.
+	// It is possible to use a valid IPv4 link-local address (169.254.0.0/16).
+	// If not provided, the default address (169.254.169.254) will be used.
+	MmdsAddress net.IP
 }
 
 // Validate will ensure that the required fields are set and that
@@ -200,9 +192,6 @@ func (cfg *Config) Validate() error {
 	if cfg.MachineCfg.MemSizeMib == nil ||
 		Int64Value(cfg.MachineCfg.MemSizeMib) < 1 {
 		return fmt.Errorf("machine needs a nonzero amount of memory")
-	}
-	if cfg.MachineCfg.HtEnabled == nil {
-		return fmt.Errorf("machine needs a setting for ht_enabled")
 	}
 	return nil
 }
@@ -303,10 +292,22 @@ func (m *Machine) LogLevel() string {
 	return m.Cfg.LogLevel
 }
 
+// seccompArgs constructs the seccomp related command line arguments
+func seccompArgs(cfg *Config) []string {
+	var args []string
+	if !cfg.Seccomp.Enabled {
+		args = append(args, "--no-seccomp")
+	} else if len(cfg.Seccomp.Filter) > 0 {
+		args = append(args, "--seccomp-filter", cfg.Seccomp.Filter)
+	}
+	return args
+}
+
 func configureBuilder(builder VMCommandBuilder, cfg Config) VMCommandBuilder {
 	return builder.
 		WithSocketPath(cfg.SocketPath).
-		AddArgs("--seccomp-level", cfg.SeccompLevel.String(), "--id", cfg.VMID)
+		AddArgs("--id", cfg.VMID).
+		AddArgs(seccompArgs(&cfg)...)
 }
 
 // NewMachine initializes a new Machine instance and performs validation of the
@@ -317,11 +318,11 @@ func NewMachine(ctx context.Context, cfg Config, opts ...Opt) (*Machine, error) 
 	}
 
 	if cfg.VMID == "" {
-		randomID, err := uuid.NewV4()
+		id, err := uuid.NewRandom()
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create random ID for VMID")
 		}
-		cfg.VMID = randomID.String()
+		cfg.VMID = id.String()
 	}
 
 	m.Handlers = defaultHandlers
@@ -760,10 +761,9 @@ func (m *Machine) createNetworkInterface(ctx context.Context, iface NetworkInter
 		iface.StaticConfiguration.HostDevName, iface.StaticConfiguration.MacAddress, ifaceID)
 
 	ifaceCfg := models.NetworkInterface{
-		IfaceID:           &ifaceID,
-		GuestMac:          iface.StaticConfiguration.MacAddress,
-		HostDevName:       String(iface.StaticConfiguration.HostDevName),
-		AllowMmdsRequests: iface.AllowMMDS,
+		IfaceID:     &ifaceID,
+		GuestMac:    iface.StaticConfiguration.MacAddress,
+		HostDevName: String(iface.StaticConfiguration.HostDevName),
 	}
 
 	if iface.InRateLimiter != nil {
@@ -829,7 +829,7 @@ func (m *Machine) addVsock(ctx context.Context, dev VsockDevice) error {
 	vsockCfg := models.Vsock{
 		GuestCid: Int64(int64(dev.CID)),
 		UdsPath:  &dev.Path,
-		VsockID:  &dev.ID,
+		VsockID:  dev.ID,
 	}
 
 	resp, err := m.client.PutGuestVsock(ctx, &vsockCfg)
@@ -868,6 +868,32 @@ func (m *Machine) sendCtrlAltDel(ctx context.Context) error {
 		m.logger.Errorf("Unable to send CtrlAltDel: %s", err)
 	}
 	return err
+}
+
+func (m *Machine) setMmdsConfig(ctx context.Context, address net.IP, ifaces NetworkInterfaces) error {
+	var mmdsCfg models.MmdsConfig
+	if address != nil {
+		mmdsCfg.IPV4Address = String(address.String())
+	}
+	for id, iface := range ifaces {
+		if iface.AllowMMDS {
+			mmdsCfg.NetworkInterfaces = append(mmdsCfg.NetworkInterfaces, strconv.Itoa(id+1))
+		}
+	}
+	// MMDS is tightly coupled with a network interface, which allows MMDS requests.
+	// When configuring the microVM, if MMDS needs to be activated, a network interface
+	// has to be configured to allow MMDS requests.
+	if len(mmdsCfg.NetworkInterfaces) == 0 {
+		m.logger.Infof("No interfaces are allowed to access MMDS, skipping MMDS config")
+		return nil
+	}
+	if _, err := m.client.PutMmdsConfig(ctx, &mmdsCfg); err != nil {
+		m.logger.Errorf("Setting mmds configuration failed: %s: %v", address, err)
+		return err
+	}
+
+	m.logger.Debug("SetMmdsConfig successful")
+	return nil
 }
 
 // SetMetadata sets the machine's metadata for MDDS
@@ -925,6 +951,23 @@ func (m *Machine) UpdateGuestDrive(ctx context.Context, driveID, pathOnHost stri
 
 	m.logger.Printf("PatchGuestDrive successful")
 	return nil
+}
+
+func (m *Machine) DescribeInstanceInfo(ctx context.Context) (models.InstanceInfo, error) {
+	var instanceInfo models.InstanceInfo
+	resp, err := m.client.GetInstanceInfo(ctx)
+	if err != nil {
+		m.logger.Errorf("Getting Instance Info: %s", err)
+		return instanceInfo, err
+	}
+
+	instanceInfo = *resp.Payload
+	if err != nil {
+		m.logger.Errorf("Getting Instance info failed parsing payload: %s", err)
+	}
+
+	m.logger.Printf("GetInstanceInfo successful")
+	return instanceInfo, err
 }
 
 // refreshMachineConfiguration synchronizes our cached representation of the machine configuration
@@ -1001,4 +1044,126 @@ func (m *Machine) setupSignals() {
 		signal.Stop(sigchan)
 		close(sigchan)
 	}()
+}
+
+// PauseVM pauses the VM
+func (m *Machine) PauseVM(ctx context.Context, opts ...PatchVMOpt) error {
+	vm := &models.VM{
+		State: String(models.VMStatePaused),
+	}
+
+	if _, err := m.client.PatchVM(ctx, vm, opts...); err != nil {
+		m.logger.Errorf("failed to pause the VM: %v", err)
+		return err
+	}
+
+	m.logger.Debug("VM paused successfully")
+	return nil
+}
+
+// ResumeVM resumes the VM
+func (m *Machine) ResumeVM(ctx context.Context, opts ...PatchVMOpt) error {
+	vm := &models.VM{
+		State: String(models.VMStateResumed),
+	}
+
+	if _, err := m.client.PatchVM(ctx, vm, opts...); err != nil {
+		m.logger.Errorf("failed to resume the VM: %v", err)
+		return err
+	}
+
+	m.logger.Debug("VM resumed successfully")
+	return nil
+}
+
+// CreateSnapshot creates a snapshot of the VM
+func (m *Machine) CreateSnapshot(ctx context.Context, memFilePath, snapshotPath string, opts ...CreateSnapshotOpt) error {
+	snapshotParams := &models.SnapshotCreateParams{
+		MemFilePath:  String(memFilePath),
+		SnapshotPath: String(snapshotPath),
+	}
+
+	if _, err := m.client.CreateSnapshot(ctx, snapshotParams, opts...); err != nil {
+		m.logger.Errorf("failed to create a snapshot of the VM: %v", err)
+		return err
+	}
+
+	m.logger.Debug("snapshot created successfully")
+	return nil
+}
+
+// CreateBalloon creates a balloon device if one does not exist
+func (m *Machine) CreateBalloon(ctx context.Context, amountMib int64, deflateOnOom bool, statsPollingIntervals int64, opts ...PutBalloonOpt) error {
+	balloon := models.Balloon{
+		AmountMib:             &amountMib,
+		DeflateOnOom:          &deflateOnOom,
+		StatsPollingIntervals: statsPollingIntervals,
+	}
+	_, err := m.client.PutBalloon(ctx, &balloon, opts...)
+
+	if err != nil {
+		m.logger.Errorf("Create balloon device failed : %s", err)
+		return err
+	}
+
+	m.logger.Debug("Created balloon device successful")
+	return nil
+}
+
+// GetBalloonConfig gets the current balloon device configuration.
+func (m *Machine) GetBalloonConfig(ctx context.Context) (models.Balloon, error) {
+	var balloonConfig models.Balloon
+	resp, err := m.client.DescribeBalloonConfig(ctx)
+	if err != nil {
+		m.logger.Errorf("Getting balloonConfig: %s", err)
+		return balloonConfig, err
+	}
+
+	balloonConfig = *resp.Payload
+	m.logger.Debug("GetBalloonConfig successful")
+	return balloonConfig, err
+}
+
+// UpdateBalloon will update an existing balloon device, before or after machine startup
+func (m *Machine) UpdateBalloon(ctx context.Context, amountMib int64, opts ...PatchBalloonOpt) error {
+	ballonUpdate := models.BalloonUpdate{
+		AmountMib: &amountMib,
+	}
+	_, err := m.client.PatchBalloon(ctx, &ballonUpdate, opts...)
+	if err != nil {
+		m.logger.Errorf("Update balloon device failed : %s", err)
+		return err
+	}
+
+	m.logger.Debug("Update balloon device successful")
+	return nil
+}
+
+// GetBalloonStats gets the latest balloon device statistics, only if enabled pre-boot.
+func (m *Machine) GetBalloonStats(ctx context.Context) (models.BalloonStats, error) {
+	var balloonStats models.BalloonStats
+	resp, err := m.client.DescribeBalloonStats(ctx)
+	if err != nil {
+		m.logger.Errorf("Getting balloonStats: %s", err)
+		return balloonStats, err
+	}
+	balloonStats = *resp.Payload
+	m.logger.Debug("GetBalloonStats successful")
+	return balloonStats, nil
+}
+
+// UpdateBalloon will update a balloon device statistics polling interval.
+// Statistics cannot be turned on/off after boot.
+func (m *Machine) UpdateBalloonStats(ctx context.Context, statsPollingIntervals int64, opts ...PatchBalloonStatsIntervalOpt) error {
+	balloonStatsUpdate := models.BalloonStatsUpdate{
+		StatsPollingIntervals: &statsPollingIntervals,
+	}
+
+	if _, err := m.client.PatchBalloonStatsInterval(ctx, &balloonStatsUpdate, opts...); err != nil {
+		m.logger.Errorf("UpdateBalloonStats failed: %v", err)
+		return err
+	}
+
+	m.logger.Debug("UpdateBalloonStats successful")
+	return nil
 }
