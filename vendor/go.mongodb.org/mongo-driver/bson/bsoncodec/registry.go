@@ -54,12 +54,6 @@ func (entme ErrNoTypeMapEntry) Error() string {
 // ErrNotInterface is returned when the provided type is not an interface.
 var ErrNotInterface = errors.New("The provided type is not an interface")
 
-var defaultRegistry *Registry
-
-func init() {
-	defaultRegistry = buildDefaultRegistry()
-}
-
 // A RegistryBuilder is used to build a Registry. This type is not goroutine
 // safe.
 type RegistryBuilder struct {
@@ -187,8 +181,9 @@ func (rb *RegistryBuilder) RegisterHookDecoder(t reflect.Type, dec ValueDecoder)
 	return rb
 }
 
-// RegisterEncoder has been deprecated and will be removed in a future major version release. Use RegisterTypeEncoder
-// or RegisterHookEncoder instead.
+// RegisterEncoder registers the provided type and encoder pair.
+//
+// Deprecated: Use RegisterTypeEncoder or RegisterHookEncoder instead.
 func (rb *RegistryBuilder) RegisterEncoder(t reflect.Type, enc ValueEncoder) *RegistryBuilder {
 	if t == tEmpty {
 		rb.typeEncoders[t] = enc
@@ -210,8 +205,9 @@ func (rb *RegistryBuilder) RegisterEncoder(t reflect.Type, enc ValueEncoder) *Re
 	return rb
 }
 
-// RegisterDecoder has been deprecated and will be removed in a future major version release. Use RegisterTypeDecoder
-// or RegisterHookDecoder instead.
+// RegisterDecoder registers the provided type and decoder pair.
+//
+// Deprecated: Use RegisterTypeDecoder or RegisterHookDecoder instead.
 func (rb *RegistryBuilder) RegisterDecoder(t reflect.Type, dec ValueDecoder) *RegistryBuilder {
 	if t == nil {
 		rb.typeDecoders[nil] = dec
@@ -372,7 +368,7 @@ func (r *Registry) lookupInterfaceEncoder(t reflect.Type, allowAddr bool) (Value
 			// in interfaceEncoders
 			defaultEnc, found := r.lookupInterfaceEncoder(t, false)
 			if !found {
-				defaultEnc, _ = r.kindEncoders[t.Kind()]
+				defaultEnc = r.kindEncoders[t.Kind()]
 			}
 			return newCondAddrEncoder(ienc.ve, defaultEnc), true
 		}
@@ -443,7 +439,7 @@ func (r *Registry) lookupInterfaceDecoder(t reflect.Type, allowAddr bool) (Value
 			// in interfaceDecoders
 			defaultDec, found := r.lookupInterfaceDecoder(t, false)
 			if !found {
-				defaultDec, _ = r.kindDecoders[t.Kind()]
+				defaultDec = r.kindDecoders[t.Kind()]
 			}
 			return newCondAddrDecoder(idec.vd, defaultDec), true
 		}

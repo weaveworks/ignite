@@ -30,9 +30,11 @@ const (
 	CreateNetworkInterfacesHandlerName = "fcinit.CreateNetworkInterfaces"
 	AddVsocksHandlerName               = "fcinit.AddVsocks"
 	SetMetadataHandlerName             = "fcinit.SetMetadata"
+	ConfigMmdsHandlerName              = "fcinit.ConfigMmds"
 	LinkFilesToRootFSHandlerName       = "fcinit.LinkFilesToRootFS"
 	SetupNetworkHandlerName            = "fcinit.SetupNetwork"
 	SetupKernelArgsHandlerName         = "fcinit.SetupKernelArgs"
+	CreateBalloonHandlerName           = "fcint.CreateBalloon"
 
 	ValidateCfgHandlerName        = "validate.Cfg"
 	ValidateJailerCfgHandlerName  = "validate.JailerCfg"
@@ -63,7 +65,7 @@ var JailerConfigValidationHandler = Handler{
 			return nil
 		}
 
-		hasRoot := false
+		hasRoot := m.Cfg.InitrdPath != ""
 		for _, drive := range m.Cfg.Drives {
 			if BoolValue(drive.IsRootDevice) {
 				hasRoot = true
@@ -258,6 +260,26 @@ func NewSetMetadataHandler(metadata interface{}) Handler {
 	}
 }
 
+// ConfigMmdsHandler is a named handler that puts the MMDS config into the
+// firecracker process.
+var ConfigMmdsHandler = Handler{
+	Name: ConfigMmdsHandlerName,
+	Fn: func(ctx context.Context, m *Machine) error {
+		return m.setMmdsConfig(ctx, m.Cfg.MmdsAddress, m.Cfg.NetworkInterfaces)
+	},
+}
+
+// NewCreateBalloonHandler is a named handler that put a memory balloon into the
+// firecracker process.
+func NewCreateBalloonHandler(amountMib int64, deflateOnOom bool, StatsPollingIntervals int64) Handler {
+	return Handler{
+		Name: CreateBalloonHandlerName,
+		Fn: func(ctx context.Context, m *Machine) error {
+			return m.CreateBalloon(ctx, amountMib, deflateOnOom, StatsPollingIntervals)
+		},
+	}
+}
+
 var defaultFcInitHandlerList = HandlerList{}.Append(
 	SetupNetworkHandler,
 	SetupKernelArgsHandler,
@@ -269,6 +291,7 @@ var defaultFcInitHandlerList = HandlerList{}.Append(
 	AttachDrivesHandler,
 	CreateNetworkInterfacesHandler,
 	AddVsocksHandler,
+	ConfigMmdsHandler,
 )
 
 var defaultValidationHandlerList = HandlerList{}.Append(

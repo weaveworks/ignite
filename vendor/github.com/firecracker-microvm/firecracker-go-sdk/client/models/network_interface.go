@@ -30,9 +30,6 @@ import (
 // swagger:model NetworkInterface
 type NetworkInterface struct {
 
-	// If this field is set, the device model will reply to HTTP GET requests sent to the MMDS address via this interface. In this case, both ARP requests for 169.254.169.254 and TCP segments heading to the same address are intercepted by the device model, and do not reach the associated TAP device.
-	AllowMmdsRequests bool `json:"allow_mmds_requests,omitempty"`
-
 	// guest mac
 	GuestMac string `json:"guest_mac,omitempty"`
 

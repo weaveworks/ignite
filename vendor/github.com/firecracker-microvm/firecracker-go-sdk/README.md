@@ -1,7 +1,7 @@
 A basic Go interface to the Firecracker API
 ====
 
-[![Build status](https://badge.buildkite.com/de08ca676829bedbf6de040c2c2ba1a5d2892e220997c2abdd.svg?branch=master)](https://buildkite.com/firecracker-microvm/firecracker-go-sdk)
+[![Build status](https://badge.buildkite.com/de08ca676829bedbf6de040c2c2ba1a5d2892e220997c2abdd.svg?branch=main)](https://buildkite.com/firecracker-microvm/firecracker-go-sdk)
 [![GoDoc](https://godoc.org/github.com/firecracker-microvm/firecracker-go-sdk?status.svg)](https://godoc.org/github.com/firecracker-microvm/firecracker-go-sdk)
 
 This package is a Go library to interact with the Firecracker API. It
@@ -160,10 +160,10 @@ to report problems, discuss roadmap items, or make feature requests.
 If you've discovered an issue that may have security implications to
 users or developers of this software, please do not report it using
 GitHub issues, but instead follow
-[Firecracker's security reporting guidelines](https://github.com/firecracker-microvm/firecracker/blob/master/SECURITY-POLICY.md).
+[Firecracker's security reporting guidelines](https://github.com/firecracker-microvm/firecracker/blob/main/SECURITY.md).
 
 Other discussion: For general discussion, please join us in the
-`#general` channel on the [Firecracker Slack](https://tinyurl.com/firecracker-microvm).
+`#general` channel on the [Firecracker Slack](https://join.slack.com/t/firecracker-microvm/shared_invite/zt-oxbm7tqt-GLlze9zZ7sdRSDY6OnXXHg).
 
 License
 ====
