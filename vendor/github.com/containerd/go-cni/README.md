@@ -1,6 +1,9 @@
-[![Build Status](https://travis-ci.org/containerd/go-cni.svg?branch=master)](https://travis-ci.org/containerd/go-cni) [![GoDoc](https://godoc.org/github.com/containerd/go-cni?status.svg)](https://godoc.org/github.com/containerd/go-cni)
-
 # go-cni
+
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/containerd/go-cni)](https://pkg.go.dev/github.com/containerd/go-cni)
+[![Build Status](https://github.com/containerd/go-cni/workflows/CI/badge.svg)](https://github.com/containerd/go-cni/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/containerd/go-cni/branch/main/graph/badge.svg)](https://codecov.io/gh/containerd/go-cni)
+[![Go Report Card](https://goreportcard.com/badge/github.com/containerd/go-cni)](https://goreportcard.com/report/github.com/containerd/go-cni)
 
 A generic CNI library to provide APIs for CNI plugin interactions. The library provides APIs to:
 
@@ -8,6 +11,7 @@ A generic CNI library to provide APIs for CNI plugin interactions. The library p
 - Setup networks for container namespace
 - Remove networks from container namespace
 - Query status of CNI network plugin initialization
+- Check verifies the network is still in desired state
 
 go-cni aims to support plugins that implement [Container Network Interface](https://github.com/containernetworking/cni)
 
@@ -85,8 +89,8 @@ func main() {
 The go-cni is a containerd sub-project, licensed under the [Apache 2.0 license](./LICENSE).
 As a containerd sub-project, you will find the:
 
- * [Project governance](https://github.com/containerd/project/blob/master/GOVERNANCE.md),
- * [Maintainers](https://github.com/containerd/project/blob/master/MAINTAINERS),
- * and [Contributing guidelines](https://github.com/containerd/project/blob/master/CONTRIBUTING.md)
+ * [Project governance](https://github.com/containerd/project/blob/main/GOVERNANCE.md),
+ * [Maintainers](https://github.com/containerd/project/blob/main/MAINTAINERS),
+ * and [Contributing guidelines](https://github.com/containerd/project/blob/main/CONTRIBUTING.md)
 
 information in our [`containerd/project`](https://github.com/containerd/project) repository.
