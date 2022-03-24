@@ -1,4 +1,4 @@
-FROM alpine:3.9
+FROM alpine:3.14.4
 
 # TODO: This VM image does not work quite yet
 # Install common utilities
