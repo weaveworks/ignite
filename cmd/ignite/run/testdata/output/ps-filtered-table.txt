@@ -1,2 +1,2 @@
 VM ID			IMAGE		KERNEL		SIZE	CPUS	MEMORY	CREATED	STATUS	IPS	PORTS	NAME
-bfc80c948b1e2419	foo/bar:latest	foo/bar:latest	0 B	0	0 B	21y ago	Stopped			vm2
+bfc80c948b1e2419	foo/bar:latest	foo/bar:latest	0 B	0	0 B	22y ago	Stopped			vm2
