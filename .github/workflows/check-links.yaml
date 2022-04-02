@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v2
 
       # Check top-level markdown files
-      - uses: gaurav-nelson/github-action-markdown-link-check@v1
+      - uses: gaurav-nelson/github-action-markdown-link-check@1.0.12
         with:
           max-depth: '0'
           use-verbose-mode: 'yes'
