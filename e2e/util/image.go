@@ -4,6 +4,7 @@ import (
 	"os/exec"
 
 	"github.com/weaveworks/ignite/pkg/runtime"
+	"github.com/weaveworks/ignite/pkg/runtime/containerd"
 )
 
 // RmiDocker removes an image from docker content store.
@@ -16,8 +17,10 @@ func RmiDocker(img string) {
 
 // RmiContainerd removes an image from containerd content store.
 func RmiContainerd(img string) {
+	socketAddr, _ := containerd.StatContainerdSocket()
 	_, _ = exec.Command(
-		"ctr", "-n", "firecracker",
+		"ctr", "-a", socketAddr,
+		"-n", "firecracker",
 		"image", "rm", img,
 	).CombinedOutput()
 }
