@@ -82,8 +82,8 @@ type ctdClient struct {
 
 var _ runtime.Interface = &ctdClient{}
 
-// statContainerdSocket returns the first existing file in the containerdSocketLocations list
-func statContainerdSocket() (string, error) {
+// StatContainerdSocket returns the first existing file in the containerdSocketLocations list
+func StatContainerdSocket() (string, error) {
 	for _, socket := range containerdSocketLocations {
 		if _, err := os.Stat(socket); err == nil {
 			return socket, nil
@@ -125,7 +125,7 @@ func getNewestAvailableContainerdRuntime() (string, error) {
 
 // GetContainerdClient builds a client for talking to containerd
 func GetContainerdClient() (*ctdClient, error) {
-	ctdSocket, err := statContainerdSocket()
+	ctdSocket, err := StatContainerdSocket()
 	if err != nil {
 		return nil, err
 	}
@@ -857,7 +857,7 @@ func (cc *ctdClient) RawClient() interface{} {
 type containerdSocketChecker struct{}
 
 func (ctdsc containerdSocketChecker) Check() error {
-	_, err := statContainerdSocket()
+	_, err := StatContainerdSocket()
 	return err
 }
 func (ctdsc containerdSocketChecker) Name() string {
