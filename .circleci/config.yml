@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202201-02
     environment:
       # Flag that this is a CI build to the Makefile
       IS_CI_BUILD: 1
@@ -18,7 +18,7 @@ jobs:
     # TODO: Push to a dev registry
   test:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202201-02
     steps:
     # Checkout the repo
     - checkout
