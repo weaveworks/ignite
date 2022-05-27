@@ -33,8 +33,7 @@ func (f *IDNameFilter) FilterMeta(object runtime.Object) (filterer.Match, error)
 	if len(f.kind) == 0 {
 		f.kind = object.GetKind() // reflect.Indirect(reflect.ValueOf(object)).Type().Name()
 	}
-
-	if matches, exact := util.MatchPrefix(f.prefix, string(object.GetUID()), object.GetName()); len(matches) > 0 {
+	if matches, exact := util.MatchPrefix(f.prefix, string(object.GetUID())); len(matches) > 0 || f.prefix == object.GetName() {
 		return &IDNameMatch{
 			filterer.NewMatch(object, exact),
 			matches,
