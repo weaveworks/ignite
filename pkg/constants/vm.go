@@ -45,7 +45,7 @@ const (
 	IGNITE_INTERFACE_ANNOTATION = "ignite.weave.works/interface/"
 
 	// IGNITE_SANDBOX_ENV_VAR is the annotation prefix to store a list of env variables
-	IGNITE_SANDBOX_ENV_VAR = "ignite.weave.works/sandbox-env/"
+	IGNITE_SANDBOX_ENV_VAR = "ignite.weave.works/sanbox-env/"
 
 	// IGNITE_SPAWN_TIMEOUT determines how long to wait for spawn to start up
 	IGNITE_SPAWN_TIMEOUT = 2 * time.Minute
