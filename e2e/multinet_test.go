@@ -23,7 +23,7 @@ import (
 
 var (
 	multinetVM  = "e2e-test-vm-multinet"
-	sandboxImage = "weaveworks/ignite:dev"
+	sanboxImage = "weaveworks/ignite:dev"
 	kernelImage = "weaveworks/ignite-kernel:5.10.51"
 	vmImage     = "weaveworks/ignite-ubuntu"
 )
@@ -44,9 +44,9 @@ func startAsyncVM(t *testing.T, intfs []string) (*operations.VMChannels, string)
 	vm.Status.Runtime.Name = runtime.RuntimeDocker
 	vm.Status.Network.Plugin = network.PluginDockerBridge
 
-	ociRef, err := meta.NewOCIImageRef(sandboxImage)
+	ociRef, err := meta.NewOCIImageRef(sanboxImage)
 	if err != nil {
-		t.Fatalf("Failed to parse OCI image ref %s: %s", sandboxImage, err)
+		t.Fatalf("Failed to parse OCI image ref %s: %s", sanboxImage, err)
 	}
 	vm.Spec.Sandbox.OCI = ociRef
 
@@ -223,7 +223,7 @@ func TestMultipleInterfaceImplicit(t *testing.T) {
 	dockerCmd.New().
 		With("exec", fmt.Sprintf("ignite-%s", vmID)).
 		With("ip", "link", "set", "bar", "address", barAddr).
-		Run()sanboxImage
+		Run()
 
 	// this interface should never be found inside a VM
 	bazAddr := "aa:ca:e9:12:34:90"
