@@ -120,6 +120,9 @@ ifeq ($(GOARCH),$(GOHOSTARCH))
 	ln -sf ./$(GOARCH)/$* bin/$*
 endif
 
+# Deafault containerd namespace is firecracker
+# If you want to change this value, you also need to change the definition of this value in the file pkg/runtime/containerd/client.go
+CTD_NAMESPACE = firecracker
 .PHONY: bin/$(GOARCH)/Dockerfile
 image: bin/$(GOARCH)/Dockerfile
 bin/$(GOARCH)/Dockerfile: qemu
@@ -135,24 +138,24 @@ endif
 		--build-arg FIRECRACKER_VERSION=${FIRECRACKER_VERSION} \
 		--build-arg FIRECRACKER_ARCH_SUFFIX=${FIRECRACKER_ARCH_SUFFIX} bin/$(GOARCH)
 	$(DOCKER) image save $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) \
-		| $(CTR) -n firecracker image import -
+		| $(CTR) -n $(CTD_NAMESPACE) image import -
 ifeq ($(GOARCH),$(GOHOSTARCH))
 	# Only tag the development image if its architecture matches the host
 	$(DOCKER) tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_DEV_TAG}
 	$(DOCKER) image save $(IMAGE):${IMAGE_DEV_TAG} \
-		| $(CTR) -n firecracker image import -
+		| $(CTR) -n $(CTD_NAMESPACE) image import -
 endif
 ifneq (${IMAGE_TAG},)
 ifeq ($(IS_DIRTY),0)
 	$(DOCKER) tag $(IMAGE):${IMAGE_DEV_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}-$(GOARCH)
 	$(DOCKER) image save $(IMAGE):${IMAGE_TAG}-$(GOARCH) \
-		| $(CTR) -n firecracker image import -
+		| $(CTR) -n $(CTD_NAMESPACE) image import -
 ifeq ($(GOARCH),$(GOHOSTARCH))
 	# For dev builds for a clean (non-dirty) environment; "simulate" that
 	# a manifest list has been built by tagging the docker image
 	$(DOCKER) tag $(IMAGE):${IMAGE_TAG}-$(GOARCH) $(IMAGE):${IMAGE_TAG}
 	$(DOCKER) image save $(IMAGE):${IMAGE_TAG} \
-		| $(CTR) -n firecracker image import -
+		| $(CTR) -n $(CTD_NAMESPACE) image import -
 endif
 endif
 ifeq ($(IS_CI_BUILD),1)
