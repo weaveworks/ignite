@@ -1,6 +1,7 @@
 package vmcmd
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
@@ -15,6 +16,17 @@ import (
 	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
 	"github.com/weaveworks/ignite/pkg/version"
 )
+
+
+func checkCPUs(num uint64) bool {
+	if num == 0 || num > 32 {
+		return false
+	}
+	if num & '1' != 0 && num != 1 {
+		return false
+	}
+	return true
+}
 
 // NewCmdCreate creates a new VM given an image and a kernel
 func NewCmdCreate(out io.Writer) *cobra.Command {
@@ -48,6 +60,9 @@ func NewCmdCreate(out io.Writer) *cobra.Command {
 		Args: cobra.RangeArgs(0, 1),
 		Run: func(cmd *cobra.Command, args []string) {
 			cmdutil.CheckErr(func() error {
+				if !checkCPUs(cf.VM.Spec.CPUs){
+					return errors.New("VM vCPU count, 1 or even numbers between 1 and 32")
+				}
 				co, err := cf.NewCreateOptions(args, cmd.Flags())
 				if err != nil {
 					return err
