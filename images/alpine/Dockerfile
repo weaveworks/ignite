@@ -2,7 +2,7 @@ FROM scratch
 # Bases on the alpine edge tar file
 ADD alpine.tar /
 # Add an SSH server and start it automatically
-RUN apk add \
+RUN apk add --no-cache \
         openssh \
         openrc \
         util-linux \
@@ -24,3 +24,6 @@ RUN echo root:root | chpasswd
 RUN ln -s /etc/init.d/agetty /etc/init.d/agetty.ttyS0
 RUN ln -s /etc/init.d/agetty.ttyS0 /etc/runlevels/default
 RUN ln -s /etc/init.d/agetty.ttyS0 /etc/runlevels/nonetwork
+# remove unused getty processes
+RUN sed -i "s/^tty/#tty/g" /etc/inittab
+RUN echo "Welcome to Ignite Alpine !" > /etc/motd
