@@ -4,13 +4,18 @@ DOCKER_USER?=weaveworks
 
 all: build
 
-alpine.ext4:
-	curl -sSL https://s3.amazonaws.com/spec.ccfc.min/img/hello/fsfiles/hello-rootfs.ext4 > alpine.ext4
+#alpine.ext4:
+#	curl -sSL https://s3.amazonaws.com/spec.ccfc.min/img/hello/fsfiles/hello-rootfs.ext4 > alpine.ext4
 
-alpine.tar: alpine.ext4
-	sudo mount -o loop $(shell pwd)/alpine.ext4 ${TEMP_DIR}
-	cd ${TEMP_DIR} && sudo tar -cf $(shell pwd)/alpine.tar .
-	sudo umount $(shell pwd)/alpine.ext4
+#alpine.tar: alpine.ext4
+#	sudo mount -o loop $(shell pwd)/alpine.ext4 ${TEMP_DIR}
+#	cd ${TEMP_DIR} && sudo tar -cf $(shell pwd)/alpine.tar .
+#	sudo umount $(shell pwd)/alpine.ext4
+
+alpine.tar:
+	curl -sSL https://github.com/alpinelinux/docker-alpine/raw/edge/x86_64/alpine-minirootfs-20220328-x86_64.tar.gz > alpine.tar.gz
+	gzip -d alpine.tar.gz
+
 #  alpine.tar
 build:
 	docker build -t ${DOCKER_USER}/ignite-alpine:${VERSION} .
