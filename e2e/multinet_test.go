@@ -23,7 +23,7 @@ import (
 
 var (
 	multinetVM  = "e2e-test-vm-multinet"
-	sanboxImage = "weaveworks/ignite:dev"
+	sandboxImage = "weaveworks/ignite:dev"
 	kernelImage = "weaveworks/ignite-kernel:5.10.51"
 	vmImage     = "weaveworks/ignite-ubuntu"
 )
@@ -44,9 +44,9 @@ func startAsyncVM(t *testing.T, intfs []string) (*operations.VMChannels, string)
 	vm.Status.Runtime.Name = runtime.RuntimeDocker
 	vm.Status.Network.Plugin = network.PluginDockerBridge
 
-	ociRef, err := meta.NewOCIImageRef(sanboxImage)
+	ociRef, err := meta.NewOCIImageRef(sandboxImage)
 	if err != nil {
-		t.Fatalf("Failed to parse OCI image ref %s: %s", sanboxImage, err)
+		t.Fatalf("Failed to parse OCI image ref %s: %s", sandboxImage, err)
 	}
 	vm.Spec.Sandbox.OCI = ociRef
 
