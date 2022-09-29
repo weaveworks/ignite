@@ -1,5 +1,6 @@
-ARG DIGEST
-FROM rockylinux/rockylinux@sha256:${DIGEST}
+ARG RELEASE=8
+
+FROM DOCKERARCH/rockylinux:${RELEASE}
 
 # If we're building for another architecture than amd64, this let's us emulate an other platform's docker build.
 # If we're building normally, for amd64, this line is removed
@@ -19,7 +20,7 @@ RUN dnf -y install --setopt=install_weak_deps=False --setopt=tsflags=nodocs \
     dnf clean all
 
 # Create the following files, but unset them
-RUN echo "" > /etc/machine-id && echo "" > /var/lib/dbus/machine-id
+RUN echo "" > /etc/machine-id && mkdir -p /var/lib/dbus/ && echo "" > /var/lib/dbus/machine-id
 
 # This container image doesn't have locales installed. Disable forwarding the
 # user locale env variables or we get warnings such as:
