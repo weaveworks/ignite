@@ -88,7 +88,7 @@ Right now it's expected that the nodes are in state `NotReady`, as CNI networkin
 We're going to use [Weave Net](https://github.com/weaveworks/weave).
 
 ```bash
-kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
+kubectl apply -f "https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml"
 ```
 
 With this, the nodes should transition into the `Ready` state in a minute or so.
