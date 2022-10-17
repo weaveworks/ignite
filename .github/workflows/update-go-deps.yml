@@ -25,7 +25,7 @@ jobs:
           make go-autogen
       - name: Create pull request
         id: cpr
-        uses: peter-evans/create-pull-request@v4.0.1
+        uses: peter-evans/create-pull-request@v4.1.4
         with:
           commit-message: "[automated] Update go dependencies"
           branch: go-deps-patch
