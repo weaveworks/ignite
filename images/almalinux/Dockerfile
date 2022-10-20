@@ -21,7 +21,7 @@ RUN dnf -y install --setopt=install_weak_deps=False --setopt=tsflags=nodocs \
     dnf clean all
 
 # Create the following files, but unset them
-RUN echo "" > /etc/machine-id && echo "" > /var/lib/dbus/machine-id
+RUN echo "" > /etc/machine-id && mkdir -p /var/lib/dbus/ && echo "" > /var/lib/dbus/machine-id
 
 # This container image doesn't have locales installed. Disable forwarding the
 # user locale env variables or we get warnings such as:
