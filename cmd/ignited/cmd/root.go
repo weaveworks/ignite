@@ -15,7 +15,8 @@ import (
 	logflag "github.com/weaveworks/ignite/pkg/logs/flag"
 	networkflag "github.com/weaveworks/ignite/pkg/network/flag"
 	"github.com/weaveworks/ignite/pkg/providers"
-	"github.com/weaveworks/ignite/pkg/providers/ignite"
+	"github.com/weaveworks/ignite/pkg/providers/ignited"
+	"github.com/weaveworks/ignite/pkg/util"
 	runtimeflag "github.com/weaveworks/ignite/pkg/runtime/flag"
 	versioncmd "github.com/weaveworks/ignite/pkg/version/cmd"
 )
@@ -34,12 +35,27 @@ func NewIgnitedCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 			// Set the desired logging level, now that the flags are parsed
 			logs.Logger.SetLevel(logLevel)
 
+			if isNonRootCommand(cmd.Name(), cmd.Parent().Name()) {
+				return
+			}
+
+			// Ignited needs to run as root for now, see
+			// https://github.com/weaveworks/ignite/issues/46
+			// TODO: Remove this when ready
+			util.GenericCheckErr(util.TestRoot())
+
+			// Create the directories needed for running
+			util.GenericCheckErr(util.CreateDirectories())
+
+			// Preload necessary providers
+			util.GenericCheckErr(providers.Populate(ignited.Preload))
+
 			if err := config.ApplyConfiguration(configPath); err != nil {
 				log.Fatal(err)
 			}
 
 			// Populate the providers after flags have been parsed
-			if err := providers.Populate(ignite.Providers); err != nil {
+			if err := providers.Populate(ignited.Providers); err != nil {
 				log.Fatal(err)
 			}
 		},
@@ -58,6 +74,19 @@ func NewIgnitedCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 	root.AddCommand(NewCmdDaemon(os.Stdout))
 	root.AddCommand(versioncmd.NewCmdVersion(os.Stdout))
 	return root
+}
+
+func isNonRootCommand(cmd string, parentCmd string) bool {
+	if parentCmd != "ignited" {
+		return false
+	}
+
+	switch cmd {
+	case "version", "help", "completion":
+		return true
+	}
+
+	return false
 }
 
 func addGlobalFlags(fs *pflag.FlagSet) {
