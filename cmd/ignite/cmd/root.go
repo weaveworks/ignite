@@ -39,8 +39,6 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 			// Set the desired logging level, now that the flags are parsed
 			logs.Logger.SetLevel(logLevel)
 
-			// TODO Some commands do not need to check root
-			// Currently it seems to be only ignite version that does not require root
 			if isNonRootCommand(cmd.Name(), cmd.Parent().Name()) {
 				return
 			}
@@ -52,6 +50,9 @@ func NewIgniteCommand(in io.Reader, out, err io.Writer) *cobra.Command {
 
 			// Create the directories needed for running
 			util.GenericCheckErr(util.CreateDirectories())
+
+			// Preload necessary providers
+			util.GenericCheckErr(providers.Populate(ignite.Preload))
 
 			if err := config.ApplyConfiguration(configPath); err != nil {
 				log.Fatal(err)
