@@ -354,8 +354,17 @@ github.com/hashicorp/go-multierror
 github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.0.0
 github.com/inconshreveable/mousetrap
+# github.com/insomniacslk/dhcp v0.0.0-20221215072855-de60144f33f8
+## explicit
+github.com/insomniacslk/dhcp/dhcpv4
+github.com/insomniacslk/dhcp/dhcpv6
+github.com/insomniacslk/dhcp/iana
+github.com/insomniacslk/dhcp/interfaces
+github.com/insomniacslk/dhcp/rfc1035label
 # github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99
 github.com/jbenet/go-context/io
+# github.com/josharian/native v1.0.1-0.20221213033349-c1e37c09b531
+github.com/josharian/native
 # github.com/json-iterator/go v1.1.10
 github.com/json-iterator/go
 # github.com/kevinburke/ssh_config v0.0.0-20190725054713-01f96b0aa0cd
@@ -464,6 +473,9 @@ github.com/spf13/pflag
 # github.com/stretchr/testify v1.6.1
 ## explicit
 github.com/stretchr/testify/assert
+# github.com/u-root/uio v0.0.0-20221213070652-c3537552635f
+github.com/u-root/uio/rand
+github.com/u-root/uio/uio
 # github.com/vishvananda/netlink v1.1.0 => github.com/twelho/netlink v1.1.1-ageing
 ## explicit
 github.com/vishvananda/netlink
@@ -550,7 +562,7 @@ golang.org/x/net/trace
 # golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 golang.org/x/sync/errgroup
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.0.0-20211019181941-9d821ace8654
+# golang.org/x/sys v0.0.0-20220622161953-175b2fd9d664
 ## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs

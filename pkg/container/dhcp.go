@@ -5,6 +5,7 @@ import (
 	"net"
 	"time"
 
+	// "github.com/insomniacslk/dhcp/dhcpv6"
 	dhcp "github.com/krolaw/dhcp4"
 	"github.com/krolaw/dhcp4/conn"
 	"github.com/miekg/dns"
@@ -35,7 +36,7 @@ func StartDHCPServers(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 
 		go func() {
 			log.Infof("Starting DHCP server for interface %q (%s)\n", dhcpIface.Bridge, dhcpIface.VMIPNet.IP)
-			if err := dhcpIface.StartBlockingServer(); err != nil {
+			if err := dhcpIface.StartBlockingServerV4(); err != nil {
 				log.Errorf("%q DHCP server error: %v\n", dhcpIface.Bridge, err)
 			}
 		}()
@@ -54,8 +55,8 @@ type DHCPInterface struct {
 	dnsServers []byte
 }
 
-// StartBlockingServer starts a blocking DHCP server on port 67
-func (i *DHCPInterface) StartBlockingServer() error {
+// StartBlockingServerV4 starts a blocking DHCPv4 server on port 67
+func (i *DHCPInterface) StartBlockingServerV4() error {
 	packetConn, err := conn.NewUDP4BoundListener(i.Bridge, ":67")
 	if err != nil {
 		return err
