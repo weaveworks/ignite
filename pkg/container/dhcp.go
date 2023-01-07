@@ -46,13 +46,14 @@ func StartDHCPServers(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 }
 
 type DHCPInterface struct {
-	VMIPNet    *net.IPNet
-	GatewayIP  *net.IP
-	VMTAP      string
-	Bridge     string
-	Hostname   string
-	MACFilter  string
-	dnsServers []byte
+	VMIPNet      *net.IPNet
+	GatewayIP    *net.IP
+	VMTAP        string
+	Bridge       string
+	Hostname     string
+	MACFilter    string
+	dnsv4Servers []byte
+	dnsv6Servers []byte
 }
 
 // StartBlockingServerV4 starts a blocking DHCPv4 server on port 67
@@ -83,7 +84,7 @@ func (i *DHCPInterface) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, optio
 			opts := dhcp.Options{
 				dhcp.OptionSubnetMask:       []byte(i.VMIPNet.Mask),
 				dhcp.OptionRouter:           []byte(*i.GatewayIP),
-				dhcp.OptionDomainNameServer: i.dnsServers,
+				dhcp.OptionDomainNameServer: i.dnsv4Servers,
 				dhcp.OptionHostName:         []byte(i.Hostname),
 			}
 
@@ -99,6 +100,14 @@ func (i *DHCPInterface) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, optio
 // Parse the DNS servers for the DHCP server
 func (i *DHCPInterface) SetDNSServers(dns []string) {
 	for _, server := range dns {
-		i.dnsServers = append(i.dnsServers, []byte(net.ParseIP(server).To4())...)
+
+		if ipv4 := net.ParseIP(server).To4(); ipv4 != nil {
+			i.dnsv4Servers = append(i.dnsv4Servers, ipv4...)
+		} else if ipv6 := net.ParseIP(server).To16(); ipv6 != nil {
+			i.dnsv6Servers = append(i.dnsv4Servers, ipv6...)
+		} else {
+			log.Errorf("failed to parse dns %v as either ipv4 or ipv6", server)
+		}
+
 	}
 }
