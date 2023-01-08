@@ -83,7 +83,7 @@ func (i *DHCPInterface) StartBlockingServerV6() error {
 	if err != nil {
 		return err
 	}
-	
+
 	c := internalv6.Config{Interface: interf}
 	return internalv6.RunDHCPv6Server(context.TODO(), log.StandardLogger(), c)
 }
