@@ -1,17 +1,18 @@
 package container
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"time"
 
-	// "github.com/insomniacslk/dhcp/dhcpv6"
 	dhcp "github.com/krolaw/dhcp4"
 	"github.com/krolaw/dhcp4/conn"
 	"github.com/miekg/dns"
 	log "github.com/sirupsen/logrus"
 	api "github.com/weaveworks/ignite/pkg/apis/ignite"
 	"github.com/weaveworks/ignite/pkg/constants"
+	internalv6 "github.com/weaveworks/ignite/pkg/container/dhcpv6"
 )
 
 var leaseDuration, _ = time.ParseDuration(constants.DHCP_INFINITE_LEASE) // Infinite lease time
@@ -35,11 +36,19 @@ func StartDHCPServers(vm *api.VM, dhcpIfaces []DHCPInterface) error {
 		dhcpIface.SetDNSServers(clientConfig.Servers)
 
 		go func() {
-			log.Infof("Starting DHCP server for interface %q (%s)\n", dhcpIface.Bridge, dhcpIface.VMIPNet.IP)
+			log.Infof("Starting DHCPv4 server for interface %q (%s)\n", dhcpIface.Bridge, dhcpIface.VMIPNet.IP)
 			if err := dhcpIface.StartBlockingServerV4(); err != nil {
-				log.Errorf("%q DHCP server error: %v\n", dhcpIface.Bridge, err)
+				log.Errorf("%q DHCPv4 server error: %v\n", dhcpIface.Bridge, err)
 			}
 		}()
+
+		go func() {
+			log.Infof("Starting DHCPv6 server for interface %q (%s)\n", dhcpIface.Bridge, dhcpIface.VMIPNet.IP)
+			if err := dhcpIface.StartBlockingServerV6(); err != nil {
+				log.Errorf("%q DHCPv6 server error: %v\n", dhcpIface.Bridge, err)
+			}
+		}()
+
 	}
 
 	return nil
@@ -66,6 +75,19 @@ func (i *DHCPInterface) StartBlockingServerV4() error {
 	return dhcp.Serve(packetConn, i)
 }
 
+// StartBlockingServerV6 starts a blocking DHCPv6 server on port 547
+func (i *DHCPInterface) StartBlockingServerV6() error {
+
+	interf, err := net.InterfaceByName(i.Bridge)
+
+	if err != nil {
+		return err
+	}
+	
+	c := internalv6.Config{Interface: interf}
+	return internalv6.RunDHCPv6Server(context.TODO(), log.StandardLogger(), c)
+}
+
 // ServeDHCP responds to a DHCP request
 func (i *DHCPInterface) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, options dhcp.Options) dhcp.Packet {
 	var respMsg dhcp.MessageType
@@ -77,7 +99,7 @@ func (i *DHCPInterface) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, optio
 		respMsg = dhcp.ACK
 	}
 
-	//fmt.Printf("Packet %v, Request: %s, Options: %v, Response: %v\n", p, msgType.String(), options, respMsg.String())
+	log.Debugf("Packet %v, Request: %s, Options: %v, Response: %v\n", p, msgType.String(), options, respMsg.String())
 	if respMsg != 0 {
 		requestingMAC := p.CHAddr().String()
 		if requestingMAC == i.MACFilter {
@@ -89,7 +111,7 @@ func (i *DHCPInterface) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, optio
 			}
 
 			optSlice := opts.SelectOrderOrAll(options[dhcp.OptionParameterRequestList])
-			//fmt.Printf("Response: %s, Source %s, Client: %s, Options: %v, MAC: %s\n", respMsg.String(), i.GatewayIP.String(), i.VMIPNet.IP.String(), optSlice, requestingMAC)
+			log.Debugf("Response: %s, Source %s, Client: %s, Options: %v, MAC: %s\n", respMsg.String(), i.GatewayIP.String(), i.VMIPNet.IP.String(), optSlice, requestingMAC)
 			return dhcp.ReplyPacket(p, respMsg, *i.GatewayIP, i.VMIPNet.IP, leaseDuration, optSlice)
 		}
 	}
