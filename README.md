@@ -1,3 +1,7 @@
+# Deprecated
+
+This repository is no longer maintained. For a more up-to-date way to manage microVMs, please take a look at [Flintlock](https://github.com/weaveworks-liquidmetal/flintlock).
+
 # Weave Ignite
 
 <img width="300" align="right" alt="Ignite Logo" src="https://raw.githubusercontent.com/weaveworks/ignite/master/docs/logo.png">
