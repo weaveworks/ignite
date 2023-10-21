@@ -22,7 +22,7 @@ require (
 	github.com/containers/image v3.0.2+incompatible
 	github.com/coreos/go-iptables v0.4.5
 	github.com/docker/cli v0.0.0-20200130152716-5d0cf8839492
-	github.com/docker/docker v20.10.6+incompatible
+	github.com/docker/docker v20.10.24+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/firecracker-microvm/firecracker-go-sdk v0.22.0
 	github.com/freddierice/go-losetup v0.0.0-20170407175016-fc9adea44124
@@ -31,7 +31,6 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
-	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/krolaw/dhcp4 v0.0.0-20190909130307-a50d88189771
 	github.com/lithammer/dedent v1.1.0
 	github.com/miekg/dns v1.1.29
