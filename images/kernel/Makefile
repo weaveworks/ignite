@@ -29,12 +29,12 @@ REGISTRY?=weaveworks
 IMAGE_NAME?=${REGISTRY}/ignite-kernel
 KERNEL_BUILDER_NAME=${REGISTRY}/ignite-kernel-builder
 # Check https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/refs/ for updates
-KERNEL_VERSIONS ?= 4.14.254 4.19.215 5.4.157 5.10.77 5.14.16 # If you update this, please keep the .github/workflows/release-kernel-images.yml matrix up to date
+KERNEL_VERSIONS ?= 4.14.254 4.19.215 5.4.157 5.10.77 5.14.16 5.18.8 # If you update this, please keep the .github/workflows/release-kernel-images.yml matrix up to date
 GOARCH?=amd64
 GOARCH_LIST = amd64 arm64
 
 ifeq ($(GOARCH),amd64)
-KERNEL_ARCH=x86
+KERNEL_ARCH=x86_64
 VMLINUX_PATH=vmlinux
 endif
 ifeq ($(GOARCH),arm64)

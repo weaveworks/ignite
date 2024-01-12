@@ -1,9 +1,11 @@
 FROM scratch
-# TODO: Base this on the alpine docker image, not the FC ext4 image
+# Bases on the alpine edge tar file
 ADD alpine.tar /
 # Add an SSH server and start it automatically
-RUN apk add \
+RUN apk add --no-cache \
         openssh \
+        openrc \
+        util-linux \
         udev \
         bash
 
@@ -16,3 +18,12 @@ RUN rc-update add sshd && \
 RUN echo "exit 0" > /etc/init.d/networking
 RUN echo "PermitTTY yes" >> /etc/ssh/sshd_config
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+# set the default root password for agetty
+RUN echo root:root | chpasswd
+# configure agetty
+RUN ln -s /etc/init.d/agetty /etc/init.d/agetty.ttyS0
+RUN ln -s /etc/init.d/agetty.ttyS0 /etc/runlevels/default
+RUN ln -s /etc/init.d/agetty.ttyS0 /etc/runlevels/nonetwork
+# remove unused getty processes
+RUN sed -i "s/^tty/#tty/g" /etc/inittab
+RUN echo "Welcome to Ignite Alpine !" > /etc/motd
