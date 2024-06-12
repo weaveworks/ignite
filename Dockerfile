@@ -5,8 +5,11 @@ FROM BASEIMAGE AS build
 COPY qemu-QEMUARCH-static /usr/bin/
 
 # device-mapper is needed for snapshot functionalities
+# openssl and wget needes to be updated.
 RUN apk add --no-cache \
-    device-mapper
+    device-mapper \
+    openssl \
+    wget
 
 # Download the Firecracker binary from Github
 ARG FIRECRACKER_VERSION
