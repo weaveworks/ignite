@@ -706,9 +706,15 @@ func (cc *ctdClient) StopContainer(container string, timeout *time.Duration) (er
 	}
 
 	// After sending the signal, start the timer to force-kill the task
-	timeoutC := make(chan error)
+	timeoutC := make(<-chan containerd.ExitStatus)
 	timer := time.AfterFunc(*timeout, func() {
-		timeoutC <- task.Kill(cc.ctx, syscall.SIGQUIT)
+		timeoutC, err = task.Wait(cc.ctx)
+		if err != nil {
+			return
+		}
+		if err = task.Kill(cc.ctx, syscall.SIGQUIT); err != nil {
+			return
+		}
 	})
 
 	// Wait for the task to stop or the timer to fire
@@ -716,7 +722,7 @@ func (cc *ctdClient) StopContainer(container string, timeout *time.Duration) (er
 	case exitStatus := <-waitC:
 		timer.Stop()             // Cancel the force-kill timer
 		err = exitStatus.Error() // TODO: Handle exit code
-	case err = <-timeoutC: // The kill timer has fired
+	case <-timeoutC: // The kill timer has fired
 	}
 
 	// Delete the task
