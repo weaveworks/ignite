@@ -33,7 +33,7 @@ jobs:
           go-version: '1.17.9'
       - name: Build binaries for ${{ env.GOARCH }}
         run: make ignite ignite-spawn ignited bin/${{ env.GOARCH }}/Dockerfile GO_MAKE_TARGET=local GOARCH=${{ env.GOARCH }}
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: ${{ env.GOARCH }} binaries
           path: |
