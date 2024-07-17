@@ -58,9 +58,9 @@ const (
 	sshFxNoMedia                 = 13
 	sshFxNoSpaceOnFilesystem     = 14
 	sshFxQuotaExceeded           = 15
-	sshFxUnlnownPrincipal        = 16
+	sshFxUnknownPrincipal        = 16
 	sshFxLockConflict            = 17
-	sshFxDitNotEmpty             = 18
+	sshFxDirNotEmpty             = 18
 	sshFxNotADirectory           = 19
 	sshFxInvalidFilename         = 20
 	sshFxLinkLoop                = 21
@@ -90,6 +90,7 @@ var (
 	supportedSFTPExtensions = []sshExtensionPair{
 		{"hardlink@openssh.com", "1"},
 		{"posix-rename@openssh.com", "1"},
+		{"statvfs@openssh.com", "2"},
 	}
 	sftpExtensions = supportedSFTPExtensions
 )
@@ -199,15 +200,15 @@ func unimplementedPacketErr(u uint8) error {
 type unexpectedIDErr struct{ want, got uint32 }
 
 func (u *unexpectedIDErr) Error() string {
-	return fmt.Sprintf("sftp: unexpected id: want %v, got %v", u.want, u.got)
+	return fmt.Sprintf("sftp: unexpected id: want %d, got %d", u.want, u.got)
 }
 
 func unimplementedSeekWhence(whence int) error {
-	return errors.Errorf("sftp: unimplemented seek whence %v", whence)
+	return errors.Errorf("sftp: unimplemented seek whence %d", whence)
 }
 
 func unexpectedCount(want, got uint32) error {
-	return errors.Errorf("sftp: unexpected count: want %v, got %v", want, got)
+	return errors.Errorf("sftp: unexpected count: want %d, got %d", want, got)
 }
 
 type unexpectedVersionErr struct{ want, got uint32 }
@@ -238,7 +239,7 @@ func getSupportedExtensionByName(extensionName string) (sshExtensionPair, error)
 			return supportedExtension, nil
 		}
 	}
-	return sshExtensionPair{}, fmt.Errorf("Unsupported extension: %v", extensionName)
+	return sshExtensionPair{}, errors.Errorf("unsupported extension: %s", extensionName)
 }
 
 // SetSFTPExtensions allows to customize the supported server extensions.
