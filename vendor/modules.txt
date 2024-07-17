@@ -162,8 +162,7 @@ github.com/docker/cli/cli/config/types
 # github.com/docker/distribution v2.7.1+incompatible => github.com/docker/distribution v0.0.0-20190711223531-1fb7fffdb266
 github.com/docker/distribution/digestset
 github.com/docker/distribution/reference
-github.com/docker/distribution/registry/api/errcode
-# github.com/docker/docker v20.10.6+incompatible
+# github.com/docker/docker v20.10.24+incompatible
 ## explicit
 github.com/docker/docker/api
 github.com/docker/docker/api/types
@@ -344,8 +343,6 @@ github.com/googleapis/gnostic/openapiv2
 # github.com/goombaio/namegenerator v0.0.0-20181006234301-989e774b106e
 ## explicit
 github.com/goombaio/namegenerator
-# github.com/gorilla/mux v1.7.4
-## explicit
 # github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
 # github.com/hashicorp/go-multierror v1.0.0
