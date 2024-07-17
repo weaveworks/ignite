@@ -1,3 +1,4 @@
+//go:build !windows
 // +build !windows
 
 /*
@@ -34,4 +35,6 @@ const (
 	DefaultFIFODir = "/run/containerd/fifo"
 	// DefaultRuntime is the default linux runtime
 	DefaultRuntime = "io.containerd.runc.v2"
+	// DefaultConfigDir is the default location for config files.
+	DefaultConfigDir = "/etc/containerd"
 )

@@ -24,7 +24,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"path"
 
 	"github.com/containerd/containerd/archive/compression"
@@ -55,12 +54,12 @@ func WithImportCompression() ImportOpt {
 }
 
 // ImportIndex imports an index from a tar archive image bundle
-// - implements Docker v1.1, v1.2 and OCI v1.
-// - prefers OCI v1 when provided
-// - creates OCI index for Docker formats
-// - normalizes Docker references and adds as OCI ref name
-//      e.g. alpine:latest -> docker.io/library/alpine:latest
-// - existing OCI reference names are untouched
+//   - implements Docker v1.1, v1.2 and OCI v1.
+//   - prefers OCI v1 when provided
+//   - creates OCI index for Docker formats
+//   - normalizes Docker references and adds as OCI ref name
+//     e.g. alpine:latest -> docker.io/library/alpine:latest
+//   - existing OCI reference names are untouched
 func ImportIndex(ctx context.Context, store content.Store, reader io.Reader, opts ...ImportOpt) (ocispec.Descriptor, error) {
 	var (
 		tr = tar.NewReader(reader)
@@ -222,12 +221,14 @@ func ImportIndex(ctx context.Context, store content.Store, reader io.Reader, opt
 	return writeManifest(ctx, store, idx, ocispec.MediaTypeImageIndex)
 }
 
+const (
+	kib       = 1024
+	mib       = 1024 * kib
+	jsonLimit = 20 * mib
+)
+
 func onUntarJSON(r io.Reader, j interface{}) error {
-	b, err := ioutil.ReadAll(r)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(b, j)
+	return json.NewDecoder(io.LimitReader(r, jsonLimit)).Decode(j)
 }
 
 func onUntarBlob(ctx context.Context, r io.Reader, store content.Ingester, size int64, ref string) (digest.Digest, error) {
